@@ -30,6 +30,7 @@
 package com.finance.pms.datasources.db;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -399,8 +400,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		Query query = new QuotationQuery(
 				"select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
-						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ?  AND "
-						+ QUOTATIONS.DATE_FIELD + " >=  ?  "+testEndConstraint()+" order by date asc ") {
+						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ? AND "
+						+ QUOTATIONS.DATE_FIELD + " >= ? "+testEndConstraint()+" order by date asc ") {
 
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
@@ -410,7 +411,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
 							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
 							rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
-							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD), ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)]));
+							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD), ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], BigDecimal.ONE));
 				}
 			}
 		};
@@ -447,7 +448,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
 							rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
 							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD),
-							ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)]));
+							ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], BigDecimal.ONE));
 				}
 
 			}
@@ -914,7 +915,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		MyDBConnection scnx = this.getConnection(null);
 		String sqlQueryString = query.getQuery();
 
-		int rs = -1;	
+		int rs = -1;
 		try {
 
 			PreparedStatement pst;
@@ -1328,7 +1329,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	}
 
-	@Deprecated
 	public static class SHARES {
 
 		public static String TABLE_NAME;
@@ -1361,7 +1361,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	}
 
-	@Deprecated
 	public static class PORTFOLIO {
 
 		public static String TABLE_NAME;
@@ -1372,7 +1371,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String CASHOUT_FIELD;
 		public static String NAME_FIELD;
 		public static String MONITOR_FIELD;
-
 
 	}
 

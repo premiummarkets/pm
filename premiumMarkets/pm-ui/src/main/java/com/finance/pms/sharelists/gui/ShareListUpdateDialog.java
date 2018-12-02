@@ -104,18 +104,18 @@ import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.SharesList;
 
 public class ShareListUpdateDialog extends Dialog implements RefreshableView {
-	
+
 	private static final String INDICES = "indices";
 
 	private static final String SHARE_LIST_ID = "shareListId";
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
-	
+
 	private Font biggerFont;
 
 	private Table existingShareLists;
 	private Text quoteProvidersCombo;
-	
+
 	private SharesListId newListSharesListId;
 	private SortedSet<Indice> newListIndices;
 
@@ -136,26 +136,26 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 
 	public ShareListUpdateDialog(Shell parent, LogComposite logComposite) {
-		
+
 		super(new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE));
 		getParent().setText(MainGui.APP_NAME+" - Add or Update a Stock list.");	
-		
+
 		biggerFont = MainGui.DEFAULTFONT;
 		this.logComposite = logComposite;
-		
+
 		initGui();
-		
+
 	}
-	
+
 	protected void initGui() {
-		
+
 		GridLayout layout = new GridLayout();
 		getParent().setLayout(layout);
 		getParent().setBackground(MainGui.pOPUP_BG);
-		
+
 		SortedSet<String> loadShareListNames = new TreeSet<>(PortfolioMgr.getInstance().getPortfolioDAO().loadValidShareListNames());
 		{//Existing
-			
+
 			Group existingGroup = new Group(getParent(), SWT.NONE);	
 			existingGroup.setBackground(MainGui.pOPUP_GRP);
 			existingGroup.setFont(biggerFont);
@@ -172,24 +172,24 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			bgridData.heightHint = 150;
 			existingBounds.setLayoutData(bgridData);
 			existingBounds.setLayout(new GridLayout());
-			
+
 			existingShareLists = new Table(existingBounds, SWT.V_SCROLL | SWT.SINGLE |SWT.FULL_SELECTION);
 			existingShareLists.setHeaderVisible(true);
 			GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			existingShareLists.setLayoutData(layoutData);
 			existingShareLists.setFont(MainGui.CONTENTFONT);
 			existingShareLists.getVerticalBar().setVisible(true);
-			
+
 			String[] titles = {"Market / Stocks List", "Indices", "Description"};
 			for (int i=0; i<titles.length; i++) {
 				TableColumn column = new TableColumn(existingShareLists, SWT.NONE);
 				column.setText(titles [i]);
 			}
-			
+
 			for (String shareListName : loadShareListNames) {
 				String[] shareListSplit = ProvidersList.shareListSplit(shareListName);
 				SharesListId shareListId = SharesListId.valueOf(shareListSplit[0]);
-				
+
 				TableItem item = new TableItem (existingShareLists, SWT.NONE);
 				item.setFont(MainGui.CONTENTFONT);
 				item.setText (0, shareListId.name());
@@ -198,7 +198,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				item.setData(SHARE_LIST_ID, shareListId);
 				item.setData(INDICES, Indice.parseString(shareListSplit[1]));
 			}
-			
+
 			for (int i=0; i<titles.length; i++) {
 				existingShareLists.getColumn(i).pack();
 			}	
@@ -217,7 +217,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 			});	
 			existingShareLists.deselectAll();
-			
+
 			{
 				Label quoteProviderLabel = new Label(existingGroup, SWT.NONE);
 				quoteProviderLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
@@ -232,12 +232,12 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				quoteProvidersCombo.setToolTipText("This is the default, not editable for the moment.");
 				quoteProvidersCombo.setEditable(false);
 				//TODO
-//				for (MarketQuotationProviders quoteProvider : MarketQuotationProviders.values()) {
-//					quoteProvidersCombo.add(quoteProvider.name());
-//				}
+				//				for (MarketQuotationProviders quoteProvider : MarketQuotationProviders.values()) {
+				//					quoteProvidersCombo.add(quoteProvider.name());
+				//				}
 				quoteProvidersCombo.pack();
-	 		}
-			
+			}
+
 			{
 				final Button valideButton1 = new Button(existingGroup, SWT.PUSH | SWT.CENTER);
 				GridData validateButtLayout = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
@@ -253,11 +253,11 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 					}
 				});
 			}
-			
+
 		}
-		
+
 		{//Stocks list
-			
+
 			final Group stocksGrp = new Group(getParent(), SWT.NONE);
 			stocksGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			stocksGrp.setLayout(new GridLayout());
@@ -269,7 +269,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			layoutData.heightHint = 100;
 			composite.setLayoutData(layoutData);
 			composite.setLayout(new GridLayout());
-			
+
 			stocks = new Table(composite, SWT.NONE);
 			stocks.setHeaderVisible(true);
 			stocks.setToolTipText("These stocks can be added to you portfolios using the menu 'Portfolios' -> 'Add Shares...'");
@@ -277,26 +277,26 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			stocks.setLayoutData(stocksLayoutData);
 			stocks.setFont(MainGui.CONTENTFONT);
 			stocks.getVerticalBar().setVisible(true);
-			
+
 			String[] titles = new String[]{"Symbol", "Isin", "Name"};
 			for (String title : titles) {
 				TableColumn tableColumn = new TableColumn(stocks, SWT.NONE);
 				tableColumn.setText(title);
 			}
-			
+
 		}
-		
+
 		{
 			final Group addGroup = new Group(getParent(), SWT.NONE);
 			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			addGroup.setLayoutData(gridData);
 			GridLayout gridLayout = new GridLayout();
 			addGroup.setLayout(gridLayout);
-			
+
 			addGroup.setFont(biggerFont);
 			addGroup.setBackground(MainGui.pOPUP_GRP);
 			addGroup.setText("Add lists and stocks");
-			
+
 			final CTabFolder cTabFolder = new CTabFolder(addGroup, SWT.NONE);
 			cTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			cTabFolder.setLayout(new GridLayout());
@@ -322,12 +322,12 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				fileAddTab.setControl(fileStockInsertGrp);
 			}
 			cTabFolder.addSelectionListener(new SelectionListener() {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					handleSelection();
 				}
-				
+
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
 					handleSelection();
@@ -344,22 +344,22 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			cTabFolder.layout();
 			cTabFolder.pack();
 			cTabFolder.setSelection(0);
-			
+
 		}
-		
+
 		getParent().layout();
 		getParent().pack();
-		
+
 	}
-	
+
 	private void handleExistingListSelection() {
-		
+
 		TableItem tableItem = existingShareLists.getSelection()[0];
 		SharesListId shareListId = (SharesListId) tableItem.getData(SHARE_LIST_ID);
 		@SuppressWarnings("unchecked")
 		SortedSet<Indice> shareListIndices = (SortedSet<Indice>) tableItem.getData(INDICES);
 		if (!SharesListId.UNKNOWN.equals(shareListId)) {
-			
+
 			try {
 				provider = (MarketListProvider) ProvidersList.getInstance(shareListId.getSharesListCmdParam(), shareListIndices);
 				quoteProvidersCombo.setText(provider.defaultMarketQuotationProviders().name());
@@ -369,53 +369,53 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				UserDialog dialog = new UserDialog(getParent(), shareListId + " with (" + shareListIndices + ") is not a valid share list. Has it been added by hand?", null);
 				dialog.open();
 			}
-			
+
 		} else {
 			quoteProvidersCombo.setText("None");
 			provider = null;
 			updateStocksList();
 		}
-		
+
 		getParent().layout();
-		
+
 	}
 
 	private void updateStocksList() {
-		
+
 		stocks.removeAll();
-		
+
 		Runnable runnable = new Runnable() {
 			public void run() {
-					ShareListUpdateDialog.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-					try {
-						
-						String providerIndicedShareListName = SharesListId.UNKNOWN.toString();
-						if (provider != null) {
-							providerIndicedShareListName = ProvidersList.providerIndicedShareListName(provider);
-						}
-						SharesList loadShareList = PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(providerIndicedShareListName);
-						StockList stockList = new StockList(loadShareList.toSortedStocksSet());
-						for (Stock stock : stockList) {
-							if (!stocks.isDisposed()) {
-								TableItem item = new TableItem(stocks, SWT.NONE);
-								item.setFont(MainGui.CONTENTFONT);
-								item.setText(0, stock.getSymbol());
-								item.setText(1, stock.getIsin());
-								item.setText(2, stock.getName());
-							}
-						}
-						for (int j = 0; j < 3; j++) {
-							if (!stocks.isDisposed()) {
-								stocks.getColumn(j).pack();
-							}
-						}
-						
-					} finally  {
-						ShareListUpdateDialog.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+				ShareListUpdateDialog.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+				try {
+
+					String providerIndicedShareListName = SharesListId.UNKNOWN.toString();
+					if (provider != null) {
+						providerIndicedShareListName = ProvidersList.providerIndicedShareListName(provider);
 					}
+					SharesList loadShareList = PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(providerIndicedShareListName);
+					StockList stockList = new StockList(loadShareList.toSortedStocksSet());
+					for (Stock stock : stockList) {
+						if (!stocks.isDisposed()) {
+							TableItem item = new TableItem(stocks, SWT.NONE);
+							item.setFont(MainGui.CONTENTFONT);
+							item.setText(0, stock.getSymbol());
+							item.setText(1, stock.getIsin());
+							item.setText(2, stock.getName());
+						}
+					}
+					for (int j = 0; j < 3; j++) {
+						if (!stocks.isDisposed()) {
+							stocks.getColumn(j).pack();
+						}
+					}
+
+				} finally  {
+					ShareListUpdateDialog.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 				}
+			}
 		};
-		
+
 		Display.getCurrent().asyncExec(runnable);
 	}
 
@@ -556,7 +556,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				handleMarketSelect();	
+				handleMarketSelect();
 			}
 
 			private void handleMarketSelect() {
@@ -566,11 +566,11 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				handleMarketSelect();	
+				handleMarketSelect();
 			}
-			
+
 		});
-		
+
 		currencyFactorTxt.setEditable(true);
 		currencyFactorTxt.setFont(MainGui.CONTENTFONT);
 		String curFactToolTip = "This is to deal with quotations available in fractions of the main currency.\n" +
@@ -716,16 +716,16 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 
 	private Group addNewList(final CTabFolder cTabFolder, List<String> loadShareListNames) {
-		
+
 		final Group newGroup = new Group(cTabFolder, SWT.NONE);
-		
+
 		newGroup.setFont(biggerFont);
 		newGroup.setBackground(MainGui.pOPUP_GRP);
 		newGroup.setText("Add a new list - click add to proceed");
 		newGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		GridLayout newGroupLayout = new GridLayout();
 		newGroup.setLayout(newGroupLayout);
-		
+
 		{
 			final Composite listAParams = new Composite(newGroup, SWT.NONE);
 			GridData listAParamDataLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -733,7 +733,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			FillLayout lApLayout = new FillLayout(SWT.HORIZONTAL);
 			listAParams.setLayout(lApLayout);
 			listAParams.setBackground(MainGui.pOPUP_GRP);
-		
+
 			{
 				{
 					newShareLists = new Table(listAParams, SWT.NONE | SWT.FULL_SELECTION | SWT.SINGLE);
@@ -885,12 +885,12 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				}
 			});
 		}
-		
+
 		return newGroup;
 	}
 
 	private void updateExistingShareList() {
-		
+
 		TableItem[] items = existingShareLists.getItems();
 		Boolean doesNotContain = true;
 		for (TableItem existingItem : items) {
@@ -918,7 +918,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			newItem.setText (2, newListSharesListId.getDescription());	
 			newItem.setData(SHARE_LIST_ID, SharesListId.valueOf(newListSharesListId.name()));
 			newItem.setData(INDICES, new TreeSet<Indice>(newListIndices));
-			
+
 			for (int i=0; i< existingShareLists.getColumns().length; i++) {
 				existingShareLists.getColumn(i).pack();
 			}	
@@ -933,12 +933,12 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 	}
 
 	private void portfolioInsertShareFromForm(Text symbolTxt, Text isinTxt, Text nameTxt, CCombo typeCombo, CCombo marketCombo,Text currencyFactor, CCombo provCombo)  throws InvalidAlgorithmParameterException {
-		
+
 		MarketListProvider unknownProvider = ProvidersList.getMarketListInstance(SharesListId.UNKNOWN.name());//defaults to Yahoo
 
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 		try {
-			
+
 			//Create or update the stock
 			String symbolProvExtention2 = SymbolNameResolver.UNKNOWNEXTENSIONCLUE;
 			boolean isExtSet = symbolProvExtention != null && !symbolProvExtention.isEmpty() && !symbolProvExtention.equals("NONE");
@@ -953,26 +953,26 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			SymbolMarketQuotationProvider qProv = new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOf(provCombo.getText()), symbolProvExtention2);
 			MarketValuation marketValuation = new MarketValuation(Market.valueOf(marketCombo.getText()), new BigDecimal(currencyFactor.getText()));
 			Stock newStock = new Stock(isin, symbol, name, true, category, qProv,  marketValuation, "", TradingMode.CONTINUOUS, 0l);
-			
+
 			//Reset quotations
 			try {
 				newStock = quotationUpdate.getQuotesForUiForm(unknownProvider, newStock); //TODO use the eventController
 			} catch (QuotationUpdateException e) {
-				
+
 				if (!e.getStockNotFound().isEmpty()) {
 					newStock = e.getStockNotFound().keySet().iterator().next();
 					UserDialog inst = new UserDialog(getParent().getShell(), 
 							"The stock quotations could not be found using your settings. It may be that the information typed in is not valid.\n"+
-							"You may want to review the 'Insert Manually' form information and try again.\n" +
-							"If you know this stock is listed with one of the available provider try and use the exact same SYMBOL and ISIN as the one used be the provider.\n"+
-							"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
+									"You may want to review the 'Insert Manually' form information and try again.\n" +
+									"If you know this stock is listed with one of the available provider try and use the exact same SYMBOL and ISIN as the one used be the provider.\n"+
+									"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
 					inst.open();
 				} else {
 					throw e;
 				}
-				
+
 			}
-			
+
 			//Save or update stock and unknown share list
 			if (newStock != null) {
 				DataSource.getInstance().getShareDAO().saveOrUpdateStock(newStock);
@@ -984,9 +984,9 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 				LOGGER.error(message);
 				throw new Exception(message);
 			}
-			
+
 			updateReferencedStock(newStock);
-			
+
 			//Select the unknown list
 			int unkIdx = 0;
 			for (TableItem ti : existingShareLists.getItems()) {
@@ -996,18 +996,18 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			}
 			existingShareLists.setSelection(unkIdx);
 			handleExistingListSelection();
-			
+
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
 			UserDialog inst = new UserDialog(getParent().getShell(), 
 					"An error occurred. It may be that the information typed in is not valid.\n"+
-					"You may want to review the 'Insert Manually' form information and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
+							"You may want to review the 'Insert Manually' form information and try again.", (e.getMessage() != null)?e.getMessage():e.toString());
 			inst.open();
 		}
 	}
-	
+
 	private void validateNewManualShare(Text symbolTxt,  Text isinTxt,  Text nameTxt,  CCombo typeCombo, CCombo marketCombo,  Text  currencyFactorTxt, CCombo provCombo) {
-		
+
 		try {
 			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 			portfolioInsertShareFromForm(symbolTxt, isinTxt, nameTxt, typeCombo, marketCombo, currencyFactorTxt, provCombo);
@@ -1020,11 +1020,11 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));	
 		}
 	}
-	
+
 	private void portfolioAddSharesFromFileMouseDown(SelectionEvent event) {
 
 		MarketListProvider unknownProvider  = ProvidersList.getMarketListInstance(SharesListId.UNKNOWN.name());
-		
+
 		//Update share list
 		String[] filterExtensions = {"*.txt"};
 		FileDialog fileDialog = new FileDialog(getParent().getShell(), SWT.OPEN);
@@ -1034,33 +1034,33 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 		String selectedFile = fileDialog.open();
 
 		if (null != selectedFile) {
-			
+
 			QuotationUpdate quotationUpdate = new QuotationUpdate();
 			try {
-				
+
 				List<Stock> stocksInFile = quotationUpdate.getQuotesForListInFile(selectedFile, unknownProvider);
 				SharesList sharesListForThisListProvider = unknownProvider.loadSharesListForThisListProvider();
 				sharesListForThisListProvider.addShares(stocksInFile);
 				PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(sharesListForThisListProvider);
-				
+
 				//Update references
 				for (Stock newStock : stocksInFile) {
 					updateReferencedStock(newStock);
 				}
-				
+
 				refreshAction.action();
-				
+
 				UserDialog inst = new UserDialog(getParent().getShell(), "The following stock were found in the file and updated", stocksInFile.toString());
 				inst.open();
-				
+
 			} catch (Exception e) {
 				LOGGER.warn(e,e);
 				UserDialog inst = new UserDialog(getParent().getShell(), "Wrong file format.",null);
 				inst.open();
 			}
-			
+
 		}
-		
+
 	}
 
 
@@ -1088,9 +1088,9 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 	public void setAction(ActionDialogAction actionDialogAction) {
 		this.actionDialogAction = actionDialogAction;
-		
+
 	}
-	
+
 	public void setRefreshAction(ActionDialogAction actionDialogAction) {
 		this.refreshAction = actionDialogAction;
 	}

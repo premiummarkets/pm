@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.finance.pms.events.Validity;
+import com.finance.pms.events.calculation.DateFactory;
 
 public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO> {
 	
@@ -110,7 +111,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	}
 	
 	public Long getPeriodLenght() {
-		int OneDayMilliSeconds = 1000*60*60*24;
+		long OneDayMilliSeconds = DateFactory.DAYINMILLI;
 		return  (to.getTime() - from.getTime())/OneDayMilliSeconds;
 	}
 

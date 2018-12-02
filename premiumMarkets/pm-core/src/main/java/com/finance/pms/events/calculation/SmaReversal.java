@@ -96,7 +96,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 
 		//BULL : Quote above SMA and SMA up over n days after a BEAR trend
 		{	
-			boolean isAboveSMA = this.sma.getSma()[smaIndex] < qU.getClose().doubleValue(); //  sma <  close
+			boolean isAboveSMA = this.sma.getSma()[smaIndex] < qU.getCloseSp().doubleValue(); //  sma <  close
 			boolean isSMAUp = this.sma.getSma()[smaIndex - getDaysSpan()] < this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBearish = EventType.BEARISH.equals(previousTrend);
 			res.setBullishCrossOver(isAboveSMA && isSMAUp && isPreviouslyBearish);
@@ -107,7 +107,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 
 		//BEAR : Quote below SMA and down over n days after a BULL trend
 		{
-			boolean isBelowSMA = this.sma.getSma()[smaIndex] > qU.getClose().doubleValue(); //  sma >  close
+			boolean isBelowSMA = this.sma.getSma()[smaIndex] > qU.getCloseSp().doubleValue(); //  sma >  close
 			boolean isSMADown = this.sma.getSma()[smaIndex - getDaysSpan()] > this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBullish = EventType.BULLISH.equals(previousTrend);
 			res.setBearishCrossBellow(isBelowSMA && isSMADown && isPreviouslyBullish);
@@ -129,7 +129,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMSMAREVERSAL,EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMSMAREVERSAL,EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
+		BigDecimal calculatorClose = qU.getCloseSp();
 		//		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 		String line =
 				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 
@@ -153,7 +153,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 
 		return new double[]
 				{
-						quotationUnit.getClose().doubleValue(),
+						quotationUnit.getCloseSp().doubleValue(),
 						this.sma.getSma()[getIndicatorIndexFromQuotationIndex(this.sma, idx)]
 				};
 	}

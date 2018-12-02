@@ -93,7 +93,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 			BigDecimal value = BigDecimal.ZERO;
 			if (unitCost.compareTo(BigDecimal.ZERO) != 0) {
-				BigDecimal close = stockQuotations.get(i).getClose();
+				BigDecimal close = stockQuotations.get(i).getCloseSp();
 				value = (close.subtract(unitCost).divide(unitCost.abs(), 10, BigDecimal.ROUND_HALF_EVEN));
 			} 
 			retA.add(value);

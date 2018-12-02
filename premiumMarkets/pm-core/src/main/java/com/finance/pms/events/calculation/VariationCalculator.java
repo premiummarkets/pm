@@ -96,7 +96,7 @@ public class VariationCalculator extends IndicatorsOperator {
 					addEvent(eventData, date, EventDefinition.VARIATION, resType,"",eventListName);
 				}
 				
-				exportLineToFile(date, quotations.get(quotationIndex).getClose(), resType);
+				exportLineToFile(date, quotations.get(quotationIndex).getCloseSp(), resType);
 		}
 
 		return eventData;

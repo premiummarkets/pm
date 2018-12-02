@@ -31,8 +31,6 @@ package com.finance.pms.datasources;
 
 import java.beans.PropertyChangeListener;
 import java.lang.ref.SoftReference;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;

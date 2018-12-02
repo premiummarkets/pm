@@ -43,17 +43,17 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class RealTimeGoogleLineFormater extends LineFormater {
-	
+
 
 	//TODO
 	private int closingMinutes;
-	
+
 	private int openingMinute;
 	private Integer gmtTimeOffset;
 	private Calendar quotationDate;
-	
 
-	
+
+
 	public RealTimeGoogleLineFormater(String url, Stock stock) {
 		super(new MyUrl(url));
 		this.params.add(stock);
@@ -61,9 +61,9 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
-		
+
 		List<Validatable> ret = new ArrayList<Validatable>();
-		
+
 		String[] headerLine = line.split("=");
 		if (headerLine.length == 2) {
 			if ("MARKET_OPEN_MINUTE".equals(headerLine[0])) {
@@ -74,7 +74,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 				} else 
 					if ("TIMEZONE_OFFSET".equals(headerLine[0])) {
 						gmtTimeOffset = new Integer(headerLine[1]);
-						
+
 					}
 		} else 
 			if (gmtTimeOffset != null) {
@@ -83,7 +83,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 					int minuteOTOpenD = new Integer(quotationLine[0]);
 					QuotationUnit quotationUnit = addQuotationUnit(quotationLine, minuteOTOpenD);
 					ret.add(new ValidatableQuotationUnit(quotationUnit));
-					
+
 				} catch (NumberFormatException e) {
 					long day = new Long(quotationLine[0].substring(1));
 					quotationDate = Calendar.getInstance();
@@ -92,23 +92,23 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 					ret.add(new ValidatableQuotationUnit(quotationUnit));
 				}
 			}
-		
+
 		return ret;
 	}
 
 	private QuotationUnit addQuotationUnit(String[] quotationLine, int minuteOTOpenD) {
-		
+
 		BigDecimal open = new BigDecimal(quotationLine[1]);
 		BigDecimal high = new BigDecimal(quotationLine[2]);
 		BigDecimal low = new BigDecimal(quotationLine[3]);
 		BigDecimal close = new BigDecimal(quotationLine[4]);
-		
+
 		long volume = new Long(quotationLine[5]);
-		
+
 		DateToMinutesOTDConverter firstDateTimeMinutesConverter = new DateToMinutesOTDConverter(quotationDate, this.openingMinute + minuteOTOpenD);
 		firstDateTimeMinutesConverter.minuteOfTheDayToTime();
-		
-		return new QuotationUnit((Stock) params.get(0), ((Stock) params.get(0)).getMarketValuation().getCurrency(),quotationDate.getTime(), open, high, low, close, volume, ORIGIN.WEB);
+
+		return new QuotationUnit((Stock) params.get(0), ((Stock) params.get(0)).getMarketValuation().getCurrency(),quotationDate.getTime(), open, high, low, close, volume, ORIGIN.WEB, BigDecimal.ONE);
 	}
 
 
@@ -116,13 +116,13 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 	public Boolean canHaveNoResultsFound() {
 		return false;
 	}
-	
+
 	public class ValidatableQuotationUnit extends Validatable {
 
 		private static final long serialVersionUID = 9060878063360050971L;
-		
+
 		QuotationUnit quotationUnit;
-		
+
 		public ValidatableQuotationUnit(QuotationUnit quotationUnit) {
 			super();
 			this.quotationUnit = quotationUnit;
@@ -136,11 +136,11 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		public Query toDataBase() {
 			return null;
 		}
-		
+
 		public QuotationUnit getQuotationUnit() {
 			return quotationUnit;
 		}
-		
+
 		@Override
 		public String toString() {
 			return "ValidatableQuotationUnit [quotationUnit=" + quotationUnit + "]";
@@ -178,7 +178,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 			return RealTimeGoogleLineFormater.this;
 		}
 	}
-	
-	
+
+
 
 }

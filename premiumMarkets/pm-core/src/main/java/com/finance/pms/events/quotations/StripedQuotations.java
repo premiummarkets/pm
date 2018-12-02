@@ -50,14 +50,14 @@ public class StripedQuotations {
 	private double[] closeList;
 	private double[] highList;
 	private double[] lowList;
-	
-//	public StripedQuotations() {
-//		super();
-//		this.barList = new ArrayList<QuotationUnit>();
-//		this.closeList = new double[500];
-//		this.highList = new double[500];
-//		this.lowList =  new double[500];
-//	}
+
+	//	public StripedQuotations() {
+	//		super();
+	//		this.barList = new ArrayList<QuotationUnit>();
+	//		this.closeList = new double[500];
+	//		this.highList = new double[500];
+	//		this.lowList =  new double[500];
+	//	}
 
 	public StripedQuotations(Integer limit) {
 		super();
@@ -94,19 +94,19 @@ public class StripedQuotations {
 		System.arraycopy(this.closeList, 0, trimedCloseList, 0, this.barList.size());
 		return trimedCloseList;
 	}
-	
+
 	public double[] getLowTrimedList() {
 		double[] trimedLowList = new double[this.barList.size()];
 		System.arraycopy(this.lowList, 0, trimedLowList, 0, this.barList.size());
 		return trimedLowList;
 	}
-	
+
 	public double[] getHighTrimedList() {
 		double[] highCloseList = new double[this.barList.size()];
 		System.arraycopy(this.highList, 0, highCloseList, 0, this.barList.size());
 		return highCloseList;
 	}
-	
+
 	public void addStripedValues(int i,BigDecimal closeValue, BigDecimal highValue, BigDecimal lowValue) {		
 		this.closeList[i] = closeValue.doubleValue();
 		this.highList[i] = highValue.doubleValue();
@@ -120,12 +120,12 @@ public class StripedQuotations {
 	public double[] getCloseList() {
 		return closeList;
 	}
-	
+
 	public void addCloseOnlyBar(Stock stock, int i, Date date, double close) {
-		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(close), 0l, null);
+		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(close), 0l, null, BigDecimal.ONE);
 		this.getBarList().add(quotationUnit);
 		this.closeList[i] = close;
-		
+
 	}
 
 	public QuotationUnit getLast() {

@@ -160,22 +160,31 @@ public class VolatilityClassifier {
 			Date nYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(10)).atStartOfDay(ZoneId.systemDefault()).toInstant());
 			Predicate<Stock> predicate = s -> {
 				Boolean match = DataSource.getInstance().getFirstQuotationDateFromQuotations(s).before(nYearsAgo);
-				if (!match) LOGGER.info(s + " does ont match 'before "+nYearsAgo+" years ago' predicate.");
+				if (!match) LOGGER.info(s + " does not match 'before " + nYearsAgo + " years ago' predicate.");
 				return match;
 			};
 			predicates.add(predicate);
 		}
 		//daily change max
 		{
-			Predicate<Stock> predicate = s -> {
+			Predicate<Stock> predicate = stock -> {
 				try {
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 900, ValidityFilter.OHLCV);
+					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
 					SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 					List<Double> values = new ArrayList<>(closeQuotations.values());
+					double maxReturn = Math.log(200d/100d);  //n*10% ~ n days at 10% max
+//					long filteredReturns = IntStream
+//							.range(1, quotations.size())
+//							.filter(i -> Math.abs(Math.log(values.get(i)/values.get(i-1))) > maxReturn)
+//							.count();
+//					Double ratio = ((double)filteredReturns)/((double)quotations.size());
+//					Boolean match = ratio < 0.0;
+//					LOGGER.info(s + " Invalid returns : " + filteredReturns + ", Total returns : " + (quotations.size()-1) + ", ratio " + ratio);
 					Boolean match = IntStream
 							.range(1, quotations.size())
-							.allMatch(i -> Math.abs(Math.log(values.get(i)/values.get(i-1))) <= Math.log(110/100));
-					if (!match) LOGGER.info(s + " does ont match 'ln(110/100) daily change max' predicate.");
+							.allMatch(i -> Math.abs(Math.log(values.get(i)/values.get(i-1))) <= maxReturn);
+					LOGGER.info(stock + " Invalid returns.");
+					if (!match) LOGGER.info(stock + " does not match 'daily change max < " + maxReturn + "' predicate.");
 					return match;
 				} catch (NoQuotationsException e) {
 					LOGGER.warn(e);
@@ -196,7 +205,7 @@ public class VolatilityClassifier {
 
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 900, ValidityFilter.OHLCV);
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations);
 				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());
@@ -219,7 +228,8 @@ public class VolatilityClassifier {
 					Stock key = e.getKey();
 					String line = 
 							key.getSymbol() + ", " + key.getIsin() + ", " +
-									Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);//Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
+									Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
+									//Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);
 					fileWriter.write(line+"\n");
 				} catch (IOException e1) {
 					throw new RuntimeException(e1);
@@ -269,6 +279,8 @@ public class VolatilityClassifier {
 		List<Stock> filtered = allStocks.stream()
 				.filter(s -> predicates.stream().allMatch(p -> p.test(s)))
 				.collect(Collectors.toList());
+
+		LOGGER.info("Valid stock filtered : " + filtered.size() + " out of " + allStocks.size());
 
 		return filtered;
 	}

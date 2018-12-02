@@ -47,6 +47,7 @@ import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuoteInflationFormater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.InflationUpdateObserver;
 
 public class ProvidersInflation extends Providers implements QuotationProvider {
@@ -84,7 +85,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				throw new RuntimeException(message);
 			}
 
-			long twoMonthAndHalf = (long) 1000*60*60*24*31*2 + 1000*60*60*24*15;
+			long twoMonthAndHalf = (long) DateFactory.DAYINMILLI*31*2 + DateFactory.DAYINMILLI*15;
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
 			boolean isLastLessThan2AndHalfMonthOld = stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime();
 			if (isLastLessThan2AndHalfMonthOld) {//Inflation can be updated monthly only

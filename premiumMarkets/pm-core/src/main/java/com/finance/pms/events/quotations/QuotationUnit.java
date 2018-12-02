@@ -45,6 +45,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -58,106 +59,141 @@ import com.finance.pms.datasources.shares.Stock;
 @Table(name="QUOTATIONS")
 public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 {
-	
+
 	private static final long serialVersionUID = -406044551517984882L;
 
 	public enum ORIGIN {WEB, USER};
-	
+
 	private Stock stock;
 	private Currency currency;
-    private Date date;
-    private BigDecimal open;
-    private BigDecimal high;
-    private BigDecimal low;
-    private BigDecimal close;
-    private Long volume;
-    private ORIGIN origin;
-    
-    
-    //Hib
-    @SuppressWarnings("unused")
+	private Date date;
+	private BigDecimal open;
+	private BigDecimal high;
+	private BigDecimal low;
+	private BigDecimal close;
+	private Long volume;
+	private ORIGIN origin;
+
+	private BigDecimal split;
+
+	//Hib
+	@SuppressWarnings("unused")
 	private QuotationUnit() {
 		super();
 	}
 
-	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin)
-    {
+	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin, BigDecimal split)
+	{
 		this.stock = stock;
 		this.currency=currency;
-        this.date = date;
-        this.open = open;
-        this.high = high;
-        this.low = low;
-        this.close = close;
-        this.volume = volume;
-        this.origin = origin;
-    }
-    
-    
-    public Number getData(QuotationDataType field) {
-    	switch (field) {
+		this.date = date;
+		this.open = open;
+		this.high = high;
+		this.low = low;
+		this.close = close;
+		this.volume = volume;
+		this.origin = origin;
+		this.split = split;
+	}
+
+
+	public Number getData(QuotationDataType field) {
+		switch (field) {
 		case OPEN:
-				return getOpen();
+			return getOpenSp();
 		case HIGH:
-			return getHigh();
+			return getHighSp();
 		case LOW:
-			return getLow();
+			return getLowSp();
 		case CLOSE :
-			return getClose();
+			return getCloseSp();
 		case VOLUME :
 			return getVolume();
 		default :
 			throw new RuntimeException("Unknown quotation data type");
 		}
-    }
+	}
 
-    @Id
-    @Temporal(TemporalType.DATE)
-    public Date getDate()
-    {
-        return date;
-    }
+	@Id
+	@Temporal(TemporalType.DATE)
+	public Date getDate()
+	{
+		return date;
+	}
 
-    @ManyToOne
+	@ManyToOne
 	@JoinColumns( { @JoinColumn(name = "isin", referencedColumnName = "isin"), @JoinColumn(name = "symbol", referencedColumnName = "symbol") })
 	@Id
 	public Stock getStock() {
 		return stock;
 	}
 
-
 	@SuppressWarnings("unused")
 	private void setStock(Stock stock) {
 		this.stock = stock;
 	}
-	
 
 	@Column(name="CLOSEVALUE")
-    public BigDecimal getClose()
-    {
-        return close;
-    }
+	public BigDecimal getClose() {
+		return close;
+	}
 
-    public BigDecimal getHigh()
-    {
-        return high;
-    }
+	@Transient
+	public BigDecimal getCloseSp()
+	{
+		if (split.compareTo(BigDecimal.ONE) == 0) return getClose();
+		return close.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+	}
 
-    public BigDecimal getLow()
-    {
-        return low;
-    }
+	@Column(name="HIGH")
+	public BigDecimal getHigh() {
+		return high;
+	}
+
+	@Transient
+	public BigDecimal getHighSp()
+	{
+		if (split.compareTo(BigDecimal.ONE) == 0) return getHigh();
+		return high.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+	}
+
+	@Column(name="LOW")
+	public BigDecimal getLow() {
+		return low;
+	}
+
+	@Transient
+	public BigDecimal getLowSp()
+	{
+		if (split.compareTo(BigDecimal.ONE) == 0) return getLow();
+		return low.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+	}
 
 	@Column(name="OPENVALUE")
-    public BigDecimal getOpen()
-    {
-        return open;
-    }
+	public BigDecimal getOpen() {
+		return open;
+	}
 
-    public long getVolume()
-    {
-        return volume;
-    }
+	@Transient
+	public BigDecimal getOpenSp()
+	{
+		if (split.compareTo(BigDecimal.ONE) == 0) return getOpen();
+		return open.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+	}
+
+	public long getVolume()
+	{
+		return volume;
+	}
+
+	@Transient
+	public BigDecimal getSplit() {
+		return split;
+	}
+
+	public void setSplit(BigDecimal split) {
+		this.split = split;
+	}
 
 	@Override
 	public int hashCode() {
@@ -187,9 +223,9 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	public int compareTo(QuotationUnit o) {
 		return this.date.compareTo(o.getDate());
 	}
-	
+
 	public QuotationUnit clone(Date newDate) {
-		return new QuotationUnit(this.stock, this.currency, newDate, this.open, this.high, this.low, this.close, this.volume, this.origin);
+		return new QuotationUnit(this.stock, this.currency, newDate, this.open, this.high, this.low, this.close, this.volume, this.origin, this.split);
 	}
 
 	@Id
@@ -209,26 +245,26 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 
-	@SuppressWarnings("unused")
-	private void setOpen(BigDecimal open) {
+	//@SuppressWarnings("unused")
+	public void setOpen(BigDecimal open) {
 		this.open = open;
 	}
 
 
-	@SuppressWarnings("unused")
-	private void setHigh(BigDecimal high) {
+	//@SuppressWarnings("unused")
+	public void setHigh(BigDecimal high) {
 		this.high = high;
 	}
 
 
-	@SuppressWarnings("unused")
-	private void setLow(BigDecimal low) {
+	//@SuppressWarnings("unused")
+	public void setLow(BigDecimal low) {
 		this.low = low;
 	}
 
 
-	@SuppressWarnings("unused")
-	private void setClose(BigDecimal close) {
+	//@SuppressWarnings("unused")
+	public void setClose(BigDecimal close) {
 		this.close = close;
 	}
 
@@ -242,7 +278,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	public Currency getCurrency() {
 		return currency;
 	}
-	
+
 	@SuppressWarnings("unused")
 	private void setCurrency(Currency currency) {
 		this.currency = currency;
@@ -251,8 +287,10 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 
 	@Override
 	public String toString() {
-		return "QuotationUnit [stock=" + stock.getFriendlyName() + ", currency=" + currency + ", date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close + ", volume=" + volume + ", origin=" + origin + "]";
+		return "QuotationUnit [stock=" + stock.getFriendlyName() +
+				", currency=" + currency + ", date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close +
+				", volume=" + volume + ", origin=" + origin + ", split=" + split + "]";
 	}
-	
-    	
+
+
 }

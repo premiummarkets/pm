@@ -197,36 +197,33 @@ public class Quotations {
 	private void solveSplitBetween(QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitOut) {
 
 		double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
-		double dj = qj.getClose().doubleValue();
-		double djm1 =  qjm1.getClose().doubleValue();
-		double change = (dj - djm1)/djm1;
+		double dj = qj.getCloseSp().doubleValue();
+		double djm1 =  qjm1.getCloseSp().doubleValue();
+		double delta = span*Math.pow(1.5, 1d-span)*0.10;
+		double split = djm1/(dj-dj*delta);
 
-		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (Math.pow(1.1, span)-1) ) {
-		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && Math.abs(change) >= (span*Math.log(1.1)) ) {
-		//if ( !Double.isInfinite(change) && !Double.isNaN(change) && change <= -(span*Math.log(1.1)) ) {
-		double maxDailyChange = 0.05;
-		double valideSpliMax = -(0.75)-(Math.log((1+maxDailyChange)+span*maxDailyChange));
-		double valideSpliMin = -(0.5)+(Math.log((1+maxDailyChange)+span*maxDailyChange));
-		if ( !Double.isInfinite(change) && !Double.isNaN(change) && valideSpliMax <= change && change <= valideSpliMin ) {
-			LOGGER.warn("Split detected for "+this.stock.getFriendlyName()+" : span "+span+" max "+valideSpliMax+" change "+change+" min "+valideSpliMin+" between "+qjm1.getDate()+" and "+qj.getDate());
+		if ( split > 2 ) {
+			LOGGER.warn(
+					"Split detected for " + this.stock.getFriendlyName()+ " : " +
+							"split " + split + ", span " + span + ", delta " + delta + ", tolerance " + dj*delta + ", " +
+							"between " + qjm1.getCloseSp() + " at " + qjm1.getDate() + " " +
+							"and " + qj.getCloseSp() + " at " + qj.getDate());
+			Integer factorDouble = (int) split;
+			BigDecimal factor = new BigDecimal(factorDouble.toString());
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
-				QuotationUnit oldValue = quotationsUnitOut.get(i);
-				Double factorDouble = Double.valueOf(dj/djm1);
-				BigDecimal factor = new BigDecimal(factorDouble.toString());
-				int scale = oldValue.getOpen().scale();
-				QuotationUnit newValue = 
-						new QuotationUnit(
-								oldValue.getStock(), oldValue.getCurrency(),
-								oldValue.getDate(), 
-								oldValue.getOpen().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getHigh().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
-								oldValue.getLow().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), oldValue.getClose().multiply(factor).setScale(scale, BigDecimal.ROUND_HALF_EVEN), 
-								oldValue.getVolume(), oldValue.getOrigin());
-				quotationsUnitOut.set(i, newValue);
+				//				QuotationUnit oldValue = quotationsUnitOut.get(i);
+				//				QuotationUnit newValue =
+				//						new QuotationUnit(
+				//								oldValue.getStock(), oldValue.getCurrency(),
+				//								oldValue.getDate(),
+				//								oldValue.getOpenSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN), oldValue.getHighSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN),
+				//								oldValue.getLowSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN), oldValue.getCloseSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN),
+				//								oldValue.getVolume(), oldValue.getOrigin());
+				QuotationUnit quotationUnit = quotationsUnitOut.get(i);
+				quotationUnit.setSplit(quotationUnit.getSplit().multiply(factor));
+				//quotationsUnitOut.set(i, quotationUnit);
 			}
 		}
-		if (change < valideSpliMax) 
-			LOGGER.warn("Invalid split for "+this.stock.getFriendlyName()+" : span "+span+" max "+valideSpliMax+" change "+change+" min "+valideSpliMin+" between "+qjm1.getDate()+" and "+qj.getDate()+". Check your data.");
-
 	}
 
 	public Stock getStock() {
@@ -292,14 +289,15 @@ public class Quotations {
 			return quotationUnit;
 		}
 
+		BigDecimal convertUnitFactor = convert(BigDecimal.ONE, quotationUnit.getDate());
 		return new QuotationUnit(
 				quotationUnit.getStock(), quotationUnit.getCurrency(),
-				quotationUnit.getDate(), 
-				convert(quotationUnit.getOpen(),quotationUnit.getDate()), 
-				convert(quotationUnit.getHigh(), quotationUnit.getDate()), 
-				convert(quotationUnit.getLow(), quotationUnit.getDate()), 
-				convert(quotationUnit.getClose(), quotationUnit.getDate()), 
-				quotationUnit.getVolume(), quotationUnit.getOrigin());
+				quotationUnit.getDate(),
+				quotationUnit.getOpen().multiply(convertUnitFactor),
+				quotationUnit.getHigh().multiply(convertUnitFactor),
+				quotationUnit.getLow().multiply(convertUnitFactor),
+				quotationUnit.getClose().multiply(convertUnitFactor),
+				quotationUnit.getVolume(), quotationUnit.getOrigin(), quotationUnit.getSplit());
 	}
 
 
@@ -331,8 +329,12 @@ public class Quotations {
 		return ret;
 	}
 
+	public BigDecimal getClosestCloseSpForDate(Date date) throws InvalidAlgorithmParameterException {
+		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getCloseSp(), date);
+	}
+	
 	public BigDecimal getClosestCloseForDate(Date date) throws InvalidAlgorithmParameterException {
-		return convert(getQuotationData().getClosestCloseBeforeOrAtDate(date), date);
+		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getClose(), date);
 	}
 
 	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
@@ -592,10 +594,10 @@ public class Quotations {
 
 			QuotationUnit qj = allQs.get(j);
 
-			if ( validClose && qj.getClose().compareTo(BigDecimal.ZERO) == 0 ) {
+			if ( validClose && qj.getCloseSp().compareTo(BigDecimal.ZERO) == 0 ) {
 				continue;
 			}
-			if ( validOhlc && qj.getHigh().compareTo(qj.getLow()) == 0 && qj.getHigh().compareTo(qj.getClose()) == 0 ) {
+			if ( validOhlc && qj.getHighSp().compareTo(qj.getLowSp()) == 0 && qj.getHighSp().compareTo(qj.getCloseSp()) == 0 ) {
 				continue;
 			}
 			if ( validVolume && qj.getVolume() == 0 ) {

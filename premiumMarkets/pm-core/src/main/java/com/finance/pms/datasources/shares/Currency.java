@@ -45,7 +45,7 @@ public enum Currency  implements Serializable {
 		this.imfCurrencyName = imfCurrencyName;
 		this.xRateCurrencyName = xRateCurrencyName;
 	}
-	
+
 	public String getImfCurrencyName() {
 		return imfCurrencyName;
 	}
@@ -53,7 +53,7 @@ public enum Currency  implements Serializable {
 	public String getxRateCurrencyName() {
 		return xRateCurrencyName;
 	}
-	
-	
+
+
 
 }

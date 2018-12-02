@@ -227,6 +227,32 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="lnPeriodicOperation">
+            <reference>periodicLn_</reference>
+            <description>ln(n/(n-p)) ~ House Trend but in base 1</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>period</reference>
+                    <referenceAsOperand>period</referenceAsOperand>
+                    <description>Period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <description>data</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unarySum">
             <reference>sumUnary_</reference>
             <description>Summation of a series with a number</description>

@@ -66,8 +66,8 @@ public class GetInflation {
 			throw new NotEnoughDataException(inflationQs.getStock(), "No inflation data between : " + firstDate + " and " + secondDate + ": ! " + firstDateQsIdx + "==" + secondDateQsIdx + " && " + firstDateQsIdx + "> 0", null);
 		}
 
-		BigDecimal inflationAtFirst = firstQs.getClose();
-		BigDecimal inflationAtSecond = secondQs.getClose();
+		BigDecimal inflationAtFirst = firstQs.getCloseSp();
+		BigDecimal inflationAtSecond = secondQs.getCloseSp();
 		BigDecimal knowQsInflationRate = inflationAtSecond.subtract(inflationAtFirst).divide(inflationAtFirst, 10, BigDecimal.ROUND_HALF_EVEN);
 
 		long knownQsSpan = TimeUnit.DAYS.convert(secondQs.getDate().getTime() - firstQs.getDate().getTime(), TimeUnit.MILLISECONDS);

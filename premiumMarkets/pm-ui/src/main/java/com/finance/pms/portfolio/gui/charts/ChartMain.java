@@ -217,7 +217,7 @@ public class ChartMain extends Chart {
 									LOGGER.warn(e);
 									closeForDate = new QuotationUnit(
 											slPShare.getStock(), slPShare.getTransactionCurrency(), date,
-											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER);
+											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER, BigDecimal.ONE);
 								}
 
 								String variationAddInfo = "";
@@ -232,16 +232,29 @@ public class ChartMain extends Chart {
 								String trCurrency = slPShare.getTransactionCurrency().name();
 								String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();
 
-								String string = "<html>" + "<font size='2'>" + "<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>" + "</font>"
-										+ "<table CELLSPACING=0 CELLPADDING=1>" + "<tr><td><font size='2'>Open</font></td><td><font size='2'>"
-										+ NUMBER_FORMAT.format(closeForDate.getOpen()) + "</font></td></tr>"
-										+ "<tr><td><font size='2'>High</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getHigh())
-										+ "</font></td></tr>" + "<tr><td><font size='2'>Low</font></td><td><font size='2'>"
-										+ NUMBER_FORMAT.format(closeForDate.getLow()) + "</font></td></tr>"
-										+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" + NUMBER_FORMAT.format(closeForDate.getClose())
-										+ "</font></td></tr>" + "<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume()
-										+ "</td></tr>" + "</table>" + "<font size='2'>" + "(Source : " + origin + ", Currency " + stockCurrency + " here in "
-										+ trCurrency + ")" + variationAddInfo + "</font>" + "</html>";
+								String string = 
+										"<html>" +
+											"<font size='2'>" + "<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>" + "</font>" +
+											"<table CELLSPACING=0 CELLPADDING=1>" +
+												"<tr><td><font size='2'>Open</font></td><td><font size='2'>"+
+													NUMBER_FORMAT.format(closeForDate.getOpenSp()) +
+												"</font></td></tr>" +
+												"<tr><td><font size='2'>High</font></td><td><font size='2'>" +
+													NUMBER_FORMAT.format(closeForDate.getHighSp())
+												+ "</font></td></tr>" +
+												"<tr><td><font size='2'>Low</font></td><td><font size='2'>"
+													+ NUMBER_FORMAT.format(closeForDate.getLowSp()) +
+												"</font></td></tr>"
+												+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
+													NUMBER_FORMAT.format(closeForDate.getCloseSp())
+												+ "</font></td></tr>" +
+												"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
+											"</table>" +
+											"<font size='2'>" +
+												"(Source: " + origin +", Split: " + closeForDate.getSplit() + ", Currency: " + stockCurrency + " here in " + trCurrency + ")" +
+												variationAddInfo +
+											"</font>" +
+										"</html>";
 								return string;
 
 							} catch (Exception e) {

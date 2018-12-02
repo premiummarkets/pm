@@ -148,7 +148,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 					new AlertsMgrDelegate(portfolioShare).resetCrossUp(alert, todaysQuotation);
 
-					//TODO improved rules	
+					//TODO improved rules
 					if (AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())) {
 						//Here we just need to set the alert guard down (done in resetUpCross) so no message needs to be sent
 						return;

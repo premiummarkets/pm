@@ -41,6 +41,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
@@ -146,13 +147,21 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return calendar.getTime();
 	}
 
-	public  Date getFirstQuotationDateFromQuotations(Stock stock) {
+	public Date getFirstQuotationDateFromQuotations(Stock stock) {
 		return DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);
 	}
 
 
 	public int nbOpenIncrementBetween(Date firstDate, Date secondDate) {
-		return (int) ((secondDate.getTime() - firstDate.getTime()) / (1000*60*60*24)) * 5/7;
+		long im = secondDate.getTime() - firstDate.getTime();
+		long d = DateFactory.DAYINMILLI;
+
+		long id = im / d;
+		if (id < 1) return 0;
+		if (id < 2) return 1;
+
+		double wf = 5d/7d;
+		return (int) (id * wf);
 	}
 
 
@@ -179,7 +188,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			current.setTime(firstRefStockQuote);
 			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
 			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getClosestCloseForDate(current.getTime()).doubleValue()} );
+				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getClosestCloseSpForDate(current.getTime()).doubleValue()} );
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 
@@ -223,7 +232,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		}
 		return fullRefSQuotationsMap;
 	}
-	
+
 	@Override
 	public SortedMap<Date, Double> buildExactSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException {
 		SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
@@ -233,7 +242,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		}
 		return fullRefSQuotationsMap;
 	}
-	
+
 	@Override
 	public SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException {
 
@@ -247,7 +256,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			Date lastRefStockQuote = quotations.getDate(to);
 
 			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), quotations.getClosestCloseForDate(current.getTime()).doubleValue());
+				fullRefSQuotationsMap.put(current.getTime(), quotations.getClosestCloseSpForDate(current.getTime()).doubleValue());
 				QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 

@@ -38,9 +38,9 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 
 public interface ShareDAO {
-	
+
 	public List<Stock> loadShares(ShareFilter shareFilter);
-	
+
 	public Stock loadStockBy(String symbol, String isin);
 	public List<Stock> loadStockByIsinOrSymbol(String ref);
 
@@ -56,12 +56,12 @@ public interface ShareDAO {
 	public Collection<Stock> loadMonitoredUserPortoflioStocks();
 	public List<Stock> loadMonitoredStocks();
 	public List<Stock> loadAllStocks();
-	
+
 	public List<String> sectorHintList();
 
 	public List<Stock> loadSharesLike(String like, int maxResults);
 
 	void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit);
 	void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits);
-	
+
 }

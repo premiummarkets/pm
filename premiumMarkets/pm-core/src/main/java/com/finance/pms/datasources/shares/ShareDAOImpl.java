@@ -29,6 +29,7 @@
  */
 package com.finance.pms.datasources.shares;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -252,6 +254,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	@Override
 	public void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit) {
+		if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: "+quotationUnit);
 		getHibernateTemplate().saveOrUpdate(quotationUnit);
 	}
 
@@ -259,6 +262,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	public void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits) {
 		//getHibernateTemplate().saveOrUpdateAll(quotationUnits);
 		for (QuotationUnit quotationUnit : quotationUnits) {
+			if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: "+quotationUnit);
 			getHibernateTemplate().saveOrUpdate(quotationUnit);
 		}
 	}

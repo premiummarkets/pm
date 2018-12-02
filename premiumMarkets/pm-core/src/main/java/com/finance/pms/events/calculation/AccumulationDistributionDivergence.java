@@ -95,7 +95,7 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsOperator 
         FormulatRes res = new FormulatRes(EventDefinition.PMACCDISTDIVERGENCE);
         res.setCurrentDate(qU.getDate());
 
-        double close = qU.getClose().doubleValue();
+        double close = qU.getCloseSp().doubleValue();
 
         int chainkinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, quotationIdx);
         int chainkinSma20Index = getIndicatorIndexFromQuotationIndex(this.chaikinSma20, quotationIdx);
@@ -152,7 +152,7 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsOperator 
         Date calculatorDate = qU.getDate();
         EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate, EventDefinition.PMACCDISTDIVERGENCE, EventType.BEARISH));
         EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate, EventDefinition.PMACCDISTDIVERGENCE, EventType.BULLISH));
-        BigDecimal calculatorClose = qU.getClose();
+        BigDecimal calculatorClose = qU.getCloseSp();
 
         int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikin, calculatorIndex);
         //		int chaikinQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex, chaikinQuotationStartDateIdx);

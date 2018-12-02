@@ -42,6 +42,7 @@ import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
 import com.finance.pms.events.operations.nativeops.InflationRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
+import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
@@ -130,6 +131,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(skewRationaliserOperation);
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
 		nativeOperations.addOperation(zeroLagEMAOperation);
+		LnPeriodicOperation lnPeriodicOperation = new LnPeriodicOperation();
+		nativeOperations.addOperation(lnPeriodicOperation);
 
 		return nativeOperations;
 	}

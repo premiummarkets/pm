@@ -57,7 +57,7 @@ class QuotationData implements List<QuotationUnit> {
 	protected QuotationData(SortedSet<QuotationUnit> quotationUnits) {
 		init(quotationUnits);
 	}
-	
+
 	public QuotationData(List<QuotationUnit> sortedQuotationUnits) {
 		init(sortedQuotationUnits);
 	}
@@ -67,7 +67,7 @@ class QuotationData implements List<QuotationUnit> {
 		this.addAll(sortedQuotationUnits);
 		int i = 0 ;
 		for (QuotationUnit quotationUnit : sortedQuotationUnits) {
-			this.stripedQuotations.addStripedValues(i, quotationUnit.getClose(), quotationUnit.getHigh(), quotationUnit.getLow());
+			this.stripedQuotations.addStripedValues(i, quotationUnit.getCloseSp(), quotationUnit.getHighSp(), quotationUnit.getLowSp());
 			i++;
 		}
 	}
@@ -87,13 +87,13 @@ class QuotationData implements List<QuotationUnit> {
 	public Date getDate(int x) {
 		return get(x).getDate();
 	}
-	
-	public BigDecimal getClosestCloseBeforeOrAtDate(Date date) throws InvalidAlgorithmParameterException {
+
+	QuotationUnit getClosestQuotationBeforeOrAtDate(Date date) throws InvalidAlgorithmParameterException {
 		Integer index = getClosestIndexBeforeOrAtDate(0, date);
 		if (index == -1) throw new InvalidAlgorithmParameterException();
-		return get(index).getClose();
+		return get(index);
 	}
-	
+
 	public Number getClosestFieldBeforeOrAtDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
 		Integer index = getClosestIndexBeforeOrAtDate(0, date);
 		if (index == -1) throw new InvalidAlgorithmParameterException();
@@ -134,7 +134,7 @@ class QuotationData implements List<QuotationUnit> {
 		}
 		return -1;
 	}
-	
+
 
 	public double[] getCloseValues() {
 		if (this.stripedQuotations.isStriped()) 
@@ -142,21 +142,21 @@ class QuotationData implements List<QuotationUnit> {
 		else 
 			return this.getInput(QuotationDataType.CLOSE);
 	}
-	
+
 	public double[] getLowValues() {
 		if (this.stripedQuotations.isStriped()) 
 			return this.stripedQuotations.getLowTrimedList();
 		else 
 			return this.getInput(QuotationDataType.LOW);
 	}
-	
+
 	public double[] getHighValues() {
 		if (this.stripedQuotations.isStriped()) 
 			return this.stripedQuotations.getHighTrimedList();
 		else 
 			return this.getInput(QuotationDataType.HIGH);
 	}
-	
+
 	public double[] getVolumeValues() {
 		return this.getInput(QuotationDataType.VOLUME);
 	}
@@ -166,19 +166,19 @@ class QuotationData implements List<QuotationUnit> {
 		switch (field) {
 		case OPEN:
 			for (int i = 0; i < this.size(); i++)
-				values[i] = this.get(i).getOpen().doubleValue();
+				values[i] = this.get(i).getOpenSp().doubleValue();
 			break;
 		case HIGH:
 			for (int i = 0; i < this.size(); i++)
-				values[i] = this.get(i).getHigh().doubleValue();
+				values[i] = this.get(i).getHighSp().doubleValue();
 			break;
 		case LOW:
 			for (int i = 0; i < this.size(); i++)
-				values[i] = this.get(i).getLow().doubleValue();
+				values[i] = this.get(i).getLowSp().doubleValue();
 			break;
 		case CLOSE :
 			for (int i = 0; i < this.size(); i++) 
-				values[i] = this.get(i).getClose().doubleValue();
+				values[i] = this.get(i).getCloseSp().doubleValue();
 			break;
 		case VOLUME :
 			for (int i = 0; i < this.size(); i++) 
@@ -189,107 +189,107 @@ class QuotationData implements List<QuotationUnit> {
 		}
 		return values;
 	}
-	
+
 	public void add(int index, QuotationUnit element) {
 		this.stripedQuotations.getBarList().add(index,element);
 	}
 
-	
+
 	public boolean add(QuotationUnit e) {
 		return this.stripedQuotations.getBarList().add(e);
 	}
 
-	
+
 	public boolean addAll(Collection<? extends QuotationUnit> c) {
 		return this.stripedQuotations.getBarList().addAll(c);
 	}
 
-	
+
 	public boolean addAll(int index, Collection<? extends QuotationUnit> c) {
 		return this.stripedQuotations.getBarList().addAll(index,c);
 	}
 
-	
+
 	public void clear() {
 		this.stripedQuotations.getBarList().clear();
 	}
 
-	
+
 	public boolean contains(Object o) {
 		return this.stripedQuotations.getBarList().contains(o);
 	}
 
-	
+
 	public boolean containsAll(Collection<?> c) {
 		return this.stripedQuotations.getBarList().containsAll(c);
 	}
 
-	
+
 	public int indexOf(Object o) {
 		return this.stripedQuotations.getBarList().indexOf(o);
 	}
 
-	
+
 	public boolean isEmpty() {
 		return this.stripedQuotations.getBarList().isEmpty();
 	}
 
-	
+
 	public Iterator<QuotationUnit> iterator() {
 		return this.stripedQuotations.getBarList().iterator();
 	}
 
-	
+
 	public int lastIndexOf(Object o) {
 		return this.stripedQuotations.getBarList().lastIndexOf(o);
 	}
 
-	
+
 	public ListIterator<QuotationUnit> listIterator() {
 		return this.stripedQuotations.getBarList().listIterator();
 	}
 
-	
+
 	public ListIterator<QuotationUnit> listIterator(int index) {
 		return this.stripedQuotations.getBarList().listIterator(index);
 	}
 
-	
+
 	public QuotationUnit remove(int index) {
 		return this.stripedQuotations.getBarList().remove(index);
 	}
 
-	
+
 	public boolean remove(Object o) {
 		return this.stripedQuotations.getBarList().remove(o);
 	}
 
-	
+
 	public boolean removeAll(Collection<?> c) {
 		return this.stripedQuotations.getBarList().removeAll(c);
 	}
 
-	
+
 	public boolean retainAll(Collection<?> c) {
 		return this.stripedQuotations.getBarList().retainAll(c);
 	}
 
-	
+
 	public QuotationUnit set(int index, QuotationUnit element) {
 		return this.stripedQuotations.getBarList().set(index, element);
 	}
 
-	
+
 	public List<QuotationUnit> subList(int fromIndex, int toIndex) {
 		return this.stripedQuotations.getBarList().subList(fromIndex, toIndex);
 	}
 
-	
+
 	public Object[] toArray() {
 		return this.stripedQuotations.getBarList().toArray();
 	}
 
-	
+
 	public <T> T[] toArray(T[] a) {
 		return this.stripedQuotations.getBarList().toArray(a);
 	}
@@ -301,5 +301,5 @@ class QuotationData implements List<QuotationUnit> {
 	public Date getLastDate() {
 		return this.stripedQuotations.getLast().getDate();
 	}
-	
+
 }

@@ -309,6 +309,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					}
 
 				});
+
 				//Volume
 				Label volumeLabel = new Label(insertManualGroup, SWT.NONE);
 				volumeLabel.setBackground(MainGui.pOPUP_GRP);
@@ -395,12 +396,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								//Db and caches ...
 								Date inDate = (Date)actForm.values[0];
 								QuotationUnit quotationUnit = new QuotationUnit(
-										stock, stockCurrency, inDate, 
-										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[1], inDate), 
-										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[2], inDate), 
-										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[3], inDate), 
-										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[4], inDate), 
-										(Long)actForm.values[5], ORIGIN.USER);
+										stock, stockCurrency, inDate,
+										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[1], inDate),
+										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[2], inDate),
+										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[3], inDate),
+										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[4], inDate),
+										(Long)actForm.values[5], ORIGIN.USER, BigDecimal.ONE);
 								DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnit(quotationUnit);
 								Quotations.refreshCaches(stock);
 
@@ -1751,9 +1752,9 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								List<QuotationUnit> quotationUnits = new ArrayList<QuotationUnit>();
 								for (Date cumDate : cumQu.keySet()) {
 									Object[] values = cumQu.get(cumDate);
-									BigDecimal p = ((BigDecimal) values[0]).divide(new BigDecimal(values[1].toString()), 10, BigDecimal.ROUND_HALF_EVEN);
-									if (p.compareTo(BigDecimal.ZERO) != 0) {
-										QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), cumDate, p, p, p, p, 0l, ORIGIN.USER);
+									BigDecimal tPrice = ((BigDecimal) values[0]).divide(new BigDecimal(values[1].toString()), 10, BigDecimal.ROUND_HALF_EVEN);
+									if (tPrice.compareTo(BigDecimal.ZERO) != 0) {
+										QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), cumDate, tPrice, tPrice, tPrice, tPrice, 0l, ORIGIN.USER, BigDecimal.ONE);
 										quotationUnits.add(quotationUnit);
 									}
 								}
@@ -2118,7 +2119,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			BigDecimal transactionPrice = BigDecimal.ZERO;
 			try {
 				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency(), ValidityFilter.CLOSE);
-				transactionPrice = quotationsInstance.getClosestCloseForDate(newDate);
+				transactionPrice = quotationsInstance.getClosestCloseSpForDate(newDate);
 			} catch (Exception e1) {
 				LOGGER.warn(e1);
 			}

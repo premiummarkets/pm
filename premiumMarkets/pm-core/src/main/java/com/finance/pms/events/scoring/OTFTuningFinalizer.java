@@ -127,7 +127,7 @@ public class OTFTuningFinalizer {
 
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				if (period != null && period.getTrend().equals(EventType.BEARISH.name())) {
-					BigDecimal closestCloseForDate = quotations.getClosestCloseForDate(eventDate);
+					BigDecimal closestCloseForDate = quotations.getClosestCloseSpForDate(eventDate);
 					period.setTo(eventDate);
 					period.setPriceAtTo(closestCloseForDate.doubleValue());
 					period.setRealised(true);
@@ -136,13 +136,13 @@ public class OTFTuningFinalizer {
 					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BULLISH.name());
 				}
 				if (period == null) {
-					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseForDate(eventDate).doubleValue(), EventType.BULLISH.name()); 
+					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BULLISH.name()); 
 				}
 
 			}
 			if (eventValue.getEventType().equals(EventType.BEARISH)) {
 				if (period != null && period.getTrend().equals(EventType.BULLISH.name())) {
-					BigDecimal closestCloseForDate = quotations.getClosestCloseForDate(eventDate);
+					BigDecimal closestCloseForDate = quotations.getClosestCloseSpForDate(eventDate);
 					period.setTo(eventDate);
 					//addFilteredPeriod(periods, period, -1);
 					periods.add(period);
@@ -151,7 +151,7 @@ public class OTFTuningFinalizer {
 					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BEARISH.name()); 
 				}
 				if (period == null) {
-					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseForDate(eventDate).doubleValue(), EventType.BEARISH.name()); 
+					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BEARISH.name()); 
 				}
 			}
 		}
@@ -163,7 +163,7 @@ public class OTFTuningFinalizer {
 				QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
 				//if (!quotationUnit.getDate().after(period.getFrom())) throw new RuntimeException();
 				period.setTo(quotationUnit.getDate());
-				period.setPriceAtTo(quotationUnit.getClose().doubleValue());
+				period.setPriceAtTo(quotationUnit.getCloseSp().doubleValue());
 				period.setRealised(true);
 			}
 			//Ends with Bearish we don't know but we need to close the trend
@@ -171,7 +171,7 @@ public class OTFTuningFinalizer {
 				QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
 				//if (!quotationUnit.getDate().after(period.getFrom())) throw new RuntimeException();
 				period.setTo(quotationUnit.getDate());
-				period.setPriceAtTo(quotationUnit.getClose().doubleValue());
+				period.setPriceAtTo(quotationUnit.getCloseSp().doubleValue());
 				period.setRealised(false);
 			}
 			//addFilteredPeriod(periods, period, -1);
@@ -272,17 +272,17 @@ public class OTFTuningFinalizer {
 
 			if (lastRealisedBullIdx != -1) {
 				Date firstBullFrom = firstPeriod.getFrom();
-				BigDecimal firstBullStartPrice = quotations.getClosestCloseForDate(firstBullFrom);
+				BigDecimal firstBullStartPrice = quotations.getClosestCloseSpForDate(firstBullFrom);
 				PeriodRatingDTO lastBullPeriod = periods.get(lastRealisedBullIdx);
 				Date lastBullTo = lastBullPeriod.getTo();
-				BigDecimal lastBullStartPrice = quotations.getClosestCloseForDate(lastBullTo);
+				BigDecimal lastBullStartPrice = quotations.getClosestCloseSpForDate(lastBullTo);
 				LOGGER.info("Trend following compounded profit calculation is first Close "+firstBullStartPrice+" at "+firstBullFrom+" and last Close "+lastBullStartPrice+" at "+lastBullTo+" : "+trendFollowProfit);
 			} else {
 				LOGGER.info("Trend following profit calculation is unknown (No bullish periods were detected or no trend change detected)");
 			}
 
 			//Buy and hold profit
-			BigDecimal firstClose = quotations.getClosestCloseForDate(firstPeriod.getFrom());
+			BigDecimal firstClose = quotations.getClosestCloseSpForDate(firstPeriod.getFrom());
 			Double buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10, BigDecimal.ROUND_HALF_EVEN).doubleValue():Double.NaN;
 			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstPeriod.getFrom()+" and last Close "+lastClose+" at "+endDate+" : ("+lastClose+"-"+firstClose+")/"+firstClose+"="+buyAndHoldProfit);
 

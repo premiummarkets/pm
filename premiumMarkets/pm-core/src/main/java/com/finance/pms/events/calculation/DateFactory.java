@@ -44,6 +44,8 @@ public class DateFactory {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(DateFactory.class);
 
+	public static long DAYINMILLI = 1000*60*60*24;
+
 	public static Date dateAtZero() {
 
 		Calendar calendar = Calendar.getInstance();

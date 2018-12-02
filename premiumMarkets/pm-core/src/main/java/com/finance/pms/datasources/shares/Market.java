@@ -42,11 +42,11 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * @author Guillaume Thoreton
  */
 public enum Market implements Serializable {
-	
+
 	ASX ("ASX", "ASX", Currency.AUD, BigDecimal.ONE, YahooMarketExtentions.ASX, "UNKNOWN", "WMORN", true, new String[]{"AORD"}),
 	BSE ("BSE", "BSE", Currency.INR, BigDecimal.ONE, YahooMarketExtentions.BSE, "UNKNOWN", "WMORN", false, new String[]{}),
 	NSEINDIA ("NSEINDIA", "NSEINDIA", Currency.INR, BigDecimal.ONE, YahooMarketExtentions.BSE, "UNKNOWN", "WMORN", false, new String[]{"NSEI"}),
-	
+
 	NASDAQ ("NASDAQ", "Nasdaq", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NASDAQ, "NASDAQ", "WMORN", true, new String[]{"NDX", "IXIC"}),
 	NYSE ("NYSE", "NYSE", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "NSE", "WMORN", true, new String[]{"NYA"}),
 	AMEX  ("AMEX", "AMEX", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN", true, new String[]{}),
@@ -55,7 +55,7 @@ public enum Market implements Serializable {
 	NZSX ("NZSX", "NZSX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{"NZ50"}),
 	NZAX ("NZAX", "NZAX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	NZDX ("NZDX", "NZDX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}),
-	
+
 	LSE ("LON", "London", Currency.GBP, new BigDecimal(100), YahooMarketExtentions.LON, "UNKNOWN", "WMORN", true, new String[]{"FTSE", "FTAI", "FTAS", "FTMC", "FTT1X"}),
 	EURONEXT ("EURONEXT", "Euronext", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.PAR, "EPA", "XPAR", false, new String[]{}),
 	PARIS ("PARIS", "Paris", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.PAR, "EPA", "XPAR", true, new String[]{"FCHI", "SBF250", "MS190", "CM100", "CS90"}),
@@ -63,7 +63,7 @@ public enum Market implements Serializable {
 	MILAN ("MILAN", "Milan", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MI, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	STOCKHOLM ("STOCKHOLM", "Stockholm", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.ST, "UNKNOWN", "UNKNOWN", true, new String[]{"OMX"}),
 	COPENHAGEN ("COPENHAGEN", "Copenhagen", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.CO, "UNKNOWN", "UNKNOWN", true, new String[]{}),
-	
+
 	HANNOVER ("HANNOVER", "Hannover", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.HA, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	DUSSELDORF ("DUSSELDORF", "Dusseldorf", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.DU, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	HAMBURG ("HAMBURG", "Hamburg", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.HM, "UNKNOWN", "UNKNOWN", true, new String[]{}),
@@ -72,43 +72,43 @@ public enum Market implements Serializable {
 	XETRA ("XETRA", "Xetra", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.DE, "UNKNOWN", "UNKNOWN", true, new String[]{"GDAXI"}),
 	MUNICH ("MUNICH", "Munich", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MU, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	BERLIN ("BERLIN", "Berlin", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.BE, "UNKNOWN", "UNKNOWN", true, new String[]{}),
-	
+
 	MERCADOCONTINUO ("MERCADOCONTINUO", "MercadoContinuo", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MC, "UNKNOWN", "UNKNOWN", true, new String[]{"IBEX"}),
 	MADRID ("MADRID", "Madrid", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MA, "UNKNOWN", "UNKNOWN", true, new String[]{}),
-	
+
 	BRUSSELS ("BRUSSELS", "Brussels", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.BR, "UNKNOWN", "UNKNOWN", true, new String[]{"BFX"}),
 	VIRT_X ("VIRT_X", "Virt_X", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.VX, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	AMSTERDAM ("AMSTERDAM", "Amsterdam", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.AS, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	LISBON ("LISBON", "Lisbon", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.LS, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	OSLO ("OSLO", "Oslo", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.OL, "UNKNOWN", "UNKNOWN", true, new String[]{"OSEAX"}),
-	
+
 	TSX ("TSX", "TSX", Currency.CAD, BigDecimal.ONE, YahooMarketExtentions.TSX, "UNKNOWN", "WMORN", false, new String[]{}),
 	TORONTO ("TORONTO", "Toronto", Currency.CAD, BigDecimal.ONE, YahooMarketExtentions.TO, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	SWITZERLAND ("SWITZERLAND", "Switzerland", Currency.CHF, BigDecimal.ONE, YahooMarketExtentions.SW, "UNKNOWN", "UNKNOWN", true, new String[]{"SSMI"}),
-	
+
 	ARTA ("JAKARTA", "Jakarta", Currency.IDR, BigDecimal.ONE, YahooMarketExtentions.JK, "UNKNOWN", "UNKNOWN", true, new String[]{"JKSE"}),
 	SES ("SES", "SES", Currency.SGD, BigDecimal.ONE, YahooMarketExtentions.SI, "UNKNOWN", "UNKNOWN", true, new String[]{"STI"}),
 	KOSDAQ ("KOSDAQ", "KOSDAQ", Currency.KRW, BigDecimal.ONE, YahooMarketExtentions.KQ, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	TAIWAN ("TAIWAN", "Taiwan", Currency.TWD, BigDecimal.ONE, YahooMarketExtentions.TW, "UNKNOWN", "UNKNOWN", true, new String[]{}),
 	TASE ("TASE", "TASE", Currency.ILS, BigDecimal.ONE, YahooMarketExtentions.TA, "UNKNOWN", "UNKNOWN", true, new String[]{"TA100"}),
 	HKSE ("HKSE", "HKSE", Currency.HKD, BigDecimal.ONE, YahooMarketExtentions.HK, "UNKNOWN", "UNKNOWN", true, new String[]{"HSI"}),
-	
+
 	NSENAIROBI ("NSENAIROBI", "NSENAIROBI", Currency.KES, BigDecimal.ONE, YahooMarketExtentions.KE, "UNKNOWN", "UNKNOWN", false, new String[]{}),
-	
+
 	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{});
-	
-	
+
+
 	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);
-	
+
 	private String marketName;
 	private String friendlyName;
 	private Currency defaultCurrency;
 	private BigDecimal defaultCurrencyFactor;
-	
+
 	private YahooMarketExtentions yahooExtension;
 	private String googleExtension;
 	private String investirExtension;
-	
+
 	private Boolean hasStaticAllMarket;
 	private String[] yahooIndices;
 
@@ -129,8 +129,8 @@ public enum Market implements Serializable {
 	public String getFriendlyName() {
 		return friendlyName;
 	}
-	
-	
+
+
 	public String getMarketName() {
 		return marketName;
 	}
@@ -150,11 +150,11 @@ public enum Market implements Serializable {
 	public String getInvestirExtension() {
 		return investirExtension;
 	}
-	
+
 	public static Set<String> getExtensionFor(MarketQuotationProviders provider) {
 		Set<String> ret = new HashSet<String>();
 		String cmdParam4Prov = provider.getCmdParam();
-		
+
 		try {
 			for (Market market : values()) {
 				//String ext = Market.class.getDeclaredField(cmdParam4Prov+"Extension").get(market).toString();
@@ -166,27 +166,27 @@ public enum Market implements Serializable {
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}
-		
+
 		return ret;
 	}
-	
+
 	public static String getExtensionFor(MarketQuotationProviders provider, Market market) {
-	
+
 		String cmdParam4Prov = provider.getCmdParam();
 		try {
 			return extStringGen(market, cmdParam4Prov);
 		} catch (Exception e) {
 			LOGGER.error(e, e);
 		}
-		
+
 		return "NONE";
 	}
 
 	protected static String extStringGen(Market market, String cmdParam4Prov) throws IllegalAccessException, NoSuchFieldException {
-		
+
 		Object objectExt = Market.class.getDeclaredField(cmdParam4Prov+"Extension").get(market);
 		return  objectExt.toString();
-		
+
 	}
 
 	public BigDecimal getDefaultCurrencyFactor() {
@@ -200,7 +200,7 @@ public enum Market implements Serializable {
 	public String[] getYahooIndices() {
 		return yahooIndices;
 	}
-	
-	
-	
+
+
+
 }

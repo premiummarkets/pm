@@ -70,10 +70,10 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
-		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getClose();
+		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSp();
 		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0) {
 			for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-				BigDecimal relatedCloseValue = stockQuotations.get(i).getClose().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal relatedCloseValue = stockQuotations.get(i).getCloseSp().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
 				retA.add(relatedCloseValue);
 			}
 		}

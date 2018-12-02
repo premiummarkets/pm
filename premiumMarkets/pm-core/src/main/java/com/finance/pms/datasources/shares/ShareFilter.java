@@ -39,12 +39,10 @@ public abstract class ShareFilter {
 		this.categories = categories;
 	}
 
-
 	public abstract String getRequestConstraint(String...params);
-
 
 	public StockCategories[] getCategories() {
 		return categories;
 	}
-	
+
 }

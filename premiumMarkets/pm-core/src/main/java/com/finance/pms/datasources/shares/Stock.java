@@ -357,6 +357,11 @@ public class Stock extends Validatable {
 		this.symbol = this.symbolMarketQuotationProvider.getFullSymbol((symbol != null)?symbol.trim():null);
 	}
 
+	/**
+	 * Set to false to see your edited entries when there already are entries from downloaded quotations at the same date.
+	 * When true, the downloaded quotations will be predominant if exist at the same date.
+	 * @return
+	 */
 	@Column(name="REMOVABLE")
 	public Boolean isOverrideUserQuotes() {
 		return overrideUserQuotes;

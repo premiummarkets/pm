@@ -89,16 +89,16 @@ public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 		
 		double periodMean = 0;
 		for (int i = quotationIdx - standardDeviation.getPeriod(); i < quotationIdx ; i++) {
-			periodMean = periodMean + qU.getClose().doubleValue();
+			periodMean = periodMean + qU.getCloseSp().doubleValue();
 		}
 		periodMean = periodMean / standardDeviation.getPeriod();
 		
-		double currentQuote = qU.getClose().doubleValue();
+		double currentQuote = qU.getCloseSp().doubleValue();
 		double currentDev = currentQuote - periodMean;
 		
 		//EventType resType = EventType.NONE;
 		if (Math.abs(currentDev) > this.standardDeviation.getStdDev()[stddevIndQuoteIndex]) {
-			boolean isPriceAboveSMA = qU.getClose().doubleValue() > sma.getSma()[smaIndicatorIndex];
+			boolean isPriceAboveSMA = qU.getCloseSp().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			if (currentDev < 0 && !isPriceAboveSMA) {
 				res.setBearishCrossBellow(true);
 				//resType = EventType.BEARISH;
@@ -144,7 +144,7 @@ public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.STDDEV,EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
+		BigDecimal calculatorClose = qU.getCloseSp();
 //		int smaQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,smaQuotationStartDateIdx);
 //		int stddevQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,stddevQuotationStartDateIdx);
 		String line =

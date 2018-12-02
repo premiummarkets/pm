@@ -131,7 +131,7 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMRSITHRESHOLD,EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
+		BigDecimal calculatorClose = qU.getCloseSp();
 		String line =
 				new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + ","
 						+ getLowerThreshold() + ","

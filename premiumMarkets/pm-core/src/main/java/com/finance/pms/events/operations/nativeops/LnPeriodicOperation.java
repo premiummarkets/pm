@@ -30,53 +30,52 @@
 package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({ArithmeticOperation.class, ArithmeticUnaryOperation.class, PMIndicatorOperation.class, StockOperation.class, TalibOperation.class, LnPeriodicOperation.class})
-public class DoubleMapOperation extends MapOperation {
+public class LnPeriodicOperation extends DoubleMapOperation {
 
-	public DoubleMapOperation() {
-		super("historical data", "Time series of real historical data or resulting of calculations");
+	public LnPeriodicOperation() {
+		this("periodicLn_", "ln(n/(n-p)) ~ House Trend in base 'e'", new NumberOperation("period","period", "Period", new NumberValue(1.0)), new DoubleMapOperation("data"));
 	}
 
-	public DoubleMapOperation(String reference) {
-		super(reference, reference);
-	}
-
-	public DoubleMapOperation(String reference, String definition) {
-		super(reference, definition);
-	}
-
-	public DoubleMapOperation(String reference, String description, ArrayList<? extends Operation> operands) {
-		super(reference, description, operands);
-	}
-
-	public DoubleMapOperation(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
-		super(reference, referenceAsOperand, description, defaultValue);
+	public LnPeriodicOperation(String reference, String description, Operation ...operands) {
+		super(reference, description, new ArrayList<>(Arrays.asList(operands)));
 	}
 
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return ((NumericableMapValue)inputs.get(0));
+
+		Integer lnPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
+
+		List<Date> fullKeySet = new ArrayList<>(data.keySet());
+		List<Double> fullValuesSet = new ArrayList<>(data.values());
+
+		SortedMap<Date, Double> result = IntStream
+				.range(lnPeriod, data.size())
+				.mapToObj(i -> i)
+				.collect(Collectors.toMap(i -> fullKeySet.get(i), i -> Math.log(fullValuesSet.get(i)/fullValuesSet.get(i-lnPeriod)), (a, b) -> a, TreeMap::new));
+
+		return new DoubleMapValue(result);
 	}
 
 	@Override
 	public int operationStartDateShift() {
-		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
-		//Nothing
+		int maxDateShift = 0;
+		for (int i = 0; i < 1; i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
 	}
 
 }

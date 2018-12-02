@@ -149,7 +149,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(), EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getClose();
+		BigDecimal calculatorClose = qU.getCloseSp();
 
 		int chaikinIndex = getIndicatorIndexFromQuotationIndex(this.chaikinOscillator, calculatorIndex);
 

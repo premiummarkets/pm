@@ -58,31 +58,31 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 	public QuotationsIntradayNyseEuroNext(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
 		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
 	}
-	
+
 	@Override
 	protected QuotationData retreiveQuotationsData(Date firstDate, Integer indexShiftBefore) {
-	
+
 		File dailyDataFile = new File(System.getProperty("installdir") + File.separator + "IntradayNyseEuroNext"+this.stock.getSymbolRoot()+".csv");
-		
+
 		SortedSet<QuotationUnit> quotationUnitsStack = new TreeSet<QuotationUnit>();
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(dailyDataFile));
 			String line = null;
-			
+
 			Date day = null;
 			Pattern pattern = Pattern.compile(".* \\(([0-9]{2}/[0-9]{2}/[0-9]{2})\\)");
 			Calendar dayCal = Calendar.getInstance();
-			
+
 			while((line=bufferedReader.readLine()) != null) {
-				
+
 				Matcher matcher = pattern.matcher(line);
 				if (matcher.find()) {
 					day = new SimpleDateFormat("dd/MM/yy").parse(matcher.group(1));
 					dayCal.setTime(day);
 				} else {
-				
+
 					String[] split = line.split(";");
-					
+
 					Date minutes;
 					try {
 						minutes = new SimpleDateFormat("HH:mm:ss").parse(split[0]);
@@ -91,17 +91,17 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 						dayCal.set(Calendar.HOUR_OF_DAY, minutesCal.get(Calendar.HOUR_OF_DAY));
 						dayCal.set(Calendar.MINUTE, minutesCal.get(Calendar.MINUTE));
 						dayCal.set(Calendar.SECOND, minutesCal.get(Calendar.SECOND));
-						
-						quotationUnitsStack.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), new Long(split[3]), ORIGIN.WEB));
-						
+
+						quotationUnitsStack.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), new Long(split[3]), ORIGIN.WEB, BigDecimal.ONE));
+
 					} catch (ParseException e) {
 						LOGGER.info("Ignored line :"+line);
 					}
-					
+
 				}
 			}
 			bufferedReader.close();
-			
+
 		} catch (FileNotFoundException e) {
 			LOGGER.error(e,e);
 			return null;
@@ -112,7 +112,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 			LOGGER.error(e,e);
 			return null;
 		}
-		
+
 		SortedSet<QuotationUnit> normalizedQU = new TreeSet<QuotationUnit>();
 		Iterator<QuotationUnit> iterator = quotationUnitsStack.iterator();
 		QuotationUnit currentQU = iterator.next();
@@ -125,7 +125,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 
 		while (currentTime.getTime().compareTo(lastDate) < 0) {
 			while (currentTime.compareTo(nextTime) < 0) {
-				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getClose(), currentQU.getVolume(),ORIGIN.WEB));
+				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getCloseSp(), currentQU.getVolume(), ORIGIN.WEB, BigDecimal.ONE));
 				QuotationsFactories.getFactory().incrementDate(currentTime, 1);
 			} 
 			currentQU = nextQU;
@@ -136,7 +136,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 				nextTime.setTime(lastDate);
 			}
 		}
-		normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getClose(), nextQU.getVolume(), ORIGIN.WEB));
+		normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getCloseSp(), nextQU.getVolume(), ORIGIN.WEB, BigDecimal.ONE));
 		return new QuotationData(normalizedQU);
 	}
 
