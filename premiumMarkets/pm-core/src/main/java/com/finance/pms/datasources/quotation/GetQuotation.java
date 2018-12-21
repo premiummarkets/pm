@@ -32,6 +32,7 @@ package com.finance.pms.datasources.quotation;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -46,8 +47,10 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.Providers;
+import com.finance.pms.datasources.web.currency.QuotationFixer;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.LastUpdateStampChecker;
 import com.finance.pms.events.quotations.Quotations;
@@ -75,16 +78,16 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 	public GetQuotation(Date dateFin, Stock stock, Boolean reset) {
 		super();
 		config = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
-		
+
 		this.stock = stock;
 		this.dateFin = DateFactory.midnithDate(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
 		this.reset = reset;
-	
+
 	}
 
 	@Override
 	public GetQuotationResult call() {
-		
+
 		synchronized (stock) {
 
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
@@ -102,7 +105,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 			Boolean updateGranted = null;
 			Date updateStart = null;
 
-			try {	
+			try {
 
 				Calendar startDayMidNight = Calendar.getInstance();
 				startDayMidNight.setTime(DateFactory.midnithDate(lasteQuoteBeforeUpdate));
@@ -180,18 +183,27 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 				Quotations.updateCachedStockKey(stock);
 			}
 
+			if (
+					Currency.GBP.equals(stock.getMarketValuation().getCurrency()) &&
+					stock.getMarketValuation().getCurrencyFactor().doubleValue() > 1 &&
+					ret.isSuccessfulUpdate && ret.hasNewQuotations
+			) {
+				QuotationFixer quotationFixer = new QuotationFixer();
+				quotationFixer.fixPennyPound(Arrays.asList(stock));
+			}
+
 			return ret;
 
 		}
 	}
 
 	private void updateLastQuoteDateForShareInDB(Date lastQuote) {
-		
+
 		if (null == lastQuote) {
 			LOGGER.debug("No last date returned from quotation fetch for : "+stock+". Assuming that it is up to date.");
 			return;
 		}
-		
+
 		//Mise a jour de la date de derniere quote and name
 		List<Validatable> updateLastQuotesQueries = new ArrayList<Validatable>();
 		final Query uQ = new Query();
@@ -210,15 +222,15 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 				return uQ;
 			}
 		});
-		
+
 		try {
 			DataSource.getInstance().executeBlock(updateLastQuotesQueries, DataSource.SHARES.getUPDATELASTQUOTEANDNAME());
 		} catch (SQLException e) {
 			LOGGER.error(e,e);
 		}
-		
+
 	}
-	
+
 	public class GetQuotationResult {
 
 		Stock stock;
@@ -226,7 +238,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 		Boolean isSuccessfulUpdate;
 		Boolean hasPreviousQuotations;
 		Exception failureCause;
-		
+
 		public GetQuotationResult(Stock stock) {
 			this.stock = stock;
 			this.isSuccessfulUpdate = null;

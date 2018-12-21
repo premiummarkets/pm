@@ -64,4 +64,6 @@ public interface ShareDAO {
 	void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit);
 	void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits);
 
+	void deleteQuotationUnits(List<QuotationUnit> quotationUnits);
+
 }

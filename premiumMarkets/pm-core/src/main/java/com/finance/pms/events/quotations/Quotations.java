@@ -211,17 +211,8 @@ public class Quotations {
 			Integer factorDouble = (int) split;
 			BigDecimal factor = new BigDecimal(factorDouble.toString());
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
-				//				QuotationUnit oldValue = quotationsUnitOut.get(i);
-				//				QuotationUnit newValue =
-				//						new QuotationUnit(
-				//								oldValue.getStock(), oldValue.getCurrency(),
-				//								oldValue.getDate(),
-				//								oldValue.getOpenSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN), oldValue.getHighSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN),
-				//								oldValue.getLowSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN), oldValue.getCloseSp().divide(factor, 10, BigDecimal.ROUND_HALF_EVEN),
-				//								oldValue.getVolume(), oldValue.getOrigin());
 				QuotationUnit quotationUnit = quotationsUnitOut.get(i);
 				quotationUnit.setSplit(quotationUnit.getSplit().multiply(factor));
-				//quotationsUnitOut.set(i, quotationUnit);
 			}
 		}
 	}

@@ -406,7 +406,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
 				java.sql.Date entryDate = override(stock.isOverrideUserQuotes(), rs, retour);
-				if (entryDate != null) {
+				if (entryDate != null && rs.getInt(QUOTATIONS.ORIGIN_FIELD) != ORIGIN.DEL.ordinal()) {
 					retour.add(new QuotationUnit(
 							stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
 							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
@@ -442,7 +442,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
 				java.sql.Date entryDate = override(stock.isOverrideUserQuotes(), rs, retour);
-				if (entryDate != null) {
+				if (entryDate != null && rs.getInt(QUOTATIONS.ORIGIN_FIELD) != ORIGIN.DEL.ordinal()) {
 					retour.add(new QuotationUnit(
 							stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
 							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 

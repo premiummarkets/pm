@@ -262,9 +262,15 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	public void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits) {
 		//getHibernateTemplate().saveOrUpdateAll(quotationUnits);
 		for (QuotationUnit quotationUnit : quotationUnits) {
+			//FIXME ..
 			if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: "+quotationUnit);
 			getHibernateTemplate().saveOrUpdate(quotationUnit);
 		}
+	}
+
+	@Override
+	public void deleteQuotationUnits(List<QuotationUnit> quotationUnits) {
+		getHibernateTemplate().deleteAll(quotationUnits);
 	}
 
 }

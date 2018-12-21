@@ -69,43 +69,43 @@ import com.finance.pms.threads.ObserverMsg;
  * @author Guillaume Thoreton
  */
 public class QuotationUpdate {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(QuotationUpdate.class);
-	
+
 	//DEBUG
 	public static long dlance;
 	private Set<Observer> observers = new HashSet<Observer>();
 
 	public void getQuotesForListInCmd(List<String> listSymbols, String shareList, String quotationsProvider) {
-		
-//		StockList stockList = new StockList();
-//		Providers.getInstance(shareList).retrieveStockListFromCmdLine(listSymbols, stockList, quotationsProvider);
-//		try {
-//			getQuotes(stockList);
-//		} catch (QuotationUpdateException e) {
-//			LOGGER.warn(e);
-//		}
+
+		//		StockList stockList = new StockList();
+		//		Providers.getInstance(shareList).retrieveStockListFromCmdLine(listSymbols, stockList, quotationsProvider);
+		//		try {
+		//			getQuotes(stockList);
+		//		} catch (QuotationUpdateException e) {
+		//			LOGGER.warn(e);
+		//		}
 		throw new ToDoException("FIXME");
-		
+
 	}
-	
+
 	public void getQuotesAndNewForShareListFromWeb(String sharesListName, String marketQuotationProvider, SortedSet<Indice> indices) throws HttpException {
-		
+
 		MarketListProvider provider =  ProvidersList.getInstance(sharesListName, indices);
 		getQuotesAndNewForShareListFromWeb(provider, marketQuotationProvider);
-		
+
 	}
 
 	private void getQuotesAndNewForShareListFromWeb(MarketListProvider provider, String marketQuotationsProvider) throws HttpException {
-		
+
 		StockList existingDBStocks = new StockList();
 		provider.retrieveStockListFromBase(existingDBStocks);
-		
+
 		StockList bdStockList =  new StockList();
 		bdStockList.addAll(existingDBStocks);
-		
+
 		StockList shareListStocks = provider.retrieveStockListFromWeb(MarketQuotationProviders.valueOfCmd(marketQuotationsProvider), existingDBStocks);
-		
+
 		try {
 			getQuotes(shareListStocks);
 		} catch (QuotationUpdateException e) {
@@ -114,42 +114,42 @@ public class QuotationUpdate {
 	}
 
 	public void getQuotesForListInFile(String pathToFileList, String sharesList) {
-		
+
 		StockList dbStockList = new StockList();
 		ProvidersList.getMarketListInstance(sharesList).retrieveStockListFromBase(dbStockList);
 		StockList retreivedStockListFromFile = ProvidersList.getMarketListInstance(sharesList).retreiveStockListFromFile(pathToFileList, dbStockList);
-		
+
 		try {
 			getQuotes(retreivedStockListFromFile);
 		} catch (QuotationUpdateException e) {
 			retreivedStockListFromFile.removeAll(e.getStockNotFound().keySet());
 			LOGGER.warn("Could not find the following : "+e.getNoNewQuotations());
 		}
-		
+
 	}
-	
+
 	public List<Stock> getQuotesForListInFile(String pathToFileList, MarketListProvider sharesList) {
-		
+
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
 		StockList retreivedStockListFromFile = sharesList.retreiveStockListFromFile(pathToFileList, dbStockList);
-		
+
 		try {
 			getQuotes(retreivedStockListFromFile);
 		} catch (QuotationUpdateException e) {
 			retreivedStockListFromFile.removeAll(e.getStockNotFound().keySet());
 		}
-		
+
 		return retreivedStockListFromFile;
-		
+
 	}
-	
+
 	public Stock getQuotesForUiForm(MarketListProvider sharesList, Stock newStock) throws InvalidAlgorithmParameterException, QuotationUpdateException {
-	
+
 		StockList dbStockList = new StockList();
 		sharesList.retrieveStockListFromBase(dbStockList);
 		sharesList.retrieveAndCompleteStockInfo(newStock, dbStockList);
-		
+
 		try {
 			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))), true);
 		} catch (QuotationUpdateException e) {
@@ -159,7 +159,7 @@ public class QuotationUpdate {
 		return newStock;
 
 	}
-	
+
 	public Collection<Stock> getQuotesFor(Collection<Stock> stocks) throws QuotationUpdateException {
 		StockList stockList = new StockList();
 		stockList.addAll(stocks);
@@ -167,23 +167,23 @@ public class QuotationUpdate {
 
 		return stocks;
 	}
-	
+
 	public Collection<Stock> getQuotesForMonitored() {
 		StockList stockList = new StockList();
 		Collection<Stock> symbols = DataSource.getInstance().getShareDAO().loadMonitoredStocks();
 		stockList.addAll(symbols);
-		
+
 		try {
 			getQuotes(stockList);
 		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
-		
+
 		return symbols;
 	}
-	
+
 	public Collection<Stock> getQuotesForAllMonitoredUserPortfolios() {
-		
+
 		//load stocks for all user portfolios
 		StockList userPortoflioStocks = new StockList();
 		Collection<Stock> userPortoflioSymbols = DataSource.getInstance().getShareDAO().loadMonitoredUserPortoflioStocks();
@@ -196,22 +196,22 @@ public class QuotationUpdate {
 
 		return userPortoflioSymbols;
 	}
-	
+
 	public void getQuotesForSharesListInDB(String sharesListName, SortedSet<Indice> indices) {
-		
+
 		StockList stockList = new StockList();
-		
+
 		MarketListProvider provider =  ProvidersList.getInstance(sharesListName, indices);
 		sharesListName = sharesListName+Indice.formatSet(provider.getIndices());
 		Collection<Stock> symbols = DataSource.getInstance().loadStocksList(sharesListName);
-		
+
 		stockList.addAll(symbols);
 		try {
 			getQuotes(stockList);
 		} catch (QuotationUpdateException e) {
 			LOGGER.warn(e);
 		}
-		
+
 	}
 
 	public void getQuotes(StockList stockList) throws QuotationUpdateException {
@@ -219,20 +219,20 @@ public class QuotationUpdate {
 	}
 
 	public void getQuotes(StockList stockList, Boolean reset) throws QuotationUpdateException {
-		
+
 		Iterator<Stock> stlIt = stockList.iterator();
-		
+
 		dlance = System.currentTimeMillis();
 		for (Observer observer : observers) {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, stockList.size()));
 		}
-		
+
 		ExecutorService executor = Executors.newFixedThreadPool((new Integer(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.nbthread", "20"))));
 		List<Future<GetQuotationResult>> getQuoteRess = new ArrayList<Future<GetQuotationResult>>();
 		while (stlIt.hasNext()) {
-			
+
 			Stock stock = stlIt.next();
-			
+
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
 			GetQuotation command = new GetQuotation(DateFactory.getNowEndDate(), stock, reset);
 			for (Observer observer : observers) {
@@ -241,7 +241,7 @@ public class QuotationUpdate {
 
 			Future<GetQuotationResult> getQuoteRes = executor.submit(command);
 			getQuoteRess.add(getQuoteRes);
-			
+
 		}
 
 		executor.shutdown();
@@ -255,7 +255,7 @@ public class QuotationUpdate {
 			List<Runnable> shutdownNow = executor.shutdownNow();
 			LOGGER.error(shutdownNow, e);
 		}
-		
+
 		QuotationUpdateException exceptions = new QuotationUpdateException("Unable to update these quotations");
 		int success = 0;
 		for (Future<GetQuotationResult> getQuotationRes : getQuoteRess) {
@@ -284,32 +284,32 @@ public class QuotationUpdate {
 		if (!exceptions.stockNotFound.isEmpty()) {
 			throw exceptions;
 		}
-		
+
 		LOGGER.debug("Download duration : " + (System.currentTimeMillis() - dlance) / (1000 * 60) + " minutes");
-		
+
 	}
-	
+
 	public class QuotationUpdateException extends Exception {
-		
+
 		private static final long serialVersionUID = 3632464675497253714L;
-		
+
 		List<Stock> noNewQuotations;
 		Map<Stock,Exception> updateFailed;
 		Map<Stock,Exception> stockNotFound;
-		
+
 		public QuotationUpdateException(String message) {
 			super(message);
 			this.noNewQuotations = new ArrayList<Stock>();
 			this.updateFailed = new HashMap<Stock, Exception>();
 			this.stockNotFound = new HashMap<Stock, Exception>();
 		}
-		
+
 		@Override
 		public String getMessage() {
 			return super.getMessage()+"\n"+this.toString();
 		}
-		
-		
+
+
 		public String toString() {
 			String ret = "";
 			if (!noNewQuotations.isEmpty()) {

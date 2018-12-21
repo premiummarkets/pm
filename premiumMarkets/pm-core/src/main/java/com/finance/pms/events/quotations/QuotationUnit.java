@@ -62,7 +62,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 
 	private static final long serialVersionUID = -406044551517984882L;
 
-	public enum ORIGIN {WEB, USER};
+	public enum ORIGIN {WEB, USER, DEL};
 
 	private Stock stock;
 	private Currency currency;
@@ -245,26 +245,26 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 
-	//@SuppressWarnings("unused")
-	public void setOpen(BigDecimal open) {
+	@SuppressWarnings("unused")
+	private void setOpen(BigDecimal open) {
 		this.open = open;
 	}
 
 
-	//@SuppressWarnings("unused")
-	public void setHigh(BigDecimal high) {
+	@SuppressWarnings("unused")
+	private void setHigh(BigDecimal high) {
 		this.high = high;
 	}
 
 
-	//@SuppressWarnings("unused")
-	public void setLow(BigDecimal low) {
+	@SuppressWarnings("unused")
+	private void setLow(BigDecimal low) {
 		this.low = low;
 	}
 
 
-	//@SuppressWarnings("unused")
-	public void setClose(BigDecimal close) {
+	@SuppressWarnings("unused")
+	private void setClose(BigDecimal close) {
 		this.close = close;
 	}
 
