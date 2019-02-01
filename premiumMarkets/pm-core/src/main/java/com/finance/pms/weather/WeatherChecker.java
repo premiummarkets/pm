@@ -90,7 +90,7 @@ public class WeatherChecker extends IndicatorsOperator {
 		EventValue meanEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
 		EventValue trendChangeEventValue = new EventValue(endDate, EventDefinition.WEATHER, EventType.NONE, eventListName);
 
-		for (; 	currentDateCalendar.getTime().compareTo(endDateCalendar.getTime()) <= 0 && currentDateCalendar.getTime().compareTo(todayCalendar.getTime()) <= 0; 
+		for (; currentDateCalendar.getTime().compareTo(endDateCalendar.getTime()) <= 0 && currentDateCalendar.getTime().compareTo(todayCalendar.getTime()) <= 0;
 				currentDateCalendar.add(Calendar.MONTH, 1)) {
 
 			WeatherElement currentDateWeather = new WeatherElement(currentDateCalendar.getTime());
@@ -196,7 +196,7 @@ public class WeatherChecker extends IndicatorsOperator {
 				addTrendChangeEvent(eventValue, endDate, EventType.INFO, eventListName, currentDateWeather.getDate(), meanHistory, firstPreviousTemp, secondPreviousTemp, currentTemp, "Temperature RAS (we need : t0>t1<t2 and t1<Mean or t0<t1>t2 and t1>Mean) ");
 			}
 		} catch (Exception e) {
-			LOGGER.error("No monthly weather history for "+endDate,e);
+			LOGGER.error("No monthly weather history for " + endDate, e);
 		}
 	}
 
