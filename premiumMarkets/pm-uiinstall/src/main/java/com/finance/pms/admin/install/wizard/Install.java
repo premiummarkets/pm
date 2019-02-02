@@ -65,34 +65,34 @@ import com.nexes.wizard.WizardPanelDescriptor;
  * @author Guillaume Thoreton
  */
 public class Install {
-	
+
 	public static final String iconFile = "icons/icon";
 	public static final String license = "COPYING";
 	public static final String dbName = "derby";
 	public static SystemTypes systemType = SystemTypes.WINDOWS;
-	
+
 	public static String APP_SYS_NAME;
 	public static String ARCH_NAME;
 	public static String APP_NAME;
-	
+
 	public static Boolean debug;
 	private static Boolean stop = false;
-	
+
 	protected MyWizard wizard;
 	private String siteUrl;
-	
+
 	public Install() {
-		
+
 	}
 
 
 	public static void main(String[] args) {
-		
+
 		Install install = new Install();
-		
+
 		//Connection check
 		install.connectionCheck();
-		
+
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e1) {
@@ -110,7 +110,7 @@ public class Install {
 
 			//Start wizard
 			install.initWizard();
-			
+
 			int ret = install.showModalDialog();
 			System.out.println("Dialog return code is (0=Finish,1=Cancel,2=Error): " + ret);
 
@@ -120,11 +120,11 @@ public class Install {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			
+
 		} finally {
-			
+
 			install.disposeFrames();
-			
+
 			try {
 				while (!stop) {
 					Thread.sleep(3000);
@@ -132,7 +132,7 @@ public class Install {
 			} catch (Throwable e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
 
@@ -157,7 +157,7 @@ public class Install {
 
 
 	protected void launchUi() {
-		
+
 		SystemTypes systemType = Install.systemType;
 		if (systemType == null) systemType = SystemTypes.WINDOWS;
 
@@ -166,7 +166,7 @@ public class Install {
 		final String params[];
 
 		System.out.println("OS like : "+systemType);
-		if (systemType.equals(SystemTypes.WINDOWS)) {		
+		if (systemType.equals(SystemTypes.WINDOWS)) {
 			Install.windowsPostInstall(InstallFolderPanel.getInstallFolder().getAbsolutePath());
 			params = new String[] { guiShell, InstallFolderPanel.getInstallFolder().getAbsolutePath()};
 		} else {
@@ -177,7 +177,7 @@ public class Install {
 		for (String string : params) {
 			System.out.println("Launch gui params : "+string);
 		}
-		
+
 		try {
 
 			while (ProgressPanelDescriptor.connection != null && !ProgressPanelDescriptor.connection.isClosed()) {
@@ -190,7 +190,7 @@ public class Install {
 			builder.redirectErrorStream(true);
 			builder.directory(InstallFolderPanel.getInstallFolder());
 			Process process = builder.start();
-			
+
 			final BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
 			Timer timer = new Timer(true);
@@ -222,14 +222,14 @@ public class Install {
 			System.out.println("error===" + e.getMessage());
 			e.printStackTrace();
 		}
-		
+
 	}
 
 
 	protected void initWizard() {
-		
+
 		wizard = new MyWizard();
-		
+
 		wizard.getDialog().setSize(500,200);
 		wizard.getDialog().setFont(new java.awt.Font("MS Sans Serif", Font.PLAIN, 14));
 
@@ -244,54 +244,54 @@ public class Install {
 		System.setProperty("com.apple.mrj.application.apple.menu.about.name", APP_NAME);
 		Image appImageIcon = getAppImageIcon();
 		if (appImageIcon != null) wizard.getDialog().setIconImage(appImageIcon);
-		
+
 		String siteUrl = setupSiteUrl();
 		String introButtonTxt = setupIntroButtonTxt(siteUrl);
 		String copyRights = setupCopyRightsHtml();
 		WizardPanelDescriptor descriptor1 = new IntroPanelDescriptor(wizard, siteUrl, introButtonTxt, copyRights);
 		wizard.registerWizardPanel(IntroPanelDescriptor.IDENTIFIER, descriptor1);
-		
+
 		String jnlpUrl = setupUpdateJnlpUrl();
 		WizardPanelDescriptor descriptor11 = new UpdateUrlPanelDescriptor(wizard, jnlpUrl);
 		wizard.registerWizardPanel(UpdateUrlPanelDescriptor.IDENTIFIER, descriptor11);
-		
+
 		WizardPanelDescriptor descriptor2 = new LicencePanelDescriptor(wizard);
 		wizard.registerWizardPanel(LicencePanelDescriptor.IDENTIFIER, descriptor2);
-		
+
 		WizardPanelDescriptor descriptor3 = new InstallFolderPanelDescriptor(wizard);
 		wizard.registerWizardPanel(InstallFolderPanelDescriptor.IDENTIFIER, descriptor3);
-		
+
 		String dbInstallUrl = setupInstallAltDbUrl();
 		String dbName = setupDbName();
 		String packagedJnlp = setupPackagedJnlpName();
-        String waitForProgressTxt = setupWhileWeWaitText();
-        String whileWeWaitUrl = setupWhileWeWaitUrl(siteUrl);
+		String waitForProgressTxt = setupWhileWeWaitText();
+		String whileWeWaitUrl = setupWhileWeWaitUrl(siteUrl);
 		WizardPanelDescriptor descriptor4 = new ProgressPanelDescriptor(wizard, dbInstallUrl, dbName, packagedJnlp, waitForProgressTxt, siteUrl, whileWeWaitUrl);
 		wizard.registerWizardPanel(ProgressPanelDescriptor.IDENTIFIER, descriptor4);
-		
+
 		WizardPanelDescriptor descriptor5 = new SmtpPanelDescriptor(wizard);
 		wizard.registerWizardPanel(SmtpPanelDescriptor.IDENTIFIER, descriptor5);
-		
+
 		WizardPanelDescriptor descriptor6 = new DonePanelDescriptor(wizard);
 		wizard.registerWizardPanel(DonePanelDescriptor.IDENTIFIER, descriptor6);
-		
+
 		wizard.setCurrentPanel(IntroPanelDescriptor.IDENTIFIER);
 	}
-    
-    private Image getAppImageIcon() {
-    	URL resource = this.getClass().getClassLoader().getResource(Install.iconFile+".png");
-    	if (resource != null){
-    		try {
+
+	private Image getAppImageIcon() {
+		URL resource = this.getClass().getClassLoader().getResource(Install.iconFile+".png");
+		if (resource != null){
+			try {
 				BufferedImage bufferedeImage = ImageIO.read(resource);
 				return bufferedeImage;
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
 			}
-    	} else {
-    		return null;
-    	}
-    }
+		} else {
+			return null;
+		}
+	}
 
 
 	protected String setupWhileWeWaitUrl(String siteUrl) {
@@ -301,20 +301,20 @@ public class Install {
 
 	protected String setupWhileWeWaitText() {
 		return "<html>"+
-		"<p>" +
-		Install.APP_NAME+" is an automated stock market analysis system.<br />"+
-		"It implements a graphical environment for monitoring stock market technical analysis major indicators, <br />portfolio management and historical data charting.<br />" +
-		"<br />"+
-		"I also invite you for a preview of "+Install.APP_NAME+" Forecast advanced features (not provided under this license) which includes : <br />"+
-		"<ul>" +
-			"<li>Screening of financial web sites to pick up the best market shares,</li>"+
-			"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
-			"<li>Back testing,</li>"+
-			"<li>Buy sell email notifications on predictions with automated markets and user defined portfolios scanning.</li>" +
-		"</ul>" +
-		"<br />" +
-		"</p>" +
-		"</html>";
+				"<p>" +
+				Install.APP_NAME+" is an automated stock market analysis system.<br />"+
+				"It implements a graphical environment for monitoring stock market technical analysis major indicators, <br />portfolio management and historical data charting.<br />" +
+				"<br />"+
+				"I also invite you for a preview of "+Install.APP_NAME+" Forecast advanced features (not provided under this license) which includes : <br />"+
+				"<ul>" +
+				"<li>Screening of financial web sites to pick up the best market shares,</li>"+
+				"<li>Price trend prediction based on stock market technical analysis and indexes rotation,</li> "+
+				"<li>Back testing,</li>"+
+				"<li>Buy sell email notifications on predictions with automated markets and user defined portfolios scanning.</li>" +
+				"</ul>" +
+				"<br />" +
+				"</p>" +
+				"</html>";
 	}
 
 
@@ -354,7 +354,7 @@ public class Install {
 		APP_SYS_NAME = "PremiumMarkets";
 		ARCH_NAME = "PremiumMarkets.zip";
 		APP_NAME = "Premium Markets";
-		
+
 	}
 
 
@@ -400,8 +400,8 @@ public class Install {
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
-					
-		        	String siteUrl = "none.com";
+
+					String siteUrl = "none.com";
 					try {
 						Properties pbuild = new Properties();
 						pbuild.load(this.getClass().getResourceAsStream("/pmsbuild.properties"));
@@ -409,61 +409,61 @@ public class Install {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					
+
 					System.out.println("Connection check : "+siteUrl);
-					
+
 					if (!siteUrl.equals("none.com")) {
 						Class<?> connectionCheker = Class.forName("com.finance.pm.ApacheConnectionChecker", false, this.getClass().getClassLoader());
 						Method method = connectionCheker.getMethod("checkBlindConnection", String.class);
 						method.invoke(null, siteUrl);
 					}
-					
+
 				} catch (Throwable e) {
 					System.out.println("No Connection check available.");
 				} finally {
 					stop = true;
 				}
-				
+
 				return null;
 			}
-			
+
 		};
 		connectionCheck.execute();
 	}
-	
-	
+
+
 	private static void unixPostInstall(String installPath) {
-		
+
 		//Change exec modes
 		String[] runtimeParams = new String[]{"/bin/bash", installPath+File.separator+"shell"+File.separator+"changeMods.sh", installPath};
 		for (String string : runtimeParams) {
 			System.out.println("launch change exec mods params : "+string);
 		}
-		
+
 		try {
 			Runtime runtime = Runtime.getRuntime();
 			Process guiBatProcess = runtime.exec(runtimeParams, null, InstallFolderPanel.getInstallFolder());
-			
+
 			BufferedReader input = new BufferedReader(new InputStreamReader(guiBatProcess.getInputStream()));
 			String line = null;
 			while ((line = input.readLine()) != null) {
 				System.out.println(line);
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}   
-		
-		
+
+
 	}
 
 	public static void windowsPostInstall(String installPath) {
-		
+
 		System.out.println("Properties : "+System.getProperties());
-		
+
 		//Modify db path for an absolute path
-	    File pfile;
-	    Properties props = new Properties();
+		File pfile;
+		Properties props = new Properties();
 		//Load props
 		try {
 			pfile = new File(InstallFolderPanel.getInstallFolder().getAbsoluteFile() + File.separator + "db.properties");
@@ -475,34 +475,34 @@ public class Install {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
-		
+
 		//desktop icon
 		Runtime runtime = Runtime.getRuntime();
 		String[] runtimeParams = new String[]{installPath+File.separator+"shell"+File.separator+"desktop_icon.bat", installPath};
 		for (String string : runtimeParams) {
 			System.out.println("launch desktop_icon params : "+string);
 		}
-		
+
 		try {
 			Process guiBatProcess = runtime.exec(runtimeParams, null, InstallFolderPanel.getInstallFolder());
-			
+
 			BufferedReader input = new BufferedReader(new InputStreamReader(guiBatProcess.getInputStream()));
 			String line = null;
 			while ((line = input.readLine()) != null) {
 				System.out.println(line);
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}   
-		
+
 	}
 
 
 	public Wizard getWizard() {
 		return wizard;
 	}
-	
+
 
 	protected String setupSiteUrl() {
 		if (siteUrl == null) {

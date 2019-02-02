@@ -31,7 +31,7 @@ package com.finance.pms.admin.install;
 
 
 public enum SystemTypes {
-	
+
 	LINUX ("Linux",".sh",".png", "script file"),
 	LINUX_64 ("Linux","_64.sh",".png", "script file"),
 	MAC	("Mac",".command",".png", "command file"),
@@ -42,30 +42,30 @@ public enum SystemTypes {
 	private String sdescr = "Windows batch file";
 	private String icoext = ".ico";
 
-	
+
 	private SystemTypes(String sys, String shext, String icoext, String sdescr) {
 		this.sys = sys;
 		this.shext = shext;
 		this.icoext = icoext;
 		this.sdescr = sdescr;
-		
+
 	}
 
 	public static SystemTypes getType(String name, String arch) {
-		
+
 		if (name != null && (name.toLowerCase().contains(SystemTypes.WINDOWS.getLowerSys()) || name.toLowerCase().contains("win32") || name.toLowerCase().contains("wce")) ) 
 			return SystemTypes.WINDOWS;
-		
+
 		if (name != null && (name.toLowerCase().contains(SystemTypes.LINUX.getLowerSys()) || name.toLowerCase().contains("sun") || name.toLowerCase().contains("solaris")) ) {
-		    if (arch.toLowerCase().contains("64")) {
-		        return SystemTypes.LINUX_64;
-		    }
+			if (arch.toLowerCase().contains("64")) {
+				return SystemTypes.LINUX_64;
+			}
 			return SystemTypes.LINUX;
 		}
-		
+
 		if (name != null && name.toLowerCase().contains(SystemTypes.MAC.getLowerSys())) 
 			return SystemTypes.MAC;
-		
+
 		return null; //SystemTypes.WINDOWS;
 	}
 
@@ -73,7 +73,7 @@ public enum SystemTypes {
 	public String getSys() {
 		return sys;
 	}
-	
+
 	public String getLowerSys() {
 		return sys.toLowerCase();
 	}
