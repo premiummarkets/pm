@@ -49,7 +49,7 @@ public class QuotationFixerTest {
 		currencyFixer = new QuotationFixer();
 	}
 
-	private List<Stock> loadStocks() {
+	private List<Stock> loadStocksUK() {
 
 		List<Stock> loadShares = DataSource.getInstance().getShareDAO().loadShares(new ShareFilter() {
 			@Override
@@ -76,20 +76,20 @@ public class QuotationFixerTest {
 
 	//@Test
 	public void testUpdateNCheckPennyPound() {
-		List<Stock> loadShares = loadStocks();
+		List<Stock> loadShares = loadStocksUK();
 		updateStocksQuotations(loadShares);
 		currencyFixer.checkPennyPound(loadShares);
 	}
 
 	//@Test
 	public void testCheckPennyPound() {
-		List<Stock> loadShares = loadStocks();
+		List<Stock> loadShares = loadStocksUK();
 		currencyFixer.checkPennyPound(loadShares);
 	}
 
 	//@Test
 	public void testFixPennyPound() {
-		List<Stock> loadShares = loadStocks();
+		List<Stock> loadShares = loadStocksUK();
 		currencyFixer.fixPennyPound(loadShares);
 	}
 
@@ -100,17 +100,18 @@ public class QuotationFixerTest {
 	}
 
 	@Test
-	public void testCheckAntiSplit() {
-		List<Stock> loadShares = loadStocks();
+	public void testCheckCounterSplit() {
+		List<Stock> loadShares = loadStocksUK();
 		loadShares = loadShares.subList(0, 50); //Test
-		currencyFixer.checkAntiSplit(loadShares);
+		//List<Stock> loadShares = DataSource.getInstance().getShareDAO().loadAllStocks();
+		currencyFixer.checkCounterSplit(loadShares);
 	}
 
-	//@Test
-	public void testFixAntiSplit() {
-		List<Stock> loadShares = loadStocks();
-		//loadShares = loadShares.subList(0, 20); //Test
-		currencyFixer.fixAntiSplit(loadShares);
-	}
+//	//@Test
+//	public void testFixCounterSplit() {
+//		List<Stock> loadShares = loadStocks();
+//		loadShares = loadShares.subList(0, 50); //Test
+//		currencyFixer.fixAntiSplit(loadShares);
+//	}
 
 }

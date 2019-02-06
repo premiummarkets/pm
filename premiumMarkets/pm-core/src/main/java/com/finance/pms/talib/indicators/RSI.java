@@ -68,7 +68,7 @@ public class RSI extends TalibIndicator {
 
 	@Override
 	protected String getLine(Integer indicator, QuotationUnit qU) {
-		String line = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(qU.getDate()) + "," + qU.getCloseSp() + "," + rsi[indicator] + "\n";
+		String line = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(qU.getDate()) + "," + qU.getCloseSplit() + "," + rsi[indicator] + "\n";
 		return line;
 	}
 

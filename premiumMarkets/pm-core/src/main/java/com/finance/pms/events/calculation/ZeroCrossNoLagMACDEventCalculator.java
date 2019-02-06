@@ -133,7 +133,7 @@ public class ZeroCrossNoLagMACDEventCalculator extends TalibIndicatorsOperator {
 		Date calculatorDate = qU.getDate();
 		EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDZEROCROSS, EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMMACDZEROCROSS, EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getCloseSp();
+		BigDecimal calculatorClose = qU.getCloseSplit();
 //		int macdQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,macdQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(calculatorDate) + "," +calculatorClose + "," 

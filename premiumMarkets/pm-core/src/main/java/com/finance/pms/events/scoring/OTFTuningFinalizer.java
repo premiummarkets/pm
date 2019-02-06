@@ -163,7 +163,7 @@ public class OTFTuningFinalizer {
 				QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
 				//if (!quotationUnit.getDate().after(period.getFrom())) throw new RuntimeException();
 				period.setTo(quotationUnit.getDate());
-				period.setPriceAtTo(quotationUnit.getCloseSp().doubleValue());
+				period.setPriceAtTo(quotationUnit.getCloseSplit().doubleValue());
 				period.setRealised(true);
 			}
 			//Ends with Bearish we don't know but we need to close the trend
@@ -171,7 +171,7 @@ public class OTFTuningFinalizer {
 				QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
 				//if (!quotationUnit.getDate().after(period.getFrom())) throw new RuntimeException();
 				period.setTo(quotationUnit.getDate());
-				period.setPriceAtTo(quotationUnit.getCloseSp().doubleValue());
+				period.setPriceAtTo(quotationUnit.getCloseSplit().doubleValue());
 				period.setRealised(false);
 			}
 			//addFilteredPeriod(periods, period, -1);

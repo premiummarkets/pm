@@ -56,7 +56,7 @@ public class VolatilityClassifier {
 	@Autowired
 	PortfolioDAO portfolioDAO;
 
-	public void generateFromFileLMHToDB(String volatiliesCsvPath, Currency currency, int nbRows) throws Exception {
+	void generateFromFileLMHToDB(String volatiliesCsvPath, Currency currency, int nbRows) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
@@ -80,7 +80,7 @@ public class VolatilityClassifier {
 	 * @param sameCurrency 
 	 * @throws Exception
 	 */
-	public void generateFromFileInRangeOfToFile(String volatiliesCsvPath, Stock referenceStock, Boolean sameCurrency, int nbRows, String supportFile) throws Exception {
+	void generateFromFileInRangeOfToFile(String volatiliesCsvPath, Stock referenceStock, Boolean sameCurrency, int nbRows, String supportFile) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
@@ -151,7 +151,7 @@ public class VolatilityClassifier {
 
 	}
 
-	public void generateNewCalculationFilteredToFile() throws Exception {
+	void generateNewCalculationFilteredToFile() throws Exception {
 
 		List<Predicate<Stock>> predicates = new ArrayList<Predicate<Stock>>();
 
@@ -169,21 +169,30 @@ public class VolatilityClassifier {
 		{
 			Predicate<Stock> predicate = stock -> {
 				try {
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
+					//We use the values before split as counter split are messing up data split fixes
+					Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
 					SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 					List<Double> values = new ArrayList<>(closeQuotations.values());
-					double maxReturn = Math.log(200d/100d);  //n*10% ~ n days at 10% max
-//					long filteredReturns = IntStream
-//							.range(1, quotations.size())
-//							.filter(i -> Math.abs(Math.log(values.get(i)/values.get(i-1))) > maxReturn)
-//							.count();
-//					Double ratio = ((double)filteredReturns)/((double)quotations.size());
-//					Boolean match = ratio < 0.0;
-//					LOGGER.info(s + " Invalid returns : " + filteredReturns + ", Total returns : " + (quotations.size()-1) + ", ratio " + ratio);
+					List<Date> keys = new ArrayList<>(closeQuotations.keySet());
+					double maxReturn = Math.log(200d/100d);
 					Boolean match = IntStream
-							.range(1, quotations.size())
-							.allMatch(i -> Math.abs(Math.log(values.get(i)/values.get(i-1))) <= maxReturn);
-					LOGGER.info(stock + " Invalid returns.");
+							.range(1, closeQuotations.size())
+							.allMatch(i -> {
+								//Daily change <= 100%
+								//Boolean hasHugeDailyChange = Math.abs(Math.log(values.get(i)/values.get(i-1))) <= maxReturn;
+
+								//Change <= 100% with an exponentially decreasing daily increase maximum estimated starting from 10%.
+								//Also called CounterSplitPattern as in QuotationFixer.
+								double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(keys.get(i-1), keys.get(i)));
+								double delta = span*Math.pow(1.5, 1d-span)*0.10;
+								double valueIm1 = values.get(i-1);
+								double valueI = values.get(i);
+								double adjustedDIm1 = valueIm1 + valueIm1*delta;
+								double counterSplit = valueI/adjustedDIm1;
+								Boolean noCounterSplitPattern = counterSplit <= 2;
+								return noCounterSplitPattern;
+
+							});
 					if (!match) LOGGER.info(stock + " does not match 'daily change max < " + maxReturn + "' predicate.");
 					return match;
 				} catch (NoQuotationsException e) {
@@ -201,7 +210,7 @@ public class VolatilityClassifier {
 
 	}
 
-	public List<Entry<Stock, Double[]>> calculateFor(List<Stock> allStocks, Date start, Date end) throws Exception {
+	List<Entry<Stock, Double[]>> calculateFor(List<Stock> allStocks, Date start, Date end) throws Exception {
 
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
@@ -229,7 +238,7 @@ public class VolatilityClassifier {
 					String line = 
 							key.getSymbol() + ", " + key.getIsin() + ", " +
 									Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
-									//Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);
+					//Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);
 					fileWriter.write(line+"\n");
 				} catch (IOException e1) {
 					throw new RuntimeException(e1);
@@ -255,14 +264,14 @@ public class VolatilityClassifier {
 	private void exportToLowMedHighVolsShareLists(String listMName, int nbRows, List<Entry<Stock, Double[]>> sorted) {
 		createOnePortfolioShareList(sorted, sorted.size()/2 - nbRows/2, sorted.size()/2 + nbRows/2, "VOLATILITY,MEDIUMVOLATILITY:" + listMName);
 		createOnePortfolioShareList(sorted, 0, nbRows, "VOLATILITY,LOWVOLATILITY:" + listMName);
-		createOnePortfolioShareList(sorted, sorted.size() - nbRows, sorted.size(), "VOLATILIT,HIGHVOLATILITY:" + listMName);
+		createOnePortfolioShareList(sorted, sorted.size() - nbRows, sorted.size(), "VOLATILITY,HIGHVOLATILITY:" + listMName);
 	}
 
 	private void createOnePortfolioShareList(List<Entry<Stock, Double[]>> sorted, int from, int to, String shareListName) {
 
 		List<Entry<Stock, Double[]>> volatilitiesSubSet = sorted.subList(from, to);
 
-		LOGGER.info("Range of "+shareListName+": "+from+", "+to);
+		LOGGER.info("Range of " + shareListName + ": " + from + ", " + to);
 
 		IndepShareList shareList = portfolioDAO.loadIndepShareList(shareListName);
 		shareList.getListShares().clear();

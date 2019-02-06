@@ -85,7 +85,7 @@ public class SMA extends TalibIndicator {
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
 					qU.getDate()) + "," +
-					qU.getCloseSp() + "," +
+					qU.getCloseSplit() + "," +
 					sma[indicator] + "\n";
 		return line;
 	}

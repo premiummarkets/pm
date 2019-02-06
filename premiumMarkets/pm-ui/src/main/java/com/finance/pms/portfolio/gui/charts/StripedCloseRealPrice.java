@@ -59,7 +59,7 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 		
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-			retA.add(stockQuotations.get(i).getCloseSp());
+			retA.add(stockQuotations.get(i).getCloseSplit());
 		}
 	
 		return  retA.toArray(new BigDecimal[0]);

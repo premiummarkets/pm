@@ -59,9 +59,11 @@ public interface QuotationsFactory {
 
     public abstract Calendar incrementDate(Calendar calendar, int amount);
 
-    public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter cacheFilter) throws NoQuotationsException;
+    public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter validityFilter) throws NoQuotationsException;
 
-    public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter) throws NoQuotationsException;
+    public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
+
+    public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
 
     int nbOpenIncrementBetween(Date firstDate, Date secondDate);
 

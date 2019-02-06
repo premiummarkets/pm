@@ -183,8 +183,8 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 				Quotations.updateCachedStockKey(stock);
 			}
 
-			if (
-					Currency.GBP.equals(stock.getMarketValuation().getCurrency()) &&
+			if (//TODO apply to any with currency factor <> 1
+					Currency.GBP.equals(stock.getMarketValuation().getCurrency()) && 
 					stock.getMarketValuation().getCurrencyFactor().doubleValue() > 1 &&
 					ret.isSuccessfulUpdate && ret.hasNewQuotations
 			) {

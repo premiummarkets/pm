@@ -215,7 +215,7 @@ public class VarianceCalculator extends TalibIndicatorsOperator {
 			LOGGER.warn("Variance can't be calculated for "+stock.getSymbol()+" at "+date);
 		}
 		
-		if (LOGGER.isTraceEnabled()) exportLineToFile(date, qU.getCloseSp(), smaData[smaIndQuoteIndex], resType);
+		if (LOGGER.isTraceEnabled()) exportLineToFile(date, qU.getCloseSplit(), smaData[smaIndQuoteIndex], resType);
 
 		return res;
 	}

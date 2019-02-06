@@ -47,12 +47,18 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
-
+	@Override
 	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
 		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(1, firstIndexShift), ValidityFilter.SPLITFREE, validityFilter);
 	}
 
-	public  Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
+	@Override
+	public Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(1, firstIndexShift), validityFilter);
+	}
+
+	@Override
+	public Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
 		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
 

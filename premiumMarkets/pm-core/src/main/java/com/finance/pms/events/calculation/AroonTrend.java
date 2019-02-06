@@ -140,7 +140,7 @@ public class AroonTrend extends TalibIndicatorsOperator {
         Date calculatorDate = qU.getDate();
         EventValue bearishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BEARISH));
         EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMAROONTREND, EventType.BULLISH));
-        BigDecimal calculatorClose = qU.getCloseSp();
+        BigDecimal calculatorClose = qU.getCloseSplit();
 
         int aroonIndex = getIndicatorIndexFromQuotationIndex(this.aroon, calculatorIndex);
 

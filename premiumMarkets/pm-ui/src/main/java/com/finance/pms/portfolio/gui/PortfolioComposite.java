@@ -1777,7 +1777,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					//Untick to see your edited entries when there already are entries from downloaded quotations at the same date.\n"+
 					//When ticked, the downloaded quotations will be predominant if exist at the same date");
 					final MenuItem allowOverride = new MenuItem(portfolioShareCtxMenu, SWT.CHECK);
-					allowOverride.setText("Allow quotation download updates to overshadowing quotation manual entries");
+					allowOverride.setText("Allow quotations download updates to overshadowing quotations manual entries");
 					portfolioShareCtxMenu.addMenuListener(new MenuListener() {
 
 						@Override

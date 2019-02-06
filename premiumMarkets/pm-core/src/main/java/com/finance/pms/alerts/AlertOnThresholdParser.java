@@ -106,7 +106,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown() != null) {
 			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown());
-			BigDecimal todaysQuotation = quotation.getClose();
+			BigDecimal todaysQuotation = quotation.getCloseRaw();
 			for (AlertOnThreshold alert : alertsSetDown) {
 
 				if (alert.getValue().compareTo(todaysQuotation) > 0) {
@@ -141,7 +141,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp() != null) {
 			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp());
-			BigDecimal todaysQuotation = quotation.getClose();
+			BigDecimal todaysQuotation = quotation.getCloseRaw();
 			for (AlertOnThreshold alert : alertsSetUp) {
 
 				if (alert.getValue().compareTo(todaysQuotation) < 0) {

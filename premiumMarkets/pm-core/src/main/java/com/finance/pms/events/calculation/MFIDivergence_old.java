@@ -142,7 +142,7 @@ public class MFIDivergence_old extends TalibIndicatorsOperator {
 		Date calculatorDate = qU.getDate();
 		EventValue bearsihEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BEARISH));
 		EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,getEventDefinition(),EventType.BULLISH));
-		BigDecimal calculatorClose = qU.getCloseSp();
+		BigDecimal calculatorClose = qU.getCloseSplit();
 //		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 

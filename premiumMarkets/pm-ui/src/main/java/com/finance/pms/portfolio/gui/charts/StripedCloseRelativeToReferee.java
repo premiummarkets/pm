@@ -86,8 +86,8 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 		ArrayList<BigDecimal>  retA = new ArrayList<>();
 
-		BigDecimal relativeQuotationsRoot =  relativeQuotationsFull.get(startDateRelativeIndex).getCloseSp();
-		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSp();
+		BigDecimal relativeQuotationsRoot =  relativeQuotationsFull.get(startDateRelativeIndex).getCloseSplit();
+		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
 
 		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0 && relativeQuotationsRoot != null && relativeQuotationsRoot.compareTo(BigDecimal.ZERO) != 0 ) {
 			
@@ -96,8 +96,8 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 				Date dq = stockQuotations.get(i).getDate();
 				QuotationUnit relQuotationUnit = relativeQuotationsFull.get(relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, dq));
 				
-				BigDecimal relativeQuotation = (relQuotationUnit.getCloseSp().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_HALF_EVEN);
-				BigDecimal quotation = stockQuotations.get(i).getCloseSp().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal relativeQuotation = (relQuotationUnit.getCloseSplit().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal quotation = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
 				BigDecimal relatedCloseValue = quotation.subtract(relativeQuotation);
 
 				retA.add(relatedCloseValue);

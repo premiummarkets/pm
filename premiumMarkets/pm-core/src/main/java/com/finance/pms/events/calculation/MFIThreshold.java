@@ -108,7 +108,7 @@ public class MFIThreshold extends TalibIndicatorsOperator {
         Date calculatorDate = qU.getDate();
         EventValue bearsihEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFITHRESHOLD, EventType.BEARISH));
         EventValue bullishEventValue = eData.get(new StandardEventKey(calculatorDate,EventDefinition.PMMFITHRESHOLD, EventType.BULLISH));
-        BigDecimal calculatorClose = qU.getCloseSp();
+        BigDecimal calculatorClose = qU.getCloseSplit();
         //		int mfiQuotationIndex = getIndicatorQuotationIndexFromCalculatorQuotationIndex(calculatorIndex,mfiQuotationStartDateIdx);
         String line =
                 new SimpleDateFormat("yyyy-MM-dd").format(calculatorDate) + "," +calculatorClose + "," 

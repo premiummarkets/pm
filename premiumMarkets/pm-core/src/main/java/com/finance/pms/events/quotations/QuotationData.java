@@ -66,7 +66,7 @@ class QuotationData implements List<QuotationUnit> {
 		this.addAll(sortedQuotationUnits);
 		int i = 0 ;
 		for (QuotationUnit quotationUnit : sortedQuotationUnits) {
-			this.stripedQuotations.addStripedValues(i, quotationUnit.getCloseSp(), quotationUnit.getHighSp(), quotationUnit.getLowSp());
+			this.stripedQuotations.addStripedValues(i, quotationUnit.getCloseSplit(), quotationUnit.getHighSplit(), quotationUnit.getLowSplit());
 			i++;
 		}
 	}
@@ -165,19 +165,19 @@ class QuotationData implements List<QuotationUnit> {
 		switch (field) {
 		case OPEN:
 			for (int i = 0; i < this.size(); i++)
-				values[i] = this.get(i).getOpenSp().doubleValue();
+				values[i] = this.get(i).getOpenSplit().doubleValue();
 			break;
 		case HIGH:
 			for (int i = 0; i < this.size(); i++)
-				values[i] = this.get(i).getHighSp().doubleValue();
+				values[i] = this.get(i).getHighSplit().doubleValue();
 			break;
 		case LOW:
 			for (int i = 0; i < this.size(); i++)
-				values[i] = this.get(i).getLowSp().doubleValue();
+				values[i] = this.get(i).getLowSplit().doubleValue();
 			break;
 		case CLOSE :
 			for (int i = 0; i < this.size(); i++) 
-				values[i] = this.get(i).getCloseSp().doubleValue();
+				values[i] = this.get(i).getCloseSplit().doubleValue();
 			break;
 		case VOLUME :
 			for (int i = 0; i < this.size(); i++) 

@@ -82,7 +82,7 @@ public class MACD extends TalibIndicator {
 		String line =
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
 					qU.getDate()) + "," +
-					qU.getCloseSp() + "," +
+					qU.getCloseSplit() + "," +
 					macd[indicator] + "," + signal[indicator]  + "," + history[indicator]  + "\n";
 		return line;
 	}

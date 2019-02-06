@@ -125,7 +125,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 
 		while (currentTime.getTime().compareTo(lastDate) < 0) {
 			while (currentTime.compareTo(nextTime) < 0) {
-				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getCloseSp(), currentQU.getVolume(), ORIGIN.WEB, BigDecimal.ONE));
+				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getCloseSplit(), currentQU.getVolume(), ORIGIN.WEB, BigDecimal.ONE));
 				QuotationsFactories.getFactory().incrementDate(currentTime, 1);
 			} 
 			currentQU = nextQU;
@@ -136,7 +136,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 				nextTime.setTime(lastDate);
 			}
 		}
-		normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getCloseSp(), nextQU.getVolume(), ORIGIN.WEB, BigDecimal.ONE));
+		normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getCloseSplit(), nextQU.getVolume(), ORIGIN.WEB, BigDecimal.ONE));
 		return new QuotationData(normalizedQU);
 	}
 

@@ -86,7 +86,7 @@ public class LinearRegression extends TalibIndicator {
 
 	@Override
 	protected String getLine(Integer indicator, QuotationUnit qU) {
-		String line = new SimpleDateFormat("yyyy-MM-dd").format(qU.getDate()) + "," + qU.getCloseSp() + "," + linearRegression[indicator] + "\n";
+		String line = new SimpleDateFormat("yyyy-MM-dd").format(qU.getDate()) + "," + qU.getCloseSplit() + "," + linearRegression[indicator] + "\n";
 		return line;
 	}
 

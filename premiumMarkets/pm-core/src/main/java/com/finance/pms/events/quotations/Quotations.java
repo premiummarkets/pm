@@ -197,17 +197,18 @@ public class Quotations {
 	private void solveSplitBetween(QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitOut) {
 
 		double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
-		double dj = qj.getCloseSp().doubleValue();
-		double djm1 =  qjm1.getCloseSp().doubleValue();
+		double dj = qj.getCloseSplit().doubleValue();
+		double djm1 =  qjm1.getCloseSplit().doubleValue();
 		double delta = span*Math.pow(1.5, 1d-span)*0.10;
-		double split = djm1/(dj-dj*delta);
+		double adjustedDj = dj-dj*delta;
+		double split = djm1/adjustedDj;
 
 		if ( split > 2 ) {
 			LOGGER.warn(
 					"Split detected for " + this.stock.getFriendlyName()+ " : " +
 							"split " + split + ", span " + span + ", delta " + delta + ", tolerance " + dj*delta + ", " +
-							"between " + qjm1.getCloseSp() + " at " + qjm1.getDate() + " " +
-							"and " + qj.getCloseSp() + " at " + qj.getDate());
+							"between " + qjm1.getCloseSplit() + " at " + qjm1.getDate() + " " +
+							"and " + qj.getCloseSplit() + " at " + qj.getDate());
 			Integer factorDouble = (int) split;
 			BigDecimal factor = new BigDecimal(factorDouble.toString());
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
@@ -284,10 +285,10 @@ public class Quotations {
 		return new QuotationUnit(
 				quotationUnit.getStock(), quotationUnit.getCurrency(),
 				quotationUnit.getDate(),
-				quotationUnit.getOpen().multiply(convertUnitFactor),
-				quotationUnit.getHigh().multiply(convertUnitFactor),
-				quotationUnit.getLow().multiply(convertUnitFactor),
-				quotationUnit.getClose().multiply(convertUnitFactor),
+				quotationUnit.getOpenRaw().multiply(convertUnitFactor),
+				quotationUnit.getHighRaw().multiply(convertUnitFactor),
+				quotationUnit.getLowRaw().multiply(convertUnitFactor),
+				quotationUnit.getCloseRaw().multiply(convertUnitFactor),
 				quotationUnit.getVolume(), quotationUnit.getOrigin(), quotationUnit.getSplit());
 	}
 
@@ -321,11 +322,11 @@ public class Quotations {
 	}
 
 	public BigDecimal getClosestCloseSpForDate(Date date) throws InvalidAlgorithmParameterException {
-		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getCloseSp(), date);
+		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getCloseSplit(), date);
 	}
 	
 	public BigDecimal getClosestCloseForDate(Date date) throws InvalidAlgorithmParameterException {
-		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getClose(), date);
+		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getCloseRaw(), date);
 	}
 
 	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
@@ -585,10 +586,10 @@ public class Quotations {
 
 			QuotationUnit qj = allQs.get(j);
 
-			if ( validClose && qj.getCloseSp().compareTo(BigDecimal.ZERO) == 0 ) {
+			if ( validClose && qj.getCloseSplit().compareTo(BigDecimal.ZERO) == 0 ) {
 				continue;
 			}
-			if ( validOhlc && qj.getHighSp().compareTo(qj.getLowSp()) == 0 && qj.getHighSp().compareTo(qj.getCloseSp()) == 0 ) {
+			if ( validOhlc && qj.getHighSplit().compareTo(qj.getLowSplit()) == 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) == 0 ) {
 				continue;
 			}
 			if ( validVolume && qj.getVolume() == 0 ) {

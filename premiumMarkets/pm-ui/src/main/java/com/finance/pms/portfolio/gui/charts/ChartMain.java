@@ -237,16 +237,16 @@ public class ChartMain extends Chart {
 											"<font size='2'>" + "<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>" + "</font>" +
 											"<table CELLSPACING=0 CELLPADDING=1>" +
 												"<tr><td><font size='2'>Open</font></td><td><font size='2'>"+
-													NUMBER_FORMAT.format(closeForDate.getOpenSp()) +
+													NUMBER_FORMAT.format(closeForDate.getOpenSplit()) +
 												"</font></td></tr>" +
 												"<tr><td><font size='2'>High</font></td><td><font size='2'>" +
-													NUMBER_FORMAT.format(closeForDate.getHighSp())
+													NUMBER_FORMAT.format(closeForDate.getHighSplit())
 												+ "</font></td></tr>" +
 												"<tr><td><font size='2'>Low</font></td><td><font size='2'>"
-													+ NUMBER_FORMAT.format(closeForDate.getLowSp()) +
+													+ NUMBER_FORMAT.format(closeForDate.getLowSplit()) +
 												"</font></td></tr>"
 												+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
-													NUMBER_FORMAT.format(closeForDate.getCloseSp())
+													NUMBER_FORMAT.format(closeForDate.getCloseSplit())
 												+ "</font></td></tr>" +
 												"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
 											"</table>" +

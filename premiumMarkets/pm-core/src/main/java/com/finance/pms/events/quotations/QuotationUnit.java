@@ -100,13 +100,13 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	public Number getData(QuotationDataType field) {
 		switch (field) {
 		case OPEN:
-			return getOpenSp();
+			return getOpenSplit();
 		case HIGH:
-			return getHighSp();
+			return getHighSplit();
 		case LOW:
-			return getLowSp();
+			return getLowSplit();
 		case CLOSE :
-			return getCloseSp();
+			return getCloseSplit();
 		case VOLUME :
 			return getVolume();
 		default :
@@ -134,50 +134,50 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@Column(name="CLOSEVALUE")
-	public BigDecimal getClose() {
+	public BigDecimal getCloseRaw() {
 		return close;
 	}
 
 	@Transient
-	public BigDecimal getCloseSp()
+	public BigDecimal getCloseSplit()
 	{
-		if (split.compareTo(BigDecimal.ONE) == 0) return getClose();
+		if (split.compareTo(BigDecimal.ONE) == 0) return getCloseRaw();
 		return close.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@Column(name="HIGH")
-	public BigDecimal getHigh() {
+	public BigDecimal getHighRaw() {
 		return high;
 	}
 
 	@Transient
-	public BigDecimal getHighSp()
+	public BigDecimal getHighSplit()
 	{
-		if (split.compareTo(BigDecimal.ONE) == 0) return getHigh();
+		if (split.compareTo(BigDecimal.ONE) == 0) return getHighRaw();
 		return high.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@Column(name="LOW")
-	public BigDecimal getLow() {
+	public BigDecimal getLowRaw() {
 		return low;
 	}
 
 	@Transient
-	public BigDecimal getLowSp()
+	public BigDecimal getLowSplit()
 	{
-		if (split.compareTo(BigDecimal.ONE) == 0) return getLow();
+		if (split.compareTo(BigDecimal.ONE) == 0) return getLowRaw();
 		return low.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
 	@Column(name="OPENVALUE")
-	public BigDecimal getOpen() {
+	public BigDecimal getOpenRaw() {
 		return open;
 	}
 
 	@Transient
-	public BigDecimal getOpenSp()
+	public BigDecimal getOpenSplit()
 	{
-		if (split.compareTo(BigDecimal.ONE) == 0) return getOpen();
+		if (split.compareTo(BigDecimal.ONE) == 0) return getOpenRaw();
 		return open.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
@@ -246,25 +246,25 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 
 
 	@SuppressWarnings("unused")
-	private void setOpen(BigDecimal open) {
+	private void setOpenRaw(BigDecimal open) {
 		this.open = open;
 	}
 
 
 	@SuppressWarnings("unused")
-	private void setHigh(BigDecimal high) {
+	private void setHighRaw(BigDecimal high) {
 		this.high = high;
 	}
 
 
 	@SuppressWarnings("unused")
-	private void setLow(BigDecimal low) {
+	private void setLowRaw(BigDecimal low) {
 		this.low = low;
 	}
 
 
 	@SuppressWarnings("unused")
-	private void setClose(BigDecimal close) {
+	private void setCloseRaw(BigDecimal close) {
 		this.close = close;
 	}
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
@@ -33,17 +34,17 @@ public class QuotationFixer {
 				List<QuotationUnit> match = IntStream
 						.range(1, quotations.size())
 						.filter(i -> {
-							return Math.abs(Math.log(quotations.get(i).getClose().doubleValue()/quotations.get(i-1).getClose().doubleValue())) > Math.log(cFactDelta);
+							return Math.abs(Math.log(quotations.get(i).getCloseRaw().doubleValue()/quotations.get(i-1).getCloseRaw().doubleValue())) > Math.log(cFactDelta);
 						})
 						.mapToObj(i -> {//Returns the qUs to be change by the CurrencyFactor
-							return adjacents(i, quotations, cFactDelta);
+							return currencyFatcorAdjacents(i, quotations, cFactDelta);
 						})
 						.flatMap(adj -> adj.stream())
 						.distinct()
 						.collect(Collectors.toList());
 
 				if (!match.isEmpty())
-				LOGGER.warn("Invalid qU for " + stock + " :\n" + match.stream().map(qU -> qU.toString()).reduce((r, e) -> r + "\n" + e).orElse("None"));
+					LOGGER.warn("Invalid qU for " + stock + " :\n" + match.stream().map(qU -> qU.toString()).reduce((r, e) -> r + "\n" + e).orElse("None"));
 
 				return Optional.of(match);
 
@@ -61,13 +62,13 @@ public class QuotationFixer {
 		return map;
 	}
 
-	private List<QuotationUnit> adjacents(int i, Quotations quotations, double cFactDelta) {
+	private List<QuotationUnit> currencyFatcorAdjacents(int i, Quotations quotations, double cFactDelta) {
 		List<QuotationUnit> adjacents = new ArrayList<>();
-		double qI = quotations.get(i).getClose().doubleValue();
-		double qIm1 = quotations.get(i-1).getClose().doubleValue();
+		double qI = quotations.get(i).getCloseRaw().doubleValue();
+		double qIm1 = quotations.get(i-1).getCloseRaw().doubleValue();
 		if (qI > qIm1*cFactDelta) {
 			int j = i-1;
-			while(j >= 0 && (qI > quotations.get(j).getClose().doubleValue()*cFactDelta)) {
+			while(j >= 0 && (qI > quotations.get(j).getCloseRaw().doubleValue()*cFactDelta)) {
 				adjacents.add(quotations.get(j));
 				j--;
 			}
@@ -75,7 +76,7 @@ public class QuotationFixer {
 		}
 		else {
 			int j = i;
-			while(j < quotations.size() && (qIm1 > quotations.get(j).getClose().doubleValue()*cFactDelta)) {
+			while(j < quotations.size() && (qIm1 > quotations.get(j).getCloseRaw().doubleValue()*cFactDelta)) {
 				adjacents.add(quotations.get(j));
 				j++;
 			}
@@ -100,10 +101,10 @@ public class QuotationFixer {
 						.map(qU -> {
 							BigDecimal cF = stock.getMarketValuation().getCurrencyFactor();
 							QuotationUnit nqU = new QuotationUnit(stock, qU.getCurrency(), qU.getDate(),
-									qU.getOpen().multiply(cF),
-									qU.getHigh().multiply(cF),
-									qU.getLow().multiply(cF),
-									qU.getClose().multiply(cF),
+									qU.getOpenRaw().multiply(cF),
+									qU.getHighRaw().multiply(cF),
+									qU.getLowRaw().multiply(cF),
+									qU.getCloseRaw().multiply(cF),
 									qU.getVolume(),
 									ORIGIN.USER, BigDecimal.ONE);
 							return nqU;
@@ -120,39 +121,35 @@ public class QuotationFixer {
 
 	}
 
-	public List<Optional<List<QuotationUnit>>> checkAntiSplit(List<Stock> loadShares) {
+	public List<Optional<List<QuotationUnit>>> checkCounterSplit(List<Stock> loadShares) {
 
-		return loadShares.stream().map(stock -> {
+		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
 
 			List<QuotationUnit> collect = null;
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
 
 				collect = IntStream
 						.range(1, quotations.size())
 						.mapToObj(i -> {
-							QuotationUnit qjm1 = quotations.get(i-1);
-							QuotationUnit qj = quotations.get(i);
-							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
-							double dj = qj.getClose().doubleValue();
-							double djm1 =  qjm1.getClose().doubleValue();
+							QuotationUnit qIm1 = quotations.get(i-1);
+							QuotationUnit qI = quotations.get(i);
+							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
+							double dI = qI.getCloseRaw().doubleValue();
+							double dIm1 =  qIm1.getCloseRaw().doubleValue();
 							double delta = span*Math.pow(1.5, 1d-span)*0.10;
-							double antiSplit = dj/(djm1-djm1*delta);//djm1/(dj-dj*delta);
+							double adjustedDIm1 = dIm1-dIm1*delta;
+							//double adjustedDIm1 = dIm1 + dIm1*delta;
+							double counterSplit = dI/adjustedDIm1;
 
 							List<QuotationUnit> adjacents = new ArrayList<>();
-							if ( antiSplit > 2 ) {
-								double dI = quotations.get(i).getClose().doubleValue();
-								double dIm1 = quotations.get(i-1).getClose().doubleValue();
-								if (dI/(dIm1-dIm1*delta) > 2) {
-									int j = i;
-									while(j < quotations.size()) {
-										double dJ = quotations.get(j).getClose().doubleValue();
-										if (dJ/(dIm1-dIm1*delta) > 2) {
-											adjacents.add(quotations.get(j));
-											j++;
-										} else {
-											break;
-										}
+							if ( counterSplit > 2 ) {
+								if (dI/adjustedDIm1 > 2) {
+									int iPrim = i;
+									//We check and fix adjacent forward until condition is false
+									while(iPrim < quotations.size() && (quotations.get(iPrim).getCloseRaw().doubleValue()/adjustedDIm1 > 2)) {
+										adjacents.add(quotations.get(iPrim));
+										iPrim++;
 									}
 								}
 							}
@@ -163,7 +160,7 @@ public class QuotationFixer {
 						.collect(Collectors.toList());
 
 				if (!collect.isEmpty())
-				LOGGER.warn("Anti split detected qU for " + stock + " :\n" + collect.stream().map(qU -> qU.toString()).reduce((r, e) -> r + "\n" + e).orElse("None"));
+					LOGGER.warn("Anti split detected qU for " + stock + " :\n" + collect.stream().map(qU -> qU.toString()).reduce((r, e) -> r + "\n" + e).orElse("None"));
 
 			} catch (NoQuotationsException e) {
 				LOGGER.warn(e);
@@ -174,11 +171,24 @@ public class QuotationFixer {
 			return Optional.ofNullable(collect);
 		})
 				.collect(Collectors.toList());
+
+		LOGGER.info("Affected stocks: " + collected.stream().filter(qL -> qL.isPresent() && qL.get().size() > 0).count() + " out of " + loadShares.size());
+		LOGGER.info("Affected stocks: \n" + 
+		collected.stream()
+			.flatMap(qL -> (qL.isPresent())?qL.get().stream():Stream.empty())
+			.map(qU -> qU.getStock().toString())
+			.distinct()
+			.reduce((r, e) -> r + "\n" + e)
+			.orElse("None")
+		);
+
+		return collected;
 	}
 
-	public void fixAntiSplit(List<Stock> loadShares) {
+	@Deprecated //This won't work? <= instead we exclude these from calculations
+	public void fixCounterSplit(List<Stock> loadShares) {
 
-		List<Optional<List<QuotationUnit>>> check = checkAntiSplit(loadShares);
+		List<Optional<List<QuotationUnit>>> check = checkCounterSplit(loadShares);
 
 		check.stream()
 		.forEach(qUList -> {
@@ -193,10 +203,10 @@ public class QuotationFixer {
 				List<QuotationUnit> delQUs = orElse.stream()
 						.map(qU -> {
 							QuotationUnit delQU = new QuotationUnit(stock, qU.getCurrency(), qU.getDate(),
-									qU.getOpen(),
-									qU.getHigh(),
-									qU.getLow(),
-									qU.getClose(),
+									qU.getOpenRaw(),
+									qU.getHighRaw(),
+									qU.getLowRaw(),
+									qU.getCloseRaw(),
 									qU.getVolume(),
 									ORIGIN.DEL, BigDecimal.ONE);
 							return delQU;

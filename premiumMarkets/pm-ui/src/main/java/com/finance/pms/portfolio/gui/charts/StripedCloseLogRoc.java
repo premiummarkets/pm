@@ -75,7 +75,7 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 		SortedMap<Date, double[]> data = new TreeMap<Date, double[]>();
 		List<QuotationUnit> quotationUnits = stockQuotations.getQuotationUnits(startDateQuotationIndex.value, endDateQuotationIndex.value);
 		for (QuotationUnit quotationUnit : quotationUnits) {
-			data.put(quotationUnit.getDate(), new double[]{quotationUnit.getCloseSp().doubleValue()});
+			data.put(quotationUnit.getDate(), new double[]{quotationUnit.getCloseSplit().doubleValue()});
 		}
 
 		try {

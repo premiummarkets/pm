@@ -78,7 +78,7 @@ public class MFI extends TalibIndicator {
 		String line =
 				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
 						qU.getDate()) + "," +
-						qU.getCloseSp() + "," +
+						qU.getCloseSplit() + "," +
 						mfi[indicator] + "\n";
 			return line;
 	}

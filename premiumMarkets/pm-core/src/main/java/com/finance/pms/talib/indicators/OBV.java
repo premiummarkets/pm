@@ -53,7 +53,7 @@ public class OBV extends TalibIndicator {
 
 	@Override
 	protected String getLine(Integer indicatorIdx, QuotationUnit qU) {
-		String line = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(qU.getDate()) + "," + qU.getCloseSp() + "," + qU.getVolume() + "," + obv[indicatorIdx] + "\n";
+		String line = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(qU.getDate()) + "," + qU.getCloseSplit() + "," + qU.getVolume() + "," + obv[indicatorIdx] + "\n";
 		return line;
 	}
 

@@ -73,7 +73,7 @@ public class StandardDeviation extends TalibIndicator {
 	
 	@Override
 	protected String getLine(Integer indicator, QuotationUnit qU) {
-		String line = new SimpleDateFormat("yyyy-MM-dd").format(qU.getDate()) + "," + qU.getCloseSp() + "," + stdDev[indicator]  + "\n";
+		String line = new SimpleDateFormat("yyyy-MM-dd").format(qU.getDate()) + "," + qU.getCloseSplit() + "," + stdDev[indicator]  + "\n";
 		return line;
 	}
 
