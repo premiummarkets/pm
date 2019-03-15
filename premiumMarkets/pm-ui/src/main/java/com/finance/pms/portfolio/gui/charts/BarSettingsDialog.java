@@ -290,7 +290,7 @@ public class BarSettingsDialog {
 			alphaSpinner.setToolTipText(
 					"For a better visibility of the result, You can change the opacity of the charted trend.\n" +
 							"You must select a share in the portfolio to display its analysis\n" +
-							"You also must choose the trends you want to display using the '"+ChartIndicatorDisplay.TRENDBUTTXT+"' button.");
+							"You also must choose the trends you want to display using the '" + ChartIndicatorDisplay.TRENDBUTTXT + "' button.");
 			alphaSpinner.addSelectionListener(new SelectionAdapter() {
 
 				public void widgetSelected(SelectionEvent e) {

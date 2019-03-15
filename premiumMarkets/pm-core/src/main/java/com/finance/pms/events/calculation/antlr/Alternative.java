@@ -33,18 +33,18 @@ import com.finance.pms.events.calculation.antlr.ANTLRParserHelper.AltType;
 import com.finance.pms.events.calculation.antlr.NextToken.TokenType;
 
 public class Alternative {
-	
+
 	private String altString;
 	private String synoptic;
 	private String description;
 	private String defaultValue;
-	
+
 	private int[] highLighPosition;
-	
+
 	private TokenType tokenType;
 	private AltType altType;
 
-	
+
 	public Alternative(AltType altType, TokenType tokenType, String altString, String description, String synoptic, String defaultValue, int[] highLighPosition) {
 		super();
 		this.altString = altString;
@@ -52,10 +52,10 @@ public class Alternative {
 		this.synoptic = synoptic;
 		this.tokenType = tokenType;
 		this.defaultValue = defaultValue;
-	
+
 		this.highLighPosition= highLighPosition;
 		this.altType = altType;
-		
+
 	}
 
 
@@ -70,7 +70,7 @@ public class Alternative {
 	public TokenType getTokenType() {
 		return tokenType;
 	}
-	
+
 	public String getDefaultValue() {
 		return defaultValue;
 	}
@@ -143,5 +143,5 @@ public class Alternative {
 	public AltType getAltType() {
 		return altType;
 	}
-	
+
 }

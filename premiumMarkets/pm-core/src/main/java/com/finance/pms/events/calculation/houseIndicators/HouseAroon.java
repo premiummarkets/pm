@@ -41,7 +41,7 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.talib.indicators.TalibIndicator;
 import com.tictactec.ta.lib.RetCode;
 
-//TODO inherit from Indicator instead of Talib
+//TODO This is not a Talib wrap : inherit from Indicator instead of Talib
 //XXX
 public class HouseAroon extends TalibIndicator {
 
@@ -66,7 +66,7 @@ public class HouseAroon extends TalibIndicator {
 			outBegIdx.value = startIdx + getStartShift();
 			outNBElement.value = endIdx - outBegIdx.value;
 
-			//From Talib
+			//From Talib code
 			//			 outAroonUp[outIdx] = factor*(optInTimePeriod-(today-highestIdx));
 			//	         outAroonDown[outIdx] = factor*(optInTimePeriod-(today-lowestIdx));
 			//	         aroon = factor*(highestIdx-lowestIdx);
@@ -168,7 +168,6 @@ public class HouseAroon extends TalibIndicator {
 		outAroonDown = new double[length];
 		outAroonUp = new double[length];
 		outAroonOsc = new double[length];
-
 	}
 
 	@Override

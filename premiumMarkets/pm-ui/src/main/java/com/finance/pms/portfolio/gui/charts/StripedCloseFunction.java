@@ -29,6 +29,7 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
+import java.text.NumberFormat;
 import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -42,9 +43,9 @@ import com.tictactec.ta.lib.MInteger;
  * @author Guillaume Thoreton
  */
 public abstract class StripedCloseFunction {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseFunction.class);
-	
+
 	protected Date arbitraryStartDate;
 	protected Date arbitraryEndDate;
 
@@ -58,50 +59,52 @@ public abstract class StripedCloseFunction {
 	}
 
 	public abstract Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
-	
+
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;
-	
+
 	}
 
 	public void updateStartDate(Date date) {
 		this.arbitraryStartDate = date;
-	
+
 	}
 
 	protected Date getStartDate(Quotations stockQuotations) {
-		
+
 		Date startDate = this.arbitraryStartDate;
 		startDate = (startDate.before(stockQuotations.getDate(0)))?stockQuotations.getDate(0):startDate;
 		LOGGER.debug("The start date is : "+startDate);
-		
+
 		return startDate;
 	}
 
 	protected Date getEndDate(Quotations stockQuotations) {
-		
+
 		Date endDate = this.arbitraryEndDate;
 		Integer lastQuoteI = stockQuotations.size()-1;
 		endDate = (endDate.after(stockQuotations.getDate(lastQuoteI)))?stockQuotations.getDate(lastQuoteI):endDate;
 		LOGGER.debug("The end date is : "+endDate);
-		
+
 		return endDate;
 	}
-	
+
 	public Date getArbitraryStartDateForChart() {
 		return arbitraryStartDate;
 	}
-	
+
 	public abstract Date getArbitraryStartDateForCalculation();
 
 	public Date getArbitraryEndDate() {
 		return arbitraryEndDate;
 	}
-	
+
 	public abstract String lineToolTip();
-	
+
 	public abstract String formatYValue(Number yValue);
-	
+
 	public abstract Boolean isRelative();
-	
+
+	public abstract NumberFormat getNumberFormat();
+
 }

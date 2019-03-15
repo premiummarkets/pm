@@ -60,6 +60,8 @@ import com.finance.pms.events.operations.nativeops.UnaryDivision;
 import com.finance.pms.events.operations.nativeops.UnaryProduct;
 import com.finance.pms.events.operations.nativeops.UnarySum;
 import com.finance.pms.events.operations.nativeops.VolatilityOperation;
+import com.finance.pms.events.operations.nativeops.VolatilityOtherOperation;
+import com.finance.pms.events.operations.nativeops.VolatilityRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.pm.ZeroLagEMAOperation;
 
 
@@ -133,6 +135,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(zeroLagEMAOperation);
 		LnPeriodicOperation lnPeriodicOperation = new LnPeriodicOperation();
 		nativeOperations.addOperation(lnPeriodicOperation);
+		VolatilityOtherOperation volatilityOtherOperation = new VolatilityOtherOperation();
+		nativeOperations.addOperation(volatilityOtherOperation);
+		VolatilityRationaliserOperation volatilityRationaliserOperation = new VolatilityRationaliserOperation();
+		nativeOperations.addOperation(volatilityRationaliserOperation);
 
 		return nativeOperations;
 	}

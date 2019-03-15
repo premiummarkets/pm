@@ -321,11 +321,11 @@ public class TargetStockInfo {
 		}
 	}
 
-	private Output getGatheredChartableOutput(Integer indexOfMain) {
+	private Output getGatheredChartableOutput(Integer indexOfOutput) {
 		try {
-			return gatheredChartableOutputs.get(indexOfMain);
+			return gatheredChartableOutputs.get(indexOfOutput);
 		} catch (Exception e) {
-			LOGGER.error("No gathered output for "+indexOfMain, e);
+			LOGGER.error("No gathered output for "+indexOfOutput, e);
 			throw e;
 		}
 	}
@@ -409,9 +409,11 @@ public class TargetStockInfo {
 					if (chartedOutputGroup == null) {
 						chartedOutputGroup = setMain(operand, Optional.empty());
 					} else {
+						//FIXME it seems we use outputSelector and operand Reference indiscriminately: this doesn't seem to work if the operand also have an outputSelector. There should be two different attributes.
 						Map<String, Type> additionalOutputsTypes = new HashMap<>();
-						additionalOutputsTypes.put(operand.getReference(), Type.MULTI);
-						addChartInfoForAdditonalOutputs(operand, additionalOutputsTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
+						additionalOutputsTypes.put((operand.getOutputSelector() == null)?operand.getReference():operand.getOutputSelector(), Type.MULTI);
+						Integer indexOfMain = getIndexOfMainChartableOutput();
+						addChartInfoForAdditonalOutputs(operand, additionalOutputsTypes, indexOfMain);
 					}
 				}
 			}
@@ -453,6 +455,14 @@ public class TargetStockInfo {
 			}
 		}
 
+	}
+
+	private Integer getIndexOfMainChartableOutput() {
+		Integer indexOfMain = gatheredChartableOutputs.indexOf(gatheredChartableOutputs.stream()
+			.filter(o -> o.getChartedDescription() != null)
+			.findFirst()
+			.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + gatheredChartableOutputs)));
+		return indexOfMain;
 	}
 
 }

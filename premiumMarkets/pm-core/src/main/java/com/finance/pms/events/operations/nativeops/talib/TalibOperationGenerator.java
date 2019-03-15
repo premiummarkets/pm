@@ -145,7 +145,7 @@ public class TalibOperationGenerator {
 						} else {
 							desrc = ParameterizedOperationBuilder.readableCamelCase(desrc);
 						}
-						TalibGenericOperation genericOperation = new TalibGenericOperation(method.getName(), desrc , method, inConstantsNames, inDataNames, outDataNames);
+						TalibGenericOperation genericOperation = new TalibGenericOperation(method.getName(), desrc + " (a TAlib Operation)", method, inConstantsNames, inDataNames, outDataNames);
 						genericOperations.put(method.getName(), genericOperation);
 
 					}
@@ -242,7 +242,6 @@ public class TalibOperationGenerator {
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
-
 
 	}
 

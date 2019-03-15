@@ -44,30 +44,30 @@ import com.tictactec.ta.lib.MInteger;
 public class StripedCloseRelativeToStart extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToStart.class);
-	
-	NumberFormat pf = new DecimalFormat("#0.00 %");
+
+	NumberFormat numberFormat = new DecimalFormat("#0.00 %");
 
 	public StripedCloseRelativeToStart(Date arbitraryStartDate, Date arbitraryEndDate) {
 		super(arbitraryEndDate);
 		this.arbitraryStartDate = arbitraryStartDate;
 	}
-	
+
 
 	@Override
 	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
 		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0,startDate);
-		
+
 		Date endDate = getEndDate(stockQuotations);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
-		
+
 		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
 
 	}
-	
+
 	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
-	
+
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
 		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
@@ -77,7 +77,7 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 				retA.add(relatedCloseValue);
 			}
 		}
-	
+
 		return  retA.toArray(new BigDecimal[0]);
 	}
 
@@ -89,7 +89,7 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 
 	@Override
 	public String formatYValue(Number yValue) {
-		return pf.format(yValue);
+		return numberFormat.format(yValue);
 	}
 
 
@@ -101,6 +101,11 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	@Override
 	public Date getArbitraryStartDateForCalculation() {
 		return this.getArbitraryStartDateForChart();
+	}
+
+	@Override
+	public NumberFormat getNumberFormat() {
+		return numberFormat;
 	}
 
 }

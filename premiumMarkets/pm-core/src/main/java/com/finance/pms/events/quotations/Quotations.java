@@ -151,6 +151,7 @@ public class Quotations {
 				}
 			}
 		}
+
 		this.setUnfilteredQuotationData(requestedQuotationsData);
 
 		if (!hasQuotations()) {
@@ -210,7 +211,7 @@ public class Quotations {
 							"between " + qjm1.getCloseSplit() + " at " + qjm1.getDate() + " " +
 							"and " + qj.getCloseSplit() + " at " + qj.getDate());
 			Integer factorDouble = (int) split;
-			BigDecimal factor = new BigDecimal(factorDouble.toString());
+			BigDecimal factor = new BigDecimal(factorDouble.toString()).setScale(10);
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
 				QuotationUnit quotationUnit = quotationsUnitOut.get(i);
 				quotationUnit.setSplit(quotationUnit.getSplit().multiply(factor));
@@ -362,7 +363,7 @@ public class Quotations {
 		return ret;
 	}
 
-	public double[] blackSholeDownUpVolatility(Date startDate, Date endDate, Integer period) throws NoQuotationsException {
+	public double[] stdevLnDownUpVolatility(Date startDate, Date endDate, Integer period) throws NoQuotationsException {
 
 		double[] meanStdVariance = new double[2];
 		double[] closes = this.getCloseValues();
@@ -497,7 +498,7 @@ public class Quotations {
 
 	}
 
-	public double blackScholesVolatility(Date startDate, Date endDate, Integer period) throws NoQuotationsException {
+	public double stdevLnVolatility(Date startDate, Date endDate, Integer period) throws NoQuotationsException {
 
 		double meanStdVariance = 0;
 		double[] closes = this.getCloseValues();
@@ -533,7 +534,6 @@ public class Quotations {
 		return meanStdVariance / nbIter;
 
 	}
-
 
 	public double[] getHighValues() {
 		return convertArray(getQuotationData().getHighValues());
@@ -573,7 +573,7 @@ public class Quotations {
 		filters.add(cacheFilter);
 		filters.addAll(otherCacheFilters);
 
-		boolean validClose = filters.contains(ValidityFilter.CLOSE) || filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV) || filters.contains(ValidityFilter.VOLUME);
+		boolean validClose = filters.contains(ValidityFilter.CLOSE) || filters.contains(ValidityFilter.OHLC) || filters.contains(ValidityFilter.OHLCV) || filters.contains(ValidityFilter.VOLUME);
 		boolean validOhlc = filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV);
 		boolean validVolume = filters.contains(ValidityFilter.VOLUME) || filters.contains(ValidityFilter.OHLCV);
 		boolean splitFree = filters.contains(ValidityFilter.SPLITFREE);
@@ -581,7 +581,7 @@ public class Quotations {
 		QuotationData allQs = quotationDataFilters.get(ValidityFilter.ALL.name());
 		ArrayList<QuotationUnit> quotationsUnitOut = new ArrayList<QuotationUnit>();
 		ArrayList<QuotationUnit> quotationsUnitOutHead = new ArrayList<QuotationUnit>();
-		QuotationUnit qjm1 = null; //allQs.get(0);
+		QuotationUnit qjm1 = null;
 		for (int j = 0; j < allQs.size(); j++) {
 
 			QuotationUnit qj = allQs.get(j);
@@ -612,7 +612,6 @@ public class Quotations {
 				quotationsUnitOutHead.add(qj);
 			}
 
-			//qjm1 = quotationsUnitOut.get(quotationsUnitOut.size()-1);
 			qjm1 = qj;
 		}
 

@@ -33,7 +33,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -54,6 +56,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.web.Indice;
 import com.finance.pms.datasources.web.ProvidersList;
 
 @Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
@@ -255,6 +258,21 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 		IndepShareList shareList = (IndepShareList)this.getHibernateTemplate().get(IndepShareList.class, upperShareListName);
 		if (shareList == null) shareList = new IndepShareList(upperShareListName);	
 		return shareList;
+	}
+
+	@Override
+	public Set<PortfolioShare> loadPortfolioSharesExUnknown() {
+		List<String> shareListNames = loadShareListNames(null, new String[]{SharesListId.UNKNOWN.getSharesListCmdParam().toUpperCase()});
+		Set<PortfolioShare> marketStock = new HashSet<PortfolioShare>();
+		for (String listName : shareListNames) {
+			Set<Indice> indices = Indice.parseString(listName);
+			if (indices.size() == 1 ) {
+				LOGGER.info("Adding to global forecast share list : "+listName);
+				SharesList shareList = loadShareList(listName);
+				marketStock.addAll(shareList.getListShares().values());
+			}
+		}
+		return marketStock;
 	}
 
 

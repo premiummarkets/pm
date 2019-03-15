@@ -82,7 +82,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		this.isShutDown = false;
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
-		this.chartTarget.getMainChartWraper().initMainPlot(ChartMain.PERCENTAGE_FORMAT, "No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available.");
+		this.chartTarget.getMainChartWraper()
+			.initMainPlot(
+					ChartMain.PERCENTAGE_FORMAT,
+					"No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available."
+			);
 
 		//TODO keep object and state <= done?
 		//this.chartTarget.setStripedCloseFunction(this, new StripedCloseRelativeToStart(this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
@@ -249,7 +253,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 									} catch (NumberFormatException e) {
 										pSmth = StripedCloseLogRoc.DEFAULTLOGROCSMTH;
 									}
-									chartTarget.setStripedCloseFunction(new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), (Boolean)actionDialogForm.values[0], pSmth) );
+									chartTarget.setStripedCloseFunction(new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), (Boolean)actionDialogForm.values[0], pSmth));
 									chartTarget.updateCharts(false);
 								}
 							};
@@ -300,12 +304,41 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							actionDialogForm.open();
 
 						}
-					})}));
+					}),
+					new TransfoInfo("Real Price", new ActionDialogAction() {
+
+						@Override
+						public void action() {
+
+							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Real Price Settings");
+							final Button splitBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
+							splitBut.setBackground(MainGui.pOPUP_BG);
+							splitBut.setFont(MainGui.DEFAULTFONT);
+							splitBut.setText("Disable split fix");
+							splitBut.setToolTipText("Disable split fix and show raw values.");
+							splitBut.setSelection(false);
+
+							ActionDialogAction actionDialogAction = new ActionDialogAction() {
+								@Override
+								public void action() {
+									actionDialogForm.values[0] = Boolean.valueOf(splitBut.getSelection());
+									chartTarget.setStripedCloseFunction(new StripedCloseRealPrice((Boolean)actionDialogForm.values[0]));
+									chartTarget.updateCharts(false);
+								}
+							};
+
+							actionDialogForm.setControl(splitBut);
+							actionDialogForm.setAction(actionDialogAction);
+							actionDialogForm.open();
+
+						}
+					})
+			}));
 
 			closeFunctionBut.addSelectionListener(new SelectionListener() {
 
 				@Override
-				public void widgetSelected(SelectionEvent e) {		
+				public void widgetSelected(SelectionEvent e) {
 					selectComparisonMode(closeFunctionBut, transfos);
 				}
 

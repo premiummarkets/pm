@@ -638,20 +638,20 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 
 	private enum Titles {
-		Name ("Stock", "Stock name."), 
-		Symbol ("Symbol", "Symbol"), 
-		Isin ("Isin", "Isin"), 
-		Value ("Value","Value at date."),
-		Close ("Close","Last unit close price available."),
-		AvgBuyPrc ("Avg price", "Average buy price basis.\nFormula : Sum(in) / Sum(quantity bought)"),  
-		CostPerUnit ("Unit cost", "Cost per unit if including moneys out.\nFormula : (Sum(in) - Sum(out)) / actual quantity"),  
+		Name ("Stock", "Stock name."),
+		Symbol ("Symbol", "Symbol"),
+		Isin ("Isin", "Isin"),
+		Value ("Value", "Value at date."),
+		Close ("Close", "Last unit close price available."),
+		AvgBuyPrc ("Avg price", "Average buy price basis.\nFormula : Sum(in) / Sum(quantity bought)"),
+		CostPerUnit ("Unit cost", "Cost per unit if including moneys out.\nFormula : (Sum(in) - Sum(out)) / actual quantity"),
 		ZeroWGainPrc ("Zero gain price", "Minimum unit sell price for no loss if including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : (Inflated(in)-  Inflated(out)) / actual quantity"),
-		TotalPercentGain ("% gain","Realized and unrealized percent gain.\nFormula : ( ( actual value + Sum(out) ) - Sum(in) ) / Sum(in)"), 
-		RPercentGain ("Real % gain","Realized percent gain.\nFormula ( ( basis + Sum(out) ) - Sum(in) ) / Sum(in)  \nwhere basis =  Average(buy price) * actual quantity"),
-		UrPercentGain ("Unreal % gain","Unrealized percent gain.\nFormula : ( actual value - basis ) / basis  \nwhere basis =  Average(buy price) * actual quantity"),
-		WTotalPercentGain ("% gain inflated","Total gain if including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : ( (actual value + Inflated(out)) - Inflated(in) ) / Inflated(in)"),
+		TotalPercentGain ("% gain", "Realized and unrealized percent gain.\nFormula : ( ( actual value + Sum(out) ) - Sum(in) ) / Sum(in)"),
+		RPercentGain ("Real % gain", "Realized percent gain.\nFormula ( ( basis + Sum(out) ) - Sum(in) ) / Sum(in)  \nwhere basis =  Average(buy price) * actual quantity"),
+		UrPercentGain ("Unreal % gain", "Unrealized percent gain.\nFormula : ( actual value - basis ) / basis  \nwhere basis =  Average(buy price) * actual quantity"),
+		WTotalPercentGain ("% gain inflated", "Total gain if including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : ( (actual value + Inflated(out)) - Inflated(in) ) / Inflated(in)"),
 		DisplayedCurrency("Currency", "You can choose to display the amounts using another currency.\nDouble click to edit."),
-		Monitor("Monitor","Alert monitor level.\nDouble click to edit.\nAll lines with a monitor level different from NONE will generate notifications.");
+		Monitor("Monitor", "Alert monitor level.\nDouble click to edit.\nAll lines with a monitor level different from NONE will generate notifications.");
 
 		String toolTip;
 		String columnName;
@@ -1193,12 +1193,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 
 	public void tabUpdateItemsFromPortfolio(Integer tabIdx, Portfolio portfolio, Observer... tabInitObservers) {
-
 		TabInit runnable = new TabInit(tabIdx, portfolio);
 		for (Observer observer : tabInitObservers) {
 			runnable.addObserver(observer);
 		}
-		getDisplay().syncExec(runnable);	
+		getDisplay().syncExec(runnable);
 	}
 
 	private void refreshChartData() {
@@ -2050,7 +2049,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 								}
 							}
 						};
-						getDisplay().asyncExec(runnable);	
+						getDisplay().asyncExec(runnable);
 
 					}
 
@@ -2504,7 +2503,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						int ret = o2GainTotalWeightedPercent.compareTo(o1GainTotalWeightedPercent);
 						ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 						return ret;
-					}						
+					}
 				});
 				break;
 			case DisplayedCurrency :
@@ -2513,7 +2512,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						int ret = o2.getDisplayedCurrency().compareTo(o1.getDisplayedCurrency());
 						ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 						return ret;
-					}						
+					}
 				});
 				break;
 			default:

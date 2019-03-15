@@ -53,11 +53,11 @@ public class InflationRationaliserOperation extends PMWithDataOperation {
 			}
 
 			Map<String, NumericableMapValue> selectorOutputs = new HashMap<String, NumericableMapValue>();
-			for (String outputSelector : getAvailableOutputSelectors()) {
-				if (outputSelector != null && outputSelector.equalsIgnoreCase("rationalizedData")) {
+			for (String availableOutputSelector : getAvailableOutputSelectors()) {
+				if (availableOutputSelector != null && availableOutputSelector.equalsIgnoreCase("rationalizedData")) {
 					selectorOutputs.put("rationalizedData", new DoubleMapValue(resultMap));
 				}
-				if (outputSelector != null && outputSelector.equalsIgnoreCase("dailyRate")) {
+				if (availableOutputSelector != null && availableOutputSelector.equalsIgnoreCase("dailyRate")) {
 					selectorOutputs.put("dailyRate", new DoubleMapValue(dailyRateMap));
 				}
 			}
@@ -65,7 +65,7 @@ public class InflationRationaliserOperation extends PMWithDataOperation {
 			return new MultiSelectorsValue(selectorOutputs, getOutputSelector());
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : "  + e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
 		}
 
 		return new MultiSelectorsValue(getAvailableOutputSelectors(), getOutputSelector());

@@ -36,28 +36,27 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.tictactec.ta.lib.RetCode;
 
+//Talib wrap for Aroon
 public class Aroon extends TalibIndicator {
 
 	private double[] outAroonDown;
 	private double[] outAroonUp;
-	
 
 	public Aroon(Number... indicatorParams) throws TalibException {
 		super(indicatorParams);
 	}
-
 
 	@Override
 	protected double[][] getInputData(Quotations quotations) {
 		double[] closeValues = quotations.getCloseValues();
 		double inLow[] = quotations.getLowValues();
 		double inHigh[] = quotations.getHighValues();
-		
+
 		double[][] ret = new double[3][Math.max(closeValues.length,Math.max(inLow.length, inHigh.length))];
 		ret[0]= closeValues;
 		ret[1]= inLow;
 		ret[2]= inHigh;
-		return 	ret;
+		return ret;
 	}
 
 	@Override
@@ -95,12 +94,10 @@ public class Aroon extends TalibIndicator {
 		return outAroonUp;
 	}
 
-
 	@Override
 	public Integer getStartShift() {
 		return 50;
 	}
-
 
 	@Override
 	public ValidityFilter quotationValidity() {

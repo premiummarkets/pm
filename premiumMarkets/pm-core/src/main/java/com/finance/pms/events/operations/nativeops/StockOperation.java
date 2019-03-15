@@ -61,7 +61,7 @@ public class StockOperation extends DoubleMapOperation {
 
 	public StockOperation() {
 		this(
-			"stock", "Time series of real stock historical data (close, low, high and volume))",
+			"stock", "Time series of real stock historical data (close, low, high and volume)",
 			new StringOperation("string", "stockReference", "Optional stock reference in format SYMBOL_ISIN", null)
 		);
 		setAvailableOutputSelectors(new ArrayList<>( Arrays.asList(new String[]{"close","open","high","low","volume"}) ));
@@ -77,7 +77,7 @@ public class StockOperation extends DoubleMapOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Stock stock = null;
-			String value = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String value = ((StringValue) inputs.get(0)).getValue(targetStock);
 		if (value.equals("THIS")) {
 			stock = targetStock.getStock();
 		}

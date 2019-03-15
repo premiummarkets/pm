@@ -32,6 +32,7 @@ package com.finance.pms.portfolio;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 import com.finance.pms.datasources.files.TransactionElement;
@@ -39,11 +40,11 @@ import com.finance.pms.datasources.shares.Stock;
 
 
 public interface PortfolioDAO {
-	
+
 	//All portfolios
 	public void saveOrUpdatePortfolio(AbstractSharesList portfolio);
 
-	//User portfolio	
+	//User portfolio
 	public List<Portfolio> loadVisiblePortfolios();
 	public List<String> loadUserPortfolioNames();
 
@@ -58,14 +59,15 @@ public interface PortfolioDAO {
 	public SortedSet<TransactionElement> loadOrphanTransactionReportFor(Stock stock, String account, Date date);
 	public void deleteALLTransactionReports();
 	public void deleteOrphanTransactionReportsFor(String externalAccount);
-	
+
 	//PortfolioShare
 	public void saveOrUpdatePortfolioShare(PortfolioShare portfolioShare);
 	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
 	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock);
+	public Set<PortfolioShare> loadPortfolioSharesExUnknown();
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
 	public IndepShareList loadIndepShareList(String shareListName);
 	public List<String> loadIndepShareListNames();
-	
+
 }

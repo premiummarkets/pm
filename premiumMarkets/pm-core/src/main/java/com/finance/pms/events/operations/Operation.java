@@ -316,12 +316,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (this.availableOutputSelectors != null && !this.availableOutputSelectors.isEmpty()) {
 			//But not provided or wrong
 			if (outputSelector == null || !this.availableOutputSelectors.contains(outputSelector)) {
-				throw new IllegalArgumentException(this + " rejected " + outputSelector +" is not a valid output Selector. Expected : "+this.availableOutputSelectors);
+				throw new IllegalArgumentException(this + " rejected " + outputSelector + " is not a valid output Selector. Expected : " + this.availableOutputSelectors);
 			}
 			//No Output needed but provided
 		} else {
 			if (outputSelector != null) {
-				throw new IllegalArgumentException(this + " rejected " + outputSelector +". No output selector is expected for this operation.");
+				throw new IllegalArgumentException(this + " rejected " + outputSelector + ". No output selector is expected for this operation.");
 			}
 		}
 		this.outputSelector = outputSelector;
@@ -435,7 +435,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	public String getOutputSelector() {
-		return outputSelector;
+		//return outputSelector;
+		return (outputSelector != null)?
+				outputSelector:
+				(getAvailableOutputSelectors() != null && !getAvailableOutputSelectors().isEmpty())?
+						getAvailableOutputSelectors().get(0):
+						null;
 	}
 
 	public Boolean isNative() {

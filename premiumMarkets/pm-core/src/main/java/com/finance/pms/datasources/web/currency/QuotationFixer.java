@@ -1,10 +1,14 @@
 package com.finance.pms.datasources.web.currency;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -121,7 +125,13 @@ public class QuotationFixer {
 
 	}
 
-	public List<Optional<List<QuotationUnit>>> checkCounterSplit(List<Stock> loadShares) {
+	/**
+	 * 
+	 * @param loadShares
+	 * @param deltaUnit ex : 0.5 (i.e. 50%)
+	 * @return
+	 */
+	public List<Optional<List<QuotationUnit>>> checkCounterSplit(List<Stock> loadShares, double deltaUnit) {
 
 		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
 
@@ -136,21 +146,19 @@ public class QuotationFixer {
 							QuotationUnit qI = quotations.get(i);
 							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
 							double dI = qI.getCloseRaw().doubleValue();
-							double dIm1 =  qIm1.getCloseRaw().doubleValue();
-							double delta = span*Math.pow(1.5, 1d-span)*0.10;
-							double adjustedDIm1 = dIm1-dIm1*delta;
-							//double adjustedDIm1 = dIm1 + dIm1*delta;
+							double dIm1 = qIm1.getCloseRaw().doubleValue();
+							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
+							double adjustedDIm1 = dIm1 + dIm1*delta;
 							double counterSplit = dI/adjustedDIm1;
 
 							List<QuotationUnit> adjacents = new ArrayList<>();
-							if ( counterSplit > 2 ) {
-								if (dI/adjustedDIm1 > 2) {
-									int iPrim = i;
-									//We check and fix adjacent forward until condition is false
-									while(iPrim < quotations.size() && (quotations.get(iPrim).getCloseRaw().doubleValue()/adjustedDIm1 > 2)) {
-										adjacents.add(quotations.get(iPrim));
-										iPrim++;
-									}
+							if ( counterSplit > 1 ) {
+								int iPrim = i;
+								//We check adjacent forward until condition is false
+								while(iPrim < quotations.size() && (counterSplit > 1)) {
+									counterSplit = quotations.get(iPrim).getCloseRaw().doubleValue()/adjustedDIm1;
+									adjacents.add(quotations.get(iPrim));
+									iPrim++;
 								}
 							}
 							return adjacents;
@@ -173,14 +181,72 @@ public class QuotationFixer {
 				.collect(Collectors.toList());
 
 		LOGGER.info("Affected stocks: " + collected.stream().filter(qL -> qL.isPresent() && qL.get().size() > 0).count() + " out of " + loadShares.size());
-		LOGGER.info("Affected stocks: \n" + 
-		collected.stream()
-			.flatMap(qL -> (qL.isPresent())?qL.get().stream():Stream.empty())
-			.map(qU -> qU.getStock().toString())
-			.distinct()
-			.reduce((r, e) -> r + "\n" + e)
-			.orElse("None")
-		);
+		String counterSplitedStocks = collected.stream()
+				.flatMap(qL -> (qL.isPresent())?qL.get().stream():Stream.empty())
+				.map(qU -> qU.getStock().toString())
+				.distinct()
+				.reduce((r, e) -> r + "\n" + e)
+				.orElse("None");
+		LOGGER.info("Affected stocks: \n" + counterSplitedStocks);
+		try (FileWriter fileWriter = new FileWriter(new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator + UUID.randomUUID() + "_counterSplitedStocks.txt"))) {
+			fileWriter.write(counterSplitedStocks+"\n");
+		} catch (IOException e) {
+			LOGGER.error(e, e);
+		}
+
+		return collected;
+	}
+
+	public List<Optional<List<QuotationUnit>>> checkCounterSplitFailFast(List<Stock> loadShares, double deltaUnit) {
+
+		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
+
+			List<QuotationUnit> collect = null;
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
+
+				collect = IntStream
+						.range(1, quotations.size())
+						.mapToObj(i -> {
+							QuotationUnit qIm1 = quotations.get(i-1);
+							QuotationUnit qI = quotations.get(i);
+							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
+							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
+							double dI = qI.getCloseRaw().doubleValue();
+							double dIm1 = qIm1.getCloseRaw().doubleValue();
+							double adjustedDIm1 = dIm1 + dIm1*delta;
+							double counterSplit = dI/adjustedDIm1;
+							List<QuotationUnit> adjacents = new ArrayList<>();
+							if ( counterSplit > 1 ) {
+								adjacents.add(qI);
+							}
+							return adjacents;
+						})
+						.flatMap(adj -> adj.stream())
+						.collect(Collectors.toList());
+
+				if (!collect.isEmpty())
+					LOGGER.warn("Anti split detected qU for " + stock + " :\n" + collect.stream().map(qU -> qU.toString()).reduce((r, e) -> r + "\n" + e).orElse("None"));
+
+			} catch (NoQuotationsException e) {
+				LOGGER.warn(e);
+			} catch (Exception e) {
+				LOGGER.error(e);
+			}
+
+			return Optional.ofNullable(collect);
+		})
+				.collect(Collectors.toList());
+
+		LOGGER.info("Affected stocks: " + collected.stream().filter(qL -> qL.isPresent() && qL.get().size() > 0).count() + " out of " + loadShares.size());
+		LOGGER.info("Affected stocks: \n" +
+				collected.stream()
+		.flatMap(qL -> (qL.isPresent())?qL.get().stream():Stream.empty())
+		.map(qU -> qU.getStock().toString())
+		.distinct()
+		.reduce((r, e) -> r + "\n" + e)
+		.orElse("None")
+				);
 
 		return collected;
 	}
@@ -188,7 +254,7 @@ public class QuotationFixer {
 	@Deprecated //This won't work? <= instead we exclude these from calculations
 	public void fixCounterSplit(List<Stock> loadShares) {
 
-		List<Optional<List<QuotationUnit>>> check = checkCounterSplit(loadShares);
+		List<Optional<List<QuotationUnit>>> check = checkCounterSplit(loadShares, 0.5);
 
 		check.stream()
 		.forEach(qUList -> {

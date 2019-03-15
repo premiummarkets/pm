@@ -148,15 +148,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
-		this.chartTarget.getMainChartWraper().initMainPlot(
+		this.chartTarget.getMainChartWraper()
+			.initMainPlot(
 				ChartMain.NUMBER_FORMAT, 
 				"Nothing to display?\n" +
 						"First select a stock in your portfolio.\n" +
-						"Then use '"+TRENDBUTTXT+"' and/or '"+INDICATORSBUTTXT+"' buttons to select calculators.\n" +
-				"Also check the portfolio stocks and sliding date ranges. Quotations have to be available.");
+						"Then use '" + TRENDBUTTXT + "' and/or '" + INDICATORSBUTTXT + "' buttons to select calculators.\n" +
+				"Also check the portfolio stocks and sliding date ranges. Quotations have to be available."
+			);
 
 
-		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice());
+		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice(false));
 
 		resetChart(true);
 

@@ -36,7 +36,7 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
 
                         LOGGER.info("Initialising TalibIndicatorsCompositionerGenericOperation : " + calculatorClass.getSimpleName());
                         return new TalibIndicatorsCompositionerGenericOperation(
-                                "gx_"+calculatorClass.getSimpleName(), "gx_"+calculatorClass.getSimpleName(),
+                                "gx_" + calculatorClass.getSimpleName(), "gx_" + calculatorClass.getSimpleName() + " (a TAlib Indicators Operator)",
                                 calculatorClass, inConstantsNames);
 
                     } catch (NotImplementedException e) {
@@ -51,7 +51,7 @@ public class TalibIndicatorsCompositionerOperationReflectiveGenerator {
                 .filter(ccOp -> ccOp != null)
                 .collect(Collectors.toMap(ccOp -> ccOp.getReference(), ccOp -> ccOp));
 
-        LOGGER.info("List of TalibIndicatorsCompositionerGenericOperations : "+compositionCalculatorOperations);
+        LOGGER.info("List of TalibIndicatorsCompositionerGenericOperations : " + compositionCalculatorOperations);
         return compositionCalculatorOperations;
     }
     

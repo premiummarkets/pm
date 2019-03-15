@@ -70,7 +70,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 	}
 
 	public void init(
-			TalibOperationGenerator talibOperationGenerator, 
+			TalibOperationGenerator talibOperationGenerator,
 			TalibIndicatorsCompositionerOperationReflectiveGenerator talibIndicatorsCompositionerOperationReflectiveGenerator,
 			OperationReflectiveGenerator... otherOperationReflectiveGenerator) throws Exception {
 

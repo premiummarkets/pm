@@ -166,6 +166,9 @@ public class ChartMain extends Chart {
 
 		final TimeSeriesCollection combinedDataset = new TimeSeriesCollection();
 
+		//Y axis number format
+		this.mainYAxis.setNumberFormatOverride(stripedCloseFunction.getNumberFormat());
+
 		//Check if empty
 		Boolean isAnyShowing = false;
 		for (SlidingPortfolioShare slidingPortfolioShare : portfolioShares) {

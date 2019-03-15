@@ -2,6 +2,7 @@ package com.finance.pms.datasources.web.currency;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.portfolio.PortfolioDAO;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -101,10 +103,11 @@ public class QuotationFixerTest {
 
 	@Test
 	public void testCheckCounterSplit() {
-		List<Stock> loadShares = loadStocksUK();
-		loadShares = loadShares.subList(0, 50); //Test
+		//List<Stock> loadShares = loadStocksUK();
+		//loadShares = loadShares.subList(0, 50); //Test
 		//List<Stock> loadShares = DataSource.getInstance().getShareDAO().loadAllStocks();
-		currencyFixer.checkCounterSplit(loadShares);
+		List<Stock> loadShares = ((PortfolioDAO) springContext.getBean("portfolioDAO")).loadPortfolioSharesExUnknown().stream().map(ps -> ps.getStock()).collect(Collectors.toList());
+		currencyFixer.checkCounterSplitFailFast(loadShares, 0.5);
 	}
 
 //	//@Test

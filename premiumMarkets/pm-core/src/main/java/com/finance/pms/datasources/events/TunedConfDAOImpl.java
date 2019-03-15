@@ -33,13 +33,14 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfId;
 
@@ -47,31 +48,35 @@ import com.finance.pms.events.scoring.TunedConfId;
 @Transactional(propagation=Propagation.REQUIRED, rollbackFor=Exception.class, value="hibernateTx")
 public class TunedConfDAOImpl extends HibernateDaoSupport implements TunedConfDAO {
 
-    private static MyLogger LOGGER = MyLogger.getLogger(TunedConfDAOImpl.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(TunedConfDAOImpl.class);
 
-    @Override
-    @Transactional(readOnly=true)
-    public TunedConf loadTunedConf(TunedConfId tunedConfId) {
-        return this.getHibernateTemplate().get(TunedConf.class, tunedConfId);
-    }
+	@Override
+	@Transactional(readOnly=true)
+	public TunedConf loadTunedConf(TunedConfId tunedConfId) {
+		return this.getHibernateTemplate().get(TunedConf.class, tunedConfId);
+	}
 
-    @Override
-    public void saveOrUpdateTunedConfs(TunedConf tunedConf) {
-        try {
+	@Override
+	public void saveOrUpdateTunedConfs(TunedConf tunedConf) {
+
+		//ANY_STOCK has got no tuned conf and is not a stock
+		if (tunedConf.getTunedConfId().getStock().equals(AnalysisClient.ANY_STOCK)) return;
+
+		try {
 			this.getHibernateTemplate().saveOrUpdate(tunedConf);
-		} catch (DataIntegrityViolationException e) {
-			LOGGER.warn("Is "+tunedConf.getTunedConfId().getStock()+" a real SHARE? : "+e.getMessage());
+		} catch (DataAccessException e) {
+			LOGGER.error("Is " + tunedConf.getTunedConfId().getStock() + " a real SHARE? : " + e.getMessage());
 		}
-    }
+	}
 
-    @Override
-    @Transactional(readOnly=true)
-    public List<TunedConf> loadAllTunedConfs() {
-        return this.getHibernateTemplate().loadAll(TunedConf.class);
-    }
+	@Override
+	@Transactional(readOnly=true)
+	public List<TunedConf> loadAllTunedConfs() {
+		return this.getHibernateTemplate().loadAll(TunedConf.class);
+	}
 
-    @Autowired
-    public void init(SessionFactory factory) {
-        setSessionFactory(factory);
-    }
+	@Autowired
+	public void init(SessionFactory factory) {
+		setSessionFactory(factory);
+	}
 }

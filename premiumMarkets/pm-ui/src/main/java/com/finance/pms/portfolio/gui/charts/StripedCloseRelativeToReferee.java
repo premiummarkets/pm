@@ -51,8 +51,8 @@ import com.tictactec.ta.lib.MInteger;
 public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToReferee.class);
-	
-	NumberFormat pf = new DecimalFormat("#0.00 %");
+
+	NumberFormat numberFormat = new DecimalFormat("#0.00 %");
 
 	Quotations relativeQuotationsFull;
 
@@ -70,11 +70,11 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	@Override
 	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
-		
+
 		Date startDate = getStartDate(stockQuotations);
 		Integer startDateRelativeIndex = this.relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		
+
 		Date endDate = getEndDate(stockQuotations);
 		Integer endDateRelativeIndex = this.relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(startDateRelativeIndex, endDate);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
@@ -90,20 +90,20 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
 
 		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0 && relativeQuotationsRoot != null && relativeQuotationsRoot.compareTo(BigDecimal.ZERO) != 0 ) {
-			
+
 			for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-				
+
 				Date dq = stockQuotations.get(i).getDate();
 				QuotationUnit relQuotationUnit = relativeQuotationsFull.get(relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, dq));
-				
+
 				BigDecimal relativeQuotation = (relQuotationUnit.getCloseSplit().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_HALF_EVEN);
 				BigDecimal quotation = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
 				BigDecimal relatedCloseValue = quotation.subtract(relativeQuotation);
 
 				retA.add(relatedCloseValue);
-				
+
 			}
-		
+
 		} else {
 			return new BigDecimal[0];
 		}
@@ -112,7 +112,7 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 		return  retA.toArray(new BigDecimal[0]);
 
 	}
-	
+
 	@Override
 	protected Date getStartDate(Quotations stockQuotations) {
 		Date startDate = super.getStartDate(stockQuotations);
@@ -127,8 +127,8 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 		endDate = (endDate.after(relativeQuotationsFull.getDate(lastQuoteI)))?relativeQuotationsFull.getDate(lastQuoteI):endDate;
 		return endDate;
 	}
-	
-	
+
+
 
 	@Override
 	public String lineToolTip() {
@@ -137,17 +137,22 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	@Override
 	public String formatYValue(Number yValue) {
-		return pf.format(yValue);
+		return numberFormat.format(yValue);
 	}
 
 	@Override
 	public Boolean isRelative() {
 		return true;
 	}
-	
+
 	@Override
 	public Date getArbitraryStartDateForCalculation() {
 		return this.getArbitraryStartDateForChart();
+	}
+
+	@Override
+	public NumberFormat getNumberFormat() {
+		return numberFormat;
 	}
 
 }

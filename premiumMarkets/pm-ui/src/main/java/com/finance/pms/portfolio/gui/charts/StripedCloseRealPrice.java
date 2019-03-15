@@ -40,15 +40,20 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
 public class StripedCloseRealPrice extends StripedCloseFunction {
-	
-	private NumberFormat nf = new DecimalFormat("0.####");
+
+	private NumberFormat numberFormat = new DecimalFormat("0.####");
+	private Boolean disableSplitFix;
+
+	public StripedCloseRealPrice(Boolean disableSplitFix) {
+		this.disableSplitFix = disableSplitFix;
+	}
 
 	@Override
 	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
 		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-		
+
 		Date endDate = getEndDate(stockQuotations);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
@@ -56,12 +61,12 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 	}
 
 	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
-		
+
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-			retA.add(stockQuotations.get(i).getCloseSplit());
+			retA.add((disableSplitFix)?stockQuotations.get(i).getCloseRaw():stockQuotations.get(i).getCloseSplit());
 		}
-	
+
 		return  retA.toArray(new BigDecimal[0]);
 	}
 
@@ -72,7 +77,7 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 
 	@Override
 	public String formatYValue(Number yValue) {
-		return nf.format(yValue);
+		return numberFormat.format(yValue);
 	}
 
 	@Override
@@ -83,6 +88,11 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 	@Override
 	public Date getArbitraryStartDateForCalculation() {
 		return this.getArbitraryStartDateForChart();
+	}
+
+	@Override
+	public NumberFormat getNumberFormat() {
+		return numberFormat;
 	}
 
 }

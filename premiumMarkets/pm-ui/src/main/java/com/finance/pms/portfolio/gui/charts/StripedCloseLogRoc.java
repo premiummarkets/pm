@@ -49,11 +49,10 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
 public class StripedCloseLogRoc extends StripedCloseFunction {
-	
+
 	public static final int DEFAULTLOGROCSMTH = 50;
-	
-	private NumberFormat nf = new DecimalFormat("0.############ \u2030");
-	
+
+	private NumberFormat numberFormat = new DecimalFormat("0.############ \u2030");
 	private Boolean rootAtZero;
 	private int period;
 
@@ -79,18 +78,18 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 		}
 
 		try {
-			
+
 			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
 			SortedMap<Date, double[]> smoothed = smaSmoother.smooth(data, false);
-			
+
 			HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
 			SortedMap<Date, double[]> houseDerivation = houseTrendSmoother.smooth(smoothed, false);
-			
+
 			startDate = (startDate.before(houseDerivation.firstKey()))? houseDerivation.firstKey() : startDate;
 			startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-			
+
 			return relativeCloses(startDate, endDate, houseDerivation);
-			
+
 		} catch (Exception e) {
 			LOGGER.warn("Not enough data to calculate : "+stockQuotations.getStock());
 			return new Double[0];
@@ -99,19 +98,19 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 	}
 
 	private Double[] relativeCloses(Date startDate, Date endDate, SortedMap<Date, double[]> houseDerivation) {
-		
+
 		List<Double> ret = new ArrayList<Double>();
-			
-			SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
-			
-			double root = (rootAtZero)? tailMap.get(tailMap.firstKey())[0] : 0d;
-			Set<Date> keySet = tailMap.keySet();
-			for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
-				Date date = iterator.next();
-				if (date.after(endDate)) break;
-				ret.add(houseDerivation.get(date)[0] - root);
-			}
-	
+
+		SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
+
+		double root = (rootAtZero)? tailMap.get(tailMap.firstKey())[0] : 0d;
+		Set<Date> keySet = tailMap.keySet();
+		for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
+			Date date = iterator.next();
+			if (date.after(endDate)) break;
+			ret.add(houseDerivation.get(date)[0] - root);
+		}
+
 		return ret.toArray(new Double[0]);
 	}
 
@@ -122,7 +121,7 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 
 	@Override
 	public String formatYValue(Number yValue) {
-		return nf.format(yValue);
+		return numberFormat.format(yValue);
 	}
 
 	@Override
@@ -135,6 +134,11 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(arbitraryStartDate);
 		return QuotationsFactories.getFactory().incrementDate(calendar, -period).getTime();
+	}
+
+	@Override
+	public NumberFormat getNumberFormat() {
+		return numberFormat;
 	}
 
 

@@ -136,6 +136,79 @@
                 <availableOutputSelector>up</availableOutputSelector>
                 <availableOutputSelector>oscillator</availableOutputSelector>
             </availableOutputSelectors>
+            <outputSelector>down</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityOtherOperation">
+            <reference>volatilityOtherCalculator</reference>
+            <description>Calculate the close volatility using home made algoritmics.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Basic Period</referenceAsOperand>
+                    <description>Basic period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>21.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>stdevLnVolatility</availableOutputSelector>
+                <availableOutputSelector>stdevVolatility</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>stdevLnVolatility</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityRationaliserOperation">
+            <reference>volatilityRationaliser</reference>
+            <description>Apply an input volatility calculation fix to the input and the standard stock OCHL outputs</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Basic Period</referenceAsOperand>
+                    <description>Basic period for ln return calculation in days</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Periods in STDev</referenceAsOperand>
+                    <description>Number of return periods in each standard deviation calculation</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>63.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Input data base for volatility calculation</reference>
+                    <description>Input data base for volatility calculation</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Input data for which the fix applies</reference>
+                    <description>Input data for which the fix applies</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>straight</availableOutputSelector>
+                <availableOutputSelector>walk</availableOutputSelector>
+                <availableOutputSelector>imbalanced</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>straight</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmmacdOperation">
@@ -181,6 +254,7 @@
                 <availableOutputSelector>history</availableOutputSelector>
                 <availableOutputSelector>signal</availableOutputSelector>
             </availableOutputSelectors>
+            <outputSelector>macd</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="flipOperation">
@@ -229,7 +303,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="lnPeriodicOperation">
             <reference>periodicLn_</reference>
-            <description>ln(n/(n-p)) ~ House Trend but in base 1</description>
+            <description>ln(n/(n-p)) ~ House Trend in base 'e'</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>period</reference>
@@ -347,6 +421,7 @@
                 <availableOutputSelector>rationalizedData</availableOutputSelector>
                 <availableOutputSelector>dailyRate</availableOutputSelector>
             </availableOutputSelectors>
+            <outputSelector>rationalizedData</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
@@ -373,17 +448,28 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="skewRationaliserOperation">
             <reference>skewRationaliser</reference>
-            <description>Transform the input removing volatility skewness</description>
+            <description>Apply an input skewness calculation fix to the input and the standard stock OCHL outputs</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
-                    <reference>Input data</reference>
-                    <description>Input data</description>
+                    <reference>Input data base for skewness calculation</reference>
+                    <description>Input data base for skewness calculation</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Input data for which the fix applies</reference>
+                    <description>Input data for which the fix applies</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
-            <availableOutputSelectors/>
+            <availableOutputSelectors>
+                <availableOutputSelector>data</availableOutputSelector>
+                <availableOutputSelector>skewSlope</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>data</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="product">
@@ -479,6 +565,7 @@
                 <availableOutputSelector>annualisedAtDate</availableOutputSelector>
                 <availableOutputSelector>average</availableOutputSelector>
             </availableOutputSelectors>
+            <outputSelector>annualisedAtDate</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryProduct">
@@ -505,7 +592,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="stockOperation">
             <reference>stock</reference>
-            <description>Time series of real stock historical data (close, low, high and volume))</description>
+            <description>Time series of real stock historical data (close, low, high and volume)</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -523,6 +610,7 @@
                 <availableOutputSelector>low</availableOutputSelector>
                 <availableOutputSelector>volume</availableOutputSelector>
             </availableOutputSelectors>
+            <outputSelector>close</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="leftShifterOperation">

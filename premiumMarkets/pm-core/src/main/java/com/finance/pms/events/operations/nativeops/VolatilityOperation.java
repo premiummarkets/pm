@@ -65,11 +65,11 @@ public class VolatilityOperation extends PMWithDataOperation {
 			TreeMap<Date, Double> averageLine = keys.stream().collect(Collectors.toMap(k -> k, k -> averageAnnualisedVolatility, (v1, v2) -> v1, TreeMap::new));
 
 			Map<String, NumericableMapValue> selectorOutputs = new HashMap<String, NumericableMapValue>();
-			for (String outputSelector : getAvailableOutputSelectors()) {
-				if (outputSelector != null && outputSelector.equalsIgnoreCase("annualisedAtDate")) {
+			for (String availOutputSelector : getAvailableOutputSelectors()) {
+				if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("annualisedAtDate")) {
 					selectorOutputs.put("annualisedAtDate", new DoubleMapValue(collectedAnnulisedVolatilties));
 				}
-				if (outputSelector != null && outputSelector.equalsIgnoreCase("average")) {
+				if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
 					selectorOutputs.put("average", new DoubleMapValue(averageLine));
 				}
 			}

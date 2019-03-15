@@ -110,9 +110,9 @@ public class PopupMenu<T extends InfoObject> {
 	}
 
 	public PopupMenu(
-			Composite rootParent, Control controlParent, 
-			Set<T> availableOptSet, Set<T> selectionList, 
-			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
+			Composite rootParent, Control controlParent,
+			Set<T> availableOptSet, Set<T> selectionList,
+			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style,
 			ActionDialogAction selectAction, ActionDialogAction closeAction, Boolean actionateOnDeactivate) {
 
 		this(rootParent, controlParent, availableOptSet, selectionList, disposeOnDeactivate, unableSelectAll, style, selectAction);
@@ -144,7 +144,7 @@ public class PopupMenu<T extends InfoObject> {
 			@Override
 			public void handleEvent(Event e) {
 
-				Control control = selectionShell.getDisplay().getCursorControl(); 
+				Control control = selectionShell.getDisplay().getCursorControl();
 				for (Control child : selectionShell.getChildren()) {
 					if (control == child) return;
 				}
@@ -255,10 +255,11 @@ public class PopupMenu<T extends InfoObject> {
 
 		}
 
+		int maxInfoLenth = (availableOptSet.size() > 30)?50:255;
 		for (final T buttonInfo : availableOptSet) {
 
 			final Button button = new Button(selectionShell, style);
-			button.setText(buttonInfo.info(50));
+			button.setText(buttonInfo.info(maxInfoLenth));
 			button.setToolTipText(buttonInfo.tootTip());
 			button.setData(buttonInfo);
 			button.setFont(MainGui.DEFAULTFONT);

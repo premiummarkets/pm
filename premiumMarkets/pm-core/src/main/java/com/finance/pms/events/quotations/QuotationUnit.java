@@ -93,7 +93,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		this.close = close;
 		this.volume = volume;
 		this.origin = origin;
-		this.split = split;
+		this.setSplit(split);
 	}
 
 
@@ -192,7 +192,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	public void setSplit(BigDecimal split) {
-		this.split = split;
+		this.split = split.setScale(10);
 	}
 
 	@Override

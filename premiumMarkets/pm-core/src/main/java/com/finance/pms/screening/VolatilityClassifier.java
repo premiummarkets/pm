@@ -7,9 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.ZoneId;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -18,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -33,6 +32,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
@@ -48,6 +48,7 @@ public class VolatilityClassifier {
 	private static MyLogger LOGGER = MyLogger.getLogger(VolatilityClassifier.class);
 
 	private final String NEURAL_PATH = System.getProperty("installdir") + File.separator + "neural" + File.separator;
+	private final String TMP_PATH = System.getProperty("installdir") + File.separator + "tmp" + File.separator;
 	private final String VOLATILITIES_CSV = "volatilities.csv";
 
 	@Autowired
@@ -155,62 +156,123 @@ public class VolatilityClassifier {
 
 		List<Predicate<Stock>> predicates = new ArrayList<Predicate<Stock>>();
 
-		//n years ago
-		{
-			Date nYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(10)).atStartOfDay(ZoneId.systemDefault()).toInstant());
-			Predicate<Stock> predicate = s -> {
-				Boolean match = DataSource.getInstance().getFirstQuotationDateFromQuotations(s).before(nYearsAgo);
-				if (!match) LOGGER.info(s + " does not match 'before " + nYearsAgo + " years ago' predicate.");
-				return match;
-			};
-			predicates.add(predicate);
-		}
-		//daily change max
-		{
-			Predicate<Stock> predicate = stock -> {
-				try {
-					//We use the values before split as counter split are messing up data split fixes
-					Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
-					SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-					List<Double> values = new ArrayList<>(closeQuotations.values());
-					List<Date> keys = new ArrayList<>(closeQuotations.keySet());
-					double maxReturn = Math.log(200d/100d);
-					Boolean match = IntStream
-							.range(1, closeQuotations.size())
-							.allMatch(i -> {
-								//Daily change <= 100%
-								//Boolean hasHugeDailyChange = Math.abs(Math.log(values.get(i)/values.get(i-1))) <= maxReturn;
+		//		//Last quote was n years ago and minimum length is m years.
+		//		{
+		//			Date nYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(1)).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		//			Date mYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(10)).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		//			Predicate<Stock> predicate = s -> {
+		//				Boolean match = DataSource.getInstance().getLastQuotationDateFromShares(s).after(nYearsAgo) &&
+		//						DataSource.getInstance().getFirstQuotationDateFromQuotations(s).before(mYearsAgo);
+		//				if (!match) LOGGER.info(s + " does not match 'ends after " + nYearsAgo + " years ago' and 'starts before " + mYearsAgo+ " years ago' predicate.");
+		//				return match;
+		//			};
+		//			predicates.add(predicate);
+		//		}
+		//		//Has quotes.
+		//		{
+		//			Predicate<Stock> predicate = s -> {
+		//				try {
+		//					return QuotationsFactories.getFactory()
+		//							.getRawQuotationsInstance(s, DateFactory.dateAtZero(), DateFactory.getNowEndDate(), true, s.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE)
+		//							.hasQuotations();
+		//				} catch (NoQuotationsException e) {
+		//					return false;
+		//				}
+		//			};
+		//			predicates.add(predicate);
+		//		}
+		//N years minimum length.
+		Predicate<Stock> nYearsPredicate = s -> {
+			Date lastQuotationDateFromShares = DataSource.getInstance().getLastQuotationDateFromShares(s);
+			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations(s);
+			Duration diff = Duration.between(new Date(firstQuotationDateFromQuotations.getTime()).toInstant(), new Date(lastQuotationDateFromShares.getTime()).toInstant());
+			Boolean match = diff.toDays()/365 > 9;
+			if (!match) LOGGER.info(s + " does not match 'minimum length " + 9 + " years'.");
+			return match;
+		};
+		//Daily change max up
+		Predicate<Stock> maxUpPredicate = stock -> {
+			try {
+				//We use the values before split as counter split are messing up data split fixes
+				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
+				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+				List<Double> values = new ArrayList<>(closeQuotations.values());
+				List<Date> keys = new ArrayList<>(closeQuotations.keySet());
+				double deltaUnit = 0.50;
+				Boolean doNotMatch = IntStream
+						.range(1, closeQuotations.size())
+						.anyMatch(i -> {
+							//Daily change <= 100%
+							//double maxReturn = Math.log(200d/100d);
+							//Boolean hasHugeDailyChange = Math.abs(Math.log(values.get(i)/values.get(i-1))) <= maxReturn;
 
-								//Change <= 100% with an exponentially decreasing daily increase maximum estimated starting from 10%.
-								//Also called CounterSplitPattern as in QuotationFixer.
-								double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(keys.get(i-1), keys.get(i)));
-								double delta = span*Math.pow(1.5, 1d-span)*0.10;
-								double valueIm1 = values.get(i-1);
-								double valueI = values.get(i);
-								double adjustedDIm1 = valueIm1 + valueIm1*delta;
-								double counterSplit = valueI/adjustedDIm1;
-								Boolean noCounterSplitPattern = counterSplit <= 2;
-								return noCounterSplitPattern;
+							//Change <= +x% with an exponentially decreasing daily increase maximum estimated starting from x%.
+							//Also called CounterSplitPattern as in QuotationFixer.
+							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(keys.get(i-1), keys.get(i)));
+							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
+							double valueIm1 = values.get(i-1);
+							double valueI = values.get(i);
+							double adjustedDIm1 = valueIm1 + valueIm1*delta;
+							double counterSplit = valueI/adjustedDIm1;
+							if (counterSplit > 1) LOGGER.info(
+									stock + " increase exceeded between " +  keys.get(i-1) + " and " + keys.get(i) +
+									" with m-1: " + valueIm1 + " and m: " + valueI + " > " + adjustedDIm1);
+							return counterSplit > 1;
+						});
+				if (doNotMatch) LOGGER.info(stock + " does not match 'daily increase max < " + deltaUnit + "%' predicate.");
+				return !doNotMatch;
+			} catch (NoQuotationsException e) {
+				LOGGER.warn(e);
+				return false;
+			} catch (Exception e) {
+				LOGGER.error(e);
+				return false;
+			}
+		};
+		//Daily change max down
+		Predicate<Stock> maxDownPredicate = stock -> {
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
+				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+				List<Double> values = new ArrayList<>(closeQuotations.values());
+				List<Date> keys = new ArrayList<>(closeQuotations.keySet());
+				double deltaUnit = 0.50;
+				Boolean doNotMatch = IntStream
+						.range(1, closeQuotations.size())
+						.anyMatch(i -> {
+							//Change <= +x% with an exponentially decreasing daily decrease maximum estimated starting from x%.
+							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(keys.get(i-1), keys.get(i)));
+							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
+							double valueIm1 = values.get(i-1);
+							double valueI = values.get(i);
+							double adjustedDIm1 = valueIm1 - valueIm1*delta;
+							double split = adjustedDIm1/valueI;
+							if (split > 1) LOGGER.info(
+									stock + " decrease (after split fix) exceeded between " +  keys.get(i-1) + " and " + keys.get(i) +
+									" with m-1: " + valueIm1 + " and m: " + valueI + " > " + adjustedDIm1);
+							return split > 1;
+						});
+				if (doNotMatch) LOGGER.info(stock + " does not match 'daily decrease (after split fix) max < " + deltaUnit + "%' predicate.");
+				return !doNotMatch;
+			} catch (NoQuotationsException e) {
+				LOGGER.warn(e);
+				return false;
+			} catch (Exception e) {
+				LOGGER.error(e);
+				return false;
+			}
+		};
 
-							});
-					if (!match) LOGGER.info(stock + " does not match 'daily change max < " + maxReturn + "' predicate.");
-					return match;
-				} catch (NoQuotationsException e) {
-					LOGGER.warn(e);
-					return false;
-				} catch (Exception e) {
-					LOGGER.error(e);
-					return false;
-				}
-			};
-			predicates.add(predicate);
-		}
+		predicates.add(nYearsPredicate);
+		predicates.add(maxUpPredicate);
+		predicates.add(maxDownPredicate);
 
-		calculateFor(loadStocks(predicates), DateFactory.dateAtZero(), new Date());
+		Set<Stock> filteredStocks = filterStocks(predicates);
+		calculateFor(filteredStocks, DateFactory.dateAtZero(), new Date());
 
 	}
 
-	List<Entry<Stock, Double[]>> calculateFor(List<Stock> allStocks, Date start, Date end) throws Exception {
+	List<Entry<Stock, Double[]>> calculateFor(Set<Stock> allStocks, Date start, Date end) throws Exception {
 
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
@@ -220,7 +282,10 @@ public class VolatilityClassifier {
 				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());
 				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.annualisedVolatilityAt(closeQuotations.size()-1);
 				return new Double[]{averageAnnualisedVolatility, threeMonthAnnualisedVolatility};
-			} catch (Exception e) {
+			} catch (NoQuotationsException e) {
+				LOGGER.warn(s +" volatility failed :" + e.toString());
+				return new Double[] {Double.NaN, Double.NaN};
+			} catch (NotEnoughDataException | IndexOutOfBoundsException e) {
 				LOGGER.warn(s +" volatility failed :" + e.toString());
 				return new Double[] {Double.NaN, Double.NaN};
 			}
@@ -282,14 +347,42 @@ public class VolatilityClassifier {
 
 	}
 
-	private List<Stock> loadStocks(List<Predicate<Stock>> predicates) {
-		List<Stock> allStocks = shareDAO.loadAllStocks();
+	private Set<Stock> filterStocks(List<Predicate<Stock>> predicates) {
 
-		List<Stock> filtered = allStocks.stream()
+		Set<Stock> allStocks = portfolioDAO.loadPortfolioSharesExUnknown().stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
+		//List<Stock> allStocks = shareDAO.loadAllStocks();
+
+		Set<Stock> filtered = allStocks.stream()
 				.filter(s -> predicates.stream().allMatch(p -> p.test(s)))
-				.collect(Collectors.toList());
-
+				.collect(Collectors.toSet());
 		LOGGER.info("Valid stock filtered : " + filtered.size() + " out of " + allStocks.size());
+		String validLines = filtered.stream()
+				.map(s -> s.toString())
+				.distinct()
+				.reduce((r, e) -> r + "\n" + e)
+				.orElse("None");
+		LOGGER.info("Valid stocks: \n" + validLines);
+		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + UUID.randomUUID() + "_validStocks.txt"))) {
+			fileWriter.write(validLines+"\n");
+		} catch (IOException e) {
+			LOGGER.error(e, e);
+		}
+
+		Set<Stock> rejected = allStocks.stream()
+				.filter(s -> !filtered.contains(s))
+				.collect(Collectors.toSet());
+		LOGGER.info("Invalid stocks : " + rejected.size() + " out of " + allStocks.size());
+		String invalidLines = rejected.stream()
+				.map(s -> s.toString())
+				.distinct()
+				.reduce((r, e) -> r + "\n" + e)
+				.orElse("None");
+		LOGGER.info("Affected stocks: \n" + invalidLines);
+		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + UUID.randomUUID() + "_invalidStocks.txt"))) {
+			fileWriter.write(invalidLines+"\n");
+		} catch (IOException e) {
+			LOGGER.error(e, e);
+		}
 
 		return filtered;
 	}

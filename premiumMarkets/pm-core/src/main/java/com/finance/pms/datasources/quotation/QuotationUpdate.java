@@ -309,7 +309,6 @@ public class QuotationUpdate {
 			return super.getMessage()+"\n"+this.toString();
 		}
 
-
 		public String toString() {
 			String ret = "";
 			if (!noNewQuotations.isEmpty()) {

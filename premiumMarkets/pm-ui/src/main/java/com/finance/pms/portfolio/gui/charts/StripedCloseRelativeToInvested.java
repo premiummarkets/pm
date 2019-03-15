@@ -49,11 +49,11 @@ import com.tictactec.ta.lib.MInteger;
 public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToInvested.class);
-	
-	NumberFormat pf = new DecimalFormat("#0.00 %");
-	
+
+	NumberFormat numberFormat = new DecimalFormat("#0.00 %");
+
 	Boolean includeMoneyOut;
-	
+
 
 	public StripedCloseRelativeToInvested(Boolean includeMoneyOut, Date stratDate, Date endDate) {	
 		super(endDate);
@@ -65,7 +65,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	public Number[] targetShareData(SlidingPortfolioShare portfolioShare,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		if (arbitraryStartDate != null && arbitraryEndDate != null) {
-			
+
 			Date startDate = getStartDate(stockQuotations);
 			startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 			Date endDate = getEndDate(stockQuotations);
@@ -76,7 +76,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 			} else {
 				investPerUnit = portfolioShare.getPriceAvgBuy(portfolioShare.calcSlidingEndDate(), portfolioShare.getTransactionCurrency());
 			}
-			
+
 			return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, investPerUnit);
 		}  
 		else {
@@ -87,7 +87,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 
 
 	private BigDecimal[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex, BigDecimal unitCost) {
-		
+
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
@@ -109,7 +109,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 
 	@Override
 	public String formatYValue(Number yValue) {
-		return pf.format(yValue);
+		return numberFormat.format(yValue);
 	}
 
 	@Override
@@ -124,6 +124,11 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	@Override
 	public Date getArbitraryStartDateForCalculation() {
 		return this.getArbitraryStartDateForChart();
+	}
+
+	@Override
+	public NumberFormat getNumberFormat() {
+		return numberFormat;
 	}
 
 

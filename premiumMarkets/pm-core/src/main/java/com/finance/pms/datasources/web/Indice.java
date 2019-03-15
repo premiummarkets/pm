@@ -36,24 +36,24 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Market;
 
 public class Indice implements Comparable<Indice> {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(Indice.class);
-	
+
 	private String name;
 	private Market market;
-	
+
 	public Indice(String indice, Market market) {
 		super();
 		this.name = indice;
 		this.market = market;
 	}
-	
+
 	public Indice(String indice, String market) {
 		super();
 		this.name = indice;
 		this.market = Market.valueOf(market);
 	}
-	
+
 	public static String formatSet(SortedSet<Indice> indices) {
 		String extention = "";
 		for (Indice indice : indices) {
@@ -61,11 +61,11 @@ public class Indice implements Comparable<Indice> {
 		}
 		return extention;
 	}
-	
+
 	public static SortedSet<Indice> parseString(String yahooIndices) {
 		SortedSet<Indice> listIndice = new TreeSet<Indice>();
 		if (yahooIndices.isEmpty()) return listIndice;
-		
+
 		String[] indices = yahooIndices.split(",");
 		for (String indice : indices) {
 			try {
@@ -130,6 +130,6 @@ public class Indice implements Comparable<Indice> {
 			return false;
 		return true;
 	}
-	
-	
+
+
 }
