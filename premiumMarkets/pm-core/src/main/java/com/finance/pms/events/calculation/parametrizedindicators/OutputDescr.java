@@ -110,7 +110,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	}
 
 	@Override
-	public String tootTip() {
+	public String toolTip() {
 		return ((outputReference.getFormula() != null)?outputReference.getFormula():fullQualifiedName()) + "\ngroup : " + getContainer().groupUniqueId().toString();
 	}
 

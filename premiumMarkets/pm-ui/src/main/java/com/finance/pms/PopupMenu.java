@@ -29,8 +29,9 @@
  */
 package com.finance.pms;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -57,7 +58,7 @@ public class PopupMenu<T extends InfoObject> {
 	private Shell selectionShell;
 
 
-	private HashSet<T> availableOptSet;
+	private SortedSet<T> availableOptSet;
 	private Set<T> selectionSet;
 
 	private Boolean unableSelectAll;
@@ -73,9 +74,9 @@ public class PopupMenu<T extends InfoObject> {
 
 
 	public PopupMenu(
-			Composite rootParent, Control controlParent, 
-			Set<T> availableOptSet, Set<T> selectionList, 
-			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style, 
+			Composite rootParent, Control controlParent,
+			Set<T> availableOptSet, Set<T> selectionSet,
+			Boolean disposeOnDeactivate, Boolean unableSelectAll, int style,
 			ActionDialogAction selectAction) {
 
 		super();
@@ -86,7 +87,7 @@ public class PopupMenu<T extends InfoObject> {
 
 		addAvailableOpts(availableOptSet);
 
-		this.selectionSet = selectionList;
+		this.selectionSet = selectionSet;
 
 		this.unableSelectAll = unableSelectAll;
 
@@ -105,7 +106,7 @@ public class PopupMenu<T extends InfoObject> {
 	}
 
 	private void addAvailableOpts(Set<T> availableOptSet) {
-		this.availableOptSet = new HashSet<>();
+		this.availableOptSet = new TreeSet<T>(T::compareTo);
 		this.availableOptSet.addAll(availableOptSet);
 	}
 
@@ -260,7 +261,7 @@ public class PopupMenu<T extends InfoObject> {
 
 			final Button button = new Button(selectionShell, style);
 			button.setText(buttonInfo.info(maxInfoLenth));
-			button.setToolTipText(buttonInfo.tootTip());
+			button.setToolTipText(buttonInfo.toolTip());
 			button.setData(buttonInfo);
 			button.setFont(MainGui.DEFAULTFONT);
 			button.addSelectionListener(new SelectionListener() {

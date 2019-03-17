@@ -231,7 +231,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	} 
 
 	@Override
-	public String tootTip() {
+	public String toolTip() {
 		if (eventDefDescriptor != null) {
 			return getEventReadableDef()+" :\n\n" +
 					eventDefDescriptor.getBullishDescription()+"\n\n"+

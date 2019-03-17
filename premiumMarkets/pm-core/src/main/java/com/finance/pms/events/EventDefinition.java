@@ -429,7 +429,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 	}
 
 	@Override
-	public String tootTip() {
+	public String toolTip() {
 		if (eventDefDescriptor != null) {
 			return getEventReadableDef()+" :\n\n" +
 					"is bullish when "+eventDefDescriptor.getBullishDescription()+";\n\n" +

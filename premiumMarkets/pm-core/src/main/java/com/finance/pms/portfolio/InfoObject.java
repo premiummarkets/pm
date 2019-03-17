@@ -38,7 +38,7 @@ public interface InfoObject {
 		return info.substring(0, Math.min(info.length(), limit));
 	}
 
-	public String tootTip();
+	public String toolTip();
 
 	default public String groupId() {
 		return null;
@@ -46,6 +46,17 @@ public interface InfoObject {
 
 	default public Boolean isMain() {
 		return false;
+	}
+
+	default public int compareTo(InfoObject o) {
+		int cmp = info().compareTo(o.info());
+		if (cmp != 0) return cmp;
+		cmp = (toolTip() != null && o.toolTip() != null)?toolTip().compareTo(o.toolTip()):0;
+		if (cmp != 0) return cmp;
+		cmp = (groupId() != null && o.groupId() != null)?groupId().compareTo(o.groupId()):0;
+		if (cmp != 0) return cmp;
+		cmp = (isMain() != null && o.isMain() != null)?isMain().compareTo(o.isMain()):0;
+		return cmp;
 	}
 
 }

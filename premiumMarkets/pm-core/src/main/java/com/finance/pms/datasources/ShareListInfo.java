@@ -76,7 +76,7 @@ public class ShareListInfo implements InfoObject {
 	}
 
 	@Override
-	public String tootTip() {
+	public String toolTip() {
 		return info();
 	}
 

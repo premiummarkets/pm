@@ -87,7 +87,7 @@ public abstract class ChartDisplayStrategy {
 		}
 
 		@Override
-		public String tootTip() {
+		public String toolTip() {
 			return info();
 		}
 

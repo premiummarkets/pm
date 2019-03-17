@@ -48,23 +48,23 @@ import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.PortfolioShare;
 
 public class SlidingPortfolioShare extends PortfolioShare implements InfoObject { 
-	
+
 	private static final long serialVersionUID = 7701345524631769605L;
 
 	private PortfolioShare underLyingPortfolioShare;
-	
+
 	private Boolean displayOnChart;
 	private Color color;
-	
+
 	private Boolean slidingEnd;
 	private Boolean slidingStart;
-	
+
 	private Date start;
 	private Date end;
 
 	private Currency displayedCurrency;
 
-	
+
 	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color) {
 		super(portfolioShare);
 		this.underLyingPortfolioShare = portfolioShare;
@@ -74,7 +74,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.slidingStart = slidingStart;
 		this.color = color;
 		this.displayOnChart = portfolioShare.getQuantity(end).compareTo(BigDecimal.ZERO) > 0;
-		
+
 		this.displayedCurrency = portfolioShare.getTransactionCurrency();
 	}
 
@@ -93,7 +93,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	public BigDecimal getTodaysPriceClose() {
 		return super.getPriceClose(calcSlidingEndDate(), displayedCurrency);
 	}
-	
+
 	public BigDecimal getTodaysGainUnrealPercent() {
 		return super.getGainUnrealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
@@ -123,7 +123,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		}
 		return currentDate;
 	}
-	
+
 	private Date calcSlidingStartDate() {
 		Date currentDate;
 		if (slidingStart) {
@@ -145,7 +145,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	public void setEnd(Date end) {
 		this.end = end;
 	}
-	
+
 	public void setSlidingStart(Boolean slidingStart) {
 		this.slidingStart = slidingStart;
 	}
@@ -157,7 +157,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	public BigDecimal getTodaysGainUnreal() {
 		return super.getGainUnreal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
-	
+
 
 	public BigDecimal getTodaysGainTotalPercent() {
 		return super.getGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
@@ -169,7 +169,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		super.createTransactionElement(transaction);
 		return appliedTransaction;
 	}
-	
+
 	@Override
 	public void setMonitorLevel(MonitorLevel monitorLevel) {
 		underLyingPortfolioShare.setMonitorLevel(monitorLevel);
@@ -203,7 +203,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	@Override
-	public String tootTip() {
+	public String toolTip() {
 		return "";
 	}
 
@@ -216,7 +216,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	public BigDecimal getTodaysPriceUnitCost() {
-		 return super.getPriceUnitCost(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+		return super.getPriceUnitCost(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public BigDecimal getTodaysPriceAvgBuy() {
