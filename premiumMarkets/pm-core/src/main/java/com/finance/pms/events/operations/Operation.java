@@ -438,9 +438,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		//return outputSelector;
 		return (outputSelector != null)?
 				outputSelector:
-				(getAvailableOutputSelectors() != null && !getAvailableOutputSelectors().isEmpty())?
-						getAvailableOutputSelectors().get(0):
-						null;
+					(getAvailableOutputSelectors() != null && !getAvailableOutputSelectors().isEmpty())?
+							getAvailableOutputSelectors().get(0):
+								null;
 	}
 
 	public Boolean isNative() {
@@ -548,12 +548,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	public abstract int operationStartDateShift();
-	
+
 	public Date getStartDate(Date startDate, int startShift) {
 		Calendar startCal = Calendar.getInstance();
 		startCal.setTime(startDate);
 		QuotationsFactories.getFactory().incrementDate(startCal, -startShift);
-		LOGGER.info(this.getReference()+" start date shift to : "+startShift+". Requested start : "+startDate+", calculated start : "+startCal.getTime());
+		LOGGER.info("Operation (" + this.getReference() + ") start date shift to : " + startShift + ". Requested start : " + startDate + ", calculated start : " + startCal.getTime());
 		return startCal.getTime();
 	}
 
@@ -573,11 +573,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			this.invalidateOperation(analysisName, stock);
 		}
 		operands.stream().forEach(
-			o -> {
-				if (!o.getOperands().isEmpty()) {
-					o.invalidateAllNonIdempotentOperands(analysisName, stock);
-				}
-			});
+				o -> {
+					if (!o.getOperands().isEmpty()) {
+						o.invalidateAllNonIdempotentOperands(analysisName, stock);
+					}
+				});
 	}
 
 }

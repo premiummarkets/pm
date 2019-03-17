@@ -3,45 +3,68 @@ package com.finance.pms.events.calculation.util;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+
+import com.finance.pms.events.scoring.functions.ApacheStats;
 
 public class MapUtils {
-    
-    public static double[] calculateMinMax(SortedMap<Date, double[]> subD, int outputIndex) {
 
-        double max = -Double.MAX_VALUE;
-        double min = Double.MAX_VALUE;
+	public static double[] calculateMinMax(SortedMap<Date, double[]> subD, int outputIndex) {
 
-        for (Date date : subD.keySet()) {
-            double value = subD.get(date)[outputIndex];
-            if (value >= max) max = value;
-            if (value <= min) min = value;
-        }
+		double max = -Double.MAX_VALUE;
+		double min = Double.MAX_VALUE;
 
-        return new double[] {min,max};
-    }
+		for (Date date : subD.keySet()) {
+			double value = subD.get(date)[outputIndex];
+			if (value >= max) max = value;
+			if (value <= min) min = value;
+		}
 
-    public static <K, V> SortedMap<K,V>
-    subMapInclusive(SortedMap<K,V> map, K from, K to) {
-        if(to == null) return map.tailMap(from);
+		return new double[] {min,max};
+	}
 
-        //What appears at key "to" or later?
-        Iterator<K> keys = map.tailMap(to).keySet().iterator();
+	public static <K, V> SortedMap<K,V>
+	subMapInclusive(SortedMap<K,V> map, K from, K to) {
+		if(to == null) return map.tailMap(from);
 
-        //Nothing, just take tail map.
-        if(!keys.hasNext()) return map.tailMap(from);
+		//What appears at key "to" or later?
+		Iterator<K> keys = map.tailMap(to).keySet().iterator();
 
-        K key = keys.next();
+		//Nothing, just take tail map.
+		if(!keys.hasNext()) return map.tailMap(from);
 
-        //The first item found isn't to so regular submap will work
-        if(!to.equals(key)) return map.subMap(from, to);
+		K key = keys.next();
 
-        //to is in the map
+		//The first item found isn't to so regular submap will work
+		if(!to.equals(key)) return map.subMap(from, to);
 
-        //it is not the last key
-        if(keys.hasNext()) return map.subMap(from, keys.next());
+		//to is in the map
 
-        //it is the last key
-        return map.tailMap(from);
-    }
+		//it is not the last key
+		if(keys.hasNext()) return map.subMap(from, keys.next());
+
+		//it is the last key
+		return map.tailMap(from);
+	}
+
+	public static <KEY> SortedMap<KEY, Double> slidingAvarage(SortedMap<KEY, Double> map, Function<KEY, KEY> startWindowKFunc) {
+
+		TreeMap<KEY, Double> averageAnnualisedVolatility =
+				map.keySet().stream()
+				.collect(Collectors.toMap(
+						endWindowK -> endWindowK,
+						endWindowK -> {
+							ApacheStats mean = new ApacheStats(new Mean());
+							KEY startWindowK = startWindowKFunc.apply(endWindowK);
+							return (Double) mean.sEvaluate(MapUtils.subMapInclusive(map, startWindowK, endWindowK).values());
+						},
+						(a, b) -> a, TreeMap<KEY,Double>::new));
+
+		return averageAnnualisedVolatility;
+	}
 
 }

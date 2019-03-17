@@ -451,8 +451,8 @@
             <description>Apply an input skewness calculation fix to the input and the standard stock OCHL outputs</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
-                    <reference>Input data base for skewness calculation</reference>
-                    <description>Input data base for skewness calculation</description>
+                    <reference>Fixer (typically a linear regression)</reference>
+                    <description>Fixer (typically a linear regression)</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
@@ -465,11 +465,7 @@
                     <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
-            <availableOutputSelectors>
-                <availableOutputSelector>data</availableOutputSelector>
-                <availableOutputSelector>skewSlope</availableOutputSelector>
-            </availableOutputSelectors>
-            <outputSelector>data</outputSelector>
+            <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="product">
@@ -564,6 +560,10 @@
             <availableOutputSelectors>
                 <availableOutputSelector>annualisedAtDate</availableOutputSelector>
                 <availableOutputSelector>average</availableOutputSelector>
+                <availableOutputSelector>annualisedPositiveAtDate</availableOutputSelector>
+                <availableOutputSelector>averagePosistive</availableOutputSelector>
+                <availableOutputSelector>annualisedNegativeAtDate</availableOutputSelector>
+                <availableOutputSelector>averageNegative</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>annualisedAtDate</outputSelector>
             <isVarArgs>false</isVarArgs>

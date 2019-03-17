@@ -501,7 +501,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				calculatorSettingsButton.addSelectionListener(new SelectionListener() {
 
 					@Override
-					public void widgetSelected(SelectionEvent e) {	
+					public void widgetSelected(SelectionEvent e) {
 						handleCalculatorSettingsSelection();
 					}
 
@@ -793,12 +793,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		try {
 
-			boolean isIndicatorSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
+//			boolean isIndicatorSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
 
-			if ( isIndicatorSelected ) {
+//			if ( isIndicatorSelected ) {
 
 				final Set<OutputDescr> availableOutputs = new TreeSet<>();
-				final Set<OutputDescr> displayableOutputs = new TreeSet<>();
+				final Set<OutputDescr> displayableOutputs = new TreeSet<>(); //subset of availableOutputs
 
 				try {
 
@@ -835,7 +835,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					LOGGER.warn(e);
 				} 
 
-				if (!availableOutputs.isEmpty()) {
+//				if (!availableOutputs.isEmpty()) {
 
 					ActionDialogAction deactivateAction = new ActionDialogAction() {
 
@@ -869,15 +869,15 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						}
 					}
 
-				} else {
+//				} else {
+//
+//					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+//						calculatorSettingsPopupMenu.getSelectionShell().dispose();
+//					}
+//
+//				}
 
-					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-						calculatorSettingsPopupMenu.getSelectionShell().dispose();
-					}
-
-				}
-
-			}
+			//}
 
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
