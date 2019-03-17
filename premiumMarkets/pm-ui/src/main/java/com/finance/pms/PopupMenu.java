@@ -106,7 +106,7 @@ public class PopupMenu<T extends InfoObject> {
 	}
 
 	private void addAvailableOpts(Set<T> availableOptSet) {
-		this.availableOptSet = new TreeSet<T>(T::compareTo);
+		this.availableOptSet = new TreeSet<T>(T::compareToInfoObject);
 		this.availableOptSet.addAll(availableOptSet);
 	}
 

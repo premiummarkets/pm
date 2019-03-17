@@ -48,7 +48,7 @@ public interface InfoObject {
 		return false;
 	}
 
-	default public int compareTo(InfoObject o) {
+	default public int compareToInfoObject(InfoObject o) {
 		int cmp = info().compareTo(o.info());
 		if (cmp != 0) return cmp;
 		cmp = (toolTip() != null && o.toolTip() != null)?toolTip().compareTo(o.toolTip()):0;
