@@ -86,7 +86,6 @@ public class ChartBarSquare extends BarChartDisplayStrategy {
 		for (Date date : barSerie.keySet()) {
 			if (cpt % gap  == 0) {
 				RegularTimePeriod period = new Day(date);
-
 				Number value = barSerie.get(date).getValue();
 				TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
 				timeSerie.add(item, false);

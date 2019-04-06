@@ -12,7 +12,11 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-
+/**
+ * @author guil
+ * Fix the price using a regression (passed as parameter)
+ * FIXME: This is not realistic as the regression is calculated on the all set and not a sliding window in time.
+ */
 public class SkewRationaliserOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(SkewRationaliserOperation.class);

@@ -69,6 +69,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.Marker;
@@ -480,6 +481,13 @@ public class ChartMain extends Chart {
 						};
 
 						renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
+						renderer.setSeriesItemLabelGenerator(eventDefSerieIdx, new XYItemLabelGenerator() {
+							@Override
+							public String generateLabel(XYDataset dataset, int series, int item) {
+								// TODO Auto-generated method stub
+								return "toto";
+							}
+						});
 						renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
 						renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
 						renderer.setSeriesOutlinePaint(eventDefSerieIdx, serieDef.getSerieColor());

@@ -11,12 +11,15 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
+import com.finance.pms.events.scoring.functions.ApacheStats;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 
 public class VolatilityOperation extends PMWithDataOperation {
@@ -25,6 +28,11 @@ public class VolatilityOperation extends PMWithDataOperation {
 
 	private static final int DATA_IDX = 2;
 
+	/**
+	 * atDate ~ stdDev(21,1,periodicLn_(1.0,close)), positiveAtDate and negativeAtDate : moving standard deviations of logarithmic returns.
+	 * logRetnAtDate ~ sma(21,periodicLn_(1.0,close)) : moving mean of logarithmic return.
+	 * average, averagePosistive, and averageNegative : means of standard deviation of logarithmic returns.
+	 */
 	public VolatilityOperation() {
 		super("volatilityCalculator", "Calculate the input volatility",
 				new NumberOperation("number", "Basic Period", "Basic period for ln return calculation in days", new NumberValue(1.0)),
@@ -32,9 +40,10 @@ public class VolatilityOperation extends PMWithDataOperation {
 				new DoubleMapOperation("Input data"));
 		setAvailableOutputSelectors(
 				new ArrayList<String>(Arrays.asList(new String[]{
-				"annualisedAtDate","average",
-				"annualisedPositiveAtDate","averagePosistive",
-				"annualisedNegativeAtDate","averageNegative"
+				"atDate","average",
+				"positiveAtDate","averagePosistive",
+				"negativeAtDate","averageNegative",
+				"logRetnAtDate"
 				})));
 	}
 
@@ -55,43 +64,50 @@ public class VolatilityOperation extends PMWithDataOperation {
 		//Calc
 		try {
 
-			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods);
+			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods, false);
 
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
-			Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - 250l*(1000l * 60l * 60l * 24l));
+			Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - 250l * (1000l * 60l * 60l * 24l));
+			ApacheStats mean = new ApacheStats(new Mean());
 
-			TreeMap<Date, Double> annulisedVolatilties = IntStream
+			TreeMap<Date, Double> sVolatilties = IntStream
 					.range(basicPeriod + returnCalculationNbPeriods, data.size())
-					.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.annualisedVolatilityAt(d)),TreeMap::putAll);
-			TreeMap<Date, Double> annulisedPosVolatilties = IntStream
+					.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingVolatiltityAt(d)),TreeMap::putAll);
+			TreeMap<Date, Double> sPosVolatilties = IntStream
 					.range(basicPeriod + returnCalculationNbPeriods, data.size())
-					.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.annualisedSignedVolatilityAt(d, +1)),TreeMap::putAll);
-			TreeMap<Date, Double> annulisedNegVolatilties = IntStream
+					.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingSignedVolatilityAt(d, +1)),TreeMap::putAll);
+			TreeMap<Date, Double> sNegVolatilties = IntStream
 					.range(basicPeriod + returnCalculationNbPeriods, data.size())
-					.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.annualisedSignedVolatilityAt(d, -1)),TreeMap::putAll);
+					.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingSignedVolatilityAt(d, -1)),TreeMap::putAll);
 
 			Map<String, NumericableMapValue> selectorOutputs = new HashMap<String, NumericableMapValue>();
 			for (String availOutputSelector : getAvailableOutputSelectors()) {
-				if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("annualisedAtDate")) {
-					selectorOutputs.put("annualisedAtDate", new DoubleMapValue(annulisedVolatilties));
+				if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("atDate")) {
+					selectorOutputs.put("atDate", new DoubleMapValue(sVolatilties));
 				}
-				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("annualisedPositiveAtDate")) {
-					selectorOutputs.put("annualisedPositiveAtDate", new DoubleMapValue(annulisedPosVolatilties));
+				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("positiveAtDate")) {
+					selectorOutputs.put("positiveAtDate", new DoubleMapValue(sPosVolatilties));
 				}
-				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("annualisedNegativeAtDate")) {
-					selectorOutputs.put("annualisedNegativeAtDate", new DoubleMapValue(annulisedNegVolatilties));
+				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("negativeAtDate")) {
+					selectorOutputs.put("negativeAtDate", new DoubleMapValue(sNegVolatilties));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
-					SortedMap<Date, Double> averageAnnualisedVolatility = MapUtils.slidingAvarage(annulisedVolatilties, startWindowKFunc);
-					selectorOutputs.put("average", new DoubleMapValue(averageAnnualisedVolatility));
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sVolatilties, startWindowKFunc, mean);
+					selectorOutputs.put("average", new DoubleMapValue(averageVolatility));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("averagePosistive")) {
-					SortedMap<Date, Double> averageAnnualisedVolatility = MapUtils.slidingAvarage(annulisedPosVolatilties, startWindowKFunc);
-					selectorOutputs.put("averagePosistive", new DoubleMapValue(averageAnnualisedVolatility));
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sPosVolatilties, startWindowKFunc, mean);
+					selectorOutputs.put("averagePosistive", new DoubleMapValue(averageVolatility));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("averageNegative")) {
-					SortedMap<Date, Double> averageAnnualisedVolatility = MapUtils.slidingAvarage(annulisedNegVolatilties, startWindowKFunc);
-					selectorOutputs.put("averageNegative", new DoubleMapValue(averageAnnualisedVolatility));
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sNegVolatilties, startWindowKFunc, mean);
+					selectorOutputs.put("averageNegative", new DoubleMapValue(averageVolatility));
+				} 
+				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("logRetnAtDate")) {
+					TreeMap<Date, Double> meanD2Dretrun = IntStream
+							.range(basicPeriod + returnCalculationNbPeriods, data.size())
+							.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingMeanAt(d)),TreeMap::putAll);
+					selectorOutputs.put("logRetnAtDate", new DoubleMapValue(meanD2Dretrun));
 				}
 			}
 

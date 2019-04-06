@@ -8,10 +8,10 @@ cd premiumMarkets
 ij>connect 'jdbc:derby:./pm-uiinstall/distrib/derby/premiummarkets;create=true';
 ij>run './pm-uiinstall/distrib/sql/all.sql';
 #Run maven build
-mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=http://www.premiummarkets.uk/ -Denv=pmui -Dinitdb=pmuidb
+mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=www.premiummarkets.uk -Denv=pmui -Dinitdb=pmuidb
 
 #-- Then
-mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=http://www.premiummarkets.uk/ -Denv=pmui
+mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=www.premiummarkets.uk -Denv=pmui
 
 #- Install
 java -jar ~/.m2/repository/com/finance/pm/pm-uiinstall/0.0.1-SNAPSHOT/pm-uiinstall-0.0.1-SNAPSHOT-allinone.jar

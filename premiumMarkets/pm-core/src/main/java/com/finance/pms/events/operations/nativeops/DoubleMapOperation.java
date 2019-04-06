@@ -41,7 +41,12 @@ import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({ArithmeticOperation.class, ArithmeticUnaryOperation.class, PMIndicatorOperation.class, StockOperation.class, TalibOperation.class, LnPeriodicOperation.class})
+@XmlSeeAlso({
+	ArithmeticOperation.class, ArithmeticUnaryOperation.class,
+	PMIndicatorOperation.class, TalibOperation.class,
+	StockOperation.class,
+	LnPeriodicOperation.class, FilterOperation.class
+	})
 public class DoubleMapOperation extends MapOperation {
 
 	public DoubleMapOperation() {

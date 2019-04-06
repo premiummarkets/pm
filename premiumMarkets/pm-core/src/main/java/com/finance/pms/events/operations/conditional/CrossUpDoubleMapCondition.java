@@ -37,7 +37,7 @@ public class CrossUpDoubleMapCondition extends CrossDoubleMapCondition {
 
 
 	private CrossUpDoubleMapCondition() {
-		super("historical cross up", "True when the first time series value is crossing below the second one.");
+		super("cross up data", "True when the first time series value is crossing below the second one.");
 	}
 
 	public CrossUpDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {

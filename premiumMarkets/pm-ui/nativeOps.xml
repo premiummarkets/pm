@@ -68,6 +68,265 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="sum">
+            <reference>sum_</reference>
+            <description>Summation of n historical data series</description>
+            <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmAroonOperation">
+            <reference>aroon_</reference>
+            <description>Aroon indicator house made</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>aroonPeriod</referenceAsOperand>
+                    <description>Aroon period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>25.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>down</availableOutputSelector>
+                <availableOutputSelector>up</availableOutputSelector>
+                <availableOutputSelector>oscillator</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>down</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="flipOperation">
+            <reference>flipAround</reference>
+            <description>Flip the input upside down</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>flip axe</reference>
+                    <description>flip axe</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Data to flip around</reference>
+                    <description>Data to flip around</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="lnPeriodicOperation">
+            <reference>periodicLn_</reference>
+            <description>ln(n/(n-p)) ~ House Trend in base 'e'</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>period</reference>
+                    <referenceAsOperand>period</referenceAsOperand>
+                    <description>Period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <description>data</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unarySum">
+            <reference>sumUnary_</reference>
+            <description>Summation of a series with a number</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <description>A number constant like period or threshold.</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inflationRationaliserOperation">
+            <reference>inflationRationaliser</reference>
+            <description>Applies a reversed inflation rate to the data in an attempt to reduce the inflation bias</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data to rationalize</reference>
+                    <description>data to rationalize</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>rationalizedData</availableOutputSelector>
+                <availableOutputSelector>dailyRate</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>rationalizedData</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
+            <reference>subtraction_</reference>
+            <description>Subtraction of two historical data series</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>minuend</reference>
+                    <description>minuend</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>subtrahend</reference>
+                    <description>subtrahend</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmLogRocOperation">
+            <reference>logroc</reference>
+            <description>Roc logarithmic over a period</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>logRocPeriod</referenceAsOperand>
+                    <description>Roc period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityOperation">
+            <reference>volatilityCalculator</reference>
+            <description>Calculate the input volatility</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Basic Period</referenceAsOperand>
+                    <description>Basic period for ln return calculation in days</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>Periods in STDev</referenceAsOperand>
+                    <description>Number of return periods in each standard deviation calculation</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>63.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Input data</reference>
+                    <description>Input data</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>atDate</availableOutputSelector>
+                <availableOutputSelector>average</availableOutputSelector>
+                <availableOutputSelector>positiveAtDate</availableOutputSelector>
+                <availableOutputSelector>averagePosistive</availableOutputSelector>
+                <availableOutputSelector>negativeAtDate</availableOutputSelector>
+                <availableOutputSelector>averageNegative</availableOutputSelector>
+                <availableOutputSelector>logRetnAtDate</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>atDate</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryProduct">
+            <reference>productUnary_</reference>
+            <description>Product of a series by a number</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <description>A number constant like period or threshold.</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="stockOperation">
+            <reference>stock</reference>
+            <description>Time series of real stock historical data (close, low, high and volume)</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>stockReference</referenceAsOperand>
+                    <description>Optional stock reference in format SYMBOL_ISIN</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>close</availableOutputSelector>
+                <availableOutputSelector>open</availableOutputSelector>
+                <availableOutputSelector>high</availableOutputSelector>
+                <availableOutputSelector>low</availableOutputSelector>
+                <availableOutputSelector>volume</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>close</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandNormalizerOperation">
             <reference>bandNormalizer</reference>
             <description>Normalise the data between the lower and the upper threshold</description>
@@ -108,35 +367,34 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="sum">
-            <reference>sum_</reference>
-            <description>Summation of n historical data series</description>
-            <operands/>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmAroonOperation">
-            <reference>aroon_</reference>
-            <description>Aroon indicator house made</description>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="statOperation">
+            <reference>stat</reference>
+            <description>Moving statistics</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
-                    <referenceAsOperand>aroonPeriod</referenceAsOperand>
-                    <description>Aroon period</description>
+                    <referenceAsOperand>movingPeriod</referenceAsOperand>
+                    <description>Moving period. This will be relected in number of days (*7/5), independent of effective available data.</description>
                     <defaultValue xsi:type="numberValue">
-                        <numberValue>25.0</numberValue>
+                        <numberValue>21.0</numberValue>
                     </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors>
-                <availableOutputSelector>down</availableOutputSelector>
-                <availableOutputSelector>up</availableOutputSelector>
-                <availableOutputSelector>oscillator</availableOutputSelector>
+                <availableOutputSelector>sma</availableOutputSelector>
+                <availableOutputSelector>mstdev</availableOutputSelector>
             </availableOutputSelectors>
-            <outputSelector>down</outputSelector>
+            <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityOtherOperation">
@@ -182,7 +440,7 @@
                     <referenceAsOperand>Periods in STDev</referenceAsOperand>
                     <description>Number of return periods in each standard deviation calculation</description>
                     <defaultValue xsi:type="numberValue">
-                        <numberValue>63.0</numberValue>
+                        <numberValue>21.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -257,28 +515,6 @@
             <outputSelector>macd</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="flipOperation">
-            <reference>flipAround</reference>
-            <description>Flip the input upside down</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>flip axe</reference>
-                    <description>flip axe</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>Data to flip around</reference>
-                    <description>Data to flip around</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryDivision">
             <reference>divisionUnary_</reference>
             <description>Division of a series by a number</description>
@@ -301,149 +537,68 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="lnPeriodicOperation">
-            <reference>periodicLn_</reference>
-            <description>ln(n/(n-p)) ~ House Trend in base 'e'</description>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmBollingerOperation">
+            <reference>bollinger_</reference>
+            <description>bollinger bands</description>
             <operands>
                 <operand xsi:type="numberOperation">
-                    <reference>period</reference>
+                    <reference>number</reference>
                     <referenceAsOperand>period</referenceAsOperand>
-                    <description>Period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>1.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>data</reference>
-                    <description>data</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unarySum">
-            <reference>sumUnary_</reference>
-            <description>Summation of a series with a number</description>
-            <operands>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <description>A number constant like period or threshold.</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmsmaOperation">
-            <reference>sma_</reference>
-            <description>House made SMA on close historical data</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>smaPeriod</referenceAsOperand>
-                    <description>Sma period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>200.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibSmaOperation">
-            <reference>sma__</reference>
-            <description>SMA on any on any historical data series.</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>smaPeriod</referenceAsOperand>
                     <description>SMA period</description>
                     <defaultValue xsi:type="numberValue">
-                        <numberValue>200.0</numberValue>
+                        <numberValue>20.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>nbDevUp</referenceAsOperand>
+                    <description>Lower band dev factor</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>2.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>nbDevDown</referenceAsOperand>
+                    <description>Upper band dev factor</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>2.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="stringOperation">
-                    <reference>boolean</reference>
-                    <referenceAsOperand>doFixlag</referenceAsOperand>
-                    <description>artificially fix the SMA lag</description>
+                    <reference>String</reference>
+                    <referenceAsOperand>type</referenceAsOperand>
+                    <description>Daily quote (Daily), Change or Ln</description>
                     <defaultValue xsi:type="stringValue">
-                        <stringValue>FALSE</stringValue>
+                        <stringValue>Daily</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inflationRationaliserOperation">
-            <reference>inflationRationaliser</reference>
-            <description>Applies a reversed inflation rate to the data in an attempt to reduce the inflation bias</description>
-            <operands>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>data to rationalize</reference>
-                    <description>data to rationalize</description>
+                    <reference>input data</reference>
+                    <description>input data</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors>
-                <availableOutputSelector>rationalizedData</availableOutputSelector>
-                <availableOutputSelector>dailyRate</availableOutputSelector>
+                <availableOutputSelector>middle</availableOutputSelector>
+                <availableOutputSelector>lower</availableOutputSelector>
+                <availableOutputSelector>upper</availableOutputSelector>
             </availableOutputSelectors>
-            <outputSelector>rationalizedData</outputSelector>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
-            <reference>subtraction_</reference>
-            <description>Subtraction of two historical data series</description>
-            <operands>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>minuend</reference>
-                    <description>minuend</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>subtrahend</reference>
-                    <description>subtrahend</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
+            <outputSelector>middle</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="skewRationaliserOperation">
@@ -466,6 +621,37 @@
                 </operand>
             </operands>
             <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="filterOperation">
+            <reference>filter_</reference>
+            <description>Filter</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <description>data</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>constant</referenceAsOperand>
+                    <description>Filter input</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>eq</availableOutputSelector>
+                <availableOutputSelector>gt</availableOutputSelector>
+                <availableOutputSelector>lt</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>eq</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="product">
@@ -495,122 +681,6 @@
                 </operand>
             </operands>
             <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmLogRocOperation">
-            <reference>logroc</reference>
-            <description>Roc logarithmic over a period</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>logRocPeriod</referenceAsOperand>
-                    <description>Roc period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>1.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityOperation">
-            <reference>volatilityCalculator</reference>
-            <description>Calculate the input volatility</description>
-            <operands>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>Basic Period</referenceAsOperand>
-                    <description>Basic period for ln return calculation in days</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>1.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>Periods in STDev</referenceAsOperand>
-                    <description>Number of return periods in each standard deviation calculation</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>63.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>Input data</reference>
-                    <description>Input data</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors>
-                <availableOutputSelector>annualisedAtDate</availableOutputSelector>
-                <availableOutputSelector>average</availableOutputSelector>
-                <availableOutputSelector>annualisedPositiveAtDate</availableOutputSelector>
-                <availableOutputSelector>averagePosistive</availableOutputSelector>
-                <availableOutputSelector>annualisedNegativeAtDate</availableOutputSelector>
-                <availableOutputSelector>averageNegative</availableOutputSelector>
-            </availableOutputSelectors>
-            <outputSelector>annualisedAtDate</outputSelector>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryProduct">
-            <reference>productUnary_</reference>
-            <description>Product of a series by a number</description>
-            <operands>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <description>A number constant like period or threshold.</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="stockOperation">
-            <reference>stock</reference>
-            <description>Time series of real stock historical data (close, low, high and volume)</description>
-            <operands>
-                <operand xsi:type="stringOperation">
-                    <reference>string</reference>
-                    <referenceAsOperand>stockReference</referenceAsOperand>
-                    <description>Optional stock reference in format SYMBOL_ISIN</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors>
-                <availableOutputSelector>close</availableOutputSelector>
-                <availableOutputSelector>open</availableOutputSelector>
-                <availableOutputSelector>high</availableOutputSelector>
-                <availableOutputSelector>low</availableOutputSelector>
-                <availableOutputSelector>volume</availableOutputSelector>
-            </availableOutputSelectors>
-            <outputSelector>close</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="leftShifterOperation">

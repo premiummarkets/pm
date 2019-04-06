@@ -69,7 +69,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {//Iterate groups
 
 					try {
-						LOGGER.debug("Group description : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						LOGGER.info("Group description : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 						Boolean groupIsDisplayed = false;
 
 						//Renderer
@@ -90,10 +90,10 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						for (int k = 0; k < outputIndexes.length; k++) {//Iterate outputs
 
 							int outputIdx = outputIndexes[k];
-							if (eventDefDescriptor.isDisplayed(outputIdx)) {
+							if (eventDefDescriptor.isDisplayed(groupIdx, outputIdx)) {
 
 								//Build the timeSeries for the output
-								final String domain = eventDefDescriptor.getFullNameFor(outputIdx);
+								final String domain = eventDefDescriptor.getFullNameFor(groupIdx, outputIdx);
 								TimeSeries timeSeries = new TimeSeries(domain);
 								Boolean allNaN = true;
 								for (Date date : fullDateSet) {
@@ -124,7 +124,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 								dataSet.addSeries(timeSeries);
 
-								renderer.setSeriesPaint(seriesIdx, eventDefDescriptor.getColor(outputIdx));
+								renderer.setSeriesPaint(seriesIdx, eventDefDescriptor.getColor(groupIdx, outputIdx));
 								renderer.setSeriesShape(seriesIdx, new Rectangle(new Dimension(100, 100)));
 
 								XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {

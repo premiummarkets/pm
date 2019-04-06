@@ -36,7 +36,7 @@ import com.finance.pms.events.operations.Operation;
 public class CrossDownDoubleMapCondition extends CrossDoubleMapCondition {
 
 	private CrossDownDoubleMapCondition() {
-		super("historical cross down", "True when the first time series value is crossing above the second one.");
+		super("cross down data", "True when the first time series value is crossing above the second one.");
 	}
 	
 	public CrossDownDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {

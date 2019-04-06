@@ -52,8 +52,8 @@ public class ChartBarUtils {
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartBarUtils.class);
 
 	public static SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> buildBarsData(
-			Stock selectedShare, Set<EventInfo> chartedEvtDefsTrends, 
-			Date start, Date end, SymbolEvents eventsForStock, Map<EventInfo, TuningResDTO> tuningRess, 
+			Stock selectedShare, Set<EventInfo> chartedEvtDefsTrends,
+			Date start, Date end, SymbolEvents eventsForStock, Map<EventInfo, TuningResDTO> tuningRess,
 			BarSettings barSettings) {
 
 		SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barData = new TreeMap<DataSetBarDescr, SortedMap<Date, BarChart>>();

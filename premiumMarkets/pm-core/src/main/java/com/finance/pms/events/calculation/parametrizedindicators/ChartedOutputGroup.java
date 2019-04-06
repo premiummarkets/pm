@@ -97,7 +97,8 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 
 	@Override
 	public String toString() {
-		return "ChartedOutputGroup [\n\t uuid=" + uuid + ", \n\t thisDescription=" + thisGroupMainOutputDescription + ", \n\t components=" + components.values() + "]";
+		return "ChartedOutputGroup [\n\t uuid=" + uuid + ", \n\t thisDescription=" + thisGroupMainOutputDescription + ",\n" +
+				"\t components=\n\t\t" + components.values().stream().map(od -> od.toString()).reduce((r,e) -> r + "\n\t\t" + e).orElse("None") + "]";
 	}
 
 	@Override

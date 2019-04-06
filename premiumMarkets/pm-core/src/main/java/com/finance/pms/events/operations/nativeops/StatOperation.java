@@ -30,56 +30,83 @@
 package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.function.Function;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
+import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
+import org.apache.commons.math3.stat.descriptive.UnivariateStatistic;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.talib.indicators.SMA;
+import com.finance.pms.events.scoring.functions.ApacheStats;
 
 @XmlRootElement
-public class PMSMAOperation extends PMDataFreeOperation {
-	
-	protected static MyLogger LOGGER = MyLogger.getLogger(PMSMAOperation.class);
-	
-	public PMSMAOperation() {
-		super("sma_", "House made SMA on close historical data", new NumberOperation("number","smaPeriod","Sma period", new NumberValue(200.0)));
+public class StatOperation extends PMWithDataOperation {
+
+	protected static MyLogger LOGGER = MyLogger.getLogger(StatOperation.class);
+
+	public StatOperation() {
+		super("stat", "Moving statistics",
+				new NumberOperation("number","movingPeriod","Moving period. This will be relected in number of days (*7/5), independent of effective available data.", new NumberValue(21.0)),
+				new DoubleMapOperation());
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev"})));
 	}
-	
-	public PMSMAOperation(ArrayList<Operation> operands, String outputSelector) {
+
+	public StatOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
 	}
-	
-	
+
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		Integer period = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 
-		NumericableMapValue ret = new DoubleMapValue();
 		try {
-			SMA sma = new SMA(period);
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
-					targetStock.getStock(),  getStartDate(targetStock.getStartDate(), thisStartShift), targetStock.getEndDate(), 
-					true, targetStock.getStock().getMarketValuation().getCurrency(), 
-					sma.getStartShift(), sma.quotationValidity());
-			sma.calculateIndicator(quotations);
-			
-			
-			return doubleArrayMapToDoubleMap(quotations, targetStock, sma, sma.getOutputData());
+			Function<Date, Date>  startWindowKFunc = k -> new Date(k.getTime() - (long)(period*7d/5d) * (1000l * 60l * 60l * 24l));
+
+			//Default is identity
+			ApacheStats apacheStat = new ApacheStats(new AbstractUnivariateStatistic() {
+				@Override
+				public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
+					return values[begin+length-1];
+				}
+				@Override
+				public UnivariateStatistic copy() {
+					return this;
+				}
+			});
+
+			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
+			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
+				apacheStat = new ApacheStats(new Mean());
+			} else 
+			if (outputSelector != null && outputSelector.equalsIgnoreCase("mstdev")) {
+				apacheStat = new ApacheStats(new StandardDeviation());
+			}
+
+			return new DoubleMapValue(MapUtils.movingStat(data, startWindowKFunc, apacheStat));
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
-		return ret;
+
+		return new DoubleMapValue();
+
 	}
 
 }

@@ -208,7 +208,7 @@ public class TalibOperationGenerator {
 									if (sline.contains("double") || sline.contains("float") || sline.contains("int") || sline.contains("MAType")) {
 										String[] paramSplit = sline.substring(sline.indexOf("(")+1).trim().split(" ");
 										String param = paramSplit[1].replaceAll("[,)\\[\\]]", "");
-										if (param.equals("inReal")) param = "Historical data";
+										if (param.equals("inReal")) param = "historical data";
 										if (param.startsWith("optIn")) param = param.substring(5);
 										if (param.startsWith("in")) param = param.substring(2);
 										if (param.startsWith("out")) param = param.substring(3);
@@ -223,7 +223,7 @@ public class TalibOperationGenerator {
 								if (sline.contains("double") || sline.contains("float") || sline.contains("int") || sline.contains("MAType")) {
 									String[] paramSplit = sline.trim().split(" ");
 									String param = paramSplit[1].replaceAll("[,)\\[\\]]", "");
-									if (param.equals("inReal")) param = "Historical data";
+									if (param.equals("inReal")) param = "historical data";
 									if (param.startsWith("optIn")) param = param.substring(5);
 									if (param.startsWith("in")) param = param.substring(2);
 									if (param.startsWith("out")) param = param.substring(3);

@@ -1,13 +1,12 @@
 package com.finance.pms.events.calculation.util;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
 import com.finance.pms.events.scoring.functions.ApacheStats;
 
@@ -51,16 +50,19 @@ public class MapUtils {
 		return map.tailMap(from);
 	}
 
-	public static <KEY> SortedMap<KEY, Double> slidingAvarage(SortedMap<KEY, Double> map, Function<KEY, KEY> startWindowKFunc) {
+	public static <KEY> SortedMap<KEY, Double> movingStat(SortedMap<KEY, Double> map, Function<KEY, KEY> startWindowKFunc, ApacheStats apacheStats) {
 
 		TreeMap<KEY, Double> averageAnnualisedVolatility =
 				map.keySet().stream()
 				.collect(Collectors.toMap(
 						endWindowK -> endWindowK,
 						endWindowK -> {
-							ApacheStats mean = new ApacheStats(new Mean());
 							KEY startWindowK = startWindowKFunc.apply(endWindowK);
-							return (Double) mean.sEvaluate(MapUtils.subMapInclusive(map, startWindowK, endWindowK).values());
+							Collection<Double> values = 
+									MapUtils.subMapInclusive(map, startWindowK, endWindowK).values()
+									.stream()
+									.filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
+							return (Double) apacheStats.sEvaluate(values);
 						},
 						(a, b) -> a, TreeMap<KEY,Double>::new));
 

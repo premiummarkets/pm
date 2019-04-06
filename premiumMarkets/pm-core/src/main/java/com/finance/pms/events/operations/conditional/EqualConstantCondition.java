@@ -36,7 +36,7 @@ import com.finance.pms.events.operations.Operation;
 public class EqualConstantCondition extends CmpConstantCondition {
 
 	private EqualConstantCondition() {
-		super("equal threshold comparison", "True when a time series reaches a value equal to the constant.");
+		super("threshold equality", "True when a time series reaches a value equal to the constant.");
 	}
 
 	public EqualConstantCondition(ArrayList<Operation> operands, String outputSelector) {

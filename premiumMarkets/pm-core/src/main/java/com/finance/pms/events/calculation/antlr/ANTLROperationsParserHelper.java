@@ -158,15 +158,14 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 
 			EditorOpDescr currentOp = null;
 
-
-			SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList = new TreeMap<AltType, SortedMap<Integer,LinkedList<Alternative>>>(new Comparator<AltType>() {
-
-				@Override
-				public int compare(AltType o1, AltType o2) {
-					if (o1.equals(o2)) return 0;
-					return (o1.equals(AltType.DELETE))?-1:1;
-				}
-			});
+			SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList =
+					new TreeMap<AltType, SortedMap<Integer,LinkedList<Alternative>>>(new Comparator<AltType>() {
+						@Override
+						public int compare(AltType o1, AltType o2) {
+							if (o1.equals(o2)) return 0;
+							return (o1.equals(AltType.DELETE))?-1:1;
+						}
+					});
 
 			//NoViableAltException filter cumul
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
@@ -295,7 +294,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							if (expected != null && expected.length > 0) {
 
 								int[] position = new int[]{exception.line, exception.charPositionInLine -1};
-								Boolean foundMatching =addSuggsAsAlts(alternatives, currentOutput , position, "Output selector option required for "+currentOp.getName()+" : ", expected);
+								Boolean foundMatching = addSuggsAsAlts(alternatives, currentOutput , position, "Output selector option required for "+currentOp.getName()+" : ", expected);
 								if (!foundMatching) {
 									altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry", "Condition on historical output excepted.", null, position));
 								}
@@ -346,8 +345,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 								fillUpParams = true;
 								deleteFilter = false;
 								int[] commaPosition = new int[]{exception.line, exception.charPositionInLine + pce.getParsedTxt().length() -1};
-								altPrioListForTokType(
-										priorityList, AltType.SUGGESTION, 0)
+								altPrioListForTokType(priorityList, AltType.SUGGESTION, 0)
 								.add(
 										new Alternative(AltType.SUGGESTION,TokenType.SYNTAX, ",",  "Syntax suggestion", "Insert a Comma to add up arguments to "+currentOp.getName(), null, commaPosition)
 										);	

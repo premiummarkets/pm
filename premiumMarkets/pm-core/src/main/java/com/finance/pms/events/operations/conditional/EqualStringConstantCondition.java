@@ -31,7 +31,7 @@ public class EqualStringConstantCondition extends Condition<String> {
 
     private EqualStringConstantCondition() {
         super(
-                "trend string constant",  "True when the events time series render a string equals the trend string constant.",
+                "string equality", "True when the events time series render a string equals the trend string constant.",
                 new StringOperation("trend"),
                 new NumberOperation("time period over which it happens"),
                 new NumberOperation("length of time over which it is true"),

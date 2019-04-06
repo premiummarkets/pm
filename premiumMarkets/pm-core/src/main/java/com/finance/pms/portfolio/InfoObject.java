@@ -51,11 +51,11 @@ public interface InfoObject {
 	default public int compareToInfoObject(InfoObject o) {
 		int cmp = info().compareTo(o.info());
 		if (cmp != 0) return cmp;
-		cmp = (toolTip() != null && o.toolTip() != null)?toolTip().compareTo(o.toolTip()):0;
+		cmp = (toolTip() != null && o.toolTip() != null)?toolTip().compareTo(o.toolTip()):((toolTip() == null)?((o.toolTip() != null)?-1:0):1);
 		if (cmp != 0) return cmp;
-		cmp = (groupId() != null && o.groupId() != null)?groupId().compareTo(o.groupId()):0;
+		cmp = (groupId() != null && o.groupId() != null)?groupId().compareTo(o.groupId()):((groupId() == null)?((o.groupId() != null)?-1:0):1);
 		if (cmp != 0) return cmp;
-		cmp = (isMain() != null && o.isMain() != null)?isMain().compareTo(o.isMain()):0;
+		cmp = (isMain() != null && o.isMain() != null)?isMain().compareTo(o.isMain()):((isMain() == null)?((o.isMain() != null)?-1:0):1);
 		return cmp;
 	}
 

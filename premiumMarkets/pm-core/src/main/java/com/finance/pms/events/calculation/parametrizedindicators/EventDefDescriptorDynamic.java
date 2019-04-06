@@ -53,6 +53,43 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
  */
 public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
+	public class OutputId {
+		private int groupIx;
+		private int outputIdx;
+
+		public OutputId(int groupIx, int outputIdx) {
+			super();
+			this.groupIx = groupIx;
+			this.outputIdx = outputIdx;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + groupIx;
+			result = prime * result + outputIdx;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			OutputId other = (OutputId) obj;
+			if (groupIx != other.groupIx)
+				return false;
+			if (outputIdx != other.outputIdx)
+				return false;
+			return true;
+		}
+
+	}
+
 	private static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorDynamic.class);
 
 	public static Color[][] COLORS = new  Color[][] {
@@ -69,7 +106,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	private String alsoDisplayDescription;
 
 	private List<ChartedOutputGroup> chartedOutputGroups;
-	private Map<Integer, OutputDescr> outputDescrFlatList;
+	private Map<OutputId, OutputDescr> outputDescrFlatList;
 
 	private Optional<String> exportBaseFileName;
 
@@ -80,7 +117,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		Arrays.setAll(randoms, i -> Math.random());
 	}
 
-	private  Map<Integer, OutputDescr> getOutputDescrFlatList() {
+	private  Map<OutputId, OutputDescr> getOutputDescrFlatList() {
 		if (outputDescrFlatList == null) {
 			initLists();
 		}
@@ -88,14 +125,18 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public String getFullNameFor(int outputIdx) throws NoSuchElementException {
-		return getOutputDescr(outputIdx).fullQualifiedName();
+	public String getFullNameFor(int groupIndex, int outputIdx) throws NoSuchElementException {
+		return getOutputDescr(groupIndex, outputIdx).fullQualifiedName();
 	}
 
-	private OutputDescr getOutputDescr(int outputIdx) throws NoSuchElementException {
-		OutputDescr outputDescr = getOutputDescrFlatList().get(outputIdx);
-		if (outputDescr == null) throw new NoSuchElementException();
-		return outputDescr;
+	private OutputDescr getOutputDescr(int groupIndex, int outputIdx) throws NoSuchElementException {
+		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(groupIndex);
+		if (chartedOutputGroup == null) throw new NoSuchElementException();
+		if (chartedOutputGroup.getThisGroupMainOutputDescription().getOutputIndex().equals(outputIdx)) return chartedOutputGroup.getThisGroupMainOutputDescription();
+		for (OutputDescr outputDescr : chartedOutputGroup.getComponents().values()) {
+			if (outputDescr.getOutputIndex().equals(outputIdx)) return outputDescr;
+		}
+		throw new NoSuchElementException();
 	}
 
 	protected void initLists() throws NoSuchElementException {
@@ -106,10 +147,14 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		List<ChartedOutputGroup> chartedOutputGroups = getChartedOutputGroups();
 
 		outputDescrFlatList = new HashMap<>();
-		for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
+		for (int groupIdx = 0; groupIdx < chartedOutputGroups.size(); groupIdx++) {
+			ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(groupIdx);
 			OutputDescr mainOutput = chartedOutputGroup.getThisGroupMainOutputDescription();
-			if (mainOutput.getType() != Type.INVISIBLE) outputDescrFlatList.put(mainOutput.getOutputIndex(), mainOutput);
-			chartedOutputGroup.getComponents().values().stream().filter(c -> c.getType() != Type.INVISIBLE).forEach(c -> outputDescrFlatList.put(c.getOutputIndex(), c));
+			//Adding the main
+			if (mainOutput.getType() != Type.INVISIBLE) outputDescrFlatList.put(new OutputId(groupIdx, mainOutput.getOutputIndex()), mainOutput);
+			//Adding the components
+			final int fGroupIdx = groupIdx;
+			chartedOutputGroup.getComponents().values().stream().filter(c -> c.getType() != Type.INVISIBLE).forEach(c -> outputDescrFlatList.put(new OutputId(fGroupIdx,c.getOutputIndex()), c));
 		}
 
 	}
@@ -155,15 +200,14 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Color getColor(int outputIdx) throws NoSuchElementException {
+	public Color getColor(int groupIdx, int outputIdx) throws NoSuchElementException {
 
-		int groupIdx = getGroupIndexFor(outputIdx);
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
 		int alpha = (int) (255 - 128*((double)groupIdx)/getGroupsCount());
 		Color[] grpColors = COLORS[groupIdx % COLORS.length];
 
-		switch (getOutputDescr(outputIdx).getType()) {
+		switch (getOutputDescr(groupIdx, outputIdx).getType()) {
 		case CONSTANT :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/2);
 		case SIGNAL :
@@ -198,12 +242,6 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	@Override
 	public Boolean displayValues() {
 		return true;
-	}
-
-	@Override
-	public int getGroupIndexFor(int outputIdx) {
-		ChartedOutputGroup container = getOutputDescr(outputIdx).getContainer();
-		return getChartedOutputGroups().indexOf(container);
 	}
 
 	@Override
@@ -287,11 +325,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public boolean isDisplayed(int outputIdx) {
+	public boolean isDisplayed(int grpIdx, int outputIdx) {
 		try {
-			OutputDescr outputDescr = getOutputDescr(outputIdx);
-			return outputDescr.getDisplayOnChart(); //displayedOutputsDescr().contains(outputDescr);
+			OutputDescr outputDescr = getOutputDescr(grpIdx, outputIdx);
+			return outputDescr.getDisplayOnChart();
 		} catch (Exception e) {
+			LOGGER.error(e, e);
 			return false;
 		}
 	}

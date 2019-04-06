@@ -39,6 +39,7 @@ import javax.xml.bind.Unmarshaller;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.Division;
+import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
 import com.finance.pms.events.operations.nativeops.InflationRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
@@ -46,16 +47,16 @@ import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
+import com.finance.pms.events.operations.nativeops.PMBollingerOperation;
 import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
-import com.finance.pms.events.operations.nativeops.PMSMAOperation;
+import com.finance.pms.events.operations.nativeops.StatOperation;
 import com.finance.pms.events.operations.nativeops.Product;
 import com.finance.pms.events.operations.nativeops.SkewRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
-import com.finance.pms.events.operations.nativeops.TalibSmaOperation;
 import com.finance.pms.events.operations.nativeops.UnaryDivision;
 import com.finance.pms.events.operations.nativeops.UnaryProduct;
 import com.finance.pms.events.operations.nativeops.UnarySum;
@@ -102,14 +103,10 @@ public class NativesXmlManager {
 		StockOperation stockOperation = new StockOperation();
 		nativeOperations.addOperation(stockOperation);
 
-		//Talib
-		TalibSmaOperation talibSmaOperation = new TalibSmaOperation();
-		nativeOperations.addOperation(talibSmaOperation);
-
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();
 		nativeOperations.addOperation(pmMacdOperation);
-		PMSMAOperation pmSmaOperation = new PMSMAOperation();
+		StatOperation pmSmaOperation = new StatOperation();
 		nativeOperations.addOperation(pmSmaOperation);
 		PMLogRocOperation houseTrendOperation = new PMLogRocOperation();
 		nativeOperations.addOperation(houseTrendOperation);
@@ -139,6 +136,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(volatilityOtherOperation);
 		VolatilityRationaliserOperation volatilityRationaliserOperation = new VolatilityRationaliserOperation();
 		nativeOperations.addOperation(volatilityRationaliserOperation);
+		PMBollingerOperation bollingerOperation = new PMBollingerOperation();
+		nativeOperations.addOperation(bollingerOperation);
+		FilterOperation filterOperation = new FilterOperation();
+		nativeOperations.addOperation(filterOperation);
 
 		return nativeOperations;
 	}

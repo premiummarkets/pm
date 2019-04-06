@@ -372,16 +372,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					Runnable runnable = new Runnable() {
 						public void run() {
 							try {
-								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = 
+								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData =
 										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, trendSettings);
 								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {
 								LOGGER.error(
-										"arg : "+ arg +
-										", chartTarget.getMainChartWraper() : "+chartTarget.getMainChartWraper()+
-										", chartTarget.getHighligtedId() : "+chartTarget.getHighligtedId()+
-										", barChartSettings : "+trendSettings+
-										", chartTarget.getPlotChartDimensions() : "+chartTarget.getPlotChartDimensions(),e);
+										"arg : " + arg +
+										", chartTarget.getMainChartWraper() : " + chartTarget.getMainChartWraper() +
+										", chartTarget.getHighligtedId() : " + chartTarget.getHighligtedId() +
+										", barChartSettings : " + trendSettings +
+										", chartTarget.getPlotChartDimensions() : " + chartTarget.getPlotChartDimensions(), e);
 							}
 						}
 					};
@@ -403,8 +403,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							"This may also happen if calculations failed or if there is not enough quotations for the period.\n" +
 									//+ "Check the selected Trends in " + TRENDBUTTXT + " as well as the date boundaries against the available quotations.\n"
 									"You may want to check the date boundaries against the available quotations.\n" +
-									"Also note that some calculators need full OLHC and Volume in order to be calculated.\n"+
-									"If '"+chartedEvtStr+"' is one of your calculators you may also want to check its formula.";
+									"Also note that some calculators need full OLHC and Volume in order to be calculated.\n" +
+									"If '" + chartedEvtStr + "' is one of your calculators you may also want to check its formula.";
 					showPopupDialog(errMsg, "Ok", addMsg, null);
 				}
 
@@ -460,7 +460,13 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				showPopupDialog(errMsg, "Ok", addMsg, null);
 			}
 
-		} else { //Thats all or some are good, we display
+		} else { //Thats all, some date is good to display
+
+			if (LOGGER.isDebugEnabled()) try {LOGGER.debug("Before updating the display: "+ chartTarget.getChartedEvtDefsTrends().stream().map(t -> {
+				Set<OutputDescr> allOutputDescr = t.getEventDefDescriptor().allOutputDescr();
+				return allOutputDescr.stream().map( od -> od.toString()).reduce((r,e) -> r + "\n\t\t" + e).orElse("None");
+			}).reduce((r,e) -> r + " " + e));} catch (Exception e) {LOGGER.warn("Cannot debug this", e);};
+
 			chartTarget.getMainChartWraper().updateIndicDataSet(eventsSeries, chartTarget.getPlotChartDimensions());
 		}
 
@@ -792,98 +798,81 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private void refreshCalculatorSettingsPopup(Boolean activatePopup) {
 
 		try {
+			final Set<OutputDescr> availableOutputs = new TreeSet<>();
+			final Set<OutputDescr> displayableOutputs = new TreeSet<>(); //subset of availableOutputs
 
-//			boolean isIndicatorSelected = !chartTarget.getChartedEvtDefsTrends().isEmpty();
+			try {
 
-//			if ( isIndicatorSelected ) {
+				//Non Multi
+				chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
+					Set<OutputDescr> nonMultiOutputDescr = t.getEventDefDescriptor().nonMULTIOutputDescr();
+					availableOutputs.addAll(nonMultiOutputDescr);
+				});
 
-				final Set<OutputDescr> availableOutputs = new TreeSet<>();
-				final Set<OutputDescr> displayableOutputs = new TreeSet<>(); //subset of availableOutputs
+				//Multi
+				Set<OutputDescr> multiOutputDesrcLimited = chartTarget.getChartedEvtDefsTrends().stream()
+						.flatMap(t -> t.getEventDefDescriptor().mULTIOutputDescr().stream())
+						.limit(100)
+						.collect(Collectors.toSet());
+				availableOutputs.addAll(multiOutputDesrcLimited);
 
-				try {
+				//Remove outputs above displayable threshold
+				availableOutputs.stream().forEach(aOut -> {if (aOut.getDisplayOnChart()) displayableOutputs.add(aOut);});
+				chartTarget.getChartedEvtDefsTrends().stream()
+				.flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream())
+				.forEach(t -> {
+					if (!displayableOutputs.contains(t)) t.setDisplayOnChart(false);
+				});
 
-					//Non Multi
-					chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
-						Set<OutputDescr> nonMultiOutputDescr = t.getEventDefDescriptor().nonMULTIOutputDescr();
-						availableOutputs.addAll(nonMultiOutputDescr);
-					});
+				//Truncation Indicator
+				long allOutputsSize = chartTarget.getChartedEvtDefsTrends().stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();
+				if (allOutputsSize > availableOutputs.size()) {
+					calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE+" TOP only.");
+				} else {
+					calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
+				}
 
-					//Multi
-					Set<OutputDescr> multiOutputDesrcLimited = chartTarget.getChartedEvtDefsTrends().stream()
-							.flatMap(t -> t.getEventDefDescriptor().mULTIOutputDescr().stream())
-							.limit(100)
-							.collect(Collectors.toSet());
-					availableOutputs.addAll(multiOutputDesrcLimited);
+			} catch (NoSuchElementException e) {
+				LOGGER.warn(e);
+			}
 
-					//Displaybles
-					availableOutputs.stream().forEach(aOut -> {if (aOut.getDisplayOnChart()) displayableOutputs.add(aOut);});
-					chartTarget.getChartedEvtDefsTrends().stream()
-						.flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream())
-						.forEach(t -> {
-							if (!displayableOutputs.contains(t)) t.setDisplayOnChart(false);
-						});
+			ActionDialogAction deactivateAction = new ActionDialogAction() {
 
-					//Truncation Indicator
-					long allOutputsSize = chartTarget.getChartedEvtDefsTrends().stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();
-					if (allOutputsSize > availableOutputs.size()) {
-						calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE+" TOP only.");
-					} else {
-						calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
-					}
-
-				} catch (NoSuchElementException e) {
-					LOGGER.warn(e);
-				} 
-
-//				if (!availableOutputs.isEmpty()) {
-
-					ActionDialogAction deactivateAction = new ActionDialogAction() {
-
-						@Override
-						public void action() {
-							for (OutputDescr outputDescr : availableOutputs) {
-								if (displayableOutputs.contains(outputDescr)) {
-									outputDescr.setDisplayOnChart(true);
-								} else {
-									outputDescr.setDisplayOnChart(false);
-								}
-							}
-							Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
-							LOGGER.info("Calling highLight from initChartSettingsPopup (Dialog Action).");
-							highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
-						}
-
-					};
-
-					if (calculatorSettingsPopupMenu == null || calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-						calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayableOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
-						Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-						calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
-					}
-					else {
-						calculatorSettingsPopupMenu.updateAction(availableOutputs, displayableOutputs, null, deactivateAction, true);
-						if (activatePopup) {
-							calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
-							calculatorSettingsPopupMenu.getSelectionShell().setActive();
-							calculatorSettingsPopupMenu.getSelectionShell().setFocus();
+				@Override
+				public void action() {
+					for (OutputDescr outputDescr : availableOutputs) {
+						if (displayableOutputs.contains(outputDescr)) {
+							outputDescr.setDisplayOnChart(true);
+						} else {
+							outputDescr.setDisplayOnChart(false);
 						}
 					}
+					Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
+					LOGGER.info("Calling highLight from initChartSettingsPopup (Dialog Action).");
+					highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
+				}
 
-//				} else {
-//
-//					if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-//						calculatorSettingsPopupMenu.getSelectionShell().dispose();
-//					}
-//
-//				}
+			};
 
-			//}
+			if (calculatorSettingsPopupMenu == null || calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+				calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayableOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
+				Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
+				calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
+			}
+			else {
+				calculatorSettingsPopupMenu.updateAction(availableOutputs, displayableOutputs, null, deactivateAction, true);
+				if (activatePopup) {
+					calculatorSettingsPopupMenu.getSelectionShell().setVisible(true);
+					calculatorSettingsPopupMenu.getSelectionShell().setActive();
+					calculatorSettingsPopupMenu.getSelectionShell().setFocus();
+				}
+			}
 
 		} catch (Exception e) {
 			LOGGER.warn(e,e);
 			showPopupDialog(e.getMessage(), "Ok", null, null);
 		}
-	} 
+	}
 
 
 	@Override

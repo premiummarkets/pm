@@ -41,14 +41,14 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
 
 public class PMLogRocOperation extends PMWithDataOperation {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(PMLogRocOperation.class);
 	private static final int DATAINPUTIDX = 1;
-	
+
 	public PMLogRocOperation() {
 		super("logroc", "Roc logarithmic over a period", new NumberOperation("number", "logRocPeriod", "Roc period", new NumberValue(1.0)), new DoubleMapOperation());
 	}
-	
+
 	public PMLogRocOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
@@ -57,12 +57,12 @@ public class PMLogRocOperation extends PMWithDataOperation {
 
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+
 		//Param check
 		Integer period = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
-		//Cacl
+		//Calc
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
 			HouseTrendSmoother houseTrend = new HouseTrendSmoother(period);

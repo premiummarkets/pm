@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -44,7 +42,12 @@ import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 import com.finance.pms.talib.indicators.TalibException;
 import com.tictactec.ta.lib.MInteger;
 
-@XmlRootElement
+@Deprecated
+/**
+ * @author guil
+ * @deprecated This just uses the Talib SMA which can now be directly used from the UI. To generate a fixed lag SMA use the OutputGenerator RealSMA.
+ *
+ */
 public class TalibSmaOperation extends TalibOperation {
 
 	private static final int DATAINPUTIDX = 2;

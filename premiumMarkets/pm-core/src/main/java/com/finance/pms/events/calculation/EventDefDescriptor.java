@@ -37,19 +37,17 @@ import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 
 public interface EventDefDescriptor {
 
-	String getFullNameFor(int outputIdx) throws NoSuchElementException;
+	String getFullNameFor(int grpIdx, int outputIdx) throws NoSuchElementException;
 
 	String getHtmlBullishDescription();
 
 	String getHtmlBearishDescription();
 
-	Color getColor(int i) throws NoSuchElementException;
+	Color getColor(int grpIdx, int outputIdx) throws NoSuchElementException;
 
 	Boolean displayValues();
 
-	int getGroupIndexFor(int outputIndex);
-
-	String getGroupFullDescriptionFor(int groupIndex);
+	String getGroupFullDescriptionFor(int grpIdx);
 
 	int getGroupsCount();
 
@@ -57,7 +55,7 @@ public interface EventDefDescriptor {
 
 	Integer[] getThresholdsIdx(int grpIdx);
 
-	String getMainLabelForGroup(int groupIdx);
+	String getMainLabelForGroup(int grpIdx);
 
 	Set<OutputDescr> nonMULTIOutputDescr();
 
@@ -65,7 +63,7 @@ public interface EventDefDescriptor {
 
 	Set<OutputDescr> allOutputDescr();
 
-	boolean isDisplayed(int outputIdx);
+	boolean isDisplayed(int grpIdx, int outputIdx);
 
 	String getExportBaseFileName();
 

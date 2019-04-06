@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -45,7 +43,6 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.talib.indicators.TalibException;
 import com.tictactec.ta.lib.MInteger;
 
-@XmlSeeAlso({TalibSmaOperation.class})
 public abstract class TalibOperation extends DoubleMapOperation {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(TalibOperation.class);

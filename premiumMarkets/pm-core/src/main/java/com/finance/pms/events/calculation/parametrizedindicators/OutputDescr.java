@@ -46,13 +46,16 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	public String fullQualifiedName() {
 
 		//outputReference || discriminentConstant
-		String discriminantReference = outputReference.getReference();
+		String discriminantReference = getContainer().groupUniqueId().toString().substring(0, 8);
 		if (outputReference.getIsLeaf()) {
-			discriminantReference = discriminentConstant.getValueAsString();
+			discriminantReference = discriminantReference + ":" + discriminentConstant.getValueAsString();
+		} else {
+			discriminantReference = discriminantReference + ":" + outputReference.getReference();
 		}
 
 		//(operationReference)? (: outputSelector)?
-		String familyName = 
+		String familyName =
+				(outputReference.getFormula() != null)?outputReference.getFormula():
 				(!(outputReference.getOperationReference().equals(discriminantReference))?outputReference.getOperationReference() :"") +
 				((outputReference.getOutputSelector() != null)? ":" + outputReference.getOutputSelector():"");
 
@@ -60,7 +63,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
 
 		//discriminantReference ( \(familyName\) )? (as displayedAs)? \n groupUUID
-		return discriminantReference + ((!familyName.isEmpty())?" (" + familyName + ")":"") + ((!displayedAs.isEmpty())?" as " + displayedAs:"");
+		return discriminantReference + ((!familyName.isEmpty())?" = " + familyName + " ":"") + ((!displayedAs.isEmpty())?" here " + displayedAs:"");
 	}
 
 	public ChartedOutputGroup getContainer() {
@@ -116,7 +119,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	@Override
 	public String toString() {
-		return "OutputDescr [ outputReference= \n\t\t" + outputReference + ", \n\t\t container=" + container.getThisGroupMainOutputReference().getReference()
+		return "OutputDescr [" + outputReference + ", container=" + container.getThisGroupMainOutputReference().getReference()
 				+ ", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + discriminentConstant + ", displayOnChart="+ displayOnChart + "]";
 	}
 

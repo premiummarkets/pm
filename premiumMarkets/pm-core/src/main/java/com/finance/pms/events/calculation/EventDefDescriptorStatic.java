@@ -102,7 +102,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	}
 
 	@Override
-	public String getFullNameFor(int outputIdx) throws NoSuchElementException {
+	public String getFullNameFor(int groupIdx, int outputIdx) throws NoSuchElementException {
 		return new ArrayList<>(descriptionMap().keySet()).get(outputIdx);
 	}
 
@@ -172,19 +172,13 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Color getColor(int i) {
+	public Color getColor(int grpIdx, int i) {
 		return colors.get(i);
 	}
 
 	@Override
 	public Boolean displayValues() {
 		return true;
-	}
-
-
-	@Override
-	public int getGroupIndexFor(int i) {
-		return 0;
 	}
 
 
@@ -275,7 +269,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	}
 
 	@Override
-	public boolean isDisplayed(int outputIdx) {
+	public boolean isDisplayed(int grpIdx, int outputIdx) {
 		return true;
 	}
 

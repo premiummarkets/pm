@@ -116,11 +116,11 @@ public abstract class ANTLRParserHelper {
 
 		this.nativeOpEditorDescrs = new TreeSet<EditorOpDescr>();
 		updateNativeOperationList(nativeOperations, this.nativeOpEditorDescrs);
-		LOGGER.debug("available native ops : "+this.nativeOpEditorDescrs);
+		LOGGER.debug("available native ops : " + this.nativeOpEditorDescrs);
 
 		this.userCurrentOpEditorDescrs = new TreeSet<EditorOpDescr>();
 		updateUserOperationList(userCurrentOperations, this.userCurrentOpEditorDescrs);
-		LOGGER.debug("available user ops : "+this.userCurrentOpEditorDescrs);
+		LOGGER.debug("available user ops : " + this.userCurrentOpEditorDescrs);
 	}
 
 	//XXX Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either

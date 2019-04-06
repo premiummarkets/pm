@@ -280,7 +280,7 @@ public class VolatilityClassifier {
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations);
 				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());
-				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.annualisedVolatilityAt(closeQuotations.size()-1);
+				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.movingVolatiltityAt(closeQuotations.size()-1);
 				return new Double[]{averageAnnualisedVolatility, threeMonthAnnualisedVolatility};
 			} catch (NoQuotationsException e) {
 				LOGGER.warn(s +" volatility failed :" + e.toString());

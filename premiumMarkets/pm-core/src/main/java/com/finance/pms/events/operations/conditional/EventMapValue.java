@@ -143,8 +143,8 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 	@Override
 	public SortedMap<Date, String> getValueAsStringMap() {
 		if (collectedValueAsStringMap == null) {
-			collectedValueAsStringMap = eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(),
-					e -> e.getEventType().toString(), (a, b) -> EventType.NONE.toString(), TreeMap::new));
+			collectedValueAsStringMap = eventData.keySet().stream()
+					.collect(Collectors.toMap(e -> e.getDate(), e -> e.getEventType().toString(), (a, b) -> EventType.NONE.toString(), TreeMap::new));
 		}
 		return collectedValueAsStringMap;
 	}

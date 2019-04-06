@@ -62,7 +62,8 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 
 		if (inputs.size() == 0) return new DoubleMapValue();
 		if (inputs.size() == 1) return (NumericableMapValue) inputs.get(0);
-		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Double>>> checkedInputs = (List<Value<SortedMap<Date, Double>>>) inputs;
+		@SuppressWarnings("unchecked")
+		List<Value<SortedMap<Date, Double>>> checkedInputs = (List<Value<SortedMap<Date, Double>>>) inputs;
 
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		for (Value<SortedMap<Date, Double>> input : checkedInputs) {

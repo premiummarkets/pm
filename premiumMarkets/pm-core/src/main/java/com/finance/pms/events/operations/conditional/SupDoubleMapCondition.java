@@ -38,7 +38,7 @@ public class SupDoubleMapCondition extends CmpDoubleMapCondition {
 	
 
 	private SupDoubleMapCondition() {
-		super("historical above comparison", "True when the first time series value is strictly above the second one.");
+		super("above data", "True when the first time series value is strictly above the second one.");
 	}
 	
 	public SupDoubleMapCondition(ArrayList<Operation> operands, String outputSelector) {

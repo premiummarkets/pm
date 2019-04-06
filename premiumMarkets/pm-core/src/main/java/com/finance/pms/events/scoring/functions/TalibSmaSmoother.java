@@ -82,7 +82,6 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 
 		double[] sma = new double[dataArray.length - period +1];
 
-
 		MInteger outBegIdx = new MInteger();
 		MInteger outNBElement = new MInteger();
 		int endIdx = dataArray.length-1;

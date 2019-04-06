@@ -21,49 +21,61 @@ public class HistoricalVolatilityCalculator {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HistoricalVolatilityCalculator.class);
 
-	static int YEAR_LENGTH = 252;
+	private static int YEAR_LENGTH = 252;
+	private boolean annualise;
 
-	int basicPeriodLength; //Usually 1. i.e. on day
-	int returnCalculationNbPeriods; //Usually 21 or 63
-	List<Double> closeValues;
+	private int basicPeriodLength; //Usually 1. i.e. on day
+	private int returnCalculationNbPeriods; //Usually 21 or 63
+	private List<Double> closeValues;
 
 	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations) {
-		this(closeQuotations, 1, 63);
+		this(closeQuotations, 1, 63, true);
 	}
 
-	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations, int basicPeriodLength, int returnCalculationNbPeriods) {
+	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations, int basicPeriodLength, int returnCalculationNbPeriods, boolean annualise) {
 		super();
 		this.basicPeriodLength = basicPeriodLength;
 		this.returnCalculationNbPeriods = returnCalculationNbPeriods;
 		this.closeValues = new ArrayList<>(closeQuotations.values());
+		this.annualise = annualise;
 	}
 
 	public Double averageAnnualisedVolatility(int from, int to) throws IndexOutOfBoundsException {
 		if (to < basicPeriodLength + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriodLength + returnCalculationNbPeriods));
 		return IntStream
 				.range(from + basicPeriodLength + returnCalculationNbPeriods, to)
-				.mapToDouble(d -> annualisedVolatilityAt(d))
+				.mapToDouble(d -> movingVolatiltityAt(d))
 				.average()
 				.getAsDouble();
 	}
-	
+
 	public Double averageAnnualisedSignedVolatility(int from, int to, int sign) throws IndexOutOfBoundsException {
 		if (to < basicPeriodLength + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriodLength + returnCalculationNbPeriods));
 		return IntStream
 				.range(from + basicPeriodLength + returnCalculationNbPeriods, to)
-				.mapToDouble(d -> annualisedSignedVolatilityAt(d, sign))
+				.mapToDouble(d -> movingSignedVolatilityAt(d, sign))
 				.average()
 				.getAsDouble();
 	}
 
-	public Double annualisedVolatilityAt(int d) {
+	public Double movingVolatiltityAt(int d) {
 		Double stdOfD2DReturns = stdOfReturnsAt(d);
-		return stdOfD2DReturns * Math.sqrt(YEAR_LENGTH/basicPeriodLength);
+		return stdOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
+	}
+	
+	public Double movingMeanAt(int d) {
+		Double meanOfD2DReturns = meanOfReturnsAt(d);
+		return meanOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
 	}
 
-	public Double annualisedSignedVolatilityAt(int d, int sign) {
+	public Double movingSignedVolatilityAt(int d, int sign) {
 		Double stdOfD2DReturns = stdOfReturnsSignedAt(d, sign);
-		return stdOfD2DReturns * Math.sqrt(YEAR_LENGTH/basicPeriodLength);
+		return stdOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
+	}
+
+	public Double movingSignedMeanAt(int d, int sign) {
+		Double meanOfD2DReturns = meanOfReturnsSignedAt(d, sign);
+		return meanOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
 	}
 
 	private Double stdOfReturnsAt(int d) {
@@ -80,6 +92,21 @@ public class HistoricalVolatilityCalculator {
 		return stdev.sEvaluate(d2DReturns);
 
 	}
+	
+	private Double meanOfReturnsAt(int d) {
+
+		int d0 = d - returnCalculationNbPeriods - basicPeriodLength;
+		List<Double> d2DReturns = IntStream
+				.range(0, returnCalculationNbPeriods)
+				.mapToObj(i -> {
+					return periodReturn(closeValues.get(d0 + i), closeValues.get(d0 + i + basicPeriodLength));
+				})
+				.collect(Collectors.toList());
+
+		ApacheStats stdev = new ApacheStats(new Mean());
+		return stdev.sEvaluate(d2DReturns);
+
+	}
 
 	private Double stdOfReturnsSignedAt(int d, int sign) {
 
@@ -93,6 +120,22 @@ public class HistoricalVolatilityCalculator {
 				.collect(Collectors.toList());
 
 		ApacheStats stdev = new ApacheStats(new StandardDeviation());
+		return stdev.sEvaluate(d2DReturns);
+
+	}
+
+	private Double meanOfReturnsSignedAt(int d, int sign) {
+
+		int d0 = d - returnCalculationNbPeriods - basicPeriodLength;
+		List<Double> d2DReturns = IntStream
+				.range(0, returnCalculationNbPeriods)
+				.mapToObj(i -> {
+					return periodReturn(closeValues.get(d0 + i), closeValues.get(d0 + i + basicPeriodLength));
+				})
+				.filter(v -> sign*v > 0)
+				.collect(Collectors.toList());
+
+		ApacheStats stdev = new ApacheStats(new Mean());
 		return stdev.sEvaluate(d2DReturns);
 
 	}
