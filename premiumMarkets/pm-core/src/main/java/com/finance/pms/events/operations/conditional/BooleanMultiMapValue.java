@@ -52,7 +52,6 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
-
 	public BooleanMultiMapValue(Set<Date> keySet, boolean initValue) {
 		super(keySet, initValue);
 		additionalOutputs = new HashMap<String, NumericableMapValue>();
@@ -61,7 +60,7 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : size is "+map.size() + ((map.size() > 0)?", first key "+map.firstKey()+ ", last key "+map.lastKey():"");
+		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey()+ ", last key " + map.lastKey():"");
 	}
 
 	@Override

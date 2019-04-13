@@ -38,9 +38,9 @@ import com.finance.pms.events.operations.Value;
 import com.tictactec.ta.lib.MAType;
 
 public class MATypeValue extends Value<MAType> implements StringableValue, Cloneable {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(MATypeValue.class);
-	
+
 	@XmlElement
 	MAType maTypeValue;
 
@@ -48,19 +48,16 @@ public class MATypeValue extends Value<MAType> implements StringableValue, Clone
 	private MATypeValue() {
 		super();
 	}
-	
+
 	public MATypeValue(String value) {
 		super();
 		this.maTypeValue = MAType.valueOf((""+value.charAt(0)).toUpperCase() + value.toLowerCase().substring(1));
 	}
-	
 
 	@Override
 	public MAType getValue(TargetStockInfo targetStock) {
 		return maTypeValue;
 	}
-	
-	
 
 	@Override
 	public String toString() {

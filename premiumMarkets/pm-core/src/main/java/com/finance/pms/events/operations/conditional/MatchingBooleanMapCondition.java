@@ -42,8 +42,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.datasources.ComparableSortedMap;
@@ -61,6 +59,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 //TODO Dynamic criterias  (by inheritance or parameter?)
 @SuppressWarnings("rawtypes")
 /**
+ * Matching discrete inputs by comparing end dates and lengths for every discrete occurrence against each other of the passed inputs.
  * So far only makes sense for binary comparison of Series (i.e. two Series as parameters).
  * Additional constraints :
  * 'spanning'. Does not make sense : As this condition is a status check in time not an event (change of status) check in time.
@@ -69,7 +68,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * @author Gheeyom Thor
  *
  */
-public class MatchingBooleanMapCondition extends BooleanMapCondition implements LinearOutputs {
+public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(MatchingBooleanMapCondition.class);
 
@@ -310,16 +309,6 @@ public class MatchingBooleanMapCondition extends BooleanMapCondition implements 
 
 		_Matching.addAll(foundMatching.orElse(new ArrayList<>()));
 		return _Matching.size() == (constNHeadMapsCmp.length-1) - (firstTailMapIdx);
-	}
-
-	@Override
-	protected Boolean shortcutUnary() {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	protected Boolean exactDataSet() {
-		throw new NotImplementedException();
 	}
 
 }

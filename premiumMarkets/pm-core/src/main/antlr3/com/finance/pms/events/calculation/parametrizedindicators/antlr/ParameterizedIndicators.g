@@ -15,10 +15,10 @@ tokens {
 
   NullCondition;
 
+  TruthOfCondition ;
   OrBooleanMapCondition ;
   AndBooleanMapCondition ;
-  NotBooleanMapCondition;
-  MatchingBooleanMapCondition ;
+  NotBooleanMapCondition ;
 
   SupDoubleMapCondition ;
   InfDoubleMapCondition ;
@@ -35,6 +35,7 @@ tokens {
   UpRatioCondition ;
   DownRatioCondition ;
   ReverseCondition ;
+
   HigherHighCondition ;
   HigherLowCondition ;
   LowerHighCondition ;
@@ -45,6 +46,8 @@ tokens {
   LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
   LinearDirectedTrendsCondition ;
+  
+  MatchingBooleanMapCondition ;
 
   EqualStringConstantCondition ;
 
@@ -56,6 +59,7 @@ tokens {
   MATCHING = 'matching';
   LENIENT = 'lenient';
   NOT = 'not';
+  TRUTHOF = 'truth of';
   SEMICOLUMN = ';';
   OPENPARENTEHSIS = '(';
   CLOSEPARENTEHSIS = ')';
@@ -174,7 +178,7 @@ bearish_condition[CommonTree bcond] :
   'override start shift with' WhiteChar fixedStartShift=constant WhiteChar DAYS SEMICOLUMN -> {$fixedStartShift.tree} |
   -> ^(Number NumberToken["-1"])
  ;
- 
+
 bearish_not_bullish[CommonTree bcond] :
  'is bearish if not bullish'
   (
@@ -186,8 +190,8 @@ bearish_not_bullish[CommonTree bcond] :
 
 
 primary_expression :
- and_expression
- ;
+  and_expression
+  ;
 and_expression :
   or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndBooleanMapCondition {$lenientParam.tree} or_expression or_expression*)
   ;
@@ -198,24 +202,27 @@ matches_expression :
   atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingBooleanMapCondition constant* atom atom?)
   ;
 atom :
-  booleanhistory |
+  booleanhistory | 
   '(' WhiteChar* primary_expression WhiteChar* ')' -> primary_expression |
-  'not' WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotBooleanMapCondition primary_expression)
+  NOT WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotBooleanMapCondition primary_expression) |
+  conjunctiontruthof
   ;
-
-
+conjunctiontruthof :
+  TRUTHOF WhiteChar primary_expression (COMMA WhiteChar primary_expression)* WhiteChar 'is within' WhiteChar '[' min=constant ',' max=constant ']' -> ^(TruthOfCondition {$min.tree} {$max.tree} primary_expression primary_expression*)
+  ;
 booleanhistory :
 	firstOp=operand WhiteChar (
 		presetcondition[$firstOp.tree] -> presetcondition |
 		opcmpcondition[$firstOp.tree] -> opcmpcondition |
 		constantcmp[$firstOp.tree] -> constantcmp
 	);
+
 operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""])) | opName = Operation {checkOperationValidity($opName);} -> Operation;
+
 constant :  NumberToken -> ^(Number NumberToken) | 'NaN' -> ^(Number NumberToken["NaN"]);
 stringconstant : StringToken -> ^(String StringToken);
 trendconstant : 'bullish' -> ^(String StringToken["\"bullish\""]) | 'bearish' -> ^(String StringToken["\"bearish\""]);
 lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
-
 
 opcmpcondition [CommonTree firstOp] :
 

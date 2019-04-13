@@ -35,9 +35,8 @@ import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 
-public abstract class NumericableMapValue extends Value<SortedMap<Date, Double>> implements Cloneable {
+public abstract class NumericableMapValue extends MapValue<Double> implements Cloneable {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(NumericableMapValue.class);
 

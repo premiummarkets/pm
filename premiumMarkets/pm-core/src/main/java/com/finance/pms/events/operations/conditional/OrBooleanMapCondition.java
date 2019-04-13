@@ -30,6 +30,9 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.Operation;
 
@@ -45,9 +48,10 @@ public class OrBooleanMapCondition extends BooleanMapCondition {
 	}
 
 	@Override
-	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Boolean>... ops) {
-		for (Comparable<Boolean> op : ops) {
-			if (op.compareTo(Boolean.TRUE) == 0) return true;
+	public Boolean conditionCheck(@SuppressWarnings("rawtypes") Comparable... ops) {
+		List<Boolean> bools = Arrays.stream(ops).map(b -> (Boolean) b).collect(Collectors.toList());
+		for (Boolean op : bools) {
+			if (Boolean.TRUE.compareTo(op) == 0) return true;
 		}
 		return false;
 	}

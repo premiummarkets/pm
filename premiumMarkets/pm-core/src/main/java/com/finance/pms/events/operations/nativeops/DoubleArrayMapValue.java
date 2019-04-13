@@ -46,7 +46,7 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 	public SortedMap<Date, double[]> getDoubleArrayValue() {
 		return map;
 	}
-	
+
 	@Override
 	public Map<String, Type> getAdditionalOutputsTypes() {
 		return IntStream.range(0, this.columnsReferences.size())
@@ -58,15 +58,15 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 	public Map<String, NumericableMapValue> getAdditionalOutputs() {
 		if (collectAdditionalOutputs == null) {
 			collectAdditionalOutputs = IntStream.range(0, this.columnsReferences.size())
-				.boxed()
-				.collect(Collectors.toMap(
-						i -> columnsReferences.get(i),
-						i -> {
-							TreeMap<Date, Double> collect = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[i], (a,b) -> a, TreeMap::new));
-							return new DoubleMapValue(collect);
-						}
-					)
-				);
+					.boxed()
+					.collect(Collectors.toMap(
+							i -> columnsReferences.get(i),
+							i -> {
+								TreeMap<Date, Double> collect = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[i], (a,b) -> a, TreeMap::new));
+								return new DoubleMapValue(collect);
+							}
+							)
+							);
 		}
 		return collectAdditionalOutputs;
 	}

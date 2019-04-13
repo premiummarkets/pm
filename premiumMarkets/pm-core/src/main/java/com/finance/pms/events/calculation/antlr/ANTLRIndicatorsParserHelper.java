@@ -85,7 +85,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 							"WhiteChar",
 							"SEMICOLUMN", "COMMA", "OPENSQRT", "CLOSESQRT", "PERCENT", "DAYS", "OPENPARENTEHSIS", "CLOSEPARENTEHSIS",
 							"NumberToken", "HistoricalData",
-							"AND", "OR", "MATCHING"));
+							"AND", "OR", "MATCHING", "NOT", "TRUTHOF"));
 
 	private static final String WHITECHARVALUE = " ";
 
@@ -160,10 +160,10 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				exceptionIndex = 0;
 				parser.complete_expression();
 			} catch (ExitParsingException e) {
-				LOGGER.info("Early exit : "+e);
+				LOGGER.debug("Early exit : " + e);
 			}
 
-			LOGGER.info("Exception stack :"+ exceptions);
+			LOGGER.debug("Exception stack :"+ exceptions);
 
 			LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
@@ -204,6 +204,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				if (exception.input instanceof CommonTokenStream && exceptionHolder.getRuleStack().size() < longestStack.size()) continue;
 				//if (exception.input instanceof ANTLRInputStream) continue;
 
+				LOGGER.info("Call stack : " + longestStack);
 				String lastStack = (longestStack != null)?longestStack.get(longestStack.size()-1):"unknown";
 				String expectedTxt = "";
 				int[] deletePosition =  null; //new int[]{exception.line,exception.charPositionInLine+tokenTxt.length()-1};
@@ -236,7 +237,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 						deletePosition = new int[]{exception.line,exception.charPositionInLine+tokenTxt.length()-1};
 					}
 				}
-				System.out.println("Expected : "+expectedTxt);
+				LOGGER.debug("Expected : " + expectedTxt);
 
 				//TokenTxt
 				if (tokenTxt.isEmpty() && !parsedLine.isEmpty()) {
@@ -255,7 +256,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					}
 					if (!eofToken) deletePosition = new int[]{exception.line,exception.charPositionInLine+tokenTxt.length()-1};
 				}
-				System.out.println("Token : "+tokenTxt);
+				LOGGER.debug("Token : " + tokenTxt);
 
 				//Positions
 				int[] eofPosition =  ANTLRParserHelper.translateCaretToPosition(parsedLine, parsedLine.length()-1);
@@ -267,11 +268,11 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				//int[] tokenPosition = new int[]{deletePosition[0], deletePosition[1]+1};
 
-				System.out.println("Delete position : "+deletePosition[0]+", "+deletePosition[1]);
-				//System.out.println("Token position : "+tokenPosition[0]+", "+tokenPosition[1]);
-				System.out.println("Exception position : "+exception.line+", "+exception.charPositionInLine);
-				System.out.println("EOF Position : "+eofPosition[0]+", "+eofPosition[1]);
-				System.out.println("is EOFToken : "+eofToken);
+				LOGGER.debug("Delete position : " + deletePosition[0] + ", " + deletePosition[1]);
+				//LOGGER.debug("Token position : " + tokenPosition[0] + ", " + tokenPosition[1]);
+				LOGGER.debug("Exception position : " + exception.line + ", " + exception.charPositionInLine);
+				LOGGER.debug("EOF Position : " + eofPosition[0] + ", " + eofPosition[1]);
+				LOGGER.debug("is EOFToken : " + eofToken);
 
 				//Expected
 				if (expectedTxt != null && expectedTxt.equals("WhiteChar")) {
@@ -345,8 +346,9 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				else if (expectedTxt != null && expectedTxt.equals("OPENPARENTEHSIS")) {
 					if (eofToken) {
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "(", "Insert", "To start the nested condition", null, eofPosition));
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "not(", "Insert", "To negate a nested condition", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "(", "Nested expression", "( A and B and (C or D) , A or (C and D) ...)", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "not(", "Negation", "not( A ), not( B and ( C or D ) ...)", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "truth of", "Conjunction range", "truth of A, B, C .. is within [a,b]", null, eofPosition));
 					} else {
 						altPrioListForTokType(priorityList, AltType.DELETE, -1)
 						.add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid or Incomplete Entry", "'" +"("+ "' expected.", null, deletePosition));
@@ -355,7 +357,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				else if (expectedTxt != null && expectedTxt.equals("CLOSEPARENTEHSIS")) {
 					if (eofToken) {
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ")", "Insert", "To end the nested condition", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ")", "Nested expression closure", "To end the nested expression", null, eofPosition));
 						addUsualSuspectSuggestions(" ", " ", priorityList, eofPosition);
 					} else {
 						altPrioListForTokType(priorityList, AltType.DELETE, -1)
@@ -365,7 +367,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				else if (expectedTxt != null && expectedTxt.equals("SEMICOLUMN")) {
 					if (eofToken) {
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ";", "Insert", "End of the bullish/bearish condition", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ";", "Insert", "End of the bullish/bearish expression", null, eofPosition));
 						addUsualSuspectSuggestions(" ", " ", priorityList, eofPosition);
 					} else {
 						altPrioListForTokType(priorityList, AltType.DELETE, -1)
@@ -373,7 +375,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					}
 					break;
 				}
-				//TODO enum of usual conditions : OR, AND, MATCHING and iterate through
+				//TODO enum of usual expressions : OR, AND, MATCHING and iterate through
 				else if (expectedTxt != null && ( expectedTxt.equals("OR") || expectedTxt.equals("AND") || expectedTxt.equals("MATCHING") ) && tokenTxt.isEmpty()) {
 					addUsualSuspectSuggestions("", " ", priorityList, eofPosition);
 					break;
@@ -419,15 +421,21 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 
 				//Stack
-				if (lastStack.equals("lenient")) {
+				if (longestStack != null && longestStack.contains("conjunctiontruthof") && lastStack.equals("lenient")) { //"and_expression" within a "conjunctiontruthof"
 					if (eofToken) {
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ";", "Insert", "End of the bullish/bearish condition", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ", ", "Insert", "To set the next conjunction", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, " is within ", "Insert", "Specify the conjunction truth range", null, eofPosition));
+					}
+				}
+				else if (lastStack.equals("lenient")) { //"and_expression"
+					if (eofToken) {
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ";", "Insert", "End of the bullish/bearish expression", null, eofPosition));
 						addUsualSuspectSuggestions(" ", " ", priorityList, eofPosition);
 					}
 				}
 				else if (lastStack.equals("bearish_condition")) {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
-					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt.equals(";")?"":tokenTxt, parsedLine, deletePosition, new String[]{"is bearish when", "is bearish if not bullish;", "is bearish if not bullish and", "is bearish if not bullish or"}, "To set the bearish condition : ", TokenType.KEYWORDS);
+					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt.equals(";")?"":tokenTxt, parsedLine, deletePosition, new String[]{"is bearish when", "is bearish if not bullish;", "is bearish if not bullish and", "is bearish if not bullish or"}, "To set the bearish expression : ", TokenType.KEYWORDS);
 					if (!foundMatch) {//&& deleteFilter) {
 						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'is bearish when/if' expected", null, deletePosition));
 					} 
@@ -445,7 +453,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				else if (lastStack.equals("bullish_condition")) {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
-					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"is bullish when"}, "To set the bullish condition : ", TokenType.KEYWORDS);
+					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"is bullish when"}, "To set the bullish expression : ", TokenType.KEYWORDS);
 					if (!foundMatch) { // && deleteFilter) {
 						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'is bullish when' expected", null, deletePosition));
 					} 
@@ -469,23 +477,26 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				else if (lastStack.equals("primary_expression") || lastStack.equals("atom")) {
 
-					//Open a new sub condition
+					//Open a new nested expression
 					if (tokenTxt.isEmpty()) {
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0)
-						.add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "(", "Insert", "Parenthesis to create a nested conditions using 'and' or 'or' operators\nex: ( A and B and (C or D) , A or (C and D) ...)", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "(", "Nested expression", "( A and B and (C or D) , A or (C and D) ...)", null, eofPosition));
 					}
 
 					//Start a not condition 
 					if (tokenTxt.isEmpty()) {
-						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0)
-						.add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "not(", "Insert", "To negate a nested condition\nex: not( A ), not( B and ( C or D ) ...)", null, eofPosition));
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "not(", "Negation", "not( A ), not( B and ( C or D ) ...)", null, eofPosition));
+					}
+
+					//Start a conjunction range expression
+					if (tokenTxt.isEmpty()) {
+						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, "truth of", "Conjunction range", "truth of A, B, C .. is within [a,b]", null, eofPosition));
 					}
 
 					//All ops
 					List<Alternative> allOpsAndStockDataAsAlts = new ArrayList<Alternative>();
 					Boolean foundMatching = addAllOps(allOpsAndStockDataAsAlts, tokenTxt.equals("(")?"":tokenTxt, eofPosition);
 					if (!foundMatching && deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry",  "Operation or stock historical output expected.", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "Operation or stock historical output expected.", null, deletePosition));
 					} 
 					else if (!allOpsAndStockDataAsAlts.isEmpty()) {
 						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allOpsAndStockDataAsAlts);
@@ -493,7 +504,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 				}
 				else if (lastStack.equals("booleanhistory")) {
-					//Conditions on ops					
+					//Conditions on ops
 					List<Alternative> allPresetConditions = new ArrayList<Alternative>();
 
 					SortedSet<String> sortedConditionOnopsTokens = new TreeSet<String>();
@@ -529,7 +540,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 			}
 
-			LOGGER.info("Final position : "+state.tokenStartLine+", "+state.tokenStartCharPositionInLine);
+			LOGGER.debug("Final position : " + state.tokenStartLine + ", " + state.tokenStartCharPositionInLine);
 			if (priorityList.isEmpty()) {
 				int finalCaretPosition = translatePositionToCaret(parsedLine, state.tokenStartLine, state.tokenStartCharPositionInLine);
 				if (parsedLine.length() > finalCaretPosition) {
@@ -549,8 +560,8 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 			}
 
 
-			LOGGER.info("Priority list : "+priorityList);
-			LOGGER.info("Next token alt : "+nextToken);
+			LOGGER.debug("Priority list : " + priorityList);
+			LOGGER.debug("Next token alt : " + nextToken);
 
 			return nextToken;
 
@@ -560,26 +571,26 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 		} catch (RecognitionException e) {
 			LOGGER.error("This should have been caught : "+e, e);
 
-		} 
+		}
 
 		return null;
 	}
 
 
 	private void addUsualSuspectSuggestions(String prefix, String suffix, SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList, int[] eofPosition) {
-		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix+"matching"+suffix, "Insert", "To add a 'matching' condition", null, eofPosition));
-		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix+"or"+suffix, "Insert", "To add an 'or' condition", null, eofPosition));
-		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix+"and"+suffix, "Insert", "To  add an 'and' condition", null, eofPosition));
+		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "matching" + suffix, "Insert", "To add a 'matching' expression", null, eofPosition));
+		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "or" + suffix, "Insert", "To add an 'or' expression", null, eofPosition));
+		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "and" + suffix, "Insert", "To  add an 'and' expression", null, eofPosition));
 	}
 
 
 	protected Boolean addAllOps(List<Alternative> allOpsAndStockDataAsAlts, String expectedTxt, int[] position) {
-		Boolean foundMatching = addSuggsAsAlts(allOpsAndStockDataAsAlts, expectedTxt, position, HISTORICALDATA_TOKENS, "For a condition on stock historical ");
+		Boolean foundMatching = addSuggsAsAlts(allOpsAndStockDataAsAlts, expectedTxt, position, HISTORICALDATA_TOKENS, "For a expression on stock historical ");
 		try {
 			allOpsAndStockDataAsAlts.addAll(addAllOpsAsAlts(expectedTxt, position));
 			foundMatching = true;
 		} catch (IllegalArgumentException e) {
-			LOGGER.info("no op matching");
+			LOGGER.debug("No operation matching" + e);
 		}
 		return foundMatching;
 	}

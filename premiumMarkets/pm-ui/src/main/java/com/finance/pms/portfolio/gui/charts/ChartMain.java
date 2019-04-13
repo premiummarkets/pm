@@ -1,4 +1,4 @@
- /**
+/**
  * Premium Markets is an automated stock market analysis system.
  * It implements a graphical environment for monitoring stock markets technical analysis
  * major indicators, for portfolio management and historical data charting.
@@ -69,6 +69,8 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -109,6 +111,7 @@ import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartIndicLineSeriesDataSetBuilder;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
+import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
@@ -233,33 +236,33 @@ public class ChartMain extends Chart {
 								String origin = (closeForDate.getOrigin().equals(ORIGIN.USER)) ?
 										ORIGIN.USER.name().toLowerCase()
 										: slPShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
-								String trCurrency = slPShare.getTransactionCurrency().name();
-								String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();
+										String trCurrency = slPShare.getTransactionCurrency().name();
+										String stockCurrency = slPShare.getStock().getMarketValuation().getCurrency().name();
 
-								String string = 
-										"<html>" +
-											"<font size='2'>" + "<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>" + "</font>" +
-											"<table CELLSPACING=0 CELLPADDING=1>" +
-												"<tr><td><font size='2'>Open</font></td><td><font size='2'>"+
-													NUMBER_FORMAT.format(closeForDate.getOpenSplit()) +
-												"</font></td></tr>" +
-												"<tr><td><font size='2'>High</font></td><td><font size='2'>" +
-													NUMBER_FORMAT.format(closeForDate.getHighSplit())
-												+ "</font></td></tr>" +
-												"<tr><td><font size='2'>Low</font></td><td><font size='2'>"
-													+ NUMBER_FORMAT.format(closeForDate.getLowSplit()) +
-												"</font></td></tr>"
-												+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
-													NUMBER_FORMAT.format(closeForDate.getCloseSplit())
-												+ "</font></td></tr>" +
-												"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
-											"</table>" +
-											"<font size='2'>" +
-												"(Source: " + origin +", Split: " + closeForDate.getSplit() + ", Currency: " + stockCurrency + " here in " + trCurrency + ")" +
-												variationAddInfo +
-											"</font>" +
-										"</html>";
-								return string;
+										String string = 
+												"<html>" +
+														"<font size='2'>" + "<b>" + slPShare.getFriendlyName() + "</b> On the " + x + "<br>" + "</font>" +
+														"<table CELLSPACING=0 CELLPADDING=1>" +
+														"<tr><td><font size='2'>Open</font></td><td><font size='2'>"+
+														NUMBER_FORMAT.format(closeForDate.getOpenSplit()) +
+														"</font></td></tr>" +
+														"<tr><td><font size='2'>High</font></td><td><font size='2'>" +
+														NUMBER_FORMAT.format(closeForDate.getHighSplit())
+														+ "</font></td></tr>" +
+														"<tr><td><font size='2'>Low</font></td><td><font size='2'>"
+														+ NUMBER_FORMAT.format(closeForDate.getLowSplit()) +
+														"</font></td></tr>"
+														+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
+														NUMBER_FORMAT.format(closeForDate.getCloseSplit())
+														+ "</font></td></tr>" +
+														"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
+														"</table>" +
+														"<font size='2'>" +
+														"(Source: " + origin +", Split: " + closeForDate.getSplit() + ", Currency: " + stockCurrency + " here in " + trCurrency + ")" +
+														variationAddInfo +
+														"</font>" +
+														"</html>";
+										return string;
 
 							} catch (Exception e) {
 								LOGGER.error(e, e);
@@ -479,16 +482,24 @@ public class ChartMain extends Chart {
 
 							}
 						};
-
 						renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
+
+						//Labels
+						renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.OUTSIDE7, TextAnchor.BOTTOM_CENTER, TextAnchor.CENTER, 1.57));
+						//renderer.setBaseItemLabelFont(renderer.getBaseItemLabelFont().deriveFont(0,8f));
 						renderer.setSeriesItemLabelGenerator(eventDefSerieIdx, new XYItemLabelGenerator() {
 							@Override
 							public String generateLabel(XYDataset dataset, int series, int item) {
-								// TODO Auto-generated method stub
-								return "toto";
+								Date date = new Date((long) dataset.getXValue(series, item));
+								List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
+								PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
+								if (period == null || period.getTrend().equals(EventType.BEARISH.name())) return "";
+								return pf.format(period.getPriceRateOfChange());
 							}
 						});
 						renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
+
+						//Bars
 						renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
 						renderer.setSeriesOutlinePaint(eventDefSerieIdx, serieDef.getSerieColor());
 						renderer.setSeriesPaint(eventDefSerieIdx, serieDef.getSerieColor());

@@ -56,9 +56,9 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 
 public class BarSettingsDialog {
-	
-//	private static MyLogger LOGGER = MyLogger.getLogger(BarSettingsDialog.class);
-	
+
+	//	private static MyLogger LOGGER = MyLogger.getLogger(BarSettingsDialog.class);
+
 	private Shell shell;
 	private Shell parent;
 	private ChartsComposite chartTarget;
@@ -67,10 +67,10 @@ public class BarSettingsDialog {
 
 	private BarSettings barChartSettings;
 	private Double initialAlphaDividend;
-	
+
 	private Button sideBySide;
 
-	
+
 	public BarSettingsDialog(ChartsComposite chartTarget, BarSettings barSettings, ActionDialogAction action) {
 		this.barChartSettings = barSettings;
 		this.parent= chartTarget.getShell();
@@ -82,41 +82,41 @@ public class BarSettingsDialog {
 	public BarSettings getBarChartSettings() {
 		return barChartSettings;
 	}
-	
+
 	public BarSettings open(Point location) {
-		
-        shell = new Shell(parent.getShell(), SWT.DIALOG_TRIM);
-        shell.setText(MainGui.APP_NAME+" - Trend Display Settings ...");
-        
-        shell.addDisposeListener(new DisposeListener() {
-			
+
+		shell = new Shell(parent.getShell(), SWT.DIALOG_TRIM);
+		shell.setText(MainGui.APP_NAME+" - Trend Display Settings ...");
+
+		shell.addDisposeListener(new DisposeListener() {
+
 			@Override
 			public void widgetDisposed(DisposeEvent event) {
 				MainPMScmd.getMyPrefs().flushy();
 			}
 		});
-        
-        initGui();
-        
-        shell.setLocation(location);
-        
+
+		initGui();
+
+		shell.setLocation(location);
+
 		shell.layout();
 		shell.pack();
-        
-        shell.open();
-        
-        return barChartSettings;
-        
+
+		shell.open();
+
+		return barChartSettings;
+
 	}
-	
-	
+
+
 
 	private void initGui() {
 
 		GridLayout layout = new GridLayout(2, true);
 		shell.setLayout(layout);
 		shell.setBackground(MainGui.pOPUP_BG);
-		
+
 		{
 			Label evtOccSpanLab = new Label(shell, SWT.NONE);
 			GridData labelLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
@@ -125,7 +125,7 @@ public class BarSettingsDialog {
 			evtOccSpanLab.setFont(MainGui.DEFAULTFONT);
 			evtOccSpanLab.setText("Trend event days span");
 			evtOccSpanLab.setToolTipText("Trend events can be represented with a validity span, reflected in the width of the bars.\nZero means that the trend event is valid until an other event occurs.");
-			
+
 			final Text evtOccSpanTxt = new Text(shell, SWT.NONE);
 			GridData txtLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
 			evtOccSpanTxt.setLayoutData(txtLayoutData);
@@ -146,7 +146,7 @@ public class BarSettingsDialog {
 			};
 			evtOccSpanTxt.addListener (SWT.FocusOut, listener);
 			evtOccSpanTxt.addListener (SWT.DefaultSelection, listener);
-			
+
 		}
 		{
 			final Button isReachTop = new Button(shell, SWT.CHECK);
@@ -158,12 +158,12 @@ public class BarSettingsDialog {
 			isReachTop.setText("Draw bars to the top");
 			isReachTop.setToolTipText("All the bars will at the top, overlapping each other with transparency.\nIf unchecked, bars stop at label level.");
 			isReachTop.addSelectionListener(new SelectionListener() {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					handle();
 				}
-				
+
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
 					handle();
@@ -172,7 +172,7 @@ public class BarSettingsDialog {
 				private void handle() {
 					barChartSettings.setIsReachTop(isReachTop.getSelection());
 					action.action();
-					
+
 				}
 			});
 			isReachTop.setSelection(barChartSettings.getIsReachTop());
@@ -187,12 +187,12 @@ public class BarSettingsDialog {
 			isZeroBase.setText("Draw bars to the base");
 			isZeroBase.setToolTipText("All the bars will start at zero, overlapping each other with transparency.\nIf unchecked, bars stop at label level.");
 			isZeroBase.addSelectionListener(new SelectionListener() {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					handle();
 				}
-				
+
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
 					handle();
@@ -201,7 +201,7 @@ public class BarSettingsDialog {
 				private void handle() {
 					barChartSettings.setIsZerobased(isZeroBase.getSelection());
 					action.action();
-					
+
 				}
 			});
 			isZeroBase.setSelection(barChartSettings.getIsZeroBased());
@@ -215,15 +215,14 @@ public class BarSettingsDialog {
 			sideBySide.setFont(MainGui.DEFAULTFONT);
 			sideBySide.setText("Display side by side");
 			sideBySide.setToolTipText(
-					"Bar are displayed side by side, form top to bottom.\n" +
-					"For this to be working, the event validity days span has to be above the number of indicators involved.");
+					"Trends are displayed side by side. From top to bottom, each trend bar width is divided as per trendBarWidth/nbTrends and shifted by trendId*(trendBarWidth/nbTrends)\n" +
+					"The event validity days span (nominal width of a trend bar) should be set bigger then the total number of trend indicators dispalyed.");
 			sideBySide.addSelectionListener(new SelectionListener() {
-				
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					handle();
 				}
-				
+
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
 					handle();
@@ -235,13 +234,12 @@ public class BarSettingsDialog {
 				}
 			});
 			sideBySide.addMouseMoveListener(new MouseMoveListener() {
-				
 				@Override
 				public void mouseMove(MouseEvent e) {
 					sideBySide.setToolTipText(
-							"Bar are displayed side by side, form top to bottom.\n" +
-							"For this to be working, the event validity days span has to be above the number of indicators involved.\n" +
-							"I.e. : "+chartTarget.getChartedEvtDefsTrends().size());
+							"Trends are displayed side by side. From top to bottom, each trend bar width is divided as per trendBarWidth/nbTrends and shifted by trendId*(trendBarWidth/nbTrends)\n" +
+									"The event validity days span (nominal width of a trend bar) is ideally set equal to the total number of trend indicator displayed.\n" +
+									"I.e. : "+chartTarget.getChartedEvtDefsTrends().size());
 				}
 			});
 			sideBySide.setSelection(barChartSettings.getSideBySide());
@@ -254,14 +252,14 @@ public class BarSettingsDialog {
 			isGradient.setBackground(MainGui.pOPUP_BG);
 			isGradient.setFont(MainGui.DEFAULTFONT);
 			isGradient.setText("Progressive opacity");
-			isGradient.setToolTipText("Bar are displayed using a progressive opacity.\nIf unchecked, bars are using the same opacity");
+			isGradient.setToolTipText("Each trend indicator is displayed with different opacity.\nThe opacity going from strong for the bottom trend to light for the top one.");
 			isGradient.addSelectionListener(new SelectionListener() {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					handle();
 				}
-				
+
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
 					handle();
@@ -272,7 +270,7 @@ public class BarSettingsDialog {
 					action.action();
 				}
 			});
-			isGradient.setSelection(barChartSettings.getIsGradiant());
+			isGradient.setSelection(barChartSettings.getIsGradient());
 		}
 		{
 			final Spinner alphaSpinner = new Spinner(shell, SWT.WRAP);
@@ -311,7 +309,7 @@ public class BarSettingsDialog {
 			});
 		}
 
-		
+
 	}
 
 	public Shell getShell() {

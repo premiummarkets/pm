@@ -42,9 +42,10 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.MapValue;
 
-@XmlSeeAlso({AndBooleanMapCondition.class, OrBooleanMapCondition.class, NotBooleanMapCondition.class})
-public abstract class BooleanMapCondition extends Condition<Boolean> {
+@XmlSeeAlso({AndBooleanMapCondition.class, OrBooleanMapCondition.class, NotBooleanMapCondition.class, TruthOfCondition.class})
+public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapCondition.class);
 
@@ -63,11 +64,18 @@ public abstract class BooleanMapCondition extends Condition<Boolean> {
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		if (shortcutUnary() && inputs.size() == 1) {
-			return (BooleanMapValue) inputs.get(0); 
+		//Params check
+		int i = 0;
+		List<Comparable<?>> constants = new ArrayList<>();
+		while (!(inputs.get(i) instanceof MapValue<?>)) {
+			constants.add((Comparable<?>)inputs.get(i).getValue(targetStock));
+			i++;
 		}
+		@SuppressWarnings("unchecked") List<MapValue<Boolean>> checkedInputs = (List<MapValue<Boolean>>) inputs.subList(i, inputs.size());
 
-		@SuppressWarnings("unchecked") List<Value<SortedMap<Date, Boolean>>> checkedInputs = (List<Value<SortedMap<Date, Boolean>>>)inputs;
+		if (shortcutUnary() && checkedInputs.size() == 1) {
+			return (BooleanMapValue) checkedInputs.get(i);
+		}
 
 		List<SortedMap<Date, Boolean>> maps = new ArrayList<>();
 		SortedSet<Date> fullKeySet = new TreeSet<>();
@@ -101,7 +109,10 @@ public abstract class BooleanMapCondition extends Condition<Boolean> {
 			if (!gruyereDetected) {
 				//If the exactDataSet requirement is false (no strict comparison),
 				// we compare elements of operands even if not all are present at a given date.
-				Boolean conditionCheck = conditionCheck(currentOps.toArray(new Boolean[0]));
+				List<Comparable<?>> condCheckParams = new ArrayList<>();
+				condCheckParams.addAll(constants);
+				condCheckParams.addAll(currentOps);
+				@SuppressWarnings("unchecked") Boolean conditionCheck = conditionCheck(condCheckParams.toArray(new Comparable[0]));
 				if (conditionCheck != null) {
 					outputs.getValue(targetStock).put(date, conditionCheck);
 				}

@@ -34,19 +34,19 @@ import java.util.ArrayList;
 import com.finance.pms.events.operations.Operation;
 
 public class NotBooleanMapCondition extends BooleanMapCondition {
-	
+
 	private NotBooleanMapCondition() {
 		super("not", "Return the complementary of a boolean series.", new Condition<Boolean>("boolean historical data"));
 	}
-	
+
 	public NotBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
 	}
 
 	@Override
-	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Boolean>... ops) {
-	   return !(Boolean)ops[0];
+	public Boolean conditionCheck(@SuppressWarnings("rawtypes") Comparable... ops) {
+		return !(Boolean) ops[0];
 	}
 
 	@Override

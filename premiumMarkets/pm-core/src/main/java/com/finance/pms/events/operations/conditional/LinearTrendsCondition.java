@@ -33,7 +33,7 @@ import com.finance.pms.events.scoring.functions.Line;
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({LinearDirectedTrendsCondition.class, LinearOppositeTrendsCondition.class, LinearSimilarTrendsCondition.class})
-public abstract class LinearTrendsCondition extends Condition<Comparable> implements LinearOutputs {
+public abstract class LinearTrendsCondition extends DiscreteLinearOutputsCondition {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(LinearTrendsCondition.class);
 

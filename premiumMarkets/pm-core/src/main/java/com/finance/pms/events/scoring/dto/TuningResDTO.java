@@ -137,7 +137,7 @@ public class TuningResDTO implements Serializable {
 	public String toString() {
 		return "TuningResDTO [periods=" + periods + ", " +
 				"csvLink=" + csvLink + ", lastTrend=" + lastTrend + ", followProfit=" + followProfit + ", " + ", stopLossProfit=" + stopLossProfit + ", " +
-				"stockPriceChange="+stockPriceChange + ", configRatingFile=" + configRatingFile + ", footNote=" + footNote + "]";
+				"stockPriceChange=" + stockPriceChange + ", configRatingFile=" + configRatingFile + ", footNote=" + footNote + "]";
 	}
 
 	public Date getCalculatedStart() {

@@ -95,7 +95,7 @@ public class ChartBarUtils {
 					cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, end,  barSettings.getMaxFill());
 				}
 
-				int gradiant = (barSettings.getIsGradiant()) ? serieIdx/3 : 1;
+				int gradiant = (barSettings.getIsGradient()) ? serieIdx/3 : 1;
 				int alpha = 255 / (int) Math.ceil( barSettings.getAlphaDividend()*gradiant );
 				TuningResDTO tuningResDTO = tuningRess.get(eventInfo);
 

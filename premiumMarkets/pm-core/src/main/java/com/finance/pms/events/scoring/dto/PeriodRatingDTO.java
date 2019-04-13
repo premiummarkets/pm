@@ -38,19 +38,19 @@ import com.finance.pms.events.Validity;
 import com.finance.pms.events.calculation.DateFactory;
 
 public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO> {
-	
+
 	private static final long serialVersionUID = 6439016703303157679L;
-	
+
 	Date from;
 	Date to;
 	Double priceAtFrom;
 	Double priceAtTo;
-	
+
 	String trend;
-	
+
 	Validity rating;
 	List<String> configs;
-	
+
 	boolean realised;
 
 	public PeriodRatingDTO() {
@@ -60,16 +60,16 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	}
 
 	public PeriodRatingDTO(Date from, Double priceAtFrom, String trend) {
-		
+
 		this.configs = new ArrayList<String>();
 		this.realised = false;
-		
+
 		this.from = from;
 		this.priceAtFrom = priceAtFrom;
 		this.trend = trend;
-		
+
 	}
-	
+
 	public PeriodRatingDTO(Date from, Double priceAtFrom, Validity validity, String trend) {
 
 		this.configs = new ArrayList<String>();
@@ -93,7 +93,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		return to;
 	}
 	public void setTo(Date to) {
-	    if (from.after(to)) throw new IllegalArgumentException("From : "+from+" must be before or equal To : "+to);
+		if (from.after(to)) throw new IllegalArgumentException("From : "+from+" must be before or equal To : "+to);
 		this.to = to;
 	}
 	public String getTrend() {
@@ -109,7 +109,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	public String getConfigsToString() {
 		return this.getConfigs().toString().replaceAll("[\\[\\]]", "").replaceAll(",", " ");
 	}
-	
+
 	public Long getPeriodLenght() {
 		long OneDayMilliSeconds = DateFactory.DAYINMILLI;
 		return  (to.getTime() - from.getTime())/OneDayMilliSeconds;
@@ -178,11 +178,11 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	public void setPriceAtTo(Double priceAtTo) {
 		this.priceAtTo = priceAtTo;
 	}
-	
+
 	private Double getPriceChange() {
 		return priceAtTo - priceAtFrom;
 	}
-	
+
 	public Double getPriceRateOfChange() {
 		try {
 			return getPriceChange()/priceAtFrom;
@@ -190,7 +190,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 			return Double.NaN;
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom+ ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";

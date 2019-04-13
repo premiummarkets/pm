@@ -39,7 +39,7 @@ public class BarSettings {
 	private Double alphaDividend;
 	private int maxFill;
 	private Boolean isZeroBased;
-	private Boolean isGradiant;
+	private Boolean isGradient;
 	private Boolean sideBySide;
 	private Boolean isReachTop; 
 
@@ -50,7 +50,7 @@ public class BarSettings {
 		this.maxFill = MainPMScmd.getMyPrefs().getInt("chart.maxFill", 1);
 		this.isZeroBased  = MainPMScmd.getMyPrefs().getBoolean("chart.isZeroBased", false);
 		this.isReachTop =  MainPMScmd.getMyPrefs().getBoolean("chart.isReachTop", false);
-		this.isGradiant = MainPMScmd.getMyPrefs().getBoolean("chart.isGradient", false);
+		this.isGradient = MainPMScmd.getMyPrefs().getBoolean("chart.isGradient", false);
 		this.sideBySide  = MainPMScmd.getMyPrefs().getBoolean("chart.isSideBySide", false); //TODO?? => calculate some kind of density
 	}
 	
@@ -88,16 +88,16 @@ public class BarSettings {
 		}
 		this.isZeroBased = isZerobased;
 	}
-	public Boolean getIsGradiant() {
-		return isGradiant;
+	public Boolean getIsGradient() {
+		return isGradient;
 	}
-	public void setIsGradient(Boolean isGradiant) {
+	public void setIsGradient(Boolean isGradient) {
 		try {
-			MainPMScmd.getMyPrefs().putBoolean("chart.isGradient", isGradiant);
+			MainPMScmd.getMyPrefs().putBoolean("chart.isGradient", isGradient);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		this.isGradiant = isGradiant;
+		this.isGradient = isGradient;
 	}
 
 	public Boolean getSideBySide() {

@@ -30,7 +30,9 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -39,6 +41,7 @@ import com.finance.pms.events.operations.nativeops.StringValue;
 
 public class AndBooleanMapCondition extends BooleanMapCondition {
 
+	//Defaults to FALSE XXX Operations should be state less??
 	private Boolean exactDataSet;
 
 	private AndBooleanMapCondition() {
@@ -53,14 +56,15 @@ public class AndBooleanMapCondition extends BooleanMapCondition {
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		Boolean lenient = Boolean.valueOf(((StringValue)inputs.get(0)).getValue(targetStock));
-		exactDataSet = !lenient;
+		exactDataSet = !lenient; //Defaults to FALSE XXX Operations should be state less??
 		return super.calculate(targetStock, thisStartShift, inputs.subList(1, inputs.size()));
 	}
 
 	@Override
-	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Boolean>... ops) {
-		for (Comparable<Boolean> op : ops) {
-			if (op.compareTo(Boolean.TRUE) != 0) return false;
+	public Boolean conditionCheck(@SuppressWarnings("rawtypes") Comparable... ops) {
+		List<Boolean> bools = Arrays.stream(ops).map(b -> (Boolean) b).collect(Collectors.toList());
+		for (Boolean op : bools) {
+			if (Boolean.TRUE.compareTo(op) != 0) return false;
 		}
 		return true;
 	}

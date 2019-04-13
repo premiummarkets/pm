@@ -194,4 +194,8 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		return base;
 	}
 
+	public TuningResDTO getTuningRes() {
+		return tuningRes;
+	}
+
 }

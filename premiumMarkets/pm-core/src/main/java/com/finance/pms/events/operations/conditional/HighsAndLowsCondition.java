@@ -76,7 +76,7 @@ import com.finance.pms.events.scoring.functions.Line;
  */
 @SuppressWarnings("rawtypes")
 @XmlSeeAlso({HigherHighCondition.class, HigherLowCondition.class, LowerHighCondition.class, LowerLowCondition.class})
-public abstract class HighsAndLowsCondition extends Condition<Comparable> implements UnaryCondition, LinearOutputs {
+public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsCondition implements UnaryCondition {
 
 	private static final int THRESHOLDS_IDX = 6;
 	private static final int MAIN_POSITION = 13;

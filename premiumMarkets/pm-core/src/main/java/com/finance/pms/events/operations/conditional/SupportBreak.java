@@ -1,6 +1,6 @@
 package com.finance.pms.events.operations.conditional;
 
-import static com.finance.pms.events.operations.conditional.LinearOutputs.DAY_IN_MILLI;
+import static com.finance.pms.events.operations.conditional.DiscreteLinearOutputsCondition.DAY_IN_MILLI;
 
 import java.util.ArrayList;
 import java.util.Calendar;
