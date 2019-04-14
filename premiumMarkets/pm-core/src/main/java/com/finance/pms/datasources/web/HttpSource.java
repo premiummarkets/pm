@@ -241,7 +241,7 @@ public abstract class HttpSource implements SourceConnector {
 
 		Set<Validatable> resultSet= new HashSet<Validatable>();
 
-		HttpUriRequest httpget = this.getRequestMethod(formater.getMyUrl());
+		HttpUriRequest httpget = this.<HttpUriRequest>getRequestMethod(formater.getMyUrl());
 		CloseableHttpResponse response = httpcxCast.doCall(httpget);
 
 		List<Exception> otherExeptions = new ArrayList<Exception>();
@@ -253,7 +253,7 @@ public abstract class HttpSource implements SourceConnector {
 			while (result == 302) {//redirected
 
 				String locationRedir = response.getFirstHeader("location").getValue();
-				LOGGER.debug("Redirection URL :"+locationRedir);
+				LOGGER.debug("Redirection URL :" + locationRedir);
 				//httpget.releaseConnection();
 				response.close();
 
@@ -318,8 +318,12 @@ public abstract class HttpSource implements SourceConnector {
 		//BufferedReader dis = new BufferedReader(new InputStreamReader(in,"UTF-8"));
 		String line = "";
 		try {
+
 			int lineNumber = 0;
 			while ((line = dis.readLine()) != null && lineNumber < 2000) {
+
+				if (LOGGER.isDebugEnabled()) System.out.println(line);
+
 				if (line.length() > 0) {
 					lineNumber++;
 

@@ -23,14 +23,14 @@ public abstract class HttpSourceAspScrapper extends HttpSource {
 
 	@Override
 	protected Set<Validatable> readURL(LineFormater formater, MyHttpClient<?, ?> httpcx) throws HttpException, IOException {
-		
+
 		@SuppressWarnings("unchecked")
 		MyHttpClient<String, Page> httpcxCast = (MyHttpClient<String, Page> ) httpcx;
-		Page page = httpcxCast.doCall(this.getRequestMethod(formater.getMyUrl()));
+		Page page = httpcxCast.doCall(this.<String>getRequestMethod(formater.getMyUrl()));
 		WebResponse webResponse = page.getWebResponse();
-		
-		return super.parseInputStream(webResponse.getContentAsStream(), formater, new ArrayList<>()); 
-		
+
+		return super.parseInputStream(webResponse.getContentAsStream(), formater, new ArrayList<>());
+
 	}
 
 	@Override
@@ -38,12 +38,13 @@ public abstract class HttpSourceAspScrapper extends HttpSource {
 		WebClient webClient = new WebClient();
 		return new  HtmlUnitClient(webClient);
 	}
-	
 
+
+	@SuppressWarnings("unchecked")
 	@Override
-	protected String getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
-		return url.getUrl();
+	protected <T> T getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		return (T) url.getUrl();
 	}
-	
+
 
 }

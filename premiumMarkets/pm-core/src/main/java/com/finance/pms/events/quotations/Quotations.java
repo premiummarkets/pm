@@ -126,7 +126,7 @@ public class Quotations {
 
 					QuotationData existingQuotationData = Quotations.getCashedStock(stock);
 
-					//Retrieve first date point 
+					//Retrieve first date point
 					Date lastCached;
 					Date cacheFillRetreiveStart = firstDate;
 					if ( existingQuotationData != null && !existingQuotationData.isEmpty() && (lastCached = existingQuotationData.get(existingQuotationData.size()-1).getDate()) .before(firstDate) ) {

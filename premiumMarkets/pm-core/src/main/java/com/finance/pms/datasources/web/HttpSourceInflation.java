@@ -29,11 +29,16 @@
  */
 package com.finance.pms.datasources.web;
 
+import java.io.UnsupportedEncodingException;
+
+import org.apache.http.client.methods.HttpGet;
+
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.mas.RestartServerException;
 import com.finance.pms.threads.SourceClient;
+import com.finance.pms.threads.SourceConnector;
 
-public class HttpSourceInflation extends HttpSourceAspScrapper {
+public class HttpSourceInflation extends HttpSource implements SourceConnector {
 	
 	public HttpSourceInflation(String pathToprops, Providers beanFactory) {
 		super(pathToprops, beanFactory);
@@ -48,7 +53,9 @@ public class HttpSourceInflation extends HttpSourceAspScrapper {
 
 	@Override
 	public SourceClient connect(int connectionId) throws RestartServerException {
-		return null;
+		SourceClient retour;
+		retour = this.httpConnect();
+		return retour;
 	}
 
 
@@ -65,12 +72,18 @@ public class HttpSourceInflation extends HttpSourceAspScrapper {
 
 	@Override
 	public String getStockInfoPageURL(String isin) {
-		throw new RuntimeException("Fecthing complementary stock information is not implemented by default");
+		throw new RuntimeException("Fetching complementary stock information is not implemented by default");
 	}
 
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
-		throw new RuntimeException("Stock list fetching is not implemented for Quotation only http source");
+		throw new RuntimeException("Stock list fetching is not implemented for Quotation only HTTP source");
+	}
+
+
+	@Override
+	protected HttpGet getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
+		return new HttpGet(url.getUrl());
 	}
 
 }

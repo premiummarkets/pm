@@ -38,7 +38,7 @@ import com.finance.pms.datasources.shares.Currency;
 public class HttpSourceExchange extends HttpSourceYahoo {
 	
 	public HttpSourceExchange(String pathToprops, MyBeanFactoryAware beanFactory) {
-		super(pathToprops, beanFactory);		
+		super(pathToprops, beanFactory);
 	}
 	
 	public String getUrl(Currency currency) {

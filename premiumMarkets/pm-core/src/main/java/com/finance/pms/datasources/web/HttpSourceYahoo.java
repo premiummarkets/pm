@@ -47,21 +47,21 @@ import com.finance.pms.threads.SourceConnector;
  * @author Guillaume Thoreton
  */
 public class HttpSourceYahoo extends HttpSource implements SourceConnector {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceYahoo.class);
 
-	
+
 	public HttpSourceYahoo(String pathToprops, MyBeanFactoryAware beanFactory) {
-		super(pathToprops, beanFactory);		
+		super(pathToprops, beanFactory);
 	}
 
 	@Override
 	public MyUrl getStockQuotationURL(String ticker, 
 			String startYear, String startMonth, String startDay, 
 			String endYear, String endMonth, String endDay){
-	   
+
 		try {
-	    	ticker = URLEncoder.encode(ticker,"UTF-8");
+			ticker = URLEncoder.encode(ticker,"UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.debug("",e);
 		}
@@ -69,41 +69,41 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	}
 
 	public String getYahooQuoteURL(
-				String ticker, 
-				String startYear, String startMonth, String startDay, 
-				String endYear, String endMonth, String endDay)
+			String ticker, 
+			String startYear, String startMonth, String startDay, 
+			String endYear, String endMonth, String endDay)
 	{
 		//new url?? : http://download.finance.yahoo.com/d/quotes.csv?s=NAN.AX&f=sl1d1t1c1ohgv&e=.csv
 		//http://ichart.yahoo.com/table.csv?s=ATR.AX&d=0&e=24&f=2010&g=d&a=0&b=1&c=2003&ignore=.csv
 		//http://ichart.yahoo.com/table.csv?s=ATR.AX&d=0&e=24&f=2010&a=0&b=1&c=2003&ignore=.csv
-		
+
 		String url = "http://ichart.finance.yahoo.com/table.csv?s=" + ticker + "&a="
-		+ startMonth + "&b=" + startDay + "&c=" + startYear + "&d="
-		//+ endMonth + "&e=" + endDay + "&f=" + endYear + "&g=d&ignore=.csv";
-		+ endMonth + "&e=" + endDay + "&f=" + endYear + "&ignore=.csv";
-		
+				+ startMonth + "&b=" + startDay + "&c=" + startYear + "&d="
+				//+ endMonth + "&e=" + endDay + "&f=" + endYear + "&g=d&ignore=.csv";
+				+ endMonth + "&e=" + endDay + "&f=" + endYear + "&ignore=.csv";
+
 		LOGGER.debug(url);
 		return url;
 	}
 
 
-    @Override
+	@Override
 	public String getStockInfoPageURL(String isin) {//throws ToDoYahooException {
-        // TODO Completer la r�cup�ration des compl�ments de stocks sur Yahoo
-        LOGGER.debug("Fetching stock information is not implemented for yahoo");
-        throw new RuntimeException("Fetching stock information is not implemented for yahoo");
-    }
-    
+		// TODO Completer la r�cup�ration des compl�ments de stocks sur Yahoo
+		LOGGER.debug("Fetching stock information is not implemented for yahoo");
+		throw new RuntimeException("Fetching stock information is not implemented for yahoo");
+	}
+
 
 	@Override
 	public String getCategoryStockListURL(StockCategories marche, String ...params) {
 		throw new RuntimeException("Fetching stock list is not implemented for yahoo");
 	}
-	
-    @Override
+
+	@Override
 	public void stopThreads() {
-        LOGGER.info("That's all ... Bye");
-    }
+		LOGGER.info("That's all ... Bye");
+	}
 
 	public int crashResart(int connectionId) {
 		return 0;
@@ -124,5 +124,5 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 		return new HttpGet(url.getUrl());
 	}
 
-	
+
 }

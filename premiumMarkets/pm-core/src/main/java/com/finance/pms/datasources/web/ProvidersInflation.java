@@ -89,7 +89,9 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
 			boolean isLastLessThan2AndHalfMonthOld = stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime();
 			if (isLastLessThan2AndHalfMonthOld) {//Inflation can be updated monthly only
-				throw new HttpException("Inflation data can be updated once in a month only.\nYou requested an update for the month preceding "+sdf.format(end)+"\n and the last update was in the month following "+sdf.format(stock.getLastQuote()));
+				throw new HttpException(
+						"Inflation data can be updated once in a month only.\nYou requested an update for the month preceding " +
+						sdf.format(end) + "\n and the last update was in the month following " + sdf.format(stock.getLastQuote()));
 			}
 
 			MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
@@ -104,7 +106,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				}
 			}
 
-			LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" : "+queries.size());
+			LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " : " + queries.size());
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
