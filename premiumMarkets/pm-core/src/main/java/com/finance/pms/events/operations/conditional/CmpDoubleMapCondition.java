@@ -58,8 +58,8 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 @XmlSeeAlso({SupDoubleMapCondition.class, InfDoubleMapCondition.class, EqualDoubleMapCondition.class})
 public abstract class CmpDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
-	private static final int MAIN_POSITION = 1;
-	private static final int SIGNAL_POSITION = 2;
+	private static final int MAIN_POSITION = 2;
+	private static final int SIGNAL_POSITION = 3;
 
 	@SuppressWarnings("unused")
 	private CmpDoubleMapCondition() {
@@ -67,7 +67,11 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	protected CmpDoubleMapCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("length of time over which it is true"), new DoubleMapOperation("'" + reference + "' left operand"), new DoubleMapOperation("'" + reference + "' right operand"));
+		super(reference, description,
+				new NumberOperation("length of time over which it is true"),
+				new NumberOperation("minimum epsilon crossing for inequality or maximum epsilon error for equality in %"),
+				new DoubleMapOperation("'" + reference + "' left operand"),
+				new DoubleMapOperation("'" + reference + "' right operand"));
 	}
 
 	public CmpDoubleMapCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -79,6 +83,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer forPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
+		Double epsilon = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> firstOp = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((NumericableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
@@ -94,7 +99,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 			Double secondV = secondOp.get(date);
 			if (firstV != null && !firstV.isNaN() && secondV != null && !secondV.isNaN()) {
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(firstV, secondV);
+				Boolean conditionCheck = conditionCheck(firstV, secondV, epsilon);
 				conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
 			}
 		}

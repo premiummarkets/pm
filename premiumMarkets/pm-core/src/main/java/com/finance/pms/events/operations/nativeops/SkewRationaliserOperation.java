@@ -15,7 +15,7 @@ import com.finance.pms.events.operations.Value;
 /**
  * @author guil
  * Fix the price using a regression (passed as parameter)
- * FIXME: This is not realistic as the regression is calculated on the all set and not a sliding window in time.
+ * ~ subtraction_(close,linearReg(1250,close))
  */
 public class SkewRationaliserOperation extends PMWithDataOperation {
 
@@ -24,7 +24,7 @@ public class SkewRationaliserOperation extends PMWithDataOperation {
 	private static final int DATA_IDX = 0;
 
 	public SkewRationaliserOperation() {
-		super("skewRationaliser", "Apply an input skewness calculation fix to the input and the standard stock OCHL outputs",
+		super("skewRationaliser", "Apply an input skewness calculation fix to the input",
 				new DoubleMapOperation("Fixer (typically a linear regression)"),
 				new DoubleMapOperation("Input data for which the fix applies"));
 	}
@@ -39,13 +39,12 @@ public class SkewRationaliserOperation extends PMWithDataOperation {
 	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		//Param check
 		SortedMap<Date, Double> regression = ((NumericableMapValue) inputs.get(DATA_IDX)).getValue(targetStock);
-		SortedMap<Date, Double> dataOperand = ((NumericableMapValue) inputs.get(DATA_IDX + 1)).getValue(targetStock);
+		SortedMap<Date, Double> skewBase = ((NumericableMapValue) inputs.get(DATA_IDX + 1)).getValue(targetStock);
 
 		//Calc
 		try {
 
-			//The skew fix calculation is base on the input : skewBase
-			SortedMap<Date, Double> skewFixedData = calculateOutputMap(dataOperand, regression);
+			SortedMap<Date, Double> skewFixedData = calculateOutputMap(skewBase, regression);
 			return new DoubleMapValue(skewFixedData);
 
 		} catch (Exception e) {

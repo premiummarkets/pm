@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.scoring.functions.ApacheStats;
 
 public class MapUtils {
@@ -26,8 +27,12 @@ public class MapUtils {
 		return new double[] {min,max};
 	}
 
-	public static <K, V> SortedMap<K,V>
+	public static <K extends Comparable<K>, V> SortedMap<K,V>
 	subMapInclusive(SortedMap<K,V> map, K from, K to) {
+
+		//Bypassing the potential from restrictive range
+		from = (map.firstKey().compareTo(from) > 0)? map.firstKey(): from;
+
 		if(to == null) return map.tailMap(from);
 
 		//What appears at key "to" or later?
@@ -41,7 +46,7 @@ public class MapUtils {
 		//The first item found isn't to so regular submap will work
 		if(!to.equals(key)) return map.subMap(from, to);
 
-		//to is in the map
+		//to is in the map and here key == to
 
 		//it is not the last key
 		if(keys.hasNext()) return map.subMap(from, keys.next());
@@ -50,23 +55,27 @@ public class MapUtils {
 		return map.tailMap(from);
 	}
 
-	public static <KEY> SortedMap<KEY, Double> movingStat(SortedMap<KEY, Double> map, Function<KEY, KEY> startWindowKFunc, ApacheStats apacheStats) {
+	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, int period, ApacheStats apacheStats) {
 
-		TreeMap<KEY, Double> averageAnnualisedVolatility =
+		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
+
+		TreeMap<Date, Double> movingStats =
 				map.keySet().stream()
 				.collect(Collectors.toMap(
 						endWindowK -> endWindowK,
 						endWindowK -> {
-							KEY startWindowK = startWindowKFunc.apply(endWindowK);
-							Collection<Double> values = 
+							Date startWindowK = startWindowKFunc.apply(endWindowK);
+							Collection<Double> values =
 									MapUtils.subMapInclusive(map, startWindowK, endWindowK).values()
 									.stream()
 									.filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
 							return (Double) apacheStats.sEvaluate(values);
 						},
-						(a, b) -> a, TreeMap<KEY,Double>::new));
+						(a, b) -> a, TreeMap<Date,Double>::new));
 
-		return averageAnnualisedVolatility;
+		Date firstValidResult = DateFactory.incrementDateWraper(map.firstKey(), period);
+
+		return subMapInclusive(movingStats, firstValidResult, map.lastKey());
 	}
 
 }

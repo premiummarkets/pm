@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.function.Function;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -58,7 +57,7 @@ public class StatOperation extends PMWithDataOperation {
 
 	public StatOperation() {
 		super("stat", "Moving statistics",
-				new NumberOperation("number","movingPeriod","Moving period. This will be relected in number of days (*7/5), independent of effective available data.", new NumberValue(21.0)),
+				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data.", new NumberValue(21.0)),
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev"})));
 	}
@@ -77,8 +76,6 @@ public class StatOperation extends PMWithDataOperation {
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 
 		try {
-			Function<Date, Date>  startWindowKFunc = k -> new Date(k.getTime() - (long)(period*7d/5d) * (1000l * 60l * 60l * 24l));
-
 			//Default is identity
 			ApacheStats apacheStat = new ApacheStats(new AbstractUnivariateStatistic() {
 				@Override
@@ -94,12 +91,12 @@ public class StatOperation extends PMWithDataOperation {
 			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
 			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
 				apacheStat = new ApacheStats(new Mean());
-			} else 
-			if (outputSelector != null && outputSelector.equalsIgnoreCase("mstdev")) {
-				apacheStat = new ApacheStats(new StandardDeviation());
-			}
+			} else
+				if (outputSelector != null && outputSelector.equalsIgnoreCase("mstdev")) {
+					apacheStat = new ApacheStats(new StandardDeviation());
+				}
 
-			return new DoubleMapValue(MapUtils.movingStat(data, startWindowKFunc, apacheStat));
+			return new DoubleMapValue(MapUtils.movingStat(data, period, apacheStat));
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
@@ -108,5 +105,15 @@ public class StatOperation extends PMWithDataOperation {
 		return new DoubleMapValue();
 
 	}
+
+	@Override
+	public int operationStartDateShift() {
+		int maxDateShift = 0;
+		for (int i = 0; i < 1; i++) {
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+		}
+		return maxDateShift;
+	}
+
 
 }

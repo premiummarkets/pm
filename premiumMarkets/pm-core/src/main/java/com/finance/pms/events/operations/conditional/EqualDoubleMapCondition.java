@@ -47,7 +47,12 @@ public class EqualDoubleMapCondition extends CmpDoubleMapCondition {
 
 	@Override
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
-		return ops[0].compareTo((Double) ops[1]) == 0;
+		Double firstV = (Double) ops[0];
+		Double secondV = (Double) ops[1];
+		Double epsilonMaxError = ((Double) ops[2])/100;
+		return
+				secondV * (1 - epsilonMaxError) < firstV && firstV < secondV * (1 + epsilonMaxError) ||
+				secondV < firstV * (1 + epsilonMaxError) && firstV * (1 - epsilonMaxError) < secondV;
 	}
 
 }

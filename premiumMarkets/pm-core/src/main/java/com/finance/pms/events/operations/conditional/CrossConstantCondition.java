@@ -43,6 +43,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.scoring.functions.LeftShifter;
@@ -55,18 +57,26 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 'over'
  * 'for'. Only makes sense for Down and Up Ratios (status V change of status).
  */
-
+//TODO separate Up/Down from cross Up/Down
 @XmlSeeAlso({CrossUpConstantCondition.class, CrossDownConstantCondition.class, DownRatioCondition.class, UpRatioCondition.class})
 public abstract class CrossConstantCondition extends Condition<Double> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(CrossConstantCondition.class);
 
-	private static final int MAIN_POSITION = 4;
+	private static final int MAIN_POSITION = 5;
 	protected static final int CONSTANT_POSITION = 0;
 
 	@SuppressWarnings("unused")
 	private CrossConstantCondition() {
 		super();
+	}
+
+	protected CrossConstantCondition(String reference, String description) {
+		super(reference, description,
+				new NumberOperation("threshold"),
+				new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"),
+				new NumberOperation("minimum epsilon for crossing the condition in %"),
+				new DoubleMapOperation("historical data input"));
 	}
 
 	public CrossConstantCondition(String reference, String description, Operation... operands) {
@@ -80,6 +90,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
+		Double epsilon = ((NumberValue) inputs.get(4)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
@@ -99,7 +110,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 			Double previous = rightShiftedData.get(date);
 			if (previous != null && !previous.isNaN() && !current.isNaN()) {
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(previous, current, constant);
+				Boolean conditionCheck = conditionCheck(previous, current, constant, epsilon);
 				if (conditionCheck != null) {
 
 					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {

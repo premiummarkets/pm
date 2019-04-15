@@ -32,7 +32,7 @@ public class LinearDirectedTrendsCondition extends LinearTrendsCondition impleme
 				new NumberOperation("Time OVER which the condition will remain true"),
 				new NumberOperation("Look back period FOR which the condition has to be true"),
 				new StringOperation("Direction of the left operand trend"),
-				new NumberOperation("Max slope epsilon when comparing two trend lines"),
+				new NumberOperation("Max slope epsilon error when comparing two trend lines"),
 				new DoubleMapOperation("'trend regression' left operand"));
 	}
 

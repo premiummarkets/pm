@@ -59,8 +59,8 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 @XmlSeeAlso({CrossUpDoubleMapCondition.class, CrossDownDoubleMapCondition.class})
 public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
-	private static final int MAIN_POSITION = 2;
-	private static final int SIGNAL_POSITION = 3;
+	private static final int MAIN_POSITION = 3;
+	private static final int SIGNAL_POSITION = 4;
 
 	@SuppressWarnings("unused")
 	private CrossDoubleMapCondition() {
@@ -68,9 +68,10 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	}
 
 	public CrossDoubleMapCondition(String reference, String description) {
-		super(reference, description, 
+		super(reference, description,
 				new NumberOperation("dates comparison span"),
 				new NumberOperation("time period over which it happens"),
+				new NumberOperation("minimum epsilon for crossing the condition in %"),
 				new DoubleMapOperation("'"+reference+ "' left operand (data)"),
 				new DoubleMapOperation("'"+reference+ "' right operand (signal)"));
 	}
@@ -85,6 +86,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 
 		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
+		Double epsilon = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> firstOp = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((NumericableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
@@ -102,11 +104,11 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 		for (Date date : fullKeySet) {
 			Double firstV = firstOp.get(date);
 			Double secondV = secondOp.get(date);
-			Double previousFirstOp = rightShiftedFirstOp.get(date);
-			Double previousSecondOp = rightShiftedSecondOp.get(date);
-			if (previousFirstOp != null && !previousFirstOp.isNaN() && previousSecondOp != null && !previousSecondOp.isNaN() && !firstV.isNaN() && !secondV.isNaN())  {
+			Double previousFirstV = rightShiftedFirstOp.get(date);
+			Double previousSecondV = rightShiftedSecondOp.get(date);
+			if (previousFirstV != null && !previousFirstV.isNaN() && previousSecondV != null && !previousSecondV.isNaN() && !firstV.isNaN() && !secondV.isNaN())  {
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(previousFirstOp, firstV, previousSecondOp, secondV);
+				Boolean conditionCheck = conditionCheck(previousFirstV, firstV, previousSecondV, secondV, epsilon);
 
 				if (conditionCheck != null) {
 

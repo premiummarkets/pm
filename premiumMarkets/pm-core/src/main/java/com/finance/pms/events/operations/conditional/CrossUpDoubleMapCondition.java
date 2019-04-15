@@ -35,7 +35,6 @@ import com.finance.pms.events.operations.Operation;
 
 public class CrossUpDoubleMapCondition extends CrossDoubleMapCondition {
 
-
 	private CrossUpDoubleMapCondition() {
 		super("cross up data", "True when the first time series value is crossing below the second one.");
 	}
@@ -51,8 +50,8 @@ public class CrossUpDoubleMapCondition extends CrossDoubleMapCondition {
 		Double currentFirstOp = (Double) ops[1];
 		Double previousSecondOp = (Double) ops[2];
 		Double currentSecondOp = (Double) ops[3];
-		return previousFirstOp.compareTo(previousSecondOp) <= 0 &&  currentFirstOp.compareTo(currentSecondOp) > 0;
+		Double epsilonMinCrossing = ((Double) ops[4])/100;
+		return previousFirstOp <= previousSecondOp && currentFirstOp > currentSecondOp * (1 + epsilonMinCrossing);
 	}
-
 
 }

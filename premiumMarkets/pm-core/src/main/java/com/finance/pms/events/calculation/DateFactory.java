@@ -39,6 +39,7 @@ import java.util.Date;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class DateFactory {
 
@@ -123,6 +124,13 @@ public class DateFactory {
 		} catch (ParseException e1) {
 			LOGGER.error("Shouldn't be here", e1);
 		}
+	}
+
+	public static Date incrementDateWraper(Date startDate, int startShift) {
+		Calendar startCal = Calendar.getInstance();
+		startCal.setTime(startDate);
+		QuotationsFactories.getFactory().incrementDate(startCal, startShift);
+		return startCal.getTime();
 	}
 
 

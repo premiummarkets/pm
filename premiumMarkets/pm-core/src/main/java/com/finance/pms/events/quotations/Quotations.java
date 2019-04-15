@@ -89,8 +89,9 @@ public class Quotations {
 		this.firstIndexShiftRequested = firstIndexShift;
 		this.firstDateRequested = firstDate;
 		this.lastDateRequested = lastDate;
-
-		init(stock, firstDate, lastDate, keepCache, firstIndexShift);
+		synchronized (stock) {
+			init(stock, firstDate, lastDate, keepCache, firstIndexShift);
+		}
 	}
 
 	//Called in CalculationQuotations (inheritance)
@@ -129,11 +130,11 @@ public class Quotations {
 					//Retrieve first date point
 					Date lastCached;
 					Date cacheFillRetreiveStart = firstDate;
-					if ( existingQuotationData != null && !existingQuotationData.isEmpty() && (lastCached = existingQuotationData.get(existingQuotationData.size()-1).getDate()) .before(firstDate) ) {
+					if ( existingQuotationData != null && !existingQuotationData.isEmpty() && (lastCached = existingQuotationData.get(existingQuotationData.size()-1).getDate()).before(firstDate) ) {
 						cacheFillRetreiveStart = lastCached;
 					}
 
-					//Load form db
+					//Load from DB
 					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(cacheFillRetreiveStart, firstIndexShift);//Retrieves from cacheFillRetreiveStart (<=firstDate) - firstIndexShift to the lastQuote 
 
 					//Update cache
@@ -199,7 +200,7 @@ public class Quotations {
 
 		double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
 		double dj = qj.getCloseSplit().doubleValue();
-		double djm1 =  qjm1.getCloseSplit().doubleValue();
+		double djm1 = qjm1.getCloseSplit().doubleValue();
 		double delta = span*Math.pow(1.5, 1d-span)*0.10;
 		double adjustedDj = dj-dj*delta;
 		double split = djm1/adjustedDj;

@@ -33,7 +33,6 @@ import java.util.ArrayList;
 
 import com.finance.pms.events.operations.Operation;
 
-
 public class InfDoubleMapCondition extends CmpDoubleMapCondition {
 
 	private InfDoubleMapCondition() {
@@ -47,7 +46,10 @@ public class InfDoubleMapCondition extends CmpDoubleMapCondition {
 
 	@Override
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
-		return ops[0].compareTo((Double) ops[1]) < 0;
+		Double firstV = (Double) ops[0];
+		Double secondV = (Double) ops[1];
+		Double epsilonMinCrossing = ((Double) ops[2])/100;
+		return firstV < secondV * (1 - epsilonMinCrossing);
 	}
 
 }

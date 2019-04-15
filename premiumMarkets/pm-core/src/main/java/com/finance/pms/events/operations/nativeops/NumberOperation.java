@@ -40,7 +40,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
-public class NumberOperation extends Operation  implements LeafOperation {
+public class NumberOperation extends Operation implements LeafOperation {
 
 	public NumberOperation() {
 		super("number","A number constant like period or threshold.");

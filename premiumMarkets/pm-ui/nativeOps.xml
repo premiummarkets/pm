@@ -374,7 +374,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>movingPeriod</referenceAsOperand>
-                    <description>Moving period. This will be relected in number of days (*7/5), independent of effective available data.</description>
+                    <description>Moving period. This will be reflected in number of days (*7/5), independent of effective available data.</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>21.0</numberValue>
                     </defaultValue>
@@ -603,7 +603,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="skewRationaliserOperation">
             <reference>skewRationaliser</reference>
-            <description>Apply an input skewness calculation fix to the input and the standard stock OCHL outputs</description>
+            <description>Apply an input skewness calculation fix to the input</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Fixer (typically a linear regression)</reference>

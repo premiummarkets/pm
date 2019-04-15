@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
@@ -23,6 +22,8 @@ import com.finance.pms.events.scoring.functions.ApacheStats;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 
 public class VolatilityOperation extends PMWithDataOperation {
+
+	private static final int YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS = 250;
 
 	private static MyLogger LOGGER = MyLogger.getLogger(VolatilityOperation.class);
 
@@ -40,10 +41,10 @@ public class VolatilityOperation extends PMWithDataOperation {
 				new DoubleMapOperation("Input data"));
 		setAvailableOutputSelectors(
 				new ArrayList<String>(Arrays.asList(new String[]{
-				"atDate","average",
-				"positiveAtDate","averagePosistive",
-				"negativeAtDate","averageNegative",
-				"logRetnAtDate"
+						"atDate","average",
+						"positiveAtDate","averagePosistive",
+						"negativeAtDate","averageNegative",
+						"logRetnAtDate"
 				})));
 	}
 
@@ -67,7 +68,6 @@ public class VolatilityOperation extends PMWithDataOperation {
 			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods, false);
 
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
-			Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - 250l * (1000l * 60l * 60l * 24l));
 			ApacheStats mean = new ApacheStats(new Mean());
 
 			TreeMap<Date, Double> sVolatilties = IntStream
@@ -92,15 +92,15 @@ public class VolatilityOperation extends PMWithDataOperation {
 					selectorOutputs.put("negativeAtDate", new DoubleMapValue(sNegVolatilties));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
-					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sVolatilties, startWindowKFunc, mean);
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("average", new DoubleMapValue(averageVolatility));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("averagePosistive")) {
-					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sPosVolatilties, startWindowKFunc, mean);
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sPosVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("averagePosistive", new DoubleMapValue(averageVolatility));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("averageNegative")) {
-					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sNegVolatilties, startWindowKFunc, mean);
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sNegVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("averageNegative", new DoubleMapValue(averageVolatility));
 				} 
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("logRetnAtDate")) {
@@ -124,7 +124,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 	public int operationStartDateShift() {
 		int maxDateShift = 0;
 		for (int i = 0; i < DATA_IDX; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift() + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;
 		}
 		return maxDateShift;
 	}

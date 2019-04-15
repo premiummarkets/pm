@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
@@ -61,10 +60,8 @@ public class PMBollingerOperation extends PMWithDataOperation {
 
 		//Calc
 		try {
-			Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - (long)(period*7d/5d) * (1000l * 60l * 60l * 24l));
-
 			ApacheStats mean = new ApacheStats(new Mean());
-			SortedMap<Date, Double> sma = MapUtils.movingStat(data, startWindowKFunc, mean);
+			SortedMap<Date, Double> sma = MapUtils.movingStat(data, period, mean);
 
 			ApacheStats std = new ApacheStats(new StandardDeviation());
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
@@ -91,7 +88,7 @@ public class PMBollingerOperation extends PMWithDataOperation {
 				lowerFunc = (t, u) -> t - u*nbDevDown;
 				upperFunc = (t, u) -> t + u*nbDevUp;
 			}
-			SortedMap<Date, Double> mstd = MapUtils.movingStat(bars, startWindowKFunc, std);
+			SortedMap<Date, Double> mstd = MapUtils.movingStat(bars, period, std);
 
 			SortedMap<Date, Double> lower = mstd.keySet().stream()
 					.collect(TreeMap::new, (r, k) -> r.put(k, lowerFunc.apply(sma.get(k), mstd.get(k))), TreeMap::putAll);

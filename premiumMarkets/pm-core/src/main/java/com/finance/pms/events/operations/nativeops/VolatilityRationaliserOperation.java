@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -28,7 +27,7 @@ public class VolatilityRationaliserOperation extends PMWithDataOperation {
 	private static MyLogger LOGGER = MyLogger.getLogger(VolatilityRationaliserOperation.class);
 
 	private static final int DATA_IDX = 2;
-	private static final long AVERAGE_SLIDING_WINDOW_PERIOD = 250;
+	private static final int YEAR_SLIDING_WINDOW_PERIOD_FOR_AGS = 250;
 
 	public VolatilityRationaliserOperation() {
 		super("volatilityRationaliser", "Apply an input volatility calculation fix to the input and the standard stock OCHL outputs",
@@ -59,43 +58,42 @@ public class VolatilityRationaliserOperation extends PMWithDataOperation {
 			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(volatilityBase, basicPeriod, returnCalculationNbPeriods, false);
 
 			ArrayList<Date> keys = new ArrayList<>(volatilityBase.keySet());
-			Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - AVERAGE_SLIDING_WINDOW_PERIOD*(1000 * 60 * 60 * 24));
 			ApacheStats mean = new ApacheStats(new Mean());
 
 			SortedMap<Date, Double> skewFixedOpen = new TreeMap<>();
 			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
-			if (outputSelector != null && outputSelector.equalsIgnoreCase("walk")) {
+			if (outputSelector != null && outputSelector.equalsIgnoreCase("walk")) {//Does not reflect the skew (Neg/Pos)
 				//Init
-				SortedMap<Date, Double> annulisedVolatilities = IntStream
+				SortedMap<Date, Double> volatilities = IntStream
 						.range(basicPeriod + returnCalculationNbPeriods, volatilityBase.size())
 						.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingVolatiltityAt(d)),TreeMap::putAll);
-				SortedMap<Date, Double> averageAnnualisedVolatility = MapUtils.movingStat(annulisedVolatilities, startWindowKFunc, mean);
+				SortedMap<Date, Double> movingAverageVolatility = MapUtils.movingStat(volatilities, YEAR_SLIDING_WINDOW_PERIOD_FOR_AGS, mean);
 				//Calc
-				skewFixedOpen.putAll(walkRationalisation(dataOperand, annulisedVolatilities, averageAnnualisedVolatility));
+				skewFixedOpen.putAll(walkRationalisation(dataOperand, volatilities, movingAverageVolatility));
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("imbalanced")) {
 				//Init
-				SortedMap<Date, Double> annualisedPositiveVolatilities = IntStream
+				SortedMap<Date, Double> positiveVolatilities = IntStream
 						.range(basicPeriod + returnCalculationNbPeriods, volatilityBase.size())
 						.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingSignedVolatilityAt(d, +1)),TreeMap::putAll);
-				SortedMap<Date, Double> averageAnnualisedPositiveVolatility = MapUtils.movingStat(annualisedPositiveVolatilities, startWindowKFunc, mean);
-				SortedMap<Date, Double> annualisedNegativeVolatilties = IntStream
+				SortedMap<Date, Double> movingAveragePositiveVolatility = MapUtils.movingStat(positiveVolatilities, YEAR_SLIDING_WINDOW_PERIOD_FOR_AGS, mean);
+				SortedMap<Date, Double> negativeVolatilties = IntStream
 						.range(basicPeriod + returnCalculationNbPeriods, volatilityBase.size())
 						.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingSignedVolatilityAt(d, -1)),TreeMap::putAll);
-				SortedMap<Date, Double> averageAnnualisedNegativeVolatility = MapUtils.movingStat(annualisedNegativeVolatilties, startWindowKFunc, mean);
+				SortedMap<Date, Double> movingAverageNegativeVolatility = MapUtils.movingStat(negativeVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AGS, mean);
 				//Calc
 				skewFixedOpen.putAll(quoteImbalancedRationalisation(dataOperand,
-						annualisedPositiveVolatilities, averageAnnualisedPositiveVolatility,
-						annualisedNegativeVolatilties, averageAnnualisedNegativeVolatility));
+						positiveVolatilities, movingAveragePositiveVolatility,
+						negativeVolatilties, movingAverageNegativeVolatility));
 			}
-			else {
+			else {//"straight" Wrong as it applies a variation (stdev) to the full value (quote)
 				//Init
-				SortedMap<Date, Double> annulisedVolatilities = IntStream
+				SortedMap<Date, Double> volatilities = IntStream
 						.range(basicPeriod + returnCalculationNbPeriods, volatilityBase.size())
 						.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingVolatiltityAt(d)),TreeMap::putAll);
-				SortedMap<Date, Double> averageAnnualisedVolatility = MapUtils.movingStat(annulisedVolatilities, startWindowKFunc, mean);
+				SortedMap<Date, Double> movingAverageVolatility = MapUtils.movingStat(volatilities, YEAR_SLIDING_WINDOW_PERIOD_FOR_AGS, mean);
 				//Calc
-				skewFixedOpen.putAll(quoteStraightRationalisation(dataOperand, annulisedVolatilities, averageAnnualisedVolatility));
+				skewFixedOpen.putAll(quoteStraightRationalisation(dataOperand, volatilities, movingAverageVolatility));
 			}
 
 			return new DoubleMapValue(skewFixedOpen);
@@ -107,13 +105,13 @@ public class VolatilityRationaliserOperation extends PMWithDataOperation {
 		return new DoubleMapValue();
 	}
 
-	private SortedMap<Date, Double> quoteStraightRationalisation(SortedMap<Date, Double> q, SortedMap<Date, Double> volatilities, SortedMap<Date, Double> averageAnnualisedVolatility) throws NotEnoughDataException {
+	private SortedMap<Date, Double> quoteStraightRationalisation(SortedMap<Date, Double> q, SortedMap<Date, Double> volatilities, SortedMap<Date, Double> movingAverageVolatility) throws NotEnoughDataException {
 
-		List<Date> keys = volatilities.keySet().stream().filter(vk -> q.containsKey(vk) && averageAnnualisedVolatility.containsKey(vk)).collect(Collectors.toList());
+		List<Date> keys = volatilities.keySet().stream().filter(vk -> q.containsKey(vk) && movingAverageVolatility.containsKey(vk)).collect(Collectors.toList());
 		TreeMap<Date, Double> rationalisedMap = keys.stream()
 				.collect(Collectors.toMap(
 						k -> k,
-						k -> q.get(k)*(averageAnnualisedVolatility.get(k)/volatilities.get(k)),
+						k -> q.get(k)*(movingAverageVolatility.get(k)/volatilities.get(k)),
 						(a, b) -> a, TreeMap::new));
 
 		return rationalisedMap;
@@ -130,8 +128,6 @@ public class VolatilityRationaliserOperation extends PMWithDataOperation {
 		Stream<Double> nextVolatilityIteration = Stream.iterate(q.get(keys.get(0)), u -> {
 			Date pk = keys.get(i.get());
 			Date k = keys.get(i.incrementAndGet());
-			//FIXME this will always increase the change when the volatility at date is small and decrease when big.
-			//This doesn't reflect that volatility is distance to average is bing smaller or bigger.
 			return u + (q.get(k) - q.get(pk)) * (averageAnnualisedVolatility.get(k)/volatilities.get(k));
 		});
 
@@ -192,7 +188,7 @@ public class VolatilityRationaliserOperation extends PMWithDataOperation {
 		for (int i = 0; i < DATA_IDX; i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
-		return maxDateShift + 1 + (int)AVERAGE_SLIDING_WINDOW_PERIOD;
+		return maxDateShift + 1 + YEAR_SLIDING_WINDOW_PERIOD_FOR_AGS;
 	}
 
 }

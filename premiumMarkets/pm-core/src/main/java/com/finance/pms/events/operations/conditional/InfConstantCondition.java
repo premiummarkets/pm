@@ -46,7 +46,10 @@ public class InfConstantCondition extends CmpConstantCondition {
 
 	@Override
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double> ... ops) {
-		return ops[0].compareTo((Double) ops[1]) < 0;
+		Double current = (Double) ops[0];
+		Double threshold = (Double) ops[1];
+		Double epsilonMinCrossing = ((Double) ops[2])/100;
+		return current < threshold * (1 - epsilonMinCrossing);
 	}
 
 }

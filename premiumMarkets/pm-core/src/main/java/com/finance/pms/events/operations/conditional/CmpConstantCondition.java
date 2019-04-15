@@ -57,7 +57,7 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 @XmlSeeAlso({EqualConstantCondition.class, InfConstantCondition.class, SupConstantCondition.class})
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {
 
-	private static final int MAIN_POSITION = 3;
+	private static final int MAIN_POSITION = 4;
 	private static final int THRESHOLD_POSITION = 0;
 
 	@SuppressWarnings("unused")
@@ -65,9 +65,13 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 		super();
 	}
 
-
 	protected CmpConstantCondition(String reference, String description) {
-		super(reference, description, new NumberOperation("threshold"), new NumberOperation("time period over which it happens"), new NumberOperation("length of time over which it is true"), new DoubleMapOperation("'"+reference+ "' indicator"));
+		super(reference, description, new NumberOperation("threshold"),
+				new NumberOperation("time period over which it happens"),
+				new NumberOperation("length of time over which it is true"),
+				//XXX Minimum epsilon crossing does not actually make real sense for constant as the latter can instead be adjusted...
+				new NumberOperation("minimum epsilon crossing for inequality or maximum epsilon error for equality in %"),
+				new DoubleMapOperation("'" + reference + "' indicator"));
 	}
 
 	public CmpConstantCondition(String reference, String description, ArrayList<Operation> operands) {
@@ -81,6 +85,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 		Double threshold = ((NumberValue) inputs.get(THRESHOLD_POSITION)).getValue(targetStock).doubleValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
+		Double epsilon = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
@@ -95,7 +100,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 			Double current = data.get(date);
 
 			@SuppressWarnings("unchecked")
-			Boolean conditionCheck = (Double.isNaN(current))?null:conditionCheck(current, threshold);
+			Boolean conditionCheck = (Double.isNaN(current))?null:conditionCheck(current, threshold, epsilon);
 			if (conditionCheck != null) {
 
 				//For

@@ -32,18 +32,11 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.NumberOperation;
 
 public class CrossUpConstantCondition extends CrossConstantCondition implements OnThresholdCondition {
 
-
 	private CrossUpConstantCondition() {
-		super(
-				"cross up threshold", "True when the first time series value is crossing above a constant.",
-				new NumberOperation("threshold"), 
-				new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"),  new NumberOperation("length of time over which it is true"), 
-				new DoubleMapOperation("historical data input"));
+		super("cross up threshold", "True when the first time series value is crossing above a constant.");
 	}
 
 	public CrossUpConstantCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -51,10 +44,13 @@ public class CrossUpConstantCondition extends CrossConstantCondition implements 
 		setOperands(operands);
 	}
 
-
 	@Override
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double>... ops) {
-		return ops[0].compareTo((Double) ops[2]) <= 0 &&  ops[2].compareTo((Double) ops[1]) < 0;
+		Double previous = (Double) ops[0];
+		Double current = (Double) ops[1];
+		Double threshold = (Double) ops[2];
+		Double epsilonMinCrossing = ((Double) ops[3])/100;
+		return previous <= threshold && threshold * (1 + epsilonMinCrossing) < current;
 	}
 
 	@Override

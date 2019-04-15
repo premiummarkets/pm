@@ -32,17 +32,11 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.NumberOperation;
 
 public class UpRatioCondition extends CrossConstantCondition implements UnaryCondition {
-	
+
 	private UpRatioCondition() {
-		super(
-				"up", "True when a time series is up more than the ratio in %",
-				new NumberOperation("threshold"), 
-				new NumberOperation("dates comparison span"), new NumberOperation("time period over which it happens"),  new NumberOperation("length of time over which it is true"), 
-				new DoubleMapOperation("historical data input"));
+		super("up", "True when a time series is up more than the ratio in %");
 	}
 
 	public UpRatioCondition(ArrayList<Operation> operands, String outputSelector) {
@@ -54,9 +48,10 @@ public class UpRatioCondition extends CrossConstantCondition implements UnaryCon
 	public Boolean conditionCheck(@SuppressWarnings("unchecked") Comparable<Double> ... ops) {
 		Double prev = (Double) ops[0];
 		Double current = (Double) ops[1];
-		Double constant = (Double) ops[2];
-		if (prev <= 0 || current < 0) throw new UnsupportedOperationException("Values must be positive. Unmet condition as "+prev+" <= 0 || "+current+" < 0");
-		return (current - prev)/prev > constant/100;
+		Double ratio = ((Double) ops[2])/100;
+		//Double epsilonMinCrossing = ((Double) ops[3])/100;
+		if (prev <= 0 || current < 0) throw new UnsupportedOperationException("Values must be positive. Unmet condition as " + prev + " > 0 && " + current + " >= 0");
+		return (current - prev)/prev > ratio;
 	}
 
 }
