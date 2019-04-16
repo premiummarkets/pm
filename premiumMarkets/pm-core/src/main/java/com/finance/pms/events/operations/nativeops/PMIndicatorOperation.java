@@ -46,7 +46,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 @XmlSeeAlso({
     PMAroonOperation.class, PMMACDOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, PMBollingerOperation.class,
     StatOperation.class, FlipOperation.class, LeftShifterOperation.class, BandNormalizerOperation.class, ZeroLagEMAOperation.class,
-    VolatilityOperation.class, SkewRationaliserOperation.class, InflationRationaliserOperation.class, VolatilityOtherOperation.class, VolatilityRationaliserOperation.class
+    VolatilityOperation.class, VolatilityOtherOperation.class
 })
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 

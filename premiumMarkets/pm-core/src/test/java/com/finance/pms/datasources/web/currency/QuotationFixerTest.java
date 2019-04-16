@@ -21,8 +21,8 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.portfolio.PortfolioDAO;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.portfolio.PortfolioDAO;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class QuotationFixerTest {

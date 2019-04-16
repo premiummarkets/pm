@@ -41,7 +41,6 @@ import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
-import com.finance.pms.events.operations.nativeops.InflationRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
@@ -51,9 +50,8 @@ import com.finance.pms.events.operations.nativeops.PMBollingerOperation;
 import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
-import com.finance.pms.events.operations.nativeops.StatOperation;
 import com.finance.pms.events.operations.nativeops.Product;
-import com.finance.pms.events.operations.nativeops.SkewRationaliserOperation;
+import com.finance.pms.events.operations.nativeops.StatOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
@@ -62,7 +60,6 @@ import com.finance.pms.events.operations.nativeops.UnaryProduct;
 import com.finance.pms.events.operations.nativeops.UnarySum;
 import com.finance.pms.events.operations.nativeops.VolatilityOperation;
 import com.finance.pms.events.operations.nativeops.VolatilityOtherOperation;
-import com.finance.pms.events.operations.nativeops.VolatilityRationaliserOperation;
 import com.finance.pms.events.operations.nativeops.pm.ZeroLagEMAOperation;
 
 
@@ -114,6 +111,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmAroonOperation);
 		PMMightyChaikinOperation pmMChaikinOperation = new PMMightyChaikinOperation();
 		nativeOperations.addOperation(pmMChaikinOperation);
+		PMBollingerOperation bollingerOperation = new PMBollingerOperation();
+		nativeOperations.addOperation(bollingerOperation);
 
 		//Other
 		FlipOperation flipOperation = new FlipOperation();
@@ -122,22 +121,14 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(leftShiterOperation);
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
 		nativeOperations.addOperation(bandNormalizerOperation);
-		VolatilityOperation volatilityOperation = new VolatilityOperation();
-		nativeOperations.addOperation(volatilityOperation);
-		InflationRationaliserOperation inflationRationaliserOperation = new InflationRationaliserOperation();
-		nativeOperations.addOperation(inflationRationaliserOperation);
-		SkewRationaliserOperation skewRationaliserOperation = new SkewRationaliserOperation();
-		nativeOperations.addOperation(skewRationaliserOperation);
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
 		nativeOperations.addOperation(zeroLagEMAOperation);
 		LnPeriodicOperation lnPeriodicOperation = new LnPeriodicOperation();
 		nativeOperations.addOperation(lnPeriodicOperation);
+		VolatilityOperation volatilityOperation = new VolatilityOperation();
+		nativeOperations.addOperation(volatilityOperation);
 		VolatilityOtherOperation volatilityOtherOperation = new VolatilityOtherOperation();
 		nativeOperations.addOperation(volatilityOtherOperation);
-		VolatilityRationaliserOperation volatilityRationaliserOperation = new VolatilityRationaliserOperation();
-		nativeOperations.addOperation(volatilityRationaliserOperation);
-		PMBollingerOperation bollingerOperation = new PMBollingerOperation();
-		nativeOperations.addOperation(bollingerOperation);
 		FilterOperation filterOperation = new FilterOperation();
 		nativeOperations.addOperation(filterOperation);
 
