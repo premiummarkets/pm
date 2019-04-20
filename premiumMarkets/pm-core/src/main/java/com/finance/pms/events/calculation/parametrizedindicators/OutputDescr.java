@@ -46,12 +46,11 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	public String fullQualifiedName() {
 
 		//outputReference || discriminentConstant
-		String discriminantReference = getContainer().groupUniqueId().toString().substring(0, 8);
-		if (outputReference.getIsLeaf()) {
-			discriminantReference = discriminantReference + ":" + discriminentConstant.getValueAsString();
-		} else {
-			discriminantReference = discriminantReference + ":" + outputReference.getReference();
-		}
+		String discriminantReference = (outputReference.getIsLeaf())?discriminentConstant.getValueAsString():outputReference.getReference();
+
+		//group
+		String group = getContainer().groupUniqueId().toString().substring(0, 8);
+		discriminantReference = (isMain())? discriminantReference + "(" + group + ")":"_" + group + ":" + discriminantReference;
 
 		//(operationReference)? (: outputSelector)?
 		String familyName =
@@ -62,8 +61,8 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		//(referenceAsOperand)?
 		String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
 
-		//discriminantReference ( \(familyName\) )? (as displayedAs)? \n groupUUID
-		return discriminantReference + ((!familyName.isEmpty())?" = " + familyName + " ":"") + ((!displayedAs.isEmpty())?" here " + displayedAs:"");
+		//discriminantReference ( \(familyName\) )? (as displayedAs)?
+		return discriminantReference + ((!familyName.isEmpty())?" = " + familyName + " ":"") + ((!displayedAs.isEmpty())?" as " + displayedAs:"");
 	}
 
 	public ChartedOutputGroup getContainer() {

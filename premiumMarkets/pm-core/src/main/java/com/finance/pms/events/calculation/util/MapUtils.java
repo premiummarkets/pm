@@ -55,12 +55,12 @@ public class MapUtils {
 		return map.tailMap(from);
 	}
 
-	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, int period, ApacheStats apacheStats) {
+	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, ApacheStats apacheStats) {
 
 		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
 
 		TreeMap<Date, Double> movingStats =
-				map.keySet().stream()
+				map.tailMap(startDate).keySet().stream()
 				.collect(Collectors.toMap(
 						endWindowK -> endWindowK,
 						endWindowK -> {

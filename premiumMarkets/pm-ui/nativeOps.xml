@@ -122,7 +122,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>movingPeriod</referenceAsOperand>
-                    <description>Moving period. This will be reflected in number of days (*7/5), independent of effective available data.</description>
+                    <description>Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>21.0</numberValue>
                     </defaultValue>
@@ -454,6 +454,24 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="mathOperation">
+            <reference>math</reference>
+            <description>Math calculus</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>exponential</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>exponential</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="division">
             <reference>division_</reference>
             <description>Division of two historical data series</description>
@@ -591,6 +609,45 @@
                 <availableOutputSelector>volume</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>close</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="recursiveOperation">
+            <reference>recursive_</reference>
+            <description>recursive operation Y0 = V and Yn = f(Yn-1)</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>seedingPeriod</reference>
+                    <referenceAsOperand>seedingPeriod</referenceAsOperand>
+                    <description>One period on which the seeding is calculated (using a mean)</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>seed</reference>
+                    <referenceAsOperand>seed</referenceAsOperand>
+                    <description>Use the first period values as a seed for the recursion</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>paramsData</reference>
+                    <referenceAsOperand>calculusParamLists</referenceAsOperand>
+                    <description>Timed calculus parameters</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>rates</availableOutputSelector>
+                <availableOutputSelector>continuousRates</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>rates</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="leftShifterOperation">

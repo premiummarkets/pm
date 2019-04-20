@@ -49,7 +49,7 @@ public interface InfoObject {
 	}
 
 	default public int compareToInfoObject(InfoObject o) {
-		int cmp = info().compareTo(o.info());
+		int cmp = info().compareToIgnoreCase(o.info());
 		if (cmp != 0) return cmp;
 		cmp = (toolTip() != null && o.toolTip() != null)?toolTip().compareTo(o.toolTip()):((toolTip() == null)?((o.toolTip() != null)?-1:0):1);
 		if (cmp != 0) return cmp;

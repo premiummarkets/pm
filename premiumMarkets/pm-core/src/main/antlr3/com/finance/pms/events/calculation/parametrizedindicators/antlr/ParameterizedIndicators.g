@@ -105,11 +105,11 @@ tokens {
           super.reportError(e);
         }
     }
-      
+
     private void  checkParenthesis(String type)  throws UnfinishedNestedCondition {
             parserDelegate.checkParenthesis(type);
     }
-    
+
     private void checkOperationValidity(Token opName) throws InvalidOperationException {
              parserDelegate.checkOperationValidity(opName);
     }
@@ -228,26 +228,26 @@ opcmpcondition [CommonTree firstOp] :
 
   ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand) )
    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-   WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+   WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
    -> ^(SupDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree}) )? |
   ('is below historical' WhiteChar secondOp=operand -> ^(InfDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand) )
     ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(InfDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree}) )? |
   ('equals historical' WhiteChar secondOp=operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand) )
     ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(EqualDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree}) )? |
 
   ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
     ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
     WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} {$firstOp} operand) )? |
   ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
     ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
     WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} {$firstOp} operand) )? |
 
   ('trends like' WhiteChar secondOp=operand
@@ -270,17 +270,17 @@ constantcmp [CommonTree firstOp] :
   ('equals threshold' WhiteChar threshold=constant -> ^(EqualConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
     WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(EqualConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$epsilon.tree} {$firstOp}) )? |
   ('is above threshold' WhiteChar threshold=constant -> ^(SupConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
     WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(SupConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$epsilon.tree} {$firstOp}) )? |
   ('is below threshold' WhiteChar threshold=constant -> ^(InfConstantCondition constant ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) ^(Number NumberToken["0"]) {$firstOp}) )
     ( WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
     WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
     -> ^(InfConstantCondition {$threshold.tree} {$overNbDays.tree} {$forNbDays.tree} {$epsilon.tree} {$firstOp}) )?;
 
 presetcondition [CommonTree firstOp] :
@@ -304,12 +304,12 @@ presetcondition [CommonTree firstOp] :
   ('crosses up threshold' WhiteChar threshold=constant -> ^(CrossUpConstantCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-        WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+        WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
       -> ^(CrossUpConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree} ^(Number NumberToken["0.0"]) {$epsilon.tree} {$firstOp}) )? |
   ('crosses down threshold' WhiteChar threshold=constant -> ^(CrossDownConstantCondition constant ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0"]) {$firstOp}))
       ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS 
         WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-        WhiteChar 'epsilon' WhiteChar epsilon=constant WhiteChar PERCENT
+        WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
       -> ^(CrossDownConstantCondition {$threshold.tree} {$spanningNbDays.tree} {$overNbDays.tree} ^(Number NumberToken["0.0"]) {$epsilon.tree} {$firstOp}) )? |
 
   ('makes a higher high spanning' WhiteChar lookBack=constant WhiteChar DAYS 

@@ -30,7 +30,6 @@
 package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -45,7 +44,6 @@ import javax.xml.bind.annotation.XmlType;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
@@ -145,6 +143,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public Value<?> run(TargetStockInfo targetStock, int parentStartShift) {
 
 		int thisStartShift = parentStartShift + operationStartDateShift();
+		LOGGER.debug("Start shift granted for " + this.getReference() + " = " + this.getFormulae() + ": parent " + parentStartShift + " and parent+this " + thisStartShift);
 
 		Value<?> alreadyCalculated = null;
 		try {
@@ -170,6 +169,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 				targetStock.populateChartedOutputGroups(this, operandsOutputs);
 
+				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent " + parentStartShift + " and parent+this " + thisStartShift);
 				Value<?> operationOutput = calculate(targetStock, thisStartShift, operandsOutputs);
 
 				if (LOGGER.isDebugEnabled())
@@ -547,12 +547,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	public abstract int operationStartDateShift();
-
-	public Date getStartDate(Date startDate, int startShift) {
-		Date incStartDate = DateFactory.incrementDateWraper(startDate, -startShift);
-		LOGGER.info("Operation (" + this.getReference() + ") start date shift to : " + startShift + ". Requested start : " + startDate + ", calculated start : " + incStartDate);
-		return incStartDate;
-	}
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
 	//This can be overridden by making this operation itself not idempotent

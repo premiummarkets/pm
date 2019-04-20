@@ -972,7 +972,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					if (!display.readAndDispatch()) display.sleep();
 				} catch (Throwable e) {
 					try {
-						LOGGER.error("Error in Main Gui : "+e.getMessage(),e);
+						LOGGER.error("Error in Main Gui : "+ e.getMessage(), e);
 						inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						UserDialog dialog = new UserDialog(inst.getShell(),"An Error occurred.", e.getMessage());
 						dialog.open();

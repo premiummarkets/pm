@@ -62,6 +62,8 @@ public class VolatilityOperation extends PMWithDataOperation {
 		int returnCalculationNbPeriods = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATA_IDX)).getValue(targetStock);
 
+		Date startDateShift = targetStock.getStartDate(thisStartShift);
+
 		//Calc
 		try {
 
@@ -90,17 +92,16 @@ public class VolatilityOperation extends PMWithDataOperation {
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("negativeAtDate")) {
 					selectorOutputs.put("negativeAtDate", new DoubleMapValue(sNegVolatilties));
-				}
-				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
-					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
+				} else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("average", new DoubleMapValue(averageVolatility));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("averagePosistive")) {
-					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sPosVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sPosVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("averagePosistive", new DoubleMapValue(averageVolatility));
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("averageNegative")) {
-					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sNegVolatilties, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
+					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sNegVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("averageNegative", new DoubleMapValue(averageVolatility));
 				} 
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("logRetnAtDate")) {

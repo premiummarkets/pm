@@ -150,8 +150,8 @@ public class OperationBuilderComposite extends Composite {
 		shell.setText("Customise and Create calculators ...");
 		shell.setLayout(new GridLayout());
 
-		IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());
-		//OperationBuilderComposite builderComposite = new OperationBuilderComposite(shell, null);
+		//IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());
+		OperationBuilderComposite builderComposite = new OperationBuilderComposite(shell, null);
 
 		builderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		builderComposite.parameterizedBuilder.updateEditableOperationLists();
@@ -160,13 +160,11 @@ public class OperationBuilderComposite extends Composite {
 			@Override
 			public void refreshView(List<Exception> exceptions) {
 				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void initRefreshAction() {
 				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -184,13 +182,11 @@ public class OperationBuilderComposite extends Composite {
 			@Override
 			public void endRefreshAction(List<Exception> exceptions) {
 				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void setCursor(Cursor cursor) {
 				// TODO Auto-generated method stub
-
 			}
 		};
 
@@ -612,13 +608,21 @@ public class OperationBuilderComposite extends Composite {
 			@Override
 			public void mouseDown(MouseEvent e) {
 				LOGGER.info("buildPopupAlternatives mouseDown");
-				buildPopupAlternatives();
+				try {
+					buildPopupAlternatives();
+				} catch (Exception e1) {
+					openDialog(true, "Invalid formula.", e);
+				}
 			}
 
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				LOGGER.info("buildPopupAlternatives mouseDoubleClick");
-				buildPopupAlternatives();
+				try {
+					buildPopupAlternatives();
+				} catch (Exception e1) {
+					openDialog(true, "Invalid formula.", e);
+				}
 			}
 		};
 		editorListeners.put(MouseListener.class, mouseListener);
@@ -954,12 +958,12 @@ public class OperationBuilderComposite extends Composite {
 			}
 
 		} catch (IOException e) {
-			LOGGER.info("An error occurred "+identifier+". Is saved :"+isSaved);
+			LOGGER.info("An error occurred " + identifier + ". Is saved :"+isSaved);
 			openDialog(false, "Formula can't be saved.\n Please fill in a valid formula", e);
 			isSaved=false;
 
 		} catch (Exception e) {
-			LOGGER.info("An error occurred "+identifier+". Is saved :"+isSaved);
+			LOGGER.info("An error occurred " + identifier + ". Is saved :"+isSaved);
 			openDialog(true, "Found invalid formulas while storing data.", e);
 			isSaved=false;
 		}

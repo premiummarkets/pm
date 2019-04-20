@@ -61,7 +61,7 @@ public class PMBollingerOperation extends PMWithDataOperation {
 		//Calc
 		try {
 			ApacheStats mean = new ApacheStats(new Mean());
-			SortedMap<Date, Double> sma = MapUtils.movingStat(data, period, mean);
+			SortedMap<Date, Double> sma = MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period, mean);
 
 			ApacheStats std = new ApacheStats(new StandardDeviation());
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
@@ -88,7 +88,7 @@ public class PMBollingerOperation extends PMWithDataOperation {
 				lowerFunc = (t, u) -> t - u*nbDevDown;
 				upperFunc = (t, u) -> t + u*nbDevUp;
 			}
-			SortedMap<Date, Double> mstd = MapUtils.movingStat(bars, period, std);
+			SortedMap<Date, Double> mstd = MapUtils.movingStat(bars, targetStock.getStartDate(thisStartShift), period, std);
 
 			SortedMap<Date, Double> lower = mstd.keySet().stream()
 					.collect(TreeMap::new, (r, k) -> r.put(k, lowerFunc.apply(sma.get(k), mstd.get(k))), TreeMap::putAll);

@@ -57,8 +57,9 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 @XmlSeeAlso({EqualConstantCondition.class, InfConstantCondition.class, SupConstantCondition.class})
 public abstract class CmpConstantCondition extends Condition<Double> implements OnThresholdCondition {
 
-	private static final int MAIN_POSITION = 4;
 	private static final int THRESHOLD_POSITION = 0;
+	private static final int OTHER_PARAMS = 3;
+	private static final int MAIN_POSITION = 4;
 
 	@SuppressWarnings("unused")
 	private CmpConstantCondition() {
@@ -85,7 +86,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 		Double threshold = ((NumberValue) inputs.get(THRESHOLD_POSITION)).getValue(targetStock).doubleValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
-		Double epsilon = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
+		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
@@ -130,7 +131,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
 		int maxDateShift = 0;
-		for (int i = inputThresholdPosition()+1; i < mainInputPosition(); i++) {
+		for (int i = inputThresholdPosition()+1; i < OTHER_PARAMS; i++) { //epsilon is not part of the shift
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;

@@ -58,6 +58,7 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 @XmlSeeAlso({SupDoubleMapCondition.class, InfDoubleMapCondition.class, EqualDoubleMapCondition.class})
 public abstract class CmpDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
+	private static final int OTHER_PARAMS = 1;
 	private static final int MAIN_POSITION = 2;
 	private static final int SIGNAL_POSITION = 3;
 
@@ -83,7 +84,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer forPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
-		Double epsilon = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
+		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> firstOp = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((NumericableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
@@ -120,7 +121,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
 		int maxDateShift = 0;
-		for (int i = 0; i < mainInputPosition(); i++) {
+		for (int i = 0; i < OTHER_PARAMS; i++) { //epsilon is not part of the shift
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;

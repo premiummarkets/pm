@@ -39,9 +39,9 @@ import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
 public class NumberValue extends Value<Number> implements StringableValue, Cloneable {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(NumberValue.class);
-	
+
 	@XmlElement
 	Double numberValue;
 
@@ -54,12 +54,12 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 		super();
 		this.numberValue = value;
 	}
-	
+
 	public NumberValue(String value) {
 		super();
 		this.numberValue = Double.valueOf(value);
 	}
-	
+
 	public Number getValue(TargetStockInfo targetStockInfo) {
 		return numberValue;
 	}
@@ -72,7 +72,7 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 	public Double getNumberValue() {
 		return numberValue;
 	}
-	
+
 	@Override
 	public Object clone() {
 		try {

@@ -217,7 +217,7 @@ public class PopupMenu<T extends InfoObject> {
 		if (unableSelectAll) {
 
 			final Button selectAllBut = new Button(selectionShell, style);
-			selectAllBut.setText("Select/Deselect all");
+			selectAllBut.setText("Select/DeSelect all");
 			selectAllBut.setFont(MainGui.DEFAULTFONT);
 			selectAllBut.addSelectionListener(new SelectionListener() {
 

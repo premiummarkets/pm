@@ -100,7 +100,7 @@ public class HouseTrendSmoother extends Smoother implements SSmoother {
         double xi = values[i][0];
         double xi_1 = values[i-period][0];
         if (xi <= 0 || xi_1 <= 0 ) throw new NotImplementedException("currentValue : " + xi + ", previousValue " + xi_1);
-        return Math.log10(xi/xi_1);
+        return Math.log(xi/xi_1);
     }
 
     @Override
@@ -116,7 +116,7 @@ public class HouseTrendSmoother extends Smoother implements SSmoother {
 
             if (currentValue <= 0 || previousValue <= 0 ) throw new NotImplementedException("currentValue : " + currentValue + ", previousValue " + previousValue);
 
-            double value = Math.log10(currentValue/previousValue);
+            double value = Math.log(currentValue/previousValue);
             ret.put(keys.get(i), value);
         }
 

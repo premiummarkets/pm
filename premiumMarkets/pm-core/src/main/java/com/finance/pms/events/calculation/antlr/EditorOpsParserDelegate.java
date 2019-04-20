@@ -121,8 +121,8 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 						//Type check on the offending bit
 						paramType = ParamType.valueOfTokenName(offendingBit, allNativeOps);
 						//No runtime was raise so we assume the offending bit is ok as the last param <= what if it not the last one?
-						String msg = "Unfinished predicate (unfinished param) for "+ currentOp.getName() +" : Valid offending bit "+offendingBit+". Expected : "+currentOp.getShortSynoptic();
-						System.out.println(msg+ " "+token);
+						String msg = "Unfinished predicate (unfinished param) for " + currentOp.getName() + " : Valid offending bit " + offendingBit + ". Expected : " + currentOp.getShortSynoptic();
+						System.out.println(msg + " " + token);
 						//This is to avoid the FailedPredicateException to be raised but without having to return true.
 						//We can return true only when this param is finished.
 						//And a FailedPredicateException would mean that is param is still needed as it is not.
@@ -131,8 +131,8 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 
 					} catch (RuntimeException e) {
 
-						String msg = "Syntax error or invalid parameter '"+offendingBit+"' for "+currentOp.getName()+". Expected : "+currentOp.getShortSynoptic();
-						System.out.println(msg+ " "+token);
+						String msg = "Syntax error or invalid parameter '" + offendingBit + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
+						System.out.println(msg + " " + token);
 						currentOp.setLastParamParsed(currentParamPos, offendingBit);
 						throw new ParamsCountException(input, currentOp, msg, true, Qualifier.SYNTAX, offendingBit, whereIsThatSonOf(token));
 
@@ -141,7 +141,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 				} else {
 
 					//Nothing yet to check
-					String msg = "Unfinished predicate (empty param ) for "+ currentOp.getName() +" : Empty offending bit "+offendingBit+". Expected : "+currentOp.getShortSynoptic();
+					String msg = "Unfinished predicate (empty param ) for " + currentOp.getName() + " : Empty offending bit " + offendingBit + ". Expected : " + currentOp.getShortSynoptic();
 					System.out.println(msg+ " "+token);
 					currentOp.setLastParamParsed(currentParamPos, offendingBit);
 					throw new UnfinishedParameterException(input,currentOp, paramType, offendingBit);
@@ -160,7 +160,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			Param expectedParam = (currentOp.undeterministicParamCount())?currentOp.getCurrentParamOrVarArg(currentParamPos):currentOp.getParams().get(currentParamPos);
 			if (!expectedParam.getParamType().equals(paramType)) {
 
-				String msg = "Wrong parameter type '"+paramType.getTypeDescr()+"' for "+currentOp.getName()+". Expected : "+currentOp.getShortSynoptic();
+				String msg = "Wrong parameter type '" + paramType.getTypeDescr() + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
 				System.out.println(msg+ " "+token);
 				String theSonOf = getTheSonOf(token);
 				currentOp.setLastParamParsed(currentParamPos, theSonOf);

@@ -86,7 +86,6 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 		this.isLooseCoupled = isLooseCoupled;
 	}
 
-
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 
@@ -104,16 +103,23 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 						}
 					}, (a,b) -> a + b, TreeMap::new)); //);
 		}
-		return collectedUnaryMapValue; //XXX there may be merge conflicts as Date is not a unique key in SortedMap<EventKey, EventValue>
+		return collectedUnaryMapValue; //XXX There may be merge conflicts as Date is not a unique key in SortedMap<EventKey, EventValue>
 
 	}
 
+	/*
+	 * Translates (or normalise) the bull/bear events into double values.
+	 * The chosen values are Max/Min of the first provided additional output or 1d/-1d if none provided.
+	 * This is to make it visible as EventMapValue.getValue does but adding relevant amplitude to make it comparable within the chart.
+	 */
 	public SortedMap<Date, Double> getNormalizedValue(TargetStockInfo targetStockInfo) {
 		if (collectedAdditionalOutputs == null) {
 			double max = 1d;
 			double min = -1d;
 			if (!additionalOutputs.values().isEmpty()) {
-				Collection<Double> values = additionalOutputs.values().iterator().next().getValue(null).subMap(targetStockInfo.getStartDate(), targetStockInfo.getEndDate()).values();
+				NumericableMapValue firstAdditionalOuput = additionalOutputs.values().iterator().next();
+				Date displayedStartDate = targetStockInfo.getStartDate(0);
+				Collection<Double> values = firstAdditionalOuput.getValue(null).subMap(displayedStartDate, targetStockInfo.getEndDate()).values();
 				ApacheStats maxStats = new ApacheStats(new Max());
 				max = maxStats.sEvaluate(values);
 				ApacheStats minStats = new ApacheStats(new Min());
@@ -121,17 +127,18 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 			}
 			double fMax = max;
 			double fMin = min;
-			collectedAdditionalOutputs = eventData.keySet().stream().collect(Collectors.toMap(e -> e.getDate(), e -> {
-				EventType t = e.getEventType();
-				switch (t) {
-				case BULLISH:
-					return fMax;
-				case BEARISH:
-					return fMin;
-				default:
-					return fMin + (fMax - fMin) / 2;
-				}
-			}, (a, b) -> a + b, TreeMap::new));
+			collectedAdditionalOutputs = eventData.keySet().stream()
+					.collect(Collectors.toMap(e -> e.getDate(), e -> {
+						EventType t = e.getEventType();
+						switch (t) {
+						case BULLISH:
+							return fMax;
+						case BEARISH:
+							return fMin;
+						default:
+							return fMin + (fMax - fMin) / 2;
+						}
+					}, (a, b) -> a + b, TreeMap::new));
 		}
 		return collectedAdditionalOutputs;
 	}

@@ -59,6 +59,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 @XmlSeeAlso({CrossUpDoubleMapCondition.class, CrossDownDoubleMapCondition.class})
 public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
+	private static final int OTHER_PARAMS = 2;
 	private static final int MAIN_POSITION = 3;
 	private static final int SIGNAL_POSITION = 4;
 
@@ -86,7 +87,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 
 		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Double epsilon = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue();
+		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> firstOp = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((NumericableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
@@ -137,7 +138,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
 		int maxDateShift = 0;
-		for (int i = 0; i < mainInputPosition(); i++) {
+		for (int i = 0; i < OTHER_PARAMS; i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;

@@ -25,7 +25,7 @@ public class HouseTrend2ndSmoother extends HouseTrendSmoother {
         double xi_N_1 = values[i-(ynCount-1)*period][0];
         double xi_N_2 = values[i-ynCount*period][0];
 
-        double yi = Math.log10(( LIFTER_ABOVE_0 + Math.log10(xi)-Math.log10(xi_N_1) )/( LIFTER_ABOVE_0 + Math.log10(xi_1)- Math.log10(xi_N_2) ));
+        double yi = Math.log(( LIFTER_ABOVE_0 + Math.log(xi)-Math.log(xi_N_1) )/( LIFTER_ABOVE_0 + Math.log(xi_1)- Math.log(xi_N_2) ));
         return yi;
 
     }

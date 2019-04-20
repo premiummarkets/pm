@@ -45,7 +45,7 @@ import com.tictactec.ta.lib.MAType;
 public class MATypeOperation extends Operation implements LeafOperation {
 	
 	public MATypeOperation() {
-		super("moving average type", "One of "+EnumSet.allOf(MAType.class));
+		super("moving average type", "One of " + EnumSet.allOf(MAType.class));
 	}
 
 	public MATypeOperation(String reference) {

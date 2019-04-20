@@ -584,7 +584,7 @@ public class ChartMain extends Chart {
 						XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
 						indicRenderer.setBaseItemLabelsVisible(true, false); //??
 
-						indicPlot = new XYPlot(null, null, null, indicRenderer);
+						indicPlot = new XYPlot(null, null, null , indicRenderer);
 						//indicPlot.addRangeMarker(0, new ValueMarker(0), Layer.FOREGROUND, false);
 						indicPlot.setNoDataMessage("No indicator output available. Click 'Calculations Update' or 'Calculator Settings'.\nAlso check that the selected stock and date ranges are valid.");
 						indicPlot.setDomainMinorGridlinesVisible(true);
@@ -601,6 +601,8 @@ public class ChartMain extends Chart {
 					}
 
 					resetVerticalLines(plotArea);
+					indicPlot.getRangeAxis().setAutoRange(true);
+					indicPlot.getRangeAxis().setAutoRangeMinimumSize(Double.MIN_VALUE);
 
 				} catch (Exception e) {
 					LOGGER.warn("Can't refresh indicator chart : "+ e, e);

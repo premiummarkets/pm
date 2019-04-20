@@ -63,8 +63,9 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(CrossConstantCondition.class);
 
-	private static final int MAIN_POSITION = 5;
 	protected static final int CONSTANT_POSITION = 0;
+	private static final int OTHER_PARAMS = 4;
+	private static final int MAIN_POSITION = 5;
 
 	@SuppressWarnings("unused")
 	private CrossConstantCondition() {
@@ -90,7 +91,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
-		Double epsilon = ((NumberValue) inputs.get(4)).getValue(targetStock).doubleValue();
+		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
@@ -140,7 +141,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	@Override //Adding shift inherent to over, for and spanning
 	public int operationStartDateShift() {
 		int maxDateShift = 0;
-		for (int i = CONSTANT_POSITION+1; i < mainInputPosition(); i++) {
+		for (int i = CONSTANT_POSITION+1; i < OTHER_PARAMS; i++) {
 			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
 		}
 		return maxDateShift;

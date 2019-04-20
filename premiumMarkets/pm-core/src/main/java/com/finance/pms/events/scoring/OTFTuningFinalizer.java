@@ -429,11 +429,11 @@ public class OTFTuningFinalizer {
 		} else if (nbFailure == 0) {
 			ret.rating = Double.POSITIVE_INFINITY;
 		} else {
-			Double log10 = Math.log10(new Double(nbSuccess)/new Double(nbFailure));
-			ret.rating = log10;
+			Double ln = Math.log(new Double(nbSuccess)/new Double(nbFailure));
+			ret.rating = ln;
 		}
 
-		double threshold = Math.log10(100.00/75.00);
+		double threshold = Math.log(100.00/75.00);
 
 		if (totProfit < 0 && totProfit < totPriceChange) {
 			ret.cause += "Negative profit under performs share price change. ";

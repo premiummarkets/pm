@@ -43,6 +43,7 @@ import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
+import com.finance.pms.events.operations.nativeops.MathOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
@@ -51,6 +52,7 @@ import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.Product;
+import com.finance.pms.events.operations.nativeops.RecursiveOperation;
 import com.finance.pms.events.operations.nativeops.StatOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
@@ -113,6 +115,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmMChaikinOperation);
 		PMBollingerOperation bollingerOperation = new PMBollingerOperation();
 		nativeOperations.addOperation(bollingerOperation);
+		MathOperation mathOperation = new MathOperation();
+		nativeOperations.addOperation(mathOperation);
 
 		//Other
 		FlipOperation flipOperation = new FlipOperation();
@@ -131,6 +135,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(volatilityOtherOperation);
 		FilterOperation filterOperation = new FilterOperation();
 		nativeOperations.addOperation(filterOperation);
+		RecursiveOperation recursiveOperation = new RecursiveOperation();
+		nativeOperations.addOperation(recursiveOperation);
 
 		return nativeOperations;
 	}

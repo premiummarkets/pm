@@ -43,6 +43,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -174,8 +175,9 @@ public class TargetStockInfo {
 		return stock;
 	}
 
-	public Date getStartDate() {
-		return startDate;
+	public Date getStartDate(int startShift) {
+		Date incStartDate = DateFactory.incrementDateWraper(startDate, -startShift);
+		return incStartDate;
 	}
 
 	public Date getEndDate() {

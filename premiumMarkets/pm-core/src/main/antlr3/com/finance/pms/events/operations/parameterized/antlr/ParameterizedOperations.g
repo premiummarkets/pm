@@ -96,7 +96,6 @@ tokens {
       }
   }
 
-  
   private boolean runtimeNativeOpAhead() {
      return lexerDelegate.runtimeNativeOpAhead();
   }
@@ -111,7 +110,6 @@ tokens {
      return lexerDelegate.runtimeMATypeOpAhead();
   }
 
-  
 }
 
 indicatorexpr : expression -> expression ;
@@ -123,7 +121,7 @@ userop :
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
 
 params : param (',' param)* -> param+ ;
-param : NumberToken ->  ^(Number NumberToken) | MATypeToken -> ^(MAType MATypeToken) | StringToken ->  ^(String StringToken) | operand ;
+param : NumberToken ->  ^(Number NumberToken) | NaNNumber -> ^(Number NumberToken["NaN"]) | MATypeToken -> ^(MAType MATypeToken) | StringToken -> ^(String StringToken) | operand;
 operand : stockhistory -> stockhistory | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""]));
 
@@ -132,6 +130,9 @@ HistoricalData
      ;
 MATypeToken
      : {runtimeMATypeOpAhead()}? => ('Sma'|'Ema'|'Wma'|'Dema'|'Tema'| 'Trima'| 'Kama'| 'Mama'| 'T3')
+     ;
+NaNNumber
+     : {runtimeMATypeOpAhead()}? => ('NaN')
      ;
 Nativeop 
      : {runtimeNativeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+

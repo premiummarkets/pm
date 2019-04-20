@@ -39,32 +39,22 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.commons.math3.exception.MathIllegalArgumentException;
-import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
-import org.apache.commons.math3.stat.descriptive.UnivariateStatistic;
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.scoring.functions.ApacheStats;
 
 @XmlRootElement
-public class StatOperation extends PMWithDataOperation {
+public class MathOperation extends PMWithDataOperation {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StatOperation.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(MathOperation.class);
 
-	public StatOperation() {
-		super("stat", "Moving statistics",
-				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
-				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev"})));
+	public MathOperation() {
+		super("math", "Math calculus", new DoubleMapOperation());
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"exponential"})));
 	}
 
-	public StatOperation(ArrayList<Operation> operands, String outputSelector) {
+	public MathOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
@@ -74,37 +64,16 @@ public class StatOperation extends PMWithDataOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
-		Double period = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
 
 		try {
-			//Default is identity
-			ApacheStats apacheStat = new ApacheStats(new AbstractUnivariateStatistic() {
-				@Override
-				public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
-					return values[begin+length-1];
-				}
-				@Override
-				public UnivariateStatistic copy() {
-					return this;
-				}
-			});
 
+			TreeMap<Date, Double> collected = new TreeMap<>();
 			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
-			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
-				apacheStat = new ApacheStats(new Mean());
-			} else
-				if (outputSelector != null && outputSelector.equalsIgnoreCase("mstdev")) {
-					apacheStat = new ApacheStats(new StandardDeviation());
-				}
-
-			if (period.isNaN()) {
-				double sEvaluate = apacheStat.sEvaluate(data.values());
-				TreeMap<Date, Double> collected = data.keySet().stream().collect(Collectors.toMap(k -> k, k -> sEvaluate, (a, b) -> a, TreeMap<Date,Double>::new));
-				return new DoubleMapValue(collected);
-			} else {
-				return new DoubleMapValue(MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period.intValue(), apacheStat));
+			if (outputSelector != null && outputSelector.equalsIgnoreCase("exponential")) {
+				collected = data.keySet().stream().collect(Collectors.toMap(k -> k, k -> Math.exp(data.get(k)), (a, b) -> a, TreeMap<Date,Double>::new));
 			}
+			return new DoubleMapValue(collected);
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
@@ -116,11 +85,7 @@ public class StatOperation extends PMWithDataOperation {
 
 	@Override
 	public int operationStartDateShift() {
-		int maxDateShift = 0;
-		for (int i = 0; i < 1; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
-		}
-		return maxDateShift;
+		return 0;
 	}
 
 

@@ -82,8 +82,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		super();
 	}
 
-	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin, BigDecimal split)
-	{
+	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin, BigDecimal split) {
 		this.stock = stock;
 		this.currency=currency;
 		this.date = date;
@@ -95,7 +94,6 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		this.origin = origin;
 		this.setSplit(split);
 	}
-
 
 	public Number getData(QuotationDataType field) {
 		switch (field) {
@@ -116,8 +114,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 
 	@Id
 	@Temporal(TemporalType.DATE)
-	public Date getDate()
-	{
+	public Date getDate() {
 		return date;
 	}
 
@@ -139,8 +136,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@Transient
-	public BigDecimal getCloseSplit()
-	{
+	public BigDecimal getCloseSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getCloseRaw();
 		return close.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
@@ -151,8 +147,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@Transient
-	public BigDecimal getHighSplit()
-	{
+	public BigDecimal getHighSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getHighRaw();
 		return high.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
@@ -163,8 +158,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@Transient
-	public BigDecimal getLowSplit()
-	{
+	public BigDecimal getLowSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getLowRaw();
 		return low.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
@@ -175,14 +169,12 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@Transient
-	public BigDecimal getOpenSplit()
-	{
+	public BigDecimal getOpenSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getOpenRaw();
 		return open.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
-	public long getVolume()
-	{
+	public long getVolume() {
 		return volume;
 	}
 
@@ -238,30 +230,25 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		this.origin = origin;
 	}
 
-
 	@SuppressWarnings("unused")
 	private void setDate(Date date) {
 		this.date = date;
 	}
-
 
 	@SuppressWarnings("unused")
 	private void setOpenRaw(BigDecimal open) {
 		this.open = open;
 	}
 
-
 	@SuppressWarnings("unused")
 	private void setHighRaw(BigDecimal high) {
 		this.high = high;
 	}
 
-
 	@SuppressWarnings("unused")
 	private void setLowRaw(BigDecimal low) {
 		this.low = low;
 	}
-
 
 	@SuppressWarnings("unused")
 	private void setCloseRaw(BigDecimal close) {
@@ -284,13 +271,11 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		this.currency = currency;
 	}
 
-
 	@Override
 	public String toString() {
 		return "QuotationUnit [stock=" + stock.getFriendlyName() +
 				", currency=" + currency + ", date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close +
 				", volume=" + volume + ", origin=" + origin + ", split=" + split + "]";
 	}
-
 
 }

@@ -1,2 +1,6 @@
 unmet
 afterglow
+minuend
+portfolio
+portfolios
+min
