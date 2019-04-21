@@ -244,12 +244,12 @@ public class TargetStockInfo {
 
 	}
 
-	public ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector) {
+	public ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Boolean displayByDefault) {
 		Integer indexOfOutput = getIndexOfChartableOutput(operation, outputSelector.orElse(operation.getOutputSelector()));
-		return setMain(operation, outputSelector, indexOfOutput);
+		return setMain(operation, outputSelector, indexOfOutput, displayByDefault);
 	}
 
-	private ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Integer indexOfOutput) {
+	private ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Integer indexOfOutput, Boolean displayByDefault) {
 		if (indexOfOutput != -1) {
 
 			Output output = getGatheredChartableOutput(indexOfOutput);
@@ -257,7 +257,7 @@ public class TargetStockInfo {
 			if (chartedDesrc != null) {
 				chartedDesrc.maskType(Type.MAIN);
 			} else {
-				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, outputSelector, indexOfOutput);
+				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, outputSelector, indexOfOutput, displayByDefault);
 				chartedOutputGroups.add(chartedOutputGroup);
 				chartedDesrc = chartedOutputGroup.getThisGroupMainOutputDescription();
 				output.setChartedDescription(chartedDesrc);
@@ -277,7 +277,7 @@ public class TargetStockInfo {
 		return chartedOutputGroups;
 	}
 
-	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation) {
+	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation, Boolean displayByDefault) {
 
 		Integer indexOfOutput = getIndexOfChartableOutput(operation, operation.getOutputSelector());
 		if (indexOfOutput != -1) {
@@ -299,7 +299,7 @@ public class TargetStockInfo {
 					this.chartedOutputGroups.remove(this.chartedOutputGroups.indexOf(existingChartedGrp));
 				}
 			} else {
-				chartedDescr = mainChartedGrp.addSignal(operation, indexOfOutput);
+				chartedDescr = mainChartedGrp.addSignal(operation, indexOfOutput,displayByDefault);
 				output.setChartedDescription(chartedDescr);
 			}
 
@@ -377,39 +377,42 @@ public class TargetStockInfo {
 		return outputAnalysers;
 	}
 
-	public void populateChartedOutputGroups(Operation operation, List<Value<?>> operandsOutputs) {
+	public void populateChartedOutputGroups(Operation operation, String callStack, List<Value<?>> operandsOutputs) {
+
+		Boolean displayByDefault = callStack.contains("bullishCondition") || callStack.contains("bearishCondition");
 
 		ChartedOutputGroup chartedOutputGroup = null;
 		List<Operation> operands = operation.getOperands();
 		if (operation instanceof OnSignalCondition) {//Operands outputs are grouped
 			//pick up or create the group
 			int mainOpPosition = ((OnSignalCondition) operation).mainInputPosition();
-			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty());
+			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty(), displayByDefault);
 			//add the signal
 			int signalOpPosition = ((OnSignalCondition) operation).inputSignalPosition();
-			addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition));
+			addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition), displayByDefault);
 
 		} else if (operation instanceof OnThresholdCondition) {
 			//pick up or create the group
 			int mainOpPosition = ((OnThresholdCondition) operation).mainInputPosition();
 			Operation mainOp = operands.get(mainOpPosition);
-			chartedOutputGroup = setMain(mainOp, Optional.empty());
+			chartedOutputGroup = setMain(mainOp, Optional.empty(), displayByDefault);
 			//add the constant
 			int thresholdOpPosition = ((OnThresholdCondition)operation).inputThresholdPosition();
-			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition));
+			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition), displayByDefault);
 
 		} else if (operation instanceof UnaryCondition) {
 			//pick up or create the group
 			int mainOpPosition = ((UnaryCondition) operation).mainInputPosition();
-			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty());
+			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty(), displayByDefault);
 
-		} else { //adHoc will rely on the operands only the first operand being pickup as main
+		} else { //The operation is not a ChartableWithMain: won't be visible by default.
+			//To create the group, we will rely on the operands only the first operand being pickup as main
 			for(int i = 0; i < operands.size(); i++) {
 				Value<?> ov = operandsOutputs.get(i);
 				Operation operand = operands.get(i);
 				if (ov instanceof NumericableMapValue && operand.getFormulae() != null) {
 					if (chartedOutputGroup == null) {
-						chartedOutputGroup = setMain(operand, Optional.empty());
+						chartedOutputGroup = setMain(operand, Optional.empty(), false);
 					} else {
 						//FIXME it seems we use outputSelector and operand Reference indiscriminately: this doesn't seem to work if the operand also have an outputSelector. There should be two different attributes.
 						Map<String, Type> additionalOutputsTypes = new HashMap<>();
@@ -421,8 +424,9 @@ public class TargetStockInfo {
 			}
 		}
 
-		//Operations with MutliMapValues outputs (Generates 'Sub' Groups). The problem is that MutliMapValues have to be displayed as if operands outputs.
-		//However, the charted info not being added when calculating operands we need to add it here when we now have the output.
+		//MutliMapValues
+		//Operands with MutliMapValues outputs (Will generate 'Sub' Groups). The problem is that MutliMapValues have to be displayed as if operands outputs.
+		//However, the chartInfo of MultiMapValues not being added when calculating operation's operands we need to add it here when we now have the output.
 		//Some of this code could also be moved/called in the Operation.gatherAdditionalOutputs?
 		for(int i = 0; i < operands.size(); i++) {
 			Value<?> ov = operandsOutputs.get(i);
@@ -430,7 +434,7 @@ public class TargetStockInfo {
 			if (ov instanceof MultiMapValue) {
 				Map<String, Type> multiMapValueOutputTypes = ((MultiMapValue) ov).getAdditionalOutputsTypes();
 				if (operand.getFormulae() != null) { //User defined operand. Itself being a NumericableMapValue, as all user defined operations are, the operand also has a principal output and can be set as main
-					setMain(operand, Optional.ofNullable(operand.getOutputSelector()));
+					setMain(operand, Optional.ofNullable(operand.getOutputSelector()), displayByDefault);
 					addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
 				}
 				else if (!multiMapValueOutputTypes.isEmpty()) { //Anonymous operand with effective MultiValueMap output.
@@ -445,14 +449,14 @@ public class TargetStockInfo {
 							//							mainOperandOfOperand = operand;
 							//							outputSelector = Optional.of(multiMapValueOutputTypes.keySet().iterator().next());
 							//						}
-							setMain(mainOperandOfOperand, outputSelector);
+							setMain(mainOperandOfOperand, outputSelector, displayByDefault);
 							addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.orElse(null)));
 						}
 					}
-//					//FIXME?? remove this case as it may cause scaling issues linking operands of this operand to other operands in this operation.
-//					else { //A main and group is set by other operands. We use theses.
-//						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
-//					}
+					//					//FIXME?? remove this case as it may cause scaling issues linking operands of this operand to other operands in this operation.
+					//					else { //A main and group is set by other operands. We use theses.
+					//						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
+					//					}
 				}
 			}
 		}
@@ -461,9 +465,9 @@ public class TargetStockInfo {
 
 	private Integer getIndexOfMainChartableOutput() {
 		Integer indexOfMain = gatheredChartableOutputs.indexOf(gatheredChartableOutputs.stream()
-			.filter(o -> o.getChartedDescription() != null)
-			.findFirst()
-			.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + gatheredChartableOutputs)));
+				.filter(o -> o.getChartedDescription() != null)
+				.findFirst()
+				.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + gatheredChartableOutputs)));
 		return indexOfMain;
 	}
 

@@ -113,7 +113,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
 
 			eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
-			EventMapValue eventMapValue = (EventMapValue) eventInfoOpsCompoOperationHolder.run(targetStock, 0);
+			EventMapValue eventMapValue = (EventMapValue) eventInfoOpsCompoOperationHolder.run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
 
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 

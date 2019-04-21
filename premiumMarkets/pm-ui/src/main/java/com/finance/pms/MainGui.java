@@ -455,7 +455,7 @@ public class MainGui extends SashForm implements RefreshableView {
 	protected void menuEventsCreateCalculators() {
 		{
 			MenuItem eventClean = new MenuItem(eventsSubMenu, SWT.CASCADE);
-			eventClean.setText("Customise and Create calculators ...");
+			eventClean.setText("Customise and Create indicators ...");
 			eventClean.addSelectionListener(new SelectionAdapter() {
 
 				@Override

@@ -199,8 +199,9 @@ public class PopupMenu<T extends InfoObject> {
 		}
 
 		//Size
-		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, selectionShell.getParent().getSize().y - 20), true);
-		selectionShell.setSize(computeSize.x,computeSize.y);
+		//Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, selectionShell.getParent().getSize().y - 20), true);
+		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, SWT.MAX), true);
+		selectionShell.setSize(computeSize.x, computeSize.y);
 
 		selectionShell.open();
 
@@ -342,8 +343,9 @@ public class PopupMenu<T extends InfoObject> {
 		initPopup();
 
 		//Size
-		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y - 20), true);
-		selectionShell.setSize(computeSize.x,computeSize.y);
+		//Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y,selectionShell.getParent().getSize().y - 20), true);
+		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, SWT.MAX), true);
+		selectionShell.setSize(computeSize.x, computeSize.y);
 
 		this.hasChanged=true;
 	}

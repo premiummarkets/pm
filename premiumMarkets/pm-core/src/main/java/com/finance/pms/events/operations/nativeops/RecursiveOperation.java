@@ -47,7 +47,7 @@ import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.scoring.functions.ApacheStats;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
 
 public class RecursiveOperation extends DoubleMapOperation {
 
@@ -106,7 +106,7 @@ public class RecursiveOperation extends DoubleMapOperation {
 				.subMapInclusive(seedingData, seedFrom, startDateShift)
 				.values()
 				.stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
-		Double seed = new ApacheStats(new Mean()).sEvaluate(seedValues);
+		Double seed = new MyApacheStats(new Mean()).sEvaluate(seedValues);
 		if (seed.isNaN()) seed = seedingData.get(seedingData.headMap(startDateShift).lastKey()); //When no seed because seedingData are outside [startDate - period, startDate]
 
 		//Calculus

@@ -213,7 +213,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		case SIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha);
 		case BOTH :
-			return new Color(grpColors[2].getRed(), (grpColors[2].getGreen() + outputIdx * 10) % 256, grpColors[2].getBlue(), alpha);
+			return new Color((grpColors[2].getRed() + (int)(128*randoms[outputIdx%100])) % 256, (grpColors[2].getGreen() + (int)(128*randoms[(outputIdx+1)%100])) % 256, (grpColors[2].getBlue() + (int)(128*randoms[(outputIdx+2)%100])) % 256, alpha);
 		case MULTI :
 			return new Color((grpColors[3].getRed() + (int)(128*randoms[outputIdx%100])) % 256, (grpColors[3].getGreen() + (int)(128*randoms[(outputIdx+1)%100])) % 256, (grpColors[3].getBlue() + (int)(128*randoms[(outputIdx+2)%100])) % 256, alpha);
 		case MULTISIGNAL :

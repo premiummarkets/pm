@@ -500,10 +500,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
 				calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
 				calculatorSettingsButton.setToolTipText(
-						"Only user defined calculators can be customised.\n" +
+						"Only user defined indicators can be customised.\n" +
 								"You must select one of your user defined calculators in '" + INDICATORSBUTTXT + "'\n" +
 								"And wait for its calculation to finish before changing the display settings.\n" +
-						"New calculators can be defined using the menu Events -> Customise and create calculators ...");
+						"New indicators can be defined using the menu Events -> Customise and Create indicators ...");
 				calculatorSettingsButton.addSelectionListener(new SelectionListener() {
 
 					@Override

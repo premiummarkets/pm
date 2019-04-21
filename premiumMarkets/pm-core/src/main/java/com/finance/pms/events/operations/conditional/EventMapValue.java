@@ -52,7 +52,7 @@ import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.scoring.functions.ApacheStats;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
 
 @XmlRootElement
 public class EventMapValue extends NumericableMapValue implements StringableMapValue, MultiMapValue {
@@ -120,9 +120,9 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 				NumericableMapValue firstAdditionalOuput = additionalOutputs.values().iterator().next();
 				Date displayedStartDate = targetStockInfo.getStartDate(0);
 				Collection<Double> values = firstAdditionalOuput.getValue(null).subMap(displayedStartDate, targetStockInfo.getEndDate()).values();
-				ApacheStats maxStats = new ApacheStats(new Max());
+				MyApacheStats maxStats = new MyApacheStats(new Max());
 				max = maxStats.sEvaluate(values);
-				ApacheStats minStats = new ApacheStats(new Min());
+				MyApacheStats minStats = new MyApacheStats(new Min());
 				min = minStats.sEvaluate(values);
 			}
 			double fMax = max;

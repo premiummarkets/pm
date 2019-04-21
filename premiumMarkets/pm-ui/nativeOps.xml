@@ -141,6 +141,7 @@
             <availableOutputSelectors>
                 <availableOutputSelector>sma</availableOutputSelector>
                 <availableOutputSelector>mstdev</availableOutputSelector>
+                <availableOutputSelector>msimplereg</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -396,7 +397,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
-            <description>Subtraction of two historical data series</description>
+            <description>Subtraction of two historical data series (a,b) -&gt; a - b</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
                     <reference>minuend</reference>
@@ -468,6 +469,7 @@
             </operands>
             <availableOutputSelectors>
                 <availableOutputSelector>exponential</availableOutputSelector>
+                <availableOutputSelector>naturalLogarithm</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>exponential</outputSelector>
             <isVarArgs>false</isVarArgs>

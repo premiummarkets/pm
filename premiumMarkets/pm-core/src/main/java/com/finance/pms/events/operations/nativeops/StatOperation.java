@@ -50,7 +50,9 @@ import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.scoring.functions.ApacheStats;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
+import com.finance.pms.events.scoring.functions.MySimpleRegression;
+import com.finance.pms.events.scoring.functions.StatsFunction;
 
 @XmlRootElement
 public class StatOperation extends PMWithDataOperation {
@@ -61,7 +63,7 @@ public class StatOperation extends PMWithDataOperation {
 		super("stat", "Moving statistics",
 				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg"})));
 	}
 
 	public StatOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -79,7 +81,7 @@ public class StatOperation extends PMWithDataOperation {
 
 		try {
 			//Default is identity
-			ApacheStats apacheStat = new ApacheStats(new AbstractUnivariateStatistic() {
+			StatsFunction statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
 				@Override
 				public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
 					return values[begin+length-1];
@@ -92,18 +94,21 @@ public class StatOperation extends PMWithDataOperation {
 
 			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
 			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
-				apacheStat = new ApacheStats(new Mean());
-			} else
-				if (outputSelector != null && outputSelector.equalsIgnoreCase("mstdev")) {
-					apacheStat = new ApacheStats(new StandardDeviation());
-				}
+				statFunction = new MyApacheStats(new Mean());
+			} 
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mstdev")) {
+				statFunction = new MyApacheStats(new StandardDeviation());
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msimplereg")) {
+				statFunction = new MySimpleRegression();
+			}
 
 			if (period.isNaN()) {
-				double sEvaluate = apacheStat.sEvaluate(data.values());
+				double sEvaluate = statFunction.mEvaluate(data);
 				TreeMap<Date, Double> collected = data.keySet().stream().collect(Collectors.toMap(k -> k, k -> sEvaluate, (a, b) -> a, TreeMap<Date,Double>::new));
 				return new DoubleMapValue(collected);
 			} else {
-				return new DoubleMapValue(MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period.intValue(), apacheStat));
+				return new DoubleMapValue(MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period.intValue(), statFunction));
 			}
 
 		} catch (Exception e) {

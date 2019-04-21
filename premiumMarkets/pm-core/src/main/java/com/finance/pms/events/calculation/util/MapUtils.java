@@ -1,6 +1,5 @@
 package com.finance.pms.events.calculation.util;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.SortedMap;
@@ -9,7 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.scoring.functions.ApacheStats;
+import com.finance.pms.events.scoring.functions.StatsFunction;
 
 public class MapUtils {
 
@@ -55,7 +54,7 @@ public class MapUtils {
 		return map.tailMap(from);
 	}
 
-	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, ApacheStats apacheStats) {
+	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats) {
 
 		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
 
@@ -65,11 +64,12 @@ public class MapUtils {
 						endWindowK -> endWindowK,
 						endWindowK -> {
 							Date startWindowK = startWindowKFunc.apply(endWindowK);
-							Collection<Double> values =
-									MapUtils.subMapInclusive(map, startWindowK, endWindowK).values()
+							SortedMap<Date,Double> values =
+									MapUtils.subMapInclusive(map, startWindowK, endWindowK).keySet()
 									.stream()
-									.filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
-							return (Double) apacheStats.sEvaluate(values);
+									.filter(k -> !Double.isNaN(map.get(k)))
+									.collect(Collectors.toMap(k -> k, k -> map.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
+							return (Double) apacheStats.mEvaluate(values);
 						},
 						(a, b) -> a, TreeMap<Date,Double>::new));
 

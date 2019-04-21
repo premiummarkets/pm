@@ -30,17 +30,23 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.SortedMap;
 
 import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-public class ApacheStats {
+public class MyApacheStats implements StatsFunction {
 
 	AbstractUnivariateStatistic statistic;
 
-	public ApacheStats(AbstractUnivariateStatistic statistic) {
+	public MyApacheStats(AbstractUnivariateStatistic statistic) {
 		super();
 		this.statistic = statistic;
+	}
+
+	@Override
+	public double mEvaluate(SortedMap<Date, Double> subMap) {
+		return this.sEvaluate(subMap.values());
 	}
 
 	public double evaluate(Collection<double[]> subMap) {
@@ -63,17 +69,6 @@ public class ApacheStats {
 		}
 
 		return statistic.evaluate(values);
-	}
-
-	public double sEvaluateStdev(Collection<Double> subMap, double mean) {
-		double[] values = new double[subMap.size()];
-		int i = 0;
-		for (Double element : subMap) {
-			values[i] = element;
-			i++;
-		}
-
-		return ((StandardDeviation)statistic).evaluate(values, mean);
 	}
 
 }

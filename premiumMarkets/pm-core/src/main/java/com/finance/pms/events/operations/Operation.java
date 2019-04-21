@@ -140,10 +140,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.disabled = false;
 	}
 
-	public Value<?> run(TargetStockInfo targetStock, int parentStartShift) {
+	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentStartShift) {
 
 		int thisStartShift = parentStartShift + operationStartDateShift();
 		LOGGER.debug("Start shift granted for " + this.getReference() + " = " + this.getFormulae() + ": parent " + parentStartShift + " and parent+this " + thisStartShift);
+		String thisCallStack = parentCallStack + "=>" + this.shortOutputReference();
+		LOGGER.debug("Call stack : " + thisCallStack);
 
 		Value<?> alreadyCalculated = null;
 		try {
@@ -160,14 +162,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				for (int i = 0; i < operands.size(); i++) {
 
 					Operation operand = operands.get(i);
-					Value<?> output = operand.run(targetStock, thisStartShift);
+					Value<?> output = operand.run(targetStock, thisCallStack, thisStartShift);
 					operandsOutputs.add(output);
 
 					gatherCalculatedOutput(targetStock, operand, output, thisStartShift);
 
 				}
 
-				targetStock.populateChartedOutputGroups(this, operandsOutputs);
+				targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
 
 				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent " + parentStartShift + " and parent+this " + thisStartShift);
 				Value<?> operationOutput = calculate(targetStock, thisStartShift, operandsOutputs);
@@ -345,7 +347,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public String toFullString() {
 		ArrayList<Operation> parents = new ArrayList<Operation>();
-		return toString(parents);
+		return toStringRecursive(parents);
 	}
 
 	private String noOperandsToString() {
@@ -353,7 +355,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 
-	private String toString(List<Operation> parents) {
+	private String toStringRecursive(List<Operation> parents) {
 
 		if (this.formulae != null) parents.add(this);
 		String opreandStr = "[";
@@ -361,9 +363,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		String sep ="";
 		for (Operation operand : operands) {
 			if (operand.getFormulae() != null && parents.contains(operand)) {
-				opreandStr = opreandStr + sep +"Operation [loop on User Operation "+operand.getReference()+"]";
+				opreandStr = opreandStr + sep + "Operation [loop on User Operation " + operand.getReference() + "]";
 			} else {
-				opreandStr = opreandStr + sep + operand.toString(parents);
+				opreandStr = opreandStr + sep + operand.toStringRecursive(parents);
 			}
 			sep = ",";
 		}
@@ -465,6 +467,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.defaultValue = (Value<?>) defaultValue;
 	}
 
+	public String shortOutputReference() {
+		return reference + " (is " + operationReference + ":" + outputSelector + ") as "+ referenceAsOperand;
+	}
+
 	public String synoptic() {
 
 		String operandsSynoptic = "";
@@ -493,7 +499,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		String operandsSynoptic = "";
 		String sep = "";
 		for (Operation operand : operands) {
-			operandsSynoptic = operandsSynoptic + sep+ operand.synoptic();
+			operandsSynoptic = operandsSynoptic + sep + operand.synoptic();
 			sep = ", ";
 		}
 
@@ -503,8 +509,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			outputSelectorSynoptic = outputSelectorSynoptic + sep + outSelector;
 			sep = " or ";
 		}
-		String referenceSyno = (this.referenceAsOperand !=null)?this.referenceAsOperand:this.reference;
-		String defaultSyno = (defaultValue == null)?"":" (defaults to "+((StringableValue) defaultValue).getValueAsString()+")";
+		String referenceSyno = (this.referenceAsOperand != null)?this.referenceAsOperand:this.reference;
+		String defaultSyno = (defaultValue == null)?"":" (defaults to " + ((StringableValue) defaultValue).getValueAsString() + ")";
 		String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":":"+outputSelectorSynoptic;
 		String paramsSyno = (operandsSynoptic.isEmpty())?"": "("+operandsSynoptic+")";
 		return referenceSyno + outSelectorSyno + paramsSyno + defaultSyno;

@@ -86,7 +86,8 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	public EventInfoOpsCompoOperation(String reference, String description) {
 		super(reference, description,
-				new ArrayList<>(Arrays.asList(new Condition<>("bullishCondition"),
+				new ArrayList<>(Arrays.asList(
+						new Condition<>("bullishCondition"),
 						new Condition<>("bearishCondition"),
 						new Condition<>("alsoDisplay"),
 						new NumberOperation("startShiftOverride"),

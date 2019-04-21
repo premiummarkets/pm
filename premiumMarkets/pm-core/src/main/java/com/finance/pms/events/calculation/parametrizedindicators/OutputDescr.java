@@ -15,7 +15,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	private Boolean displayOnChart;
 
-	public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue disciminentConstant) {
+	public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue disciminentConstant, Boolean displayOnChart) {
 		super();
 		this.outputReference = outputReference;
 		this.container = container;
@@ -24,7 +24,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		this.outputIndex = outputIndex;
 		this.discriminentConstant = disciminentConstant;
 
-		this.displayOnChart = true;
+		this.displayOnChart = displayOnChart;
 	}
 
 	public Type getType() {
@@ -76,7 +76,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 			if (this.type.equals(Type.SIGNAL) || this.type.equals(Type.BOTH)) this.type = Type.BOTH;
 			break;
 		case SIGNAL :
-			if (this.type.equals(Type.MAIN)  || this.type.equals(Type.BOTH)) this.type = Type.BOTH;
+			if (this.type.equals(Type.MAIN) || this.type.equals(Type.BOTH)) this.type = Type.BOTH;
 			break;
 		default :
 			this.type = newType;
@@ -118,8 +118,8 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	@Override
 	public String toString() {
-		return "OutputDescr [" + outputReference + ", container=" + container.getThisGroupMainOutputReference().getReference()
-				+ ", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + discriminentConstant + ", displayOnChart="+ displayOnChart + "]";
+		return "OutputDescr [" + outputReference + ", container=" + container.getThisGroupMainOutputReference().getReference() +
+				", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + discriminentConstant + ", displayOnChart=" + displayOnChart + "]";
 	}
 
 	@Override

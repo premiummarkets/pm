@@ -147,7 +147,7 @@ public class OperationBuilderComposite extends Composite {
 		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 
 		final Shell shell = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM | SWT.RESIZE);
-		shell.setText("Customise and Create calculators ...");
+		shell.setText("Customise and Create indicators ...");
 		shell.setLayout(new GridLayout());
 
 		//IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());

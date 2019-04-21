@@ -43,7 +43,7 @@ public class Trimmer {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(Trimmer.class);
 	
-	private ApacheStats stdev;
+	private MyApacheStats stdev;
 	
 	private int trimFactor;
 	private Date start;
@@ -52,7 +52,7 @@ public class Trimmer {
 	
 	public Trimmer(int trimFactor, Date start, Date end) {
 		super();
-		stdev = new ApacheStats(new StandardDeviation());
+		stdev = new MyApacheStats(new StandardDeviation());
 		
 		this.trimFactor = trimFactor;
 		

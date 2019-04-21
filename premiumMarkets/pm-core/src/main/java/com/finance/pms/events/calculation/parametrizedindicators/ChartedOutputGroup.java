@@ -47,30 +47,30 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 
 	private UUID uuid;
 
-	public ChartedOutputGroup(Operation mainOperation, Optional<String> outputSelector, int outputIndex) {
+	public ChartedOutputGroup(Operation mainOperation, Optional<String> outputSelector, int outputIndex, Boolean displayByDefault) {
 		uuid = UUID.randomUUID();
 		OutputReference outputReference = new OutputReference(mainOperation, outputSelector.orElse(mainOperation.getOutputSelector()));
-		thisGroupMainOutputDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null);
+		thisGroupMainOutputDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null, displayByDefault);
 		thisGroupMainOutputReference = outputReference;
 		components = new HashMap<>();
 	}
 
-	public OutputDescr addSignal(Operation operation, int outputIndex) {
+	public OutputDescr addSignal(Operation operation, int outputIndex, Boolean displayByDefault) {
 		OutputReference outputReference = new OutputReference(operation, operation.getOutputSelector());
-		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null);
+		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null, displayByDefault);
 		this.components.put(outputReference, outputDescr);
 		return outputDescr;
 	}
 
-	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue) {
-		String referenceAsOperandOverride = parentReference+" "+operation.getReferenceAsOperand();
+	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue, Boolean displayByDefault) {
+		String referenceAsOperandOverride = parentReference + " " + operation.getReferenceAsOperand();
 		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, doubleValue, operation.getOperationReference());
-		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue));
+		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue, displayByDefault));
 	}
 
 	public void addAdditionalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
 		OutputReference outputReference = new OutputReference(operation, outputKey);
-		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null));
+		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null, false));
 	}
 
 	public OutputDescr mvComponentInThisGrp(OutputReference outputRef, OutputDescr outputDescr) {

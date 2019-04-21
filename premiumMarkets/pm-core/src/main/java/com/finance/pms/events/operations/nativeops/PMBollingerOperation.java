@@ -20,7 +20,8 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
-import com.finance.pms.events.scoring.functions.ApacheStats;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
+import com.finance.pms.events.scoring.functions.StatsFunction;
 
 public class PMBollingerOperation extends PMWithDataOperation {
 
@@ -60,10 +61,10 @@ public class PMBollingerOperation extends PMWithDataOperation {
 
 		//Calc
 		try {
-			ApacheStats mean = new ApacheStats(new Mean());
+			StatsFunction mean = new MyApacheStats(new Mean());
 			SortedMap<Date, Double> sma = MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period, mean);
 
-			ApacheStats std = new ApacheStats(new StandardDeviation());
+			StatsFunction std = new MyApacheStats(new StandardDeviation());
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
 			SortedMap<Date, Double> bars;
 			final BiFunction<Double, Double, Double> lowerFunc;

@@ -18,7 +18,8 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
-import com.finance.pms.events.scoring.functions.ApacheStats;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
+import com.finance.pms.events.scoring.functions.StatsFunction;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 
 public class VolatilityOperation extends PMWithDataOperation {
@@ -70,7 +71,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods, false);
 
 			ArrayList<Date> keys = new ArrayList<>(data.keySet());
-			ApacheStats mean = new ApacheStats(new Mean());
+			StatsFunction mean = new MyApacheStats(new Mean());
 
 			TreeMap<Date, Double> sVolatilties = IntStream
 					.range(basicPeriod + returnCalculationNbPeriods, data.size())

@@ -88,7 +88,7 @@ public class HistoricalVolatilityCalculator {
 				})
 				.collect(Collectors.toList());
 
-		ApacheStats stdev = new ApacheStats(new StandardDeviation());
+		MyApacheStats stdev = new MyApacheStats(new StandardDeviation());
 		return stdev.sEvaluate(d2DReturns);
 
 	}
@@ -103,7 +103,7 @@ public class HistoricalVolatilityCalculator {
 				})
 				.collect(Collectors.toList());
 
-		ApacheStats stdev = new ApacheStats(new Mean());
+		MyApacheStats stdev = new MyApacheStats(new Mean());
 		return stdev.sEvaluate(d2DReturns);
 
 	}
@@ -119,7 +119,7 @@ public class HistoricalVolatilityCalculator {
 				.filter(v -> sign*v > 0)
 				.collect(Collectors.toList());
 
-		ApacheStats stdev = new ApacheStats(new StandardDeviation());
+		MyApacheStats stdev = new MyApacheStats(new StandardDeviation());
 		return stdev.sEvaluate(d2DReturns);
 
 	}
@@ -135,7 +135,7 @@ public class HistoricalVolatilityCalculator {
 				.filter(v -> sign*v > 0)
 				.collect(Collectors.toList());
 
-		ApacheStats stdev = new ApacheStats(new Mean());
+		MyApacheStats stdev = new MyApacheStats(new Mean());
 		return stdev.sEvaluate(d2DReturns);
 
 	}
@@ -167,7 +167,7 @@ public class HistoricalVolatilityCalculator {
 		if (to >= closeValues.size()) to = closeValues.size()-1;
 		if (from +1 > to) throw new RuntimeException(from + " !< " + to);
 
-		ApacheStats mean = new ApacheStats(new Mean());
+		MyApacheStats mean = new MyApacheStats(new Mean());
 		List<Double> positiveFns = IntStream
 				.range(from +1, to)
 				.mapToObj(i -> f.apply(closeValues, i))
