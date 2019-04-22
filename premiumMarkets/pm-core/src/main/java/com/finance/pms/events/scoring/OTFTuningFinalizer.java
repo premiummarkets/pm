@@ -105,9 +105,14 @@ public class OTFTuningFinalizer {
 
 	}
 
+	/**
+	 * Period are closed only by a contradicting event.
+	 * Only the last period should be left unrealised.
+	 * Periods are from inclusive, to exclusive.
+	 */
 	protected List<PeriodRatingDTO> validPeriods(
 			Quotations quotations,
-			Stock stock, Date startDate, Date endDate, 
+			Stock stock, Date startDate, Date endDate,
 			Collection<EventValue> generatedEvents, String noResMsg) throws NotEnoughDataException, InvalidAlgorithmParameterException {
 
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
@@ -118,73 +123,49 @@ public class OTFTuningFinalizer {
 			Date eventDate = eventValue.getDate();
 
 			//Ignore events after endDate if it starts a new period
-			if (eventDate.compareTo(endDate) > 0 && (period == null || period.isRealised())) {
-				break;
+			if (eventDate.compareTo(endDate) > 0) {
+				throw new NotEnoughDataException(stock, startDate, endDate, "Event: " + eventValue + " is after " + endDate, new Exception());
 			}
 
 			//Construct period
-			if (period != null && !eventDate.after(period.getFrom())) throw new RuntimeException();//Check erroneous input with events on the same date
+			if (period != null && !eventDate.after(period.getFrom())) throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents);//Check erroneous input with events on the same date
 
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
-				if (period != null && period.getTrend().equals(EventType.BEARISH.name())) {
+				if (period == null) {//First period
+					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BULLISH.name());
+				}
+				else if (period.getTrend().equals(EventType.BEARISH.name())) { //& bear: sell
 					BigDecimal closestCloseForDate = quotations.getClosestCloseSpForDate(eventDate);
 					period.setTo(eventDate);
 					period.setPriceAtTo(closestCloseForDate.doubleValue());
 					period.setRealised(true);
-					//addFilteredPeriod(periods, period, -1);
 					periods.add(period);
-					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BULLISH.name());
-				}
-				if (period == null) {
-					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BULLISH.name()); 
-				}
-
+					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BULLISH.name()); //Start new period.
+				} //Bull is still on, we don't close a previous bull
 			}
-			if (eventValue.getEventType().equals(EventType.BEARISH)) {
-				if (period != null && period.getTrend().equals(EventType.BULLISH.name())) {
+			else if (eventValue.getEventType().equals(EventType.BEARISH)) {
+				if (period == null) {//First period
+					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BEARISH.name());
+				}
+				else if (period.getTrend().equals(EventType.BULLISH.name())) { //period != null: end of bearish
 					BigDecimal closestCloseForDate = quotations.getClosestCloseSpForDate(eventDate);
 					period.setTo(eventDate);
-					//addFilteredPeriod(periods, period, -1);
 					periods.add(period);
 					period.setPriceAtTo(closestCloseForDate.doubleValue());
 					period.setRealised(true);
-					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BEARISH.name()); 
-				}
-				if (period == null) {
-					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BEARISH.name()); 
-				}
+					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BEARISH.name());
+				} //Bear is still on, we don't close a previous bear
 			}
 		}
 
 		//Finalising unclosed last period
 		if (period != null) {
-			//Ends in Bullish we suppose we sell (in order to compete with the compound)
-			if (period.getTrend().equals(EventType.BULLISH.name())) {
-				QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
-				//if (!quotationUnit.getDate().after(period.getFrom())) throw new RuntimeException();
-				period.setTo(quotationUnit.getDate());
-				period.setPriceAtTo(quotationUnit.getCloseSplit().doubleValue());
-				period.setRealised(true);
-			}
-			//Ends with Bearish we don't know but we need to close the trend
-			if (period.getTrend().equals(EventType.BEARISH.name())) {
-				QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
-				//if (!quotationUnit.getDate().after(period.getFrom())) throw new RuntimeException();
-				period.setTo(quotationUnit.getDate());
-				period.setPriceAtTo(quotationUnit.getCloseSplit().doubleValue());
-				period.setRealised(false);
-			}
-			//addFilteredPeriod(periods, period, -1);
+			QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
+			if (quotationUnit.getDate().before(period.getFrom())) throw new RuntimeException();
+			period.setTo(quotationUnit.getDate());
+			period.setPriceAtTo(quotationUnit.getCloseSplit().doubleValue());
+			period.setRealised(false);
 			periods.add(period);
-		}
-
-		//Removing heading periods up to the first sell before or at start
-		int i = 0;
-		while(i < periods.size()) {
-			if(periods.get(i).getTo().compareTo(startDate) >= 0) {
-				break;
-			}
-			i++;
 		}
 
 		if (periods.isEmpty()) {
@@ -193,111 +174,38 @@ public class OTFTuningFinalizer {
 					stock, quotations.get(0).getDate(), quotations.get(quotations.getLastDateIdx()).getDate(), noResMsg));
 			return periods;
 		} else {
+			//Removing heading periods before start (out of range)
+			int i = 0;
+			while(i < periods.size()) {
+				if (periods.get(i).getFrom().compareTo(startDate) >= 0) {
+					break;
+				}
+				i++;
+			}
 			return new ArrayList<>(periods.subList(i, periods.size()));
 		}
 
 	}
 
-	/**
-	 * @return TuningResDTO    followProfit by adding the valid bullish periods (ie excluding a starting bullish) up to the end of the calculation if last trend is bullish
-                               stopLossProfit from the first period (will be a bearish as above) to the end of calculations
-	 * @throws IOException
-	 * @throws InvalidAlgorithmParameterException
-	 */
 	TuningResDTO buildResOnValidPeriods(
 			List<PeriodRatingDTO> periods, SortedMap<Date, Number> qMap, Quotations quotations,
-			Stock stock, Date startDate, Date endDate, String analyseName, 
-			String evtDefInfo, Observer observer) 
-					throws IOException, InvalidAlgorithmParameterException {
+			Stock stock, Date startDate, Date endDate, String analyseName,
+			String evtDefInfo, Observer observer) {
 
 		String csvFile = "noOutputAvailable";
 		String chartFile = "noChartAvailable";
 
-		Double trendFollowProfit = 1.00;
-
 		//Other init
+		BigDecimal firstClose = (BigDecimal) qMap.get(qMap.firstKey());
 		BigDecimal lastClose = (BigDecimal) qMap.get(qMap.lastKey());
 
-		int lastRealisedBullIdx = -1;
-		for (PeriodRatingDTO currentPeriod : periods) {
-
-			//Calculate profit
-			if (EventType.valueOf(currentPeriod.getTrend()).equals(EventType.BULLISH) && currentPeriod.isRealised()) {
-
-				lastRealisedBullIdx = periods.indexOf(currentPeriod);
-
-				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
-				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) {
-					String message = "Error calculating followPriceRateOfChange for "+stock.getFriendlyName()+" : "+currentPeriod;
-					LOGGER.error(message);
-					throw new InvalidAlgorithmParameterException(message);
-				}
-
-				//Follow Profit
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(
-						"Buy : Compound profit is "+trendFollowProfit+" at "+currentPeriod.getFrom()+". "
-								+ "First price is "+currentPeriod.getPriceAtFrom()+" at "+currentPeriod.getFrom()+". " 
-								+ "Last price is "+currentPeriod.getPriceAtTo()+" at "+currentPeriod.getTo()+". ");
-
-				trendFollowProfit = trendFollowProfit * (followPriceRateOfChange + 1);
-
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(
-						"New Compound at "+currentPeriod.getTo()+" : prevTotProfit*("+followPriceRateOfChange+"+1)="+trendFollowProfit);
-
-			} 
-			else if  (EventType.valueOf(currentPeriod.getTrend()).equals(EventType.BEARISH)) {
-
-				//Follow Profit
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(
-						"Sell : Compound profit is "+trendFollowProfit+" at "+currentPeriod.getFrom()+". "
-								+ "Period "+currentPeriod+" : followPriceRateOfChange for period "+currentPeriod.getPriceRateOfChange());
-
-			}
-			else if (EventType.valueOf(currentPeriod.getTrend()).equals(EventType.BULLISH) && !currentPeriod.isRealised()){
-
-				//Nothing
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Unrealised bull period "+currentPeriod);
-
-			}
-
-		} //End for over periods
-
-		//Finalise profits
-		trendFollowProfit = trendFollowProfit - 1;
-
-		if (!periods.isEmpty()) {
-
-			PeriodRatingDTO firstPeriod = periods.get(0);
-			PeriodRatingDTO lastPeriod = periods.get(periods.size()-1);
-
-			if (lastRealisedBullIdx != -1) {
-				Date firstBullFrom = firstPeriod.getFrom();
-				BigDecimal firstBullStartPrice = quotations.getClosestCloseSpForDate(firstBullFrom);
-				PeriodRatingDTO lastBullPeriod = periods.get(lastRealisedBullIdx);
-				Date lastBullTo = lastBullPeriod.getTo();
-				BigDecimal lastBullStartPrice = quotations.getClosestCloseSpForDate(lastBullTo);
-				LOGGER.info("Trend following compounded profit calculation is first Close "+firstBullStartPrice+" at "+firstBullFrom+" and last Close "+lastBullStartPrice+" at "+lastBullTo+" : "+trendFollowProfit);
-			} else {
-				LOGGER.info("Trend following profit calculation is unknown (No bullish periods were detected or no trend change detected)");
-			}
-
-			//Buy and hold profit
-			BigDecimal firstClose = quotations.getClosestCloseSpForDate(firstPeriod.getFrom());
-			Double buyAndHoldProfit = (firstClose.compareTo(BigDecimal.ZERO) != 0)?lastClose.subtract(firstClose).divide(firstClose,10, BigDecimal.ROUND_HALF_EVEN).doubleValue():Double.NaN;
-			LOGGER.info("Buy and hold profit calculation is first Close "+firstClose+" at "+firstPeriod.getFrom()+" and last Close "+lastClose+" at "+endDate+" : ("+lastClose+"-"+firstClose+")/"+firstClose+"="+buyAndHoldProfit);
-
-			return new TuningResDTO(periods, csvFile, chartFile, lastPeriod.getTrend(), trendFollowProfit, Double.NaN, buyAndHoldProfit, startDate, endDate);
-		}
-
-		LOGGER.info("No events detected or no buy sell was realized over the selected date range.");
-		return new TuningResDTO(periods, csvFile, chartFile, EventType.NONE.toString(), Double.NaN, Double.NaN, Double.NaN, startDate, endDate);
-
+		return new TuningResDTO(periods, csvFile, chartFile, firstClose.doubleValue(), lastClose.doubleValue(), startDate, endDate);
 	}
 
 	public TuningResDTO buildTuningRes(
 			Stock stock, Date startDate, Date endDate, String analyseName,
 			Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
-					throws IOException, NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
+					throws NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
 
 		LOGGER.info("Building Tuning res for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate);
 
@@ -312,29 +220,23 @@ public class OTFTuningFinalizer {
 		LOGGER.info(export(buildResOnValidPeriods));
 
 		return buildResOnValidPeriods;
-
 	}
 
 	private String export(TuningResDTO buildResOnValidPeriods) {
 		String print = "No coumpound available. Empty results";
 		List<PeriodRatingDTO> periods = buildResOnValidPeriods.getPeriods();
 		if (!periods.isEmpty()) {
-			print = "\nbuy date, buy price, sell date, sell price, price Rate Of Change\n";
+			print = "\n\nFollow:\n";
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 			for (PeriodRatingDTO period : periods) {
-				if (period.getTrend().equals("BULLISH")) {
-					print = print + dateFormat.format(period.getFrom()) + "," + period.getPriceAtFrom() + ",";
-					if (period.isRealised()) {
-						print = print + dateFormat.format(period.getTo())+ "," + period.getPriceAtTo() + ",";
-					}
-					print = print + period.getPriceRateOfChange() + "\n";
-				}
+				print = print + period.toCSV() + "," + period + "\n";
 			}
 			PeriodRatingDTO firstP = periods.get(0);
 			PeriodRatingDTO lastP = periods.get(periods.size() - 1);
 			print = print + "\nb&h:\n" +
 					dateFormat.format(firstP.getFrom()) + "," + firstP.getPriceAtFrom() + "," + 
-					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + "," + buildResOnValidPeriods.getStockPriceChange();
+					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + "," + buildResOnValidPeriods.getStockPriceChange() +
+					"\n";
 		}
 		return print;
 	}

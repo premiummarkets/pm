@@ -69,7 +69,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {//Iterate groups
 
 					try {
-						LOGGER.info("Group description : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						LOGGER.info("Group description: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 						Boolean groupIsDisplayed = false;
 
 						//Renderer
@@ -158,7 +158,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 						} //Outputs loop
 
-						//Y Axe for group. Finalizing the Group.
+						//Y Axe for group. Finalising the Group.
 						boolean hasData = (groupMinY != Double.MAX_VALUE && groupMaxY != -Double.MAX_VALUE);
 						if (groupIsDisplayed && hasData) {
 

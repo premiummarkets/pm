@@ -32,69 +32,59 @@ package com.finance.pms.events.scoring.dto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class TuningResDTO implements Serializable {
 
 	private static final long serialVersionUID = 6537421829385394184L;
 
-
 	private List<PeriodRatingDTO> periods;
 	private String csvLink;
 	private String chartLink;
-	private String lastTrend;
-	private Double followProfit;
-	private Double stopLossProfit;
-	private Double stockPriceChange;
 
 	private String configRatingFile;
 	private String footNote;
 
-	private Date calculatedStart;
-	private Date calculatedEnd;
+	private Date calculationStart;
+	private Double calculationStartPrice;
+	private Date calculationEnd;
+	private Double calculationEndPrice;
 
 	public TuningResDTO() {
 
 		periods = new ArrayList<PeriodRatingDTO>();
 		csvLink = "NA";
 		chartLink = "NA";
-		lastTrend = "NONE";
-		followProfit = 0.0;
-		stopLossProfit = 0.0;
-		stockPriceChange = 0.0;
 
 		configRatingFile = "";
 		footNote = "";
 
-		calculatedStart = new Date(0);
-		calculatedEnd = new Date(0);
+		calculationStartPrice = 0.0;
+		calculationStart = new Date(0);
+		calculationEndPrice = 0.0;
+		calculationEnd = new Date(0);
 
 	}
 
-	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, String lastTrend, Double followProfit, Double stopLossProfit, Double stockPriceChange, Date calculatedStart, Date calculatedEnd) {
+	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, Double startPrice, Double endPrice, Date calculatedStart, Date calculatedEnd) {
 		super();
-		this.calculatedStart = calculatedStart;
-		this.calculatedEnd = calculatedEnd;
+		this.calculationStart = calculatedStart;
+		this.calculationStartPrice = startPrice;
+		this.calculationEnd = calculatedEnd;
+		this.calculationEndPrice = endPrice;
 		this.periods = periods;
 		this.csvLink = csvLink;
 		this.chartLink = chartLink;
-		this.lastTrend = lastTrend;
-		this.followProfit = followProfit;
-		this.stopLossProfit = stopLossProfit;
-		this.stockPriceChange = stockPriceChange;
 		this.footNote = toString();
 	}
 
 	public Double getStockPriceChange() {
-		return stockPriceChange;
+		return calculationEndPrice/calculationStartPrice -1;
 	}
 
 	public Double getFollowProfit() {
-		return followProfit;
-	}
-
-	public Double getStopLossProfit() {
-		return stopLossProfit;
+		return getFollowProfitAt(calculationEnd);
 	}
 
 	public List<PeriodRatingDTO> getPeriods() {
@@ -103,10 +93,10 @@ public class TuningResDTO implements Serializable {
 
 	public String getCsvLink() {
 		return csvLink;
-	}	
+	}
 
 	public String getLastTrend() {
-		return lastTrend;
+		return (periods.isEmpty())?"NONE":periods.get(periods.size()-1).getTrend(); //We can't use Enumerations in a DTO
 	}
 
 	public String getConfigRatingFile() {
@@ -135,25 +125,26 @@ public class TuningResDTO implements Serializable {
 
 	@Override
 	public String toString() {
-		return "TuningResDTO [periods=" + periods + ", " +
-				"csvLink=" + csvLink + ", lastTrend=" + lastTrend + ", followProfit=" + followProfit + ", " + ", stopLossProfit=" + stopLossProfit + ", " +
-				"stockPriceChange=" + stockPriceChange + ", configRatingFile=" + configRatingFile + ", footNote=" + footNote + "]";
+		return "TuningResDTO [periods=" + periods + ", csvLink=" + csvLink + ", chartLink=" + chartLink
+				+ ", configRatingFile=" + configRatingFile + ", footNote="
+				+ footNote + ", calculatedStart=" + calculationStart + ", calculatedStartPrice=" + calculationStartPrice
+				+ ", calculatedEnd=" + calculationEnd + ", calculatedEndPrice=" + calculationEndPrice + "]";
 	}
 
 	public Date getCalculatedStart() {
-		return calculatedStart;
+		return calculationStart;
 	}
 
 	public void setCalculatedStart(Date calculatedStart) {
-		this.calculatedStart = calculatedStart;
+		this.calculationStart = calculatedStart;
 	}
 
 	public Date getCalculatedEnd() {
-		return calculatedEnd;
+		return calculationEnd;
 	}
 
 	public void setCalculatedEnd(Date calculatedEnd) {
-		this.calculatedEnd = calculatedEnd;
+		this.calculationEnd = calculatedEnd;
 	}
 
 	public String getChartLink() {
@@ -164,6 +155,29 @@ public class TuningResDTO implements Serializable {
 		this.chartLink = chartLink;
 	}
 
+	public Double getFollowProfitAt(Date date) {
+		Double trendFollowProfit = 1.00;
+		Iterator<PeriodRatingDTO> iterator = periods.iterator();
+		PeriodRatingDTO currentPeriod = null;
+		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(date) <= 0) {
+			if ("BULLISH".equals(currentPeriod.getTrend())) {//We can't use Enumerations in a DTO
+				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
+				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
+			}
+		}
+		return trendFollowProfit - 1;
+	}
 
+	public Double getPriceChangeAt(Date periodToDate) {
+		Iterator<PeriodRatingDTO> iterator = periods.iterator();
+		PeriodRatingDTO currentPeriod = null;
+		while (iterator.hasNext()) {
+			currentPeriod = iterator.next();
+			if (currentPeriod.getTo().compareTo(periodToDate) == 0) break;
+		}
+		if (currentPeriod == null || !(currentPeriod.getTo().compareTo(periodToDate) == 0)) return Double.NaN;
+		return currentPeriod.getPriceAtTo()/calculationStartPrice -1;
+	}
 
 }

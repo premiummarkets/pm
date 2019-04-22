@@ -96,7 +96,6 @@ import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
@@ -203,7 +202,6 @@ public class ChartMain extends Chart {
 					renderer.setSeriesPaint(k, paint);
 					renderer.setSeriesStroke(k, new BasicStroke(1));
 
-					//final int kf = k;
 					final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy");
 					XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
@@ -420,7 +418,7 @@ public class ChartMain extends Chart {
 					double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
 					int eventDefSerieIdx = 0;
 					final SimpleDateFormat df = new SimpleDateFormat("dd MMM yy");
-					final NumberFormat pf = new DecimalFormat("#0.00 %");
+					final NumberFormat pf = new DecimalFormat("#0.00%");
 					for (final DataSetBarDescr serieDef : barSeries.keySet()) {
 						SortedMap<Date, BarChart> barSerie = barSeries.get(serieDef);
 
@@ -431,8 +429,7 @@ public class ChartMain extends Chart {
 						if (serieDef.isLabeled()) {
 							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-							String stopLossString = (!MainPMScmd.getMyPrefs().get("indicator.stoplossratio","0").equals("0"))?" / "+ pf.format(serieDef.getStopLossProfit()):"";
-							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + stopLossString + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
+							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 							annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
 							annotation.setPaint(Color.BLUE);
@@ -469,14 +466,14 @@ public class ChartMain extends Chart {
 
 									return "<html>" + "<font size='2'>" +
 									"<b>" + serieDef.getStockDescr() + "</b><br>" +
-									"<b>" + serieDef.getEventDisplayeDef()+ "</b> on the " + x + "<br>" +
+									"<b>" + serieDef.getEventDisplayeDef() + "</b> on the " + x + "<br>" +
 									"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
 									"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" +
 									barSerie.get(date).getToolTip() + "<br>" +
 									"</font>" + "</html>";
 
 								} catch (Exception e) {
-									LOGGER.debug(e, e);
+									LOGGER.warn(e, e);
 								}
 								return "NaN";
 
@@ -485,16 +482,26 @@ public class ChartMain extends Chart {
 						renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
 
 						//Labels
-						renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.OUTSIDE7, TextAnchor.BOTTOM_CENTER, TextAnchor.CENTER, 1.57));
+						renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.OUTSIDE3, TextAnchor.CENTER, TextAnchor.CENTER, -1));
 						//renderer.setBaseItemLabelFont(renderer.getBaseItemLabelFont().deriveFont(0,8f));
 						renderer.setSeriesItemLabelGenerator(eventDefSerieIdx, new XYItemLabelGenerator() {
 							@Override
 							public String generateLabel(XYDataset dataset, int series, int item) {
-								Date date = new Date((long) dataset.getXValue(series, item));
-								List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
-								PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
-								if (period == null || period.getTrend().equals(EventType.BEARISH.name())) return "";
-								return pf.format(period.getPriceRateOfChange());
+								double compound = Double.NaN;
+								double priceChange = Double.NaN;
+								double periodRoc = Double.NaN;
+								try {
+									Date date = new Date((long) dataset.getXValue(series, item));
+									List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
+									PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
+									if (period == null || period.getTrend().equals(EventType.BEARISH.name())) return "";
+									compound = serieDef.getTuningRes().getFollowProfitAt(date);
+									priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
+									periodRoc = period.getPriceRateOfChange();
+								} catch (Exception e) {
+									LOGGER.warn(e,e);
+								}
+								return pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
 							}
 						});
 						renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);

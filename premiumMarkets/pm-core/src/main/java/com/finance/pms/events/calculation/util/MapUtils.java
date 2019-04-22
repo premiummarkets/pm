@@ -58,8 +58,11 @@ public class MapUtils {
 
 		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
 
+		//Bypassing the potential from restrictive range
+		Date from = (map.firstKey().compareTo(startDate) > 0)? map.firstKey(): startDate;
+
 		TreeMap<Date, Double> movingStats =
-				map.tailMap(startDate).keySet().stream()
+				map.tailMap(from).keySet().stream()
 				.collect(Collectors.toMap(
 						endWindowK -> endWindowK,
 						endWindowK -> {

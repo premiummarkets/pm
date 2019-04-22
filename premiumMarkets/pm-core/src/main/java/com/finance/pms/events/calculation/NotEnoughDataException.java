@@ -65,9 +65,9 @@ public class NotEnoughDataException extends Exception {
 	@Override
 	public String getMessage() {
 		String msg = ((stock != null)?stock.getFriendlyName():"Unknown") + " : " + super.getMessage();
-		if (shiftedEndDate !=null && shiftedStartDate != null) {
-			msg = msg + ".\n Shifted dates info (regarding quotations availability?) "+shiftedStartDate+ " to "+ shiftedEndDate + ".";
+		if (shiftedEndDate != null && shiftedStartDate != null) {
+			msg = msg + ".\n Shifted dates info (regarding quotations availability?) " + shiftedStartDate+ " to " + shiftedEndDate + ".";
 		} 
-		return msg;		
+		return msg;
 	}
 }

@@ -82,7 +82,6 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 
 	}
 
-
 	public Date getFrom() {
 		return from;
 	}
@@ -189,6 +188,10 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		} catch (Exception e) {
 			return Double.NaN;
 		}
+	}
+
+	public String toCSV() {
+		return from + "," + priceAtFrom + "," + to + "," + priceAtTo + "," + getPriceRateOfChange();
 	}
 
 	@Override
