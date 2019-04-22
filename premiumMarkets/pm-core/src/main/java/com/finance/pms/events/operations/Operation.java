@@ -468,7 +468,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	public String shortOutputReference() {
-		return reference + " (is " + operationReference + ":" + outputSelector + ") as "+ referenceAsOperand;
+		return "[" + reference + " (is " + operationReference + ":" + outputSelector + ") as "+ referenceAsOperand + "]";
 	}
 
 	public String synoptic() {
