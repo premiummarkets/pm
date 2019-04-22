@@ -18,7 +18,7 @@ public class MySimpleRegression implements StatsFunction {
 		});
 
 		double lastX = lookBack.lastKey().getTime()/DAY_IN_MILLI;
-		return simpleRegression.getIntercept() + lastX*simpleRegression.getSlope();
+		return simpleRegression.getIntercept() + simpleRegression.getSlope()*(lastX-firstX);
 	}
 
 }

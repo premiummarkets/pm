@@ -55,6 +55,7 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	}
 
+	//FIXME multiOutputDiscriminator and outputSelector should two distinctive attributes
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
 
 		this.reference = operation.getReference();

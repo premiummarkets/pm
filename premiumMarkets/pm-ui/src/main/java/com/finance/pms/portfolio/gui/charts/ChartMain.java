@@ -69,6 +69,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.labels.XYItemLabelGenerator;
@@ -429,7 +430,7 @@ public class ChartMain extends Chart {
 						if (serieDef.isLabeled()) {
 							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (" + pf.format(serieDef.getFollowProfit()) + " / " + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
+							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (r" + pf.format(serieDef.getFollowProfit()) + " / u" + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 							annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
 							annotation.setPaint(Color.BLUE);
@@ -482,7 +483,7 @@ public class ChartMain extends Chart {
 						renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
 
 						//Labels
-						renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.OUTSIDE3, TextAnchor.CENTER, TextAnchor.CENTER, -1));
+						renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.OUTSIDE3, TextAnchor.CENTER, TextAnchor.CENTER, -1.57));
 						//renderer.setBaseItemLabelFont(renderer.getBaseItemLabelFont().deriveFont(0,8f));
 						renderer.setSeriesItemLabelGenerator(eventDefSerieIdx, new XYItemLabelGenerator() {
 							@Override
@@ -494,14 +495,16 @@ public class ChartMain extends Chart {
 									Date date = new Date((long) dataset.getXValue(series, item));
 									List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
 									PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
-									if (period == null || period.getTrend().equals(EventType.BEARISH.name())) return "";
+									if (period == null) return "";
 									compound = serieDef.getTuningRes().getFollowProfitAt(date);
 									priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
 									periodRoc = period.getPriceRateOfChange();
+									if (period.getTrend().equals(EventType.BULLISH.name()) && periodRoc < 0) return "r" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+									else if (period.getTrend().equals(EventType.BEARISH.name()) && periodRoc > 0) return "u" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
 								} catch (Exception e) {
 									LOGGER.warn(e,e);
 								}
-								return pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+								return "";
 							}
 						});
 						renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
@@ -608,8 +611,11 @@ public class ChartMain extends Chart {
 					}
 
 					resetVerticalLines(plotArea);
-					indicPlot.getRangeAxis().setAutoRange(true);
-					indicPlot.getRangeAxis().setAutoRangeMinimumSize(Double.MIN_VALUE);
+					ValueAxis rangeAxis = indicPlot.getRangeAxis();
+					if (rangeAxis != null) {
+						rangeAxis.setAutoRange(true);
+						rangeAxis.setAutoRangeMinimumSize(Double.MIN_VALUE);
+					}
 
 				} catch (Exception e) {
 					LOGGER.warn("Can't refresh indicator chart : "+ e, e);
