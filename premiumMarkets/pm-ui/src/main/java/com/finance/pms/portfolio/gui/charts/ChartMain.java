@@ -254,7 +254,7 @@ public class ChartMain extends Chart {
 														+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
 														NUMBER_FORMAT.format(closeForDate.getCloseSplit())
 														+ "</font></td></tr>" +
-														"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolume() + "</td></tr>" +
+														"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolumeSplit() + "</td></tr>" +
 														"</table>" +
 														"<font size='2'>" +
 														"(Source: " + origin +", Split: " + closeForDate.getSplit() + ", Currency: " + stockCurrency + " here in " + trCurrency + ")" +

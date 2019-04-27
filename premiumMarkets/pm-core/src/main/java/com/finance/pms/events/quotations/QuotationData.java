@@ -181,7 +181,7 @@ class QuotationData implements List<QuotationUnit> {
 			break;
 		case VOLUME :
 			for (int i = 0; i < this.size(); i++) 
-				values[i] = this.get(i).getVolume();
+				values[i] = this.get(i).getVolumeSplit();
 			break;
 		default :
 			throw new RuntimeException("Unknown quotation data type");

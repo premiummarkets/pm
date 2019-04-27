@@ -106,7 +106,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		case CLOSE :
 			return getCloseSplit();
 		case VOLUME :
-			return getVolume();
+			return getVolumeSplit();
 		default :
 			throw new RuntimeException("Unknown quotation data type");
 		}
@@ -174,8 +174,16 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		return open.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
 	}
 
-	public long getVolume() {
+	@Column(name="VOLUME")
+	public long getVolumeRaw() {
 		return volume;
+	}
+
+	@Transient
+	public long getVolumeSplit() {
+//		if (split.compareTo(BigDecimal.ONE) == 0) return getVolumeRaw();
+//		return volume*(split.longValue()/42);
+		return getVolumeRaw();
 	}
 
 	@Transient
@@ -256,7 +264,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@SuppressWarnings("unused")
-	private void setVolume(long volume) {
+	private void setVolumeRaw(long volume) {
 		this.volume = volume;
 	}
 

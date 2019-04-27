@@ -109,7 +109,7 @@ public class QuotationFixer {
 									qU.getHighRaw().multiply(cF),
 									qU.getLowRaw().multiply(cF),
 									qU.getCloseRaw().multiply(cF),
-									qU.getVolume(),
+									qU.getVolumeRaw(),
 									ORIGIN.USER, BigDecimal.ONE);
 							return nqU;
 						})
@@ -273,7 +273,7 @@ public class QuotationFixer {
 									qU.getHighRaw(),
 									qU.getLowRaw(),
 									qU.getCloseRaw(),
-									qU.getVolume(),
+									qU.getVolumeRaw(),
 									ORIGIN.DEL, BigDecimal.ONE);
 							return delQU;
 						})

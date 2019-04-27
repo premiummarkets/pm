@@ -48,8 +48,10 @@ public class FilterOperation extends DoubleMapOperation {
 
 	public FilterOperation() {
 		this("filter_", "Filter",
-				new DoubleMapOperation("data"), 
-				new NumberOperation("number", "constant", "Filter input", new NumberValue(0.0)));
+				new DoubleMapOperation("filtered series (given)"),
+				new DoubleMapOperation("filtering series on which applies the filter (where)"),
+				new NumberOperation("number", "filterShade", "Filter shade value", new NumberValue(Double.NaN)),
+				new NumberOperation("number", "filterThreshold", "Filter threshold", new NumberValue(0.0)));
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"eq", "gt", "lt"})));
 	}
 
@@ -60,8 +62,10 @@ public class FilterOperation extends DoubleMapOperation {
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
-		Double constant = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
+		SortedMap<Date, Double> filteredData = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
+		SortedMap<Date, Double> filteringData = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
+		Double shade = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue();
+		Double threshold = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
 
 		BiFunction<Double, Double, Boolean> func = (t,u) -> t == u;
 
@@ -76,18 +80,18 @@ public class FilterOperation extends DoubleMapOperation {
 			func = (t,u) -> t < u;
 		}
 
-		SortedMap<Date, Double> result = mapFilter(data, constant, func);
+		List<Date> filter = mapFilter(filteringData, threshold, func);
+		SortedMap<Date, Double> result = filteredData.keySet().stream()
+				.collect(Collectors.toMap(k -> k, k -> (filter.contains(k))?filteredData.get(k):shade, (a, b) -> a, TreeMap<Date,Double>::new));
 		return new DoubleMapValue(result);
 	}
 
-	private SortedMap<Date, Double> mapFilter(SortedMap<Date, Double> data, Double constant, BiFunction<Double, Double, Boolean> func) {
+	private List<Date> mapFilter(SortedMap<Date, Double> data, Double constant, BiFunction<Double, Double, Boolean> func) {
 		List<Date> fullKeySet = new ArrayList<>(data.keySet());
 		List<Date> filter = fullKeySet.stream()
 				.filter(k -> func.apply(data.get(k), constant))
 				.collect(Collectors.toList());
-		SortedMap<Date, Double> result = fullKeySet.stream()
-				.collect(Collectors.toMap(k -> k, k -> filter.contains(k)?data.get(k):Double.NaN, (a, b) -> a, TreeMap::new));
-		return result;
+		return filter;
 	}
 
 	@Override

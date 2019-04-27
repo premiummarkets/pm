@@ -512,7 +512,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					foundMatch = true;
 				}
 				break;
-			case STRING: 
+			case STRING:
 				if (!parsedParam.isEmpty()) {//Test typing as valid string
 					if (!parsedParam.matches("\"[a-zA-Z](\")?")) throw new IllegalArgumentException(parsedParam + " is not a string of letters");
 					foundMatch = true;

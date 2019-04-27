@@ -102,12 +102,14 @@ tokens {
   private boolean runtimeUserOpAhead() {
     return lexerDelegate.runtimeUserOpAhead();
   }
-  
   private boolean runtimeHistoryOpAhead() {
     return lexerDelegate.runtimeHistoryOpAhead();
   }
   public boolean runtimeMATypeOpAhead() {
      return lexerDelegate.runtimeMATypeOpAhead();
+  }
+  public boolean runtimeNaNAhead() {
+     return lexerDelegate.runtimeNaNAhead();
   }
 
 }
@@ -132,7 +134,7 @@ MATypeToken
      : {runtimeMATypeOpAhead()}? => ('Sma'|'Ema'|'Wma'|'Dema'|'Tema'| 'Trima'| 'Kama'| 'Mama'| 'T3')
      ;
 NaNNumber
-     : {runtimeMATypeOpAhead()}? => ('NaN')
+     : {runtimeNaNAhead()}? => ('NaN')
      ;
 Nativeop 
      : {runtimeNativeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+

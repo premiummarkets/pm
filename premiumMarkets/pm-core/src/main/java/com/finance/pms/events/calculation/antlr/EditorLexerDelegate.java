@@ -40,21 +40,21 @@ import org.antlr.runtime.RecognizerSharedState;
 import com.tictactec.ta.lib.MAType;
 
 public class EditorLexerDelegate {
-	
-	public static final List<String> CONSTANT_TOKENS = new ArrayList<String>(Arrays.asList("0","1","2","3","4","5","6","7","8","9"));
+
+	public static final List<String> CONSTANT_TOKENS = new ArrayList<String>(Arrays.asList("NaN"));
 	public static final List<String> HISTORICALDATA_TOKENS = new ArrayList<String>(Arrays.asList("close","open","high","low","volume"));
-	
-	public static final List<String> MATYPES_TOKENS;	
+
+	public static final List<String> MATYPES_TOKENS;
 	static {
-		MATYPES_TOKENS = new ArrayList<String>();		
+		MATYPES_TOKENS = new ArrayList<String>();
 		MAType[] maTypes = MAType.values();
 		for (int i = 0; i < maTypes.length; i++) {
 			MATYPES_TOKENS.add(maTypes[i].name());
 		}
 	}
-	
+
 	PartialTokenStatus partialTokenStatus;
-	
+
 	RecognizerSharedState state;
 	CharStream input;
 
@@ -68,13 +68,17 @@ public class EditorLexerDelegate {
 	public boolean runtimeHistoryOpAhead() {
 		return lookAheadFor(HISTORICALDATA_TOKENS);
 	}
-	
+
 	public boolean runtimeMATypeOpAhead() {
 		return lookAheadFor(MATYPES_TOKENS);
 	}
 
+	public boolean runtimeNaNAhead() {
+		return lookAheadFor(CONSTANT_TOKENS);
+	}
+
 	private boolean lookAheadFor(List<String> histoTok) {
-	
+
 		for(String token : histoTok) {
 			if(ahead(token)) {
 				//System.out.println("Look ahead (histo) is true for "+this.partialTokenStatus + " and " + token);
@@ -86,11 +90,11 @@ public class EditorLexerDelegate {
 	}
 
 	protected boolean ahead(String token) {
-	
+
 		if (!isSamePosition()) {
 			this.partialTokenStatus = new PartialTokenStatus("", "", new int[]{state.tokenStartLine, state.tokenStartCharPositionInLine}, false, false);
 		}
-			
+
 		String partialTok = "";
 		for(int i = 0; i < token.length(); i++) {
 			partialTok = partialTok + (char)input.LA(i+1);
@@ -122,7 +126,7 @@ public class EditorLexerDelegate {
 	}
 
 	protected boolean lookAheadFor(Set<EditorOpDescr> ops) {
-	
+
 		boolean foundCompleteMatch = false;
 		for(EditorOpDescr op : ops) {
 			if(ahead(op.getName())) {
@@ -130,13 +134,13 @@ public class EditorLexerDelegate {
 				foundCompleteMatch = foundCompleteMatch || (this.partialTokenStatus.getValid() && !this.partialTokenStatus.getIncomplete());
 			}
 		}
-		
+
 		if (foundCompleteMatch) {
 			//System.out.println("Look ahead is true for "+this.partialTokenStatus + " and " + ops);
 		} else {
 			//System.out.println("Look ahead is false at "+this.partialTokenStatus +" with ops "+ops);
 		}
-		
+
 		return foundCompleteMatch;
 	}
 

@@ -53,26 +53,26 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 	private LinkedList<EditorOpDescr> needClosingOpsStack;
 
 	private int currentParamPos;
-	
-	  public EditorOpsParserDelegate(TokenStream input, RecognizerSharedState state,  Set<EditorOpDescr> runtimeNativeOps, Set<EditorOpDescr> runtimeUserOps) {
-		  super(input, runtimeNativeOps,runtimeUserOps);
-	      this.state = state;
-	      
-	      this.allNativeOps = aggAllOperations(runtimeNativeOps, runtimeUserOps);
-	      
-	      this.needClosingOpsStack = new LinkedList<EditorOpDescr>();
-	  }
+
+	public EditorOpsParserDelegate(TokenStream input, RecognizerSharedState state,  Set<EditorOpDescr> runtimeNativeOps, Set<EditorOpDescr> runtimeUserOps) {
+		super(input, runtimeNativeOps,runtimeUserOps);
+		this.state = state;
+
+		this.allNativeOps = aggAllOperations(runtimeNativeOps, runtimeUserOps);
+
+		this.needClosingOpsStack = new LinkedList<EditorOpDescr>();
+	}
 
 
 	public Boolean checkParamExhaust(Token currentOpToken, List<Object> paramsTree) throws ParamsCountException, UnfinishedParameterException, InvalidOperationException {
 
 		EditorOpDescr currentOp = grabOpForToken(currentOpToken);
-		
+
 		if (currentOp == null) {
 			System.out.println("I Should not be here : checking params " + paramsTree + " but no current op !!!!!??????? ");
 			throw new InvalidOperationException(input, currentOpToken, paramsTree);
 		}
-		
+
 		int commas = 0;
 		List<Object> params = new ArrayList<Object>();
 		if (paramsTree != null && paramsTree.size()==1) {
@@ -96,15 +96,15 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 				commas = 0;
 			}
 		} 
-		
+
 		currentOp.setNbCommasParsed(commas);
 
-		System.out.println("Checking params " + params + " against "+currentOp.getSynoptic());
+		System.out.println("Checking params " + params + " against " + currentOp.getSynoptic());
 		currentParamPos = 0;
 		for (; (currentParamPos < params.size()) && (currentParamPos < currentOp.getParams().size() || currentOp.undeterministicParamCount()); currentParamPos++) {
 
 			Object token = params.get(currentParamPos);
-			
+
 			//Params Type check
 			ParamType paramType = null;
 
@@ -265,7 +265,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 	public int getCurrentParamPos() {
 		return currentParamPos;
 	}
-	
+
 	public EditorOpDescr doesNeedClosing() {
 		if (needClosingOpsStack.size() > 0) {
 			EditorOpDescr ret = needClosingOpsStack.pollLast();

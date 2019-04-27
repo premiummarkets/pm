@@ -51,16 +51,16 @@ import com.finance.pms.events.operations.parameterized.antlr.ParameterizedOperat
 import com.finance.pms.events.operations.parameterized.antlr.ParameterizedOperationsParser;
 
 class TokensForExcp {
-	
+
 	RecognitionException exception;
 	NextToken nextToken;
-	
+
 	public TokensForExcp(RecognitionException exception, NextToken nextToken) {
 		super();
 		this.exception = exception;
 		this.nextToken = nextToken;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "TokensForExcp [nextToken=" + nextToken.getAlternatives() + "]";
@@ -68,10 +68,10 @@ class TokensForExcp {
 }
 
 public class OpsParserErrorReporter  extends MyErrorReporter {
-	
+
 	private ParameterizedOperationsParser parser;
 	private OpsParserDelegate parserDelegate;
-	
+
 	public OpsParserErrorReporter(ParameterizedOperationsParser parser, LinkedList<RecognitionExceptionHolder> exceptions, String parsedLine) {
 		super(exceptions, parsedLine);
 		this.parser = parser;
@@ -82,9 +82,9 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 
 		List<String> stack = Parser.getRuleInvocationStack(e, parser.getClass().getName());
 		String expectedTokenName = null;
-		
+
 		String msg = "PARSER Exception : "+e.getClass()+". ";
-		
+
 		try {
 			//Unhandled
 			if ( e instanceof UnwantedTokenException ) {
@@ -160,14 +160,14 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 			}
 			else if ( e instanceof NoViableAltException ) {
 				NoViableAltException nvae = (NoViableAltException) e;
-				
+
 				//Log
 				msg = msg + "no viable alternative at input "+((nvae.token != null)?parser.getTokenErrorDisplay(nvae.token):"") +
 						" (decision="+nvae.decisionNumber+
 						" state "+nvae.stateNumber+")"+
 						" decision=<<"+nvae.grammarDecisionDescription+">>";		
 			} 
-		
+
 			else if ( e instanceof FailedPredicateException ) {
 				FailedPredicateException fpe = (FailedPredicateException) e;
 
@@ -183,7 +183,7 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 				//Log
 				msg = msg + "error "+ppe;
 
-			} 	
+			}
 			else if ( e instanceof UnfinishedParameterException ) {
 				UnfinishedParameterException upe = (UnfinishedParameterException) e;
 
@@ -191,9 +191,9 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 				msg = msg + "Param "+upe.getParamString()+", param type "+upe.getParamType();
 
 			} 
-			
+
 			//Unmatched
-			else {			
+			else {
 				//Log
 				msg = msg + " (unmatched exception) "+ e.getMessage();
 			}
@@ -202,7 +202,7 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 			exceptions.add(new RecognitionExceptionHolder(e, parserDelegate.doesNeedClosing(), stack, (expectedTokenName != null)?expectedTokenName.replaceAll("'", ""):null, logMsg(e), msg));
 			log(e, stack, msg);
 		}
-	
+
 	}
 
 	protected void log(RecognitionException e, List<String> stack, String msg) {

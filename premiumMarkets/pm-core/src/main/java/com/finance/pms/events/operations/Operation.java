@@ -142,10 +142,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentStartShift) {
 
-		int thisStartShift = parentStartShift + operationStartDateShift();
-		LOGGER.debug("Start shift granted for " + this.getReference() + " = " + this.getFormulae() + ": parent " + parentStartShift + " and parent+this " + thisStartShift);
 		String thisCallStack = parentCallStack + "=>" + this.shortOutputReference();
-		LOGGER.debug("Call stack : " + thisCallStack);
+		int thisStartShift = parentStartShift + operationStartDateShift();
+		LOGGER.info("Calculating:" + this.shortOutputReference() +
+				"\n\tCall stack : " + thisCallStack +
+				"\n\tStart shift: " + thisStartShift + " with parent " + parentStartShift);
 
 		Value<?> alreadyCalculated = null;
 		try {

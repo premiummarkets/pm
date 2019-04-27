@@ -55,18 +55,18 @@ import com.finance.pms.events.scoring.functions.MySimpleRegression;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
 @XmlRootElement
-public class StatOperation extends PMWithDataOperation {
+public class StatsOperation extends PMWithDataOperation {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StatOperation.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(StatsOperation.class);
 
-	public StatOperation() {
+	public StatsOperation() {
 		super("stat", "Moving statistics",
 				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum"})));
 	}
 
-	public StatOperation(ArrayList<Operation> operands, String outputSelector) {
+	public StatsOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
@@ -101,6 +101,9 @@ public class StatOperation extends PMWithDataOperation {
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msimplereg")) {
 				statFunction = new MySimpleRegression();
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msum")) {
+				statFunction = lookBack -> lookBack.values().stream().filter(e -> !Double.isNaN(e)).reduce((r, e) -> r + e).orElse(0d);
 			}
 
 			if (period.isNaN()) {

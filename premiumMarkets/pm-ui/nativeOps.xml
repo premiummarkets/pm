@@ -115,7 +115,7 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="statOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="statsOperation">
             <reference>stat</reference>
             <description>Moving statistics</description>
             <operands>
@@ -142,6 +142,7 @@
                 <availableOutputSelector>sma</availableOutputSelector>
                 <availableOutputSelector>mstdev</availableOutputSelector>
                 <availableOutputSelector>msimplereg</availableOutputSelector>
+                <availableOutputSelector>msum</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -422,16 +423,34 @@
             <description>Filter</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
-                    <reference>data</reference>
-                    <description>data</description>
+                    <reference>filtered series (given)</reference>
+                    <description>filtered series (given)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>filtering series on which applies the filter (where)</reference>
+                    <description>filtering series on which applies the filter (where)</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
-                    <referenceAsOperand>constant</referenceAsOperand>
-                    <description>Filter input</description>
+                    <referenceAsOperand>filterShade</referenceAsOperand>
+                    <description>Filter shade value</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>filterThreshold</referenceAsOperand>
+                    <description>Filter threshold</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>0.0</numberValue>
                     </defaultValue>
@@ -648,6 +667,7 @@
             <availableOutputSelectors>
                 <availableOutputSelector>rates</availableOutputSelector>
                 <availableOutputSelector>continuousRates</availableOutputSelector>
+                <availableOutputSelector>EMA</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>rates</outputSelector>
             <isVarArgs>false</isVarArgs>

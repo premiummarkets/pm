@@ -41,6 +41,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
 import com.finance.pms.events.calculation.util.MapUtils;
@@ -57,7 +58,7 @@ public class RecursiveOperation extends DoubleMapOperation {
 				new DoubleMapOperation("seed","seed", "Use the first period values as a seed for the recursion", null),
 				new DoubleMapOperation("paramsData", "calculusParamLists", "Timed calculus parameters", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"rates", "continuousRates"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"rates", "continuousRates", "EMA"})));
 	}
 
 	public RecursiveOperation(String reference, String description, Operation ...operands) {
@@ -70,7 +71,7 @@ public class RecursiveOperation extends DoubleMapOperation {
 		//Params check
 		Integer period = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue(); //Used in operationStartDateShift() calculation for seeding
 		SortedMap<Date, Double> seedingData = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
-		@SuppressWarnings("rawtypes") List<? extends Value> paramsInputs = inputs.subList(2, inputs.size());
+		@SuppressWarnings("rawtypes") List<? extends Value> paramsInputs = inputs.subList(1, inputs.size()); //The seed is included as the first data parameter by default
 
 		Date startDateShift = targetStock.getStartDate(thisStartShift);
 
@@ -91,10 +92,16 @@ public class RecursiveOperation extends DoubleMapOperation {
 		final BiFunction<Double, List<Double>, Double> function;
 		String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
 		if (outputSelector != null && outputSelector.equalsIgnoreCase("rates")) {
-			function = (y, params) -> y * (1 + params.get(0));
+			function = (y, params) -> y * (1 + params.get(1));
 		}
 		else if (outputSelector != null && outputSelector.equalsIgnoreCase("continuousRates")) {
-			function = (y, params) -> y * Math.exp(params.get(0));
+			function = (y, params) -> y * Math.exp(params.get(1));
+		}
+		else if (outputSelector != null && outputSelector.equalsIgnoreCase("EMA")) {
+			//TODO EMA = Price(t) * k + EMA(y) * (1 – k) where t = today, y = yesterday, N = number of days in EMA, k = 2/(N+1)
+			//TODO EMA seed : Add the closing prices for the first period days together and divide them by period. <= ok as below
+			//Param 0 (seed): data, Param 1: constant(period) => seed is param 0
+			throw new NotImplementedException();
 		} 
 		else {
 			function = (y, params) -> y; //Defaults to identity

@@ -53,7 +53,7 @@ import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.Product;
 import com.finance.pms.events.operations.nativeops.RecursiveOperation;
-import com.finance.pms.events.operations.nativeops.StatOperation;
+import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
@@ -105,7 +105,7 @@ public class NativesXmlManager {
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();
 		nativeOperations.addOperation(pmMacdOperation);
-		StatOperation pmSmaOperation = new StatOperation();
+		StatsOperation pmSmaOperation = new StatsOperation();
 		nativeOperations.addOperation(pmSmaOperation);
 		PMLogRocOperation houseTrendOperation = new PMLogRocOperation();
 		nativeOperations.addOperation(houseTrendOperation);

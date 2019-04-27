@@ -56,4 +56,9 @@ public class OpsBlindLexerDelegate implements OpsLexerDelegate {
 		return true;
 	}
 
+	@Override
+	public boolean runtimeNaNAhead() {
+		return true;
+	}
+
 }

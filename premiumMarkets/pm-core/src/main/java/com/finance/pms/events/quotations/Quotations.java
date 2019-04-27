@@ -291,7 +291,7 @@ public class Quotations {
 				quotationUnit.getHighRaw().multiply(convertUnitFactor),
 				quotationUnit.getLowRaw().multiply(convertUnitFactor),
 				quotationUnit.getCloseRaw().multiply(convertUnitFactor),
-				quotationUnit.getVolume(), quotationUnit.getOrigin(), quotationUnit.getSplit());
+				quotationUnit.getVolumeRaw(), quotationUnit.getOrigin(), quotationUnit.getSplit());
 	}
 
 
@@ -593,7 +593,7 @@ public class Quotations {
 			if ( validOhlc && qj.getHighSplit().compareTo(qj.getLowSplit()) == 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) == 0 ) {
 				continue;
 			}
-			if ( validVolume && qj.getVolume() == 0 ) {
+			if ( validVolume && qj.getVolumeSplit() == 0 ) {
 				continue;
 			}
 
