@@ -43,6 +43,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.MapValue;
+import com.finance.pms.events.operations.nativeops.StringValue;
 
 @XmlSeeAlso({AndBooleanMapCondition.class, OrBooleanMapCondition.class, NotBooleanMapCondition.class, TruthOfCondition.class})
 public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
@@ -65,14 +66,23 @@ public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Params check
-		int i = 0;
+
+		////ExactDataSet = !Leniency
+		boolean exactDataSet = !Boolean.valueOf(((StringValue)inputs.get(0)).getValue(targetStock));
+
+		////Other constant (eg: used in TruthOf)
+		int i = 1;
 		List<Comparable<?>> constants = new ArrayList<>();
 		while (!(inputs.get(i) instanceof MapValue<?>)) {
 			constants.add((Comparable<?>)inputs.get(i).getValue(targetStock));
 			i++;
 		}
+
+		////Data
 		@SuppressWarnings("unchecked") List<MapValue<Boolean>> checkedInputs = (List<MapValue<Boolean>>) inputs.subList(i, inputs.size());
 
+
+		//Calculation
 		if (shortcutUnary() && checkedInputs.size() == 1) {
 			return (BooleanMapValue) checkedInputs.get(i);
 		}
@@ -95,7 +105,7 @@ public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 				if (currentOp != null) {
 					currentOps.add(currentOp);
 				}
-				else if (exactDataSet()) {
+				else if (exactDataSet) {
 					gruyereDetected = true;
 					//Detection of on element in an operand being not present at date in an other operand
 					//Will result in an empty output when the comparison is required exactDataSet true.
@@ -131,8 +141,6 @@ public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 	}
 
 	protected abstract Boolean shortcutUnary();
-
-	protected abstract Boolean exactDataSet();
 
 
 }

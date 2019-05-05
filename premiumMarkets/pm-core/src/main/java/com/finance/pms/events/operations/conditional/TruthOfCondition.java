@@ -12,7 +12,7 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 public class TruthOfCondition extends BooleanMapCondition {
 
 	private TruthOfCondition() {
-		super("truthOf", "Is true if between at least and at most input Series are true", 
+		super("truthOf", "Is true if between at least and at most input Series are true",
 				new NumberOperation("number","atLeast", "Minimum to be true", new NumberValue(0.0)),
 				new NumberOperation("number","atMost", "Maximum to be true", new NumberValue(Double.NaN)),
 				new Condition<Boolean>("boolean data Series"));
@@ -41,11 +41,6 @@ public class TruthOfCondition extends BooleanMapCondition {
 	@Override
 	protected Boolean shortcutUnary() {
 		return true;
-	}
-
-	@Override
-	protected Boolean exactDataSet() {
-		return false;
 	}
 
 }

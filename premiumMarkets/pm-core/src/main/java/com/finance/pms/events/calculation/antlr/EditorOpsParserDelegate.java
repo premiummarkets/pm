@@ -142,7 +142,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 
 					//Nothing yet to check
 					String msg = "Unfinished predicate (empty param ) for " + currentOp.getName() + " : Empty offending bit " + offendingBit + ". Expected : " + currentOp.getShortSynoptic();
-					System.out.println(msg+ " "+token);
+					System.out.println(msg + " " + token);
 					currentOp.setLastParamParsed(currentParamPos, offendingBit);
 					throw new UnfinishedParameterException(input,currentOp, paramType, offendingBit);
 				}
@@ -160,8 +160,8 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			Param expectedParam = (currentOp.undeterministicParamCount())?currentOp.getCurrentParamOrVarArg(currentParamPos):currentOp.getParams().get(currentParamPos);
 			if (!expectedParam.getParamType().equals(paramType)) {
 
-				String msg = "Wrong parameter type '" + paramType.getTypeDescr() + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
-				System.out.println(msg+ " "+token);
+				String msg = "Wrong parameter type '" + ((paramType == null)?"Not found in ParamType.valueOfTokenName":paramType.getTypeDescr()) + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
+				System.out.println(msg + " " + token);
 				String theSonOf = getTheSonOf(token);
 				currentOp.setLastParamParsed(currentParamPos, theSonOf);
 				throw new ParamsCountException(input, currentOp, msg, true, Qualifier.TYPE, theSonOf, whereIsThatSonOf(token));

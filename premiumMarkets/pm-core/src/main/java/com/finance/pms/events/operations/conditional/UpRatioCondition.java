@@ -49,7 +49,7 @@ public class UpRatioCondition extends CrossConstantCondition implements UnaryCon
 		Double prev = (Double) ops[0];
 		Double current = (Double) ops[1];
 		Double ratio = ((Double) ops[2])/100;
-		//Double epsilonMinCrossing = ((Double) ops[3])/100;
+		//Double epsilonMinCrossing = (Double) ops[3];
 		if (prev <= 0 || current < 0) throw new UnsupportedOperationException("Values must be positive. Unmet condition as " + prev + " > 0 && " + current + " >= 0");
 		return (current - prev)/prev > ratio;
 	}

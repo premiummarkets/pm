@@ -201,7 +201,7 @@ public class Quotations {
 		double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
 		double dj = qj.getCloseSplit().doubleValue();
 		double djm1 = qjm1.getCloseSplit().doubleValue();
-		double delta = span*Math.pow(1.5, 1d-span)*0.10;
+		double delta = span*Math.pow(1.5, 1d-span)*0.10; //FIXME power of larger negative will yield a smaller value Math.pow(1.5, 1d-span) = Math.pow(1/1.5,span-1d)
 		double adjustedDj = dj-dj*delta;
 		double split = djm1/adjustedDj;
 

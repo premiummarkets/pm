@@ -49,7 +49,7 @@ public class CrossUpConstantCondition extends CrossConstantCondition implements 
 		Double previous = (Double) ops[0];
 		Double current = (Double) ops[1];
 		Double threshold = (Double) ops[2];
-		Double epsilonMinCrossing = ((Double) ops[3])/100;
+		Double epsilonMinCrossing = (Double) ops[3];
 		return previous <= threshold && threshold * (1 + epsilonMinCrossing) < current;
 	}
 

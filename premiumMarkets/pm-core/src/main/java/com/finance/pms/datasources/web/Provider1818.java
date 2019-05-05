@@ -20,7 +20,7 @@ import com.finance.pms.datasources.web.formaters.DayQuote1818Formater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 
 public class Provider1818 extends Providers implements QuotationProvider {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(Provider1818.class);
 
 	protected Provider1818(String pathToProps) {
@@ -40,7 +40,7 @@ public class Provider1818 extends Providers implements QuotationProvider {
 
 	@Override
 	public void getQuotes(Stock stock, Date start, Date end) throws Exception {
-		
+
 		if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for "+stock.toString());
 
 		MyUrl url;
@@ -53,7 +53,8 @@ public class Provider1818 extends Providers implements QuotationProvider {
 		TreeSet<Validatable> queries = initValidatableSet();
 		queries.addAll(readPage(stock, url, start));
 
-		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+		//https://protect.wealthmanagement.natixis.com/phoenix/infosMarcheValeur/detache?page=cours&valeur=LU1829221024,25,814
+		LOGGER.guiInfo("Last quotes  for " + stock.getSymbol() +". Number of new quotations:" + queries.size() + ", request: " + url);
 
 		try {
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
@@ -63,24 +64,24 @@ public class Provider1818 extends Providers implements QuotationProvider {
 			LOGGER.error("Yahoo quotations sql error trying : "+url.getUrl(), e);
 			throw e;
 		}
-		
+
 	}
 
 	@Override
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception {
-//		Calendar startCal = Calendar.getInstance();
-//		startCal.setTime(start);
-//		Calendar endCal = Calendar.getInstance();
-//		startCal.setTime(end);
-//		return httpSource.getStockQuotationURL(
-//				this.getStockRefName(stock), 
-//				""+startCal.get(Calendar.YEAR), ""+startCal.get(Calendar.MONTH), ""+startCal.get(Calendar.DAY_OF_MONTH), 
-//				""+endCal.get(Calendar.YEAR), ""+endCal.get(Calendar.MONTH), ""+endCal.get(Calendar.DAY_OF_MONTH));
+		//		Calendar startCal = Calendar.getInstance();
+		//		startCal.setTime(start);
+		//		Calendar endCal = Calendar.getInstance();
+		//		startCal.setTime(end);
+		//		return httpSource.getStockQuotationURL(
+		//				this.getStockRefName(stock), 
+		//				""+startCal.get(Calendar.YEAR), ""+startCal.get(Calendar.MONTH), ""+startCal.get(Calendar.DAY_OF_MONTH), 
+		//				""+endCal.get(Calendar.YEAR), ""+endCal.get(Calendar.MONTH), ""+endCal.get(Calendar.DAY_OF_MONTH));
 		return this.httpSource.getStockQuotationURL(
 				this.getStockRefName(stock), 
 				new SimpleDateFormat("yyyy").format(start),new SimpleDateFormat("MM").format(start),new SimpleDateFormat("dd").format(start),
 				new SimpleDateFormat("yyyy").format(end), new SimpleDateFormat("MM").format(end), new SimpleDateFormat("dd").format(end)
-		);
+				);
 	}
 
 	@Override

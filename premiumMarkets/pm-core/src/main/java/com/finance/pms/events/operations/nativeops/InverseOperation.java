@@ -27,38 +27,58 @@
  * You should have received a copy of the GNU Lesser General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.finance.pms.events.operations.conditional;
+package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
 
-public class OrBooleanMapCondition extends BooleanMapCondition {
+//TODO integrate within unary operations
+public class InverseOperation extends PMWithDataOperation {
 
-	private OrBooleanMapCondition() {
-		super("or", "Compare two boolean time series over time and is true when at least one is true.");
+	private static MyLogger LOGGER = MyLogger.getLogger(InverseOperation.class);
+
+	public InverseOperation() {
+		super("inverse", "Unary Product inverse. Divide a constant by the input.", new NumberOperation("Inversion axe as dividend"), new DoubleMapOperation("Data as divisor"));
 	}
 
-	public OrBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {
+	public InverseOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
-		setOperands(operands);
+		this.setOperands(operands);
+		this.setOutputSelector(outputSelector);
 	}
 
 	@Override
-	public Boolean conditionCheck(@SuppressWarnings("rawtypes") Comparable... ops) {
-		List<Boolean> bools = Arrays.stream(ops).map(b -> (Boolean) b).collect(Collectors.toList());
-		for (Boolean op : bools) {
-			if (Boolean.TRUE.compareTo(op) == 0) return true;
+	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+
+		//Param check
+		Double dividend = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
+
+		//Calc
+		try {
+
+			TreeMap<Date, Double> inversedData = data.keySet().stream()
+					.collect(Collectors.toMap(k -> k, k -> (data.get(k) == 0)?Double.NaN:dividend/data.get(k), (a, b) -> a, TreeMap<Date, Double>::new));
+
+			return new DoubleMapValue(inversedData);
+
+		} catch (Exception e) {
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
 		}
-		return false;
+		return new DoubleMapValue();
 	}
 
 	@Override
-	protected Boolean shortcutUnary() {
-		return true;
+	public int operationStartDateShift() {
+		return 0;
 	}
-
 }

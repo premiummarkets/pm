@@ -369,7 +369,7 @@ public abstract class HttpSource implements SourceConnector {
 
 	public abstract MyUrl getStockQuotationURL(String ticker, String startYear, String startMonth, String startDay, String endYear, String endMonth, String endDay);
 
-	public abstract String getStockInfoPageURL(String refName) throws UnsupportedEncodingException; 
+	public abstract String getStockInfoPageURL(String refName) throws UnsupportedEncodingException;
 
 	public abstract String getCategoryStockListURL(StockCategories category, String...params);
 

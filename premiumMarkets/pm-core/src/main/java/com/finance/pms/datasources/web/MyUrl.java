@@ -39,74 +39,73 @@ import org.apache.http.NameValuePair;
 
 public class MyUrl {
 
-    private String url;
-    private List<NameValuePair> httpParams;
-    private Integer nbPages;
-    private ArrayList<String> cookies;
+	private String url;
+	private List<NameValuePair> httpParams;
+	private Integer nbPages;
+	private ArrayList<String> cookies;
+
+	public MyUrl(String url) {
+		super();
+		this.url = url;
+		this.httpParams = new ArrayList<NameValuePair>();
+		this.cookies = new ArrayList<String>();
+	}
+
+	public MyUrl() {
+		super();
+		this.httpParams = new ArrayList<NameValuePair>();
+	}
+
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public List<NameValuePair> getHttpParams() {
+		return httpParams;
+	}
+	public void setHttpParams(List<NameValuePair> httpParams) {
+		this.httpParams = httpParams;
+	}
+
+	public Integer getNbPages() {
+		return nbPages;
+	}
 
 
-    public MyUrl(String url) {
-        super();
-        this.url = url;
-        this.httpParams = new ArrayList<NameValuePair>();
-        this.cookies = new ArrayList<String>();
-    }
+	public void setNbPages(Integer nbPages) {
+		this.nbPages = nbPages;
+	}
+
+	public MyUrl getUrlForPage(Integer i) {
+		throw new NotImplementedException();
+	}
 
 
-    public MyUrl() {
-        super();
-        this.httpParams = new ArrayList<NameValuePair>();
-    }
+	public void addCookie(String cookie) {
+		this.cookies.add(cookie);
+	}
 
+	public String getCookieString() {
+		return cookies.stream()
+				.reduce(
+						(r, c) -> {
+							try {
+								c = URLEncoder.encode(c,"UTF-8");
+							} catch (UnsupportedEncodingException e) {
+								throw new RuntimeException(e);
+							}
+							r = r + ";" + c;
+							return r;
+						}
+						).get();
+	}
 
-    public String getUrl() {
-        return url;
-    }
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-
-    public List<NameValuePair> getHttpParams() {
-        return httpParams;
-    }
-    public void setHttpParams(List<NameValuePair> httpParams) {
-        this.httpParams = httpParams;
-    }
-
-
-    public Integer getNbPages() {
-        return nbPages;
-    }
-
-
-    public void setNbPages(Integer nbPages) {
-        this.nbPages = nbPages;
-    }
-
-    public MyUrl getUrlForPage(Integer i) {
-        throw new NotImplementedException();
-    }
-
-
-    public void addCookie(String cookie) {
-        this.cookies.add(cookie);
-    }
-
-
-    public String getCookieString() {
-        return cookies.stream()
-                .reduce(
-                  (r, c) -> {
-                      try {
-                          c = URLEncoder.encode(c,"UTF-8");
-                      } catch (UnsupportedEncodingException e) {
-                          throw new RuntimeException(e);
-                      }
-                      r = r + ";" + c;
-                      return r;
-                  }
-               ).get();
-    }
+	@Override
+	public String toString() {
+		return "MyUrl [url=" + url + "]";
+	}
 
 }

@@ -126,7 +126,7 @@ public class ChartMain extends Chart {
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartMain.class);
 
 	public static final DateFormat DATE_FORMAT = DateFormat.getTimeInstance();
-	public static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat("#0.00 %");
+	public static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat("#0.00%");
 	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
 	private static final Integer CHARTS_TOTAL_WEIGHT = 100;
 
@@ -248,16 +248,16 @@ public class ChartMain extends Chart {
 														"<tr><td><font size='2'>High</font></td><td><font size='2'>" +
 														NUMBER_FORMAT.format(closeForDate.getHighSplit())
 														+ "</font></td></tr>" +
-														"<tr><td><font size='2'>Low</font></td><td><font size='2'>"
-														+ NUMBER_FORMAT.format(closeForDate.getLowSplit()) +
-														"</font></td></tr>"
-														+ "<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
+														"<tr><td><font size='2'>Low</font></td><td><font size='2'>" +
+														NUMBER_FORMAT.format(closeForDate.getLowSplit()) +
+														"</font></td></tr>" +
+														"<tr><td><font size='2'>Close</font></td><td><font size='2'>" +
 														NUMBER_FORMAT.format(closeForDate.getCloseSplit())
 														+ "</font></td></tr>" +
 														"<tr><td><font size='2'>Volume&nbsp;</font></td><td><font size='2'>" + closeForDate.getVolumeSplit() + "</td></tr>" +
 														"</table>" +
 														"<font size='2'>" +
-														"(Source: " + origin +", Split: " + closeForDate.getSplit() + ", Currency: " + stockCurrency + " here in " + trCurrency + ")" +
+														"(Source: " + origin +", Split: " + NUMBER_FORMAT.format(closeForDate.getSplit()) + ", Currency: " + stockCurrency + " here in " + trCurrency + ")" +
 														variationAddInfo +
 														"</font>" +
 														"</html>";

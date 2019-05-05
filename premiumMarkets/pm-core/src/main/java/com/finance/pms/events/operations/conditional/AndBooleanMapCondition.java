@@ -35,14 +35,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.nativeops.StringValue;
 
 public class AndBooleanMapCondition extends BooleanMapCondition {
-
-	//Defaults to FALSE XXX Operations should be state less??
-	private Boolean exactDataSet;
 
 	private AndBooleanMapCondition() {
 		super("and", "Compare two boolean time series over time and is true when all are true and present.");
@@ -51,13 +45,6 @@ public class AndBooleanMapCondition extends BooleanMapCondition {
 	public AndBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		setOperands(operands);
-	}
-
-	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		Boolean lenient = Boolean.valueOf(((StringValue)inputs.get(0)).getValue(targetStock));
-		exactDataSet = !lenient; //Defaults to FALSE XXX Operations should be state less??
-		return super.calculate(targetStock, thisStartShift, inputs.subList(1, inputs.size()));
 	}
 
 	@Override
@@ -72,11 +59,6 @@ public class AndBooleanMapCondition extends BooleanMapCondition {
 	@Override
 	protected Boolean shortcutUnary() {
 		return true;
-	}
-
-	@Override
-	protected Boolean exactDataSet() {
-		return exactDataSet;
 	}
 
 }

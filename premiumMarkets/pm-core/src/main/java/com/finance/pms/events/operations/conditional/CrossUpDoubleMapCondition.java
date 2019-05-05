@@ -50,8 +50,10 @@ public class CrossUpDoubleMapCondition extends CrossDoubleMapCondition {
 		Double currentFirstOp = (Double) ops[1];
 		Double previousSecondOp = (Double) ops[2];
 		Double currentSecondOp = (Double) ops[3];
-		Double epsilonMinCrossing = ((Double) ops[4])/100;
-		return previousFirstOp <= previousSecondOp && currentFirstOp > currentSecondOp * (1 + epsilonMinCrossing);
+		Double epsilonMinCrossing = (Double) ops[4];
+		Double alphaAdaption = (Double) ops[5];
+		//return previousFirstOp <= previousSecondOp * (1 + alphaAdaption) && currentFirstOp > currentSecondOp * (1 + alphaAdaption + epsilonMinCrossing);
+		return previousFirstOp <= previousSecondOp && currentFirstOp > currentSecondOp * (1 + alphaAdaption + epsilonMinCrossing);
 	}
 
 }

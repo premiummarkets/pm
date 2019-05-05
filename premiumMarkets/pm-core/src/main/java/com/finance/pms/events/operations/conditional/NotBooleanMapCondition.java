@@ -54,9 +54,4 @@ public class NotBooleanMapCondition extends BooleanMapCondition {
 		return false;
 	}
 
-	@Override
-	protected Boolean exactDataSet() {
-		return true;
-	}
-
 }

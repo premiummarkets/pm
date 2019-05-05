@@ -41,6 +41,7 @@ import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
+import com.finance.pms.events.operations.nativeops.InverseOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.MathOperation;
@@ -105,8 +106,6 @@ public class NativesXmlManager {
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();
 		nativeOperations.addOperation(pmMacdOperation);
-		StatsOperation pmSmaOperation = new StatsOperation();
-		nativeOperations.addOperation(pmSmaOperation);
 		PMLogRocOperation houseTrendOperation = new PMLogRocOperation();
 		nativeOperations.addOperation(houseTrendOperation);
 		PMAroonOperation pmAroonOperation = new PMAroonOperation();
@@ -115,14 +114,24 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmMChaikinOperation);
 		PMBollingerOperation bollingerOperation = new PMBollingerOperation();
 		nativeOperations.addOperation(bollingerOperation);
+
+		//Data manipulation
 		MathOperation mathOperation = new MathOperation();
 		nativeOperations.addOperation(mathOperation);
-
-		//Other
+		StatsOperation pmSmaOperation = new StatsOperation();
+		nativeOperations.addOperation(pmSmaOperation);
+		RecursiveOperation recursiveOperation = new RecursiveOperation();
+		nativeOperations.addOperation(recursiveOperation);
 		FlipOperation flipOperation = new FlipOperation();
 		nativeOperations.addOperation(flipOperation);
+		InverseOperation inverseOperation = new InverseOperation();
+		nativeOperations.addOperation(inverseOperation);
 		LeftShifterOperation leftShiterOperation = new LeftShifterOperation();
 		nativeOperations.addOperation(leftShiterOperation);
+		FilterOperation filterOperation = new FilterOperation();
+		nativeOperations.addOperation(filterOperation);
+
+		//Other
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
 		nativeOperations.addOperation(bandNormalizerOperation);
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
@@ -133,10 +142,6 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(volatilityOperation);
 		VolatilityOtherOperation volatilityOtherOperation = new VolatilityOtherOperation();
 		nativeOperations.addOperation(volatilityOtherOperation);
-		FilterOperation filterOperation = new FilterOperation();
-		nativeOperations.addOperation(filterOperation);
-		RecursiveOperation recursiveOperation = new RecursiveOperation();
-		nativeOperations.addOperation(recursiveOperation);
 
 		return nativeOperations;
 	}

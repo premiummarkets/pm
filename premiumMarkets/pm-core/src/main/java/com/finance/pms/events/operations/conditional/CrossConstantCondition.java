@@ -87,11 +87,11 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	@Override
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		Double constant = ((NumberValue) inputs.get(CONSTANT_POSITION)).getValue(targetStock).doubleValue();
+		Double threshold = ((NumberValue) inputs.get(CONSTANT_POSITION)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
-		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue();
+		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue()/100;
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
@@ -102,7 +102,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 
 		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
 		BooleanMapValue outputs = new  BooleanMapValue();
-		if (Double.isNaN(constant)) return outputs;
+		if (Double.isNaN(threshold)) return outputs;
 
 		BooleanMapValue realRowOutputs = new BooleanMapValue();
 
@@ -111,7 +111,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 			Double previous = rightShiftedData.get(date);
 			if (previous != null && !previous.isNaN() && !current.isNaN()) {
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(previous, current, constant, epsilon);
+				Boolean conditionCheck = conditionCheck(previous, current, threshold, epsilon);
 				if (conditionCheck != null) {
 
 					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {

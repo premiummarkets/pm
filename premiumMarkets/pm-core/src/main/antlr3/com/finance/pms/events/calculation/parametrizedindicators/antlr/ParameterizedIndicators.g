@@ -182,9 +182,9 @@ bearish_condition[CommonTree bcond] :
 bearish_not_bullish[CommonTree bcond] :
  'is bearish if not bullish'
   (
-  WhiteChar AND WhiteChar primary_expression -> ^(AndBooleanMapCondition ^(String StringToken["\"FALSE\""]) ^(NotBooleanMapCondition {$bcond}) primary_expression)|
-  WhiteChar OR WhiteChar primary_expression -> ^(OrBooleanMapCondition ^(NotBooleanMapCondition {$bcond}) primary_expression)|
-  -> ^(NotBooleanMapCondition {$bcond})
+  WhiteChar AND WhiteChar primary_expression -> ^(AndBooleanMapCondition ^(String StringToken["\"FALSE\""]) ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bcond}) primary_expression)|
+  WhiteChar OR WhiteChar primary_expression -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bcond}) primary_expression)|
+  -> ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bcond})
   )
  ;
 
@@ -196,7 +196,7 @@ and_expression :
   or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndBooleanMapCondition {$lenientParam.tree} or_expression or_expression*)
   ;
 or_expression :
-  matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrBooleanMapCondition matches_expression matches_expression*)
+  matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) matches_expression matches_expression*)
   ;
 matches_expression :
   atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingBooleanMapCondition constant* atom atom?)
@@ -204,11 +204,12 @@ matches_expression :
 atom :
   booleanhistory |
   '(' WhiteChar* primary_expression WhiteChar* ')' -> primary_expression |
-  NOT WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotBooleanMapCondition primary_expression) |
+  NOT WhiteChar* '(' WhiteChar* primary_expression WhiteChar* ')' -> ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) primary_expression) |
   conjunctiontruthof
   ;
 conjunctiontruthof :
-  TRUTHOF WhiteChar primary_expression (COMMA WhiteChar primary_expression)* WhiteChar 'is within' WhiteChar '[' min=constant ',' max=constant ']' -> ^(TruthOfCondition {$min.tree} {$max.tree} primary_expression primary_expression*)
+  TRUTHOF WhiteChar primary_expression (COMMA WhiteChar primary_expression)* WhiteChar 'is within' WhiteChar '[' min=constant ',' max=constant ']' 
+  	-> ^(TruthOfCondition ^(String StringToken["\"TRUE\""]) {$min.tree} {$max.tree} primary_expression primary_expression*)
   ;
 booleanhistory :
 	firstOp=operand WhiteChar (
@@ -226,30 +227,43 @@ lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String 
 
 opcmpcondition [CommonTree firstOp] :
 
-  ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand) )
-   ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-   WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
-   -> ^(SupDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree}) )? |
-  ('is below historical' WhiteChar secondOp=operand -> ^(InfDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand) )
-    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
-    -> ^(InfDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree}) )? |
-  ('equals historical' WhiteChar secondOp=operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand) )
-    ( WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
-    -> ^(EqualDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree}) )? |
+//Double maps comparisons
+  ('is above historical' WhiteChar secondOp=operand -> ^(SupDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
+   (WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT 
+    -> ^(SupDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})
+   )? |
+  ('is below historical' WhiteChar secondOp=operand -> ^(InfDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
+   (WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
+    -> ^(InfDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})
+   )? |
+  ('equals historical' WhiteChar secondOp=operand -> ^(EqualDoubleMapCondition ^(Number NumberToken["0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
+   (WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
+    -> ^(EqualDoubleMapCondition {$forNbDays.tree} {$epsilon.tree} {$firstOp} {$secondOp.tree})
+   )? |
 
-  ('crosses down historical' WhiteChar operand -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
-    ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
-    WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
-    -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} {$firstOp} operand) )? |
-  ('crosses up historical' WhiteChar operand -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) {$firstOp} operand))
-    ( WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS
-    WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
-    WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
-    -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} {$firstOp} operand) )? |
+//Double maps crossing
+  ('crosses down historical' WhiteChar secondOp=operand 
+   -> ^(CrossDownDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) NullCondition {$firstOp} {$secondOp.tree})
+  )
+  ((WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
+    -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} ^(Number NumberToken["0.0"]) NullCondition {$firstOp} {$secondOp.tree})
+   )
+   (WhiteChar 'adaptiveRate' WhiteChar adaptiveRate=constant PERCENT WhiteChar adaptive=atom 
+    -> ^(CrossDownDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} {$adaptiveRate.tree} {$adaptive.tree} {$firstOp} {$secondOp.tree})
+   )?
+  )? |
+  ('crosses up historical' WhiteChar secondOp=operand 
+   -> ^(CrossUpDoubleMapCondition ^(Number NumberToken["1.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) ^(Number NumberToken["0.0"]) NullCondition {$firstOp} {$secondOp.tree})
+  )
+  ((WhiteChar 'spanning' WhiteChar spanningNbDays=constant WhiteChar DAYS WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS WhiteChar 'epsilon' WhiteChar epsilon=constant PERCENT
+    -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} ^(Number NumberToken["0.0"]) NullCondition {$firstOp} {$secondOp.tree})
+   )
+   (WhiteChar 'adaptiveRate' WhiteChar adaptiveRate=constant PERCENT WhiteChar adaptive=atom 
+    -> ^(CrossUpDoubleMapCondition {$spanningNbDays.tree} {$overNbDays.tree} {$epsilon.tree} {$adaptiveRate.tree} {$adaptive.tree} {$firstOp} {$secondOp.tree})
+   )?
+  )? |
 
+//Double maps trends comparisons
   ('trends like' WhiteChar secondOp=operand
       WhiteChar 'over' WhiteChar overNbDays=constant WhiteChar DAYS
       WhiteChar 'for' WhiteChar forNbDays=constant WhiteChar DAYS

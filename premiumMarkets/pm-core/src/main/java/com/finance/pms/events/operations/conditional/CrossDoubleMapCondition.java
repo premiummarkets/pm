@@ -32,12 +32,14 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -59,9 +61,11 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
 @XmlSeeAlso({CrossUpDoubleMapCondition.class, CrossDownDoubleMapCondition.class})
 public abstract class CrossDoubleMapCondition extends Condition<Double> implements OnSignalCondition {
 
+	private static MyLogger LOGGER = MyLogger.getLogger(CrossDoubleMapCondition.class);
+
 	private static final int OTHER_PARAMS = 2;
-	private static final int MAIN_POSITION = 3;
-	private static final int SIGNAL_POSITION = 4;
+	private static final int MAIN_POSITION = 5;
+	private static final int SIGNAL_POSITION = 6;
 
 	@SuppressWarnings("unused")
 	private CrossDoubleMapCondition() {
@@ -72,7 +76,9 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 		super(reference, description,
 				new NumberOperation("dates comparison span"),
 				new NumberOperation("time period over which it happens"),
-				new NumberOperation("minimum epsilon for crossing the condition in %"),
+				new NumberOperation("minimum epsilon for fulfilling the condition in %"),
+				new NumberOperation("adaptation rate"),
+				new Condition<>("adaptor"),
 				new DoubleMapOperation("'"+reference+ "' left operand (data)"),
 				new DoubleMapOperation("'"+reference+ "' right operand (signal)"));
 	}
@@ -87,7 +93,11 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 
 		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();
-		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue();
+
+		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue()/100;
+		Double adaptationRate = ((NumberValue) inputs.get(OTHER_PARAMS+1)).getValue(targetStock).doubleValue()/100;
+		SortedMap<Date, Boolean> adaptor = ((BooleanMapValue) inputs.get(OTHER_PARAMS+2)).getValue(targetStock);
+
 		SortedMap<Date, Double> firstOp = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		SortedMap<Date, Double> secondOp = ((NumericableMapValue) inputs.get(SIGNAL_POSITION)).getValue(targetStock);
 
@@ -102,14 +112,18 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 
 		BooleanMapValue outputs = new  BooleanMapValue();
 
+		Boolean isNotAdaptive = adaptationRate == 0;
 		for (Date date : fullKeySet) {
 			Double firstV = firstOp.get(date);
 			Double secondV = secondOp.get(date);
 			Double previousFirstV = rightShiftedFirstOp.get(date);
 			Double previousSecondV = rightShiftedSecondOp.get(date);
-			if (previousFirstV != null && !previousFirstV.isNaN() && previousSecondV != null && !previousSecondV.isNaN() && !firstV.isNaN() && !secondV.isNaN())  {
+			if (previousFirstV != null && !previousFirstV.isNaN() && previousSecondV != null && !previousSecondV.isNaN() && !firstV.isNaN() && !secondV.isNaN()) {
+
+				Double alphaAdaptation = (isNotAdaptive)?0:calculateAlphaAdaptation(date, adaptationRate, adaptor);
+
 				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(previousFirstV, firstV, previousSecondV, secondV, epsilon);
+				Boolean conditionCheck = conditionCheck(previousFirstV, firstV, previousSecondV, secondV, epsilon, alphaAdaptation);
 
 				if (conditionCheck != null) {
 
@@ -123,6 +137,21 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 		}
 
 		return outputs;
+	}
+
+	private Double calculateAlphaAdaptation(Date date, Double adaptationRate, SortedMap<Date, Boolean> adaptor) {
+		ArrayList<Boolean> arrayList = new ArrayList<>(adaptor.headMap(date).values());
+		ListIterator<Boolean> listIterator = arrayList.listIterator(arrayList.size());
+		Double n = 1d;
+		Double alphaAdaptation = adaptationRate;
+		while (listIterator.hasPrevious() && (alphaAdaptation = adaptationRate * 2d/(1d+n)) > 0.001) {
+			if (listIterator.previous()) {
+				LOGGER.info("aplhaAdapation:" + date + ", " + alphaAdaptation);
+				return alphaAdaptation;
+			}
+			n++;
+		}
+		return 0d;
 	}
 
 	@Override
