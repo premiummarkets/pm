@@ -223,7 +223,7 @@ operand : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^
 constant :  NumberToken -> ^(Number NumberToken) | 'NaN' -> ^(Number NumberToken["NaN"]);
 stringconstant : StringToken -> ^(String StringToken);
 trendconstant : 'bullish' -> ^(String StringToken["\"bullish\""]) | 'bearish' -> ^(String StringToken["\"bearish\""]);
-lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])) ;
+lenient : (WhiteChar LENIENT -> ^(String StringToken["\"TRUE\""]) | -> ^(String StringToken["\"FALSE\""])); //If lenient is specified, the String Token is true. It is false otherwise.
 
 opcmpcondition [CommonTree firstOp] :
 

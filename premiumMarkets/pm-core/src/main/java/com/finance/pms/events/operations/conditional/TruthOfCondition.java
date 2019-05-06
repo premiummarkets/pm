@@ -8,11 +8,14 @@ import java.util.stream.Collectors;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.StringValue;
 
 public class TruthOfCondition extends BooleanMapCondition {
 
 	private TruthOfCondition() {
 		super("truthOf", "Is true if between at least and at most input Series are true",
+				new StringOperation("boolean", "isLenient", "If false, the output keySet is an intersection of the input keySets, if true a union", new StringValue("TRUE")),
 				new NumberOperation("number","atLeast", "Minimum to be true", new NumberValue(0.0)),
 				new NumberOperation("number","atMost", "Maximum to be true", new NumberValue(Double.NaN)),
 				new Condition<Boolean>("boolean data Series"));

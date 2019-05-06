@@ -84,7 +84,7 @@ public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 
 		//Calculation
 		if (shortcutUnary() && checkedInputs.size() == 1) {
-			return (BooleanMapValue) checkedInputs.get(i);
+			return (BooleanMapValue) checkedInputs.get(0);
 		}
 
 		List<SortedMap<Date, Boolean>> maps = new ArrayList<>();
