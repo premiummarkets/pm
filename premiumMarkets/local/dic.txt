@@ -5,3 +5,4 @@ portfolio
 portfolios
 min
 discriminant
+jitter

@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>premium-markets</artifactId>
 		<groupId>com.finance.pm</groupId>
@@ -10,13 +12,13 @@
 	<artifactId>pm-core</artifactId>
 	<packaging>jar</packaging>
 	<name>pm-core</name>
-  <properties>
-    <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
-    <org.springframework.version>4.1.1.RELEASE</org.springframework.version>
-	<test>false</test>
-	<pm.buildtime>${timestamp}</pm.buildtime>
-  </properties>
-  <dependencies>
+	<properties>
+		<project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+		<org.springframework.version>4.1.1.RELEASE</org.springframework.version>
+		<test>false</test>
+		<pm.buildtime>${timestamp}</pm.buildtime>
+	</properties>
+	<dependencies>
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr-runtime</artifactId>
@@ -27,7 +29,7 @@
 			<artifactId>stringtemplate</artifactId>
 			<version>3.2.1</version>
 		</dependency>
-	    <dependency>
+		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 			<version>2.4</version>
@@ -37,107 +39,99 @@
 			<artifactId>commons-logging</artifactId>
 			<version>4.0.6</version>
 		</dependency>
-		
-		<!--
-			Core utilities used by other modules. Define this if you use Spring
-			Utility APIs (org.springframework.core.*/org.springframework.util.*)
-		-->
+
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+
+		<!-- Core utilities used by other modules. Define this if you use Spring 
+			Utility APIs (org.springframework.core.*/org.springframework.util.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			Expression Language (depends on core) Define this if you use Spring
-			Expression APIs (org.springframework.expression.*)
-		-->
+		<!-- Expression Language (depends on core) Define this if you use Spring 
+			Expression APIs (org.springframework.expression.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-expression</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			Bean Factory and JavaBeans utilities (depends on core) Define this if
-			you use Spring Bean APIs (org.springframework.beans.*)
-		-->
+		<!-- Bean Factory and JavaBeans utilities (depends on core) Define this 
+			if you use Spring Bean APIs (org.springframework.beans.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			Aspect Oriented Programming (AOP) Framework (depends on core, beans)
-			Define this if you use Spring AOP APIs (org.springframework.aop.*)
-		-->
+		<!-- Aspect Oriented Programming (AOP) Framework (depends on core, beans) 
+			Define this if you use Spring AOP APIs (org.springframework.aop.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			Application Context (depends on core, expression, aop, beans) This is
-			the central artifact for Spring's Dependency Injection Container and
-			is generally always defined
-		-->
+		<!-- Application Context (depends on core, expression, aop, beans) This 
+			is the central artifact for Spring's Dependency Injection Container and is 
+			generally always defined -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 
-		<!--
-			Various Application Context utilities, including EhCache, JavaMail,
-			Quartz, and Freemarker integration Define this if you need any of
-			these integrations
-		-->
+		<!-- Various Application Context utilities, including EhCache, JavaMail, 
+			Quartz, and Freemarker integration Define this if you need any of these integrations -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 
-		<!--
-			Transaction Management Abstraction (depends on core, beans, aop,
-			context) Define this if you use Spring Transactions or DAO Exception
-			Hierarchy
-			(org.springframework.transaction.*/org.springframework.dao.*)
-		-->
+		<!-- Transaction Management Abstraction (depends on core, beans, aop, context) 
+			Define this if you use Spring Transactions or DAO Exception Hierarchy (org.springframework.transaction.*/org.springframework.dao.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			JDBC Data Access Library (depends on core, beans, context,
-			transaction) Define this if you use Spring's JdbcTemplate API
-			(org.springframework.jdbc.*)
-		-->
+		<!-- JDBC Data Access Library (depends on core, beans, context, transaction) 
+			Define this if you use Spring's JdbcTemplate API (org.springframework.jdbc.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			Object-to-Relation-Mapping (ORM) integration with Hibernate, JPA, and
-			iBatis. (depends on core, beans, context, transaction) Define this if
-			you need ORM (org.springframework.orm.*)
-		-->
+		<!-- Object-to-Relation-Mapping (ORM) integration with Hibernate, JPA, 
+			and iBatis. (depends on core, beans, context, transaction) Define this if 
+			you need ORM (org.springframework.orm.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		<!--
-			Object-to-XML Mapping (OXM) abstraction and integration with JAXB,
-			JiBX, Castor, XStream, and XML Beans. (depends on core, beans,
-			context) Define this if you need OXM (org.springframework.oxm.*)
-		-->
+		<!-- Object-to-XML Mapping (OXM) abstraction and integration with JAXB, 
+			JiBX, Castor, XStream, and XML Beans. (depends on core, beans, context) Define 
+			this if you need OXM (org.springframework.oxm.*) -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-oxm</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jms</artifactId>
@@ -170,14 +164,14 @@
 			<version>4.4.4</version>
 		</dependency>
 		<dependency>
-		    <groupId>javax.mail</groupId>
-		    <artifactId>javax.mail-api</artifactId>
-		    <version>1.6.2</version>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
-		<groupId>com.sun.mail</groupId>
+			<groupId>com.sun.mail</groupId>
 			<artifactId>javax.mail</artifactId>
-		<version>1.6.2</version>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -194,19 +188,19 @@
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>3.6.10.Final</version>
 			<exclusions>
-                <exclusion>
-                    <artifactId>javassist</artifactId>
-                    <groupId>javassist</groupId>
-                </exclusion>
+				<exclusion>
+					<artifactId>javassist</artifactId>
+					<groupId>javassist</groupId>
+				</exclusion>
 				<exclusion>
 					<artifactId>javassist</artifactId>
 					<groupId>org.javassist</groupId>
 				</exclusion>
-<!-- 				 <exclusion> -->
-<!--                     <artifactId>asm</artifactId> -->
-<!--                     <groupId>asm</groupId> -->
-<!--                 </exclusion> -->
-            </exclusions>
+				<!-- <exclusion> -->
+				<!-- <artifactId>asm</artifactId> -->
+				<!-- <groupId>asm</groupId> -->
+				<!-- </exclusion> -->
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.javassist</groupId>
@@ -302,135 +296,136 @@
 			<version>1.4.01</version>
 		</dependency>
 		<dependency>
-		    <groupId>javax.json</groupId>
-		    <artifactId>javax.json-api</artifactId>
-		    <version>1.0</version>
+			<groupId>javax.json</groupId>
+			<artifactId>javax.json-api</artifactId>
+			<version>1.0</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.glassfish</groupId>
-		    <artifactId>javax.json</artifactId>
-		    <version>1.0.4</version>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.json</artifactId>
+			<version>1.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
 			<version>0.9.11</version>
 		</dependency>
-  </dependencies>
-  <build>
-	<resources>
-		<resource>
-			<directory>src/main/resources</directory>
-			<filtering>false</filtering>
-			<excludes>
-				<exclude>db.properties</exclude>
-				<exclude>log4j.properties</exclude>
-				<exclude>**/*pmsjava*.*</exclude>
-				<exclude>**/*pmserror*.*</exclude>
-				<exclude>pmsbuild.properties</exclude>
-			</excludes>
-		</resource>
-		<resource>
-			<directory>src/main/resources</directory>
-			<filtering>true</filtering>
-			<includes>
-				<include>pmsbuild.properties</include>
-			</includes>
-		</resource>
-	</resources>
-	<plugins>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>3.1</version>
-			<configuration>
-<!-- 				<compilerArgument>-parameters</compilerArgument> -->
-				<source>1.8</source>
-				<target>1.8</target>
-			</configuration>
-		</plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-source-plugin</artifactId>
-			<version>2.1.2</version>
-			<executions>
-				<execution>
-					<id>attach-sources</id>
-					<phase>verify</phase>
-					<goals>
-						<goal>jar-no-fork</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
-		 <plugin>
-	       <groupId>org.antlr</groupId>
-	        <artifactId>antlr3-maven-plugin</artifactId>
-	        <version>3.5.2</version>
-	        <executions>
-	          <execution>
-	            <goals>
-	              <goal>antlr</goal>
-	            </goals>
-                    <phase>generate-sources</phase>
-                    <configuration>
-                        <outputDirectory>src/main/antlr3</outputDirectory>
-                    </configuration>
-	          </execution>
-	        </executions>
-	      </plugin>
-	</plugins>
-	<pluginManagement>
+	</dependencies>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>db.properties</exclude>
+					<exclude>log4j.properties</exclude>
+					<exclude>**/*pmsjava*.*</exclude>
+					<exclude>**/*pmserror*.*</exclude>
+					<exclude>pmsbuild.properties</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>pmsbuild.properties</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
-			<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
 			<plugin>
-				<groupId>org.eclipse.m2e</groupId>
-				<artifactId>lifecycle-mapping</artifactId>
-				<version>1.0.0</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
 				<configuration>
-					<lifecycleMappingMetadata>
-						<pluginExecutions>
-							<pluginExecution>
-								<pluginExecutionFilter>
-									<groupId>
-										com.keyboardsamurais.maven
-									</groupId>
-									<artifactId>
-										maven-timestamp-plugin
-									</artifactId>
-									<versionRange>[1.0,)</versionRange>
-									<goals>
-										<goal>create</goal>
-									</goals>
-								</pluginExecutionFilter>
-								<action>
-									<ignore></ignore>
-								</action>
-							</pluginExecution>
-							<pluginExecution>
-								<pluginExecutionFilter>
-									<groupId>
-										org.antlr
-									</groupId>
-									<artifactId>
-										antlr3-maven-plugin
-									</artifactId>
-									<versionRange>[1.0,)</versionRange>
-									<goals>
-										<goal>antlr</goal>
-									</goals>
-								</pluginExecutionFilter>
-								<action>
-									<ignore></ignore>
-								</action>
-							</pluginExecution>
-						</pluginExecutions>
-					</lifecycleMappingMetadata>
+					<!-- <compilerArgument>-parameters</compilerArgument> -->
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr3-maven-plugin</artifactId>
+				<version>3.5.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>antlr</goal>
+						</goals>
+						<phase>generate-sources</phase>
+						<configuration>
+							<outputDirectory>src/main/antlr3</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-	</pluginManagement>
-  </build>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.keyboardsamurais.maven
+										</groupId>
+										<artifactId>
+											maven-timestamp-plugin
+										</artifactId>
+										<versionRange>[1.0,)</versionRange>
+										<goals>
+											<goal>create</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.antlr
+										</groupId>
+										<artifactId>
+											antlr3-maven-plugin
+										</artifactId>
+										<versionRange>[1.0,)</versionRange>
+										<goals>
+											<goal>antlr</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 	<repositories>
 		<repository>
 			<id>mvn</id>
@@ -458,8 +453,8 @@
 			<url>http://repository.springsource.com/maven/bundles/external</url>
 		</repository>
 		<repository>
-        	<id>pmRepo</id>
-        	<url>http://www.premiummarkets.uk/mvnRepository</url>
-    	</repository>
+			<id>pmRepo</id>
+			<url>http://www.premiummarkets.uk/mvnRepository</url>
+		</repository>
 	</repositories>
 </project>

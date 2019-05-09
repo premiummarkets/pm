@@ -43,8 +43,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.DESedeKeySpec;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * The Class StringEncrypter.
@@ -100,7 +99,7 @@ public class StringEncrypter {
 
 	public String encrypt(String unencryptedString) throws EncryptionException {
 		if (unencryptedString == null || unencryptedString.trim().length() == 0)
-			throw new IllegalArgumentException("unencrypted string was null or empty");
+			throw new IllegalArgumentException("not encrypted string was null or empty");
 
 		try {
 			SecretKey key = keyFactory.generateSecret(keySpec);
@@ -108,8 +107,7 @@ public class StringEncrypter {
 			byte[] cleartext = unencryptedString.getBytes(UNICODE_FORMAT);
 			byte[] ciphertext = cipher.doFinal(cleartext);
 
-			BASE64Encoder base64encoder = new BASE64Encoder();
-			return base64encoder.encode(ciphertext);
+			return Base64.encodeBase64String(ciphertext);
 		} catch (Exception e) {
 			throw new EncryptionException(e);
 		}
@@ -122,8 +120,7 @@ public class StringEncrypter {
 		try {
 			SecretKey key = keyFactory.generateSecret(keySpec);
 			cipher.init(Cipher.DECRYPT_MODE, key);
-			BASE64Decoder base64decoder = new BASE64Decoder();
-			byte[] cleartext = base64decoder.decodeBuffer(encryptedString);
+			byte[] cleartext = Base64.decodeBase64(encryptedString);
 			byte[] ciphertext = cipher.doFinal(cleartext);
 
 			return bytes2String(ciphertext);

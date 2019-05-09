@@ -53,7 +53,7 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 'spanning'
  * 
  */
-public class ReverseCondition extends Condition<Boolean>  implements UnaryCondition {
+public class ReverseCondition extends Condition<Boolean> implements UnaryCondition {
 
 	private static final int MAIN_POSITION = 3;
 
@@ -68,7 +68,6 @@ public class ReverseCondition extends Condition<Boolean>  implements UnaryCondit
 	}
 
 	@Override
-
 	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Double direction = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
