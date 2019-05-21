@@ -49,7 +49,7 @@ public class InfDoubleMapCondition extends CmpDoubleMapCondition {
 		Double firstV = (Double) ops[0];
 		Double secondV = (Double) ops[1];
 		Double epsilonMinCrossing = (Double) ops[2];
-		return firstV < secondV / (1 + epsilonMinCrossing);
+		return firstV < secondV && (secondV-firstV)/firstV > epsilonMinCrossing;
 	}
 
 }
