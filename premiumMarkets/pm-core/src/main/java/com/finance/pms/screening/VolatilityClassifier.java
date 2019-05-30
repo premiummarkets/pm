@@ -38,6 +38,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.SplitData;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 import com.finance.pms.portfolio.IndepShareList;
 import com.finance.pms.portfolio.PortfolioDAO;
@@ -208,15 +209,11 @@ public class VolatilityClassifier {
 
 							//Change <= +x% with an exponentially decreasing daily increase maximum estimated starting from x%.
 							//Also called CounterSplitPattern as in QuotationFixer.
-							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(keys.get(i-1), keys.get(i)));
-							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
-							double valueIm1 = values.get(i-1);
-							double valueI = values.get(i);
-							double adjustedDIm1 = valueIm1 + valueIm1*delta;
-							double counterSplit = valueI/adjustedDIm1;
+							SplitData counterSplitData = Quotations.calculateSplit(keys.get(i), values.get(i),keys.get(i-1), values.get(i-1));
+							double counterSplit = counterSplitData.getSplit();
 							if (counterSplit > 1) LOGGER.info(
-									stock + " increase exceeded between " +  keys.get(i-1) + " and " + keys.get(i) +
-									" with m-1: " + valueIm1 + " and m: " + valueI + " > " + adjustedDIm1);
+									stock + " increase exceeded between " + keys.get(i-1) + " and " + keys.get(i) +
+									" with m-1: " + values.get(i-1) + " and m: " + values.get(i) + " and delta: " + counterSplitData.getDelta());
 							return counterSplit > 1;
 						});
 				if (doNotMatch) LOGGER.info(stock + " does not match 'daily increase max < " + deltaUnit + "%' predicate.");
@@ -241,15 +238,11 @@ public class VolatilityClassifier {
 						.range(1, closeQuotations.size())
 						.anyMatch(i -> {
 							//Change <= +x% with an exponentially decreasing daily decrease maximum estimated starting from x%.
-							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(keys.get(i-1), keys.get(i)));
-							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
-							double valueIm1 = values.get(i-1);
-							double valueI = values.get(i);
-							double adjustedDIm1 = valueIm1 - valueIm1*delta;
-							double split = adjustedDIm1/valueI;
+							SplitData splitData = Quotations.calculateSplit(keys.get(i-1), values.get(i-1),keys.get(i), values.get(i));
+							double split = splitData.getSplit();
 							if (split > 1) LOGGER.info(
 									stock + " decrease (after split fix) exceeded between " +  keys.get(i-1) + " and " + keys.get(i) +
-									" with m-1: " + valueIm1 + " and m: " + valueI + " > " + adjustedDIm1);
+									" with m-1: " + values.get(i-1) + " and m: " + values.get(i) + " and delta: " + splitData.getDelta());
 							return split > 1;
 						});
 				if (doNotMatch) LOGGER.info(stock + " does not match 'daily decrease (after split fix) max < " + deltaUnit + "%' predicate.");

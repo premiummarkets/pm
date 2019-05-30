@@ -157,14 +157,12 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);
 	}
 
-
+	//If firstDate > secondDate, a negative value is returned
 	public int nbOpenIncrementBetween(Date firstDate, Date secondDate) {
 		long im = secondDate.getTime() - firstDate.getTime();
-		long d = DateFactory.DAYINMILLI;
-
-		long id = im / d;
-		if (id < 1) return 0;
-		if (id < 2) return 1;
+		long id = im / DateFactory.DAYINMILLI;
+		if (-1 < id && id < 1) return 0;
+		if (-2 < id && id < 2) return (int) (1*Math.signum(id));
 
 		double wf = 5d/7d;
 		return (int) (id * wf);

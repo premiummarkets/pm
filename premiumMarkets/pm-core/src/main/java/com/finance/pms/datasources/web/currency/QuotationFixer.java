@@ -24,6 +24,7 @@ import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.SplitData;
 
 public class QuotationFixer {
 
@@ -144,19 +145,21 @@ public class QuotationFixer {
 						.mapToObj(i -> {
 							QuotationUnit qIm1 = quotations.get(i-1);
 							QuotationUnit qI = quotations.get(i);
-							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
-							double dI = qI.getCloseRaw().doubleValue();
-							double dIm1 = qIm1.getCloseRaw().doubleValue();
-							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
-							double adjustedDIm1 = dIm1 + dIm1*delta;
-							double counterSplit = dI/adjustedDIm1;
+//							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
+//							double dI = qI.getCloseRaw().doubleValue();
+//							double dIm1 = qIm1.getCloseRaw().doubleValue();
+//							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
+//							double adjustedDIm1 = dIm1 + dIm1*delta;
+//							double counterSplit = dI/adjustedDIm1;
+							SplitData counterSplitData = Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
+							double counterSplit = counterSplitData.getSplit();
 
 							List<QuotationUnit> adjacents = new ArrayList<>();
 							if ( counterSplit > 1 ) {
 								int iPrim = i;
 								//We check adjacent forward until condition is false
 								while(iPrim < quotations.size() && (counterSplit > 1)) {
-									counterSplit = quotations.get(iPrim).getCloseRaw().doubleValue()/adjustedDIm1;
+									//FIXME counterSplit = quotations.get(iPrim).getCloseRaw().doubleValue()/adjustedDIm1;
 									adjacents.add(quotations.get(iPrim));
 									iPrim++;
 								}
@@ -210,12 +213,14 @@ public class QuotationFixer {
 						.mapToObj(i -> {
 							QuotationUnit qIm1 = quotations.get(i-1);
 							QuotationUnit qI = quotations.get(i);
-							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
-							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
-							double dI = qI.getCloseRaw().doubleValue();
-							double dIm1 = qIm1.getCloseRaw().doubleValue();
-							double adjustedDIm1 = dIm1 + dIm1*delta;
-							double counterSplit = dI/adjustedDIm1;
+//							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
+//							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
+//							double dI = qI.getCloseRaw().doubleValue();
+//							double dIm1 = qIm1.getCloseRaw().doubleValue();
+//							double adjustedDIm1 = dIm1 + dIm1*delta;
+//							double counterSplit = dI/adjustedDIm1;
+							SplitData counterSplitData = Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
+							double counterSplit = counterSplitData.getSplit();
 							List<QuotationUnit> adjacents = new ArrayList<>();
 							if ( counterSplit > 1 ) {
 								adjacents.add(qI);

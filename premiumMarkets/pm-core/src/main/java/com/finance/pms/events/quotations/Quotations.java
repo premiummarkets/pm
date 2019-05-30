@@ -198,26 +198,34 @@ public class Quotations {
 
 	private void solveSplitBetween(QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitOut) {
 
-		double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qjm1.getDate(), qj.getDate()));
-		double dj = qj.getCloseSplit().doubleValue();
-		double djm1 = qjm1.getCloseSplit().doubleValue();
-		double delta = span*Math.pow(1.5, 1d-span)*0.10; //FIXME power of larger negative will yield a smaller value Math.pow(1.5, 1d-span) = Math.pow(1/1.5,span-1d)
-		double adjustedDj = dj-dj*delta;
-		double split = djm1/adjustedDj;
+		Date jm1Date = qjm1.getDate();
+		double jm1Close = qjm1.getCloseSplit().doubleValue();
+		Date jDate = qj.getDate();
+		double jClose = qj.getCloseSplit().doubleValue();
 
-		if ( split > 2 ) {
+		SplitData splitData = calculateSplit(jm1Date, jm1Close, jDate, jClose);
+
+		if ( splitData.getSplit() > 2 ) {
 			LOGGER.warn(
 					"Split detected for " + this.stock.getFriendlyName()+ " : " +
-							"split " + split + ", span " + span + ", delta " + delta + ", tolerance " + dj*delta + ", " +
-							"between " + qjm1.getCloseSplit() + " at " + qjm1.getDate() + " " +
-							"and " + qj.getCloseSplit() + " at " + qj.getDate());
-			Integer factorDouble = (int) split;
+							"split " + splitData.getSplit() + ", span " + splitData.getSpan() + ", delta " + splitData.getDelta() + ", " +
+							"between " + jm1Close + " at " + jm1Date +
+							" and " + jClose + " at " + jDate);
+			Integer factorDouble = (int) splitData.getSplit();
 			BigDecimal factor = new BigDecimal(factorDouble.toString()).setScale(10);
 			for (int i = 0; i < quotationsUnitOut.size()-1; i++) {
 				QuotationUnit quotationUnit = quotationsUnitOut.get(i);
 				quotationUnit.setSplit(quotationUnit.getSplit().multiply(factor));
 			}
 		}
+	}
+
+	public static SplitData calculateSplit(Date jm1Date, double jm1Close, Date jDate, double jClose) {
+		double span = Math.min(5, Math.abs(QuotationsFactories.getFactory().nbOpenIncrementBetween(jm1Date, jDate))); //1 <= span <= 5
+		double delta = (span-1d)*0.08;
+		double adjustedDj = jClose*(1 + delta);
+		double split = jm1Close/adjustedDj;
+		return new SplitData(span, delta, split);
 	}
 
 	public Stock getStock() {
