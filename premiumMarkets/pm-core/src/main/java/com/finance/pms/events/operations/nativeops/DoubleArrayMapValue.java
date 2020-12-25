@@ -19,27 +19,35 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 
 	private SortedMap<Date, double[]> map;
 	private List<String> columnsReferences;
+	private int mainIdx;
 
 	//Cache
 	private SortedMap<Date, Double> collectedUnaryMapValue;
 	private Map<String, NumericableMapValue> collectAdditionalOutputs;
 
-	public DoubleArrayMapValue(SortedMap<Date, double[]> map, List<String> columnsReferences) {
+	public DoubleArrayMapValue(SortedMap<Date, double[]> map, List<String> columnsReferences, int mainIdx) {
 		super();
 		this.map = map;
 		this.columnsReferences = columnsReferences;
+		this.mainIdx = mainIdx;
 	}
 
 	public DoubleArrayMapValue() {
 		super();
 		this.map = new TreeMap<>();
 		this.columnsReferences = new ArrayList<>();
+		this.mainIdx = -1;
 	}
 
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
-		if (collectedUnaryMapValue == null) collectedUnaryMapValue = //Collections.<Date, Double>unmodifiableSortedMap(
-				map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> Double.NaN, (a,b) -> a, TreeMap::new)); //);
+		if (collectedUnaryMapValue == null) {
+			if (mainIdx == -1) {//As we don't know which column to return, we return NaN
+				collectedUnaryMapValue = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> Double.NaN, (a,b) -> a, TreeMap::new));
+			} else {
+				collectedUnaryMapValue = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[mainIdx], (a,b) -> a, TreeMap::new));
+			}
+		}
 		return collectedUnaryMapValue;
 	}
 
