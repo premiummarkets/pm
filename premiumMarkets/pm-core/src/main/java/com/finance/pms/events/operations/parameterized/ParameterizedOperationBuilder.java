@@ -34,11 +34,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.NativesXmlManager;
 import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
+import com.finance.pms.events.calculation.antlr.ParsingQueueProvider;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.OperationReflectiveGenerator;
@@ -51,7 +54,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 
 	NativesXmlManager nativesXmlManager;
 
-	public ParameterizedOperationBuilder(NativesXmlManager nativesXmlManager) {
+	public ParameterizedOperationBuilder(ParsingQueueProvider parsingQueueProvider, NativesXmlManager nativesXmlManager) {
 		super();
 		operationPackages = new String[] {"com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLROperationsParserHelper();
@@ -66,7 +69,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 		if(!trashUserOperationsDir.exists()) trashUserOperationsDir.mkdirs();
 
 		this.nativesXmlManager = nativesXmlManager;
-
+		this.parsingQueueProvider = parsingQueueProvider;
 	}
 
 	public void init(
@@ -95,11 +98,15 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 	public void setNativesXmlManager(NativesXmlManager nativesXmlManager) {
 		this.nativesXmlManager = nativesXmlManager;
 	}
+	
+	public void setParsingQueueProvider(ParsingQueueProvider parsingQueueProvider) {
+		this.parsingQueueProvider = parsingQueueProvider;
+	}
 
 	@Override
 	public List<Operation> checkInUse(Operation operation, Boolean checkDisabled) {
 
-		Map<String, Operation> currentOperationsMap =(checkDisabled)?getCurrentOperations():getUserEnabledOperations();
+		Map<String, Operation> currentOperationsMap =(checkDisabled)?getCurrentOperations():getThisParserCompliantUserEnabledOperations();
 		List<Operation> values = new ArrayList<Operation>(currentOperationsMap.values());
 		values.remove(values.indexOf(operation));
 
@@ -161,10 +168,10 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 
 	private List<String> resetUserOperations() {
 
-		List<String> crippled = new ArrayList<String>(); 
+		List<String> crippled = new ArrayList<String>();
 
 		try {
-			reloadUserOperations(userOperationsDir, false);
+			reloadUserOperations();
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
@@ -199,6 +206,14 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 	@Override
 	protected ParameterizedBuilder subjacentDuplicator() {
 		return this;
+	}
+	
+	@Override
+	public Map<String, Operation> getThisParserCompliantOperations() {
+		return getCurrentOperations().entrySet() 
+		          .stream() 
+		          .filter(map -> !(map.getValue() instanceof EventInfo)) 
+		          .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
 	}
 
 }

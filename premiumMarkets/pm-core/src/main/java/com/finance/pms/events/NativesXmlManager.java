@@ -70,7 +70,7 @@ public class NativesXmlManager {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(NativesXmlManager.class);
 
-	protected String xmlfile; //= System.getProperty("installdir")+File.separator+"nativeops.xml";
+	protected String xmlfile; //= System.getProperty("installdir")+File.separator+"nativeOps.xml";
 
 	public NativesXmlManager(String xmlfile) {
 		super();

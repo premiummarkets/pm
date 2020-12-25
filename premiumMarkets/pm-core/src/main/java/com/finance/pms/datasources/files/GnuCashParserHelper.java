@@ -83,6 +83,7 @@ public class GnuCashParserHelper {
 		tidy.setInputEncoding("UTF-8");
 		tidy.parseDOM(inputStream, outputStream);
 		
+		
 		LOGGER.trace(outputStream.toString("UTF-8"));
 		
 		return new ByteArrayInputStream(outputStream.toByteArray());
@@ -129,6 +130,7 @@ public class GnuCashParserHelper {
 		String firstLine2 = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"";
 		String firstLine3 = "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
 		String firstLine4 = "xmlns=\"http://www.w3.org/1999/xhtml\"";
+		String firstline5 = "<!DOCTYPE html>";
 		
 		BufferedReader br = new BufferedReader(new FileReader(filePath));
 		StringWriter outputWriter = new StringWriter();
@@ -146,6 +148,7 @@ public class GnuCashParserHelper {
 				line = line.replaceAll(firstLine2, "");
 				line = line.replaceAll(firstLine3, "");
 				line = line.replaceAll(firstLine4, "");
+				line = line.replaceAll(firstline5, "");
 			}
 			
 			//if (!line.trim().equals(firstLine)) {
@@ -176,7 +179,7 @@ public class GnuCashParserHelper {
 				LOGGER.warn("No stock for symbol or isin : "+symbol);
 				return null;
 			} 
-			case 1 :  {
+			case 1 : {
 				stock = matchingStocks.get(0);
 				break;
 			} 
@@ -205,7 +208,7 @@ public class GnuCashParserHelper {
 					if (portfolio instanceof SharesList) {
 						MarketListProvider provider;
 						if (portfolio.getName().equals(SharesListId.UNKNOWN.name())) {//TODO infer stock list from extension?
-							provider =  ProvidersList.getMarketListInstance(SharesListId.valueOf("YAHOOINDICES").getSharesListCmdParam());
+							provider =  ProvidersList.getMarketListInstance(SharesListId.valueOf("YAHOOINDICES").name());
 						} else {
 							provider = ProvidersList.getMarketListInstance(portfolio.getName());
 						}

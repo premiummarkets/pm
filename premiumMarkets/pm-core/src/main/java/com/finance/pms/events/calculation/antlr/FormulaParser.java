@@ -58,8 +58,10 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	private Operation builtOperation;
 	private String missingReference;
 
+	private final Boolean isDisabled;
 
-	public FormulaParser(ParameterizedBuilder parameterizedBuilder, String operationName, String formula) {
+
+	public FormulaParser(ParameterizedBuilder parameterizedBuilder, String operationName, String formula, Boolean isDisabled) {
 		super();
 		this.parameterizedBuilder = parameterizedBuilder;
 		this.formula = formula;
@@ -68,6 +70,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		this.missingReference = operationName;
 		this.threadSuspended = false;
 		this.shutdown = false;
+		this.isDisabled = isDisabled;
 
 	}
 
@@ -221,11 +224,11 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	}
 
 	private Operation fetchNativeOperation(String opRef) {
-		return parameterizedBuilder.fetchAsyncNativeOperation(opRef);
+		return parameterizedBuilder.fetchAsyncOneNativeOperation(opRef);
 	}
 
 	private Operation fetchUserOperation(String opRef) {
-		return parameterizedBuilder.fetchAsyncUserOperation(opRef);
+		return parameterizedBuilder.fetchAsyncOneUserOperation(opRef);
 	}
 
 
@@ -368,6 +371,10 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 	protected boolean isThreadRunning() {
 		return (this.holdingThread == null && !this.shutdown) || (this.holdingThread != null && this.holdingThread.isAlive() && !this.threadSuspended);
+	}
+
+	public Boolean isDisabled() {
+		return isDisabled;
 	}
 
 }

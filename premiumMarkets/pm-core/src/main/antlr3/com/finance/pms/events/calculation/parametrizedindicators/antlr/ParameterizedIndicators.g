@@ -160,7 +160,7 @@ tokens {
 
 complete_expression :
    //TODO : common optional statement condition for also_display and fixed_start_shift
-   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift -> ^(EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift StringOperation)
+   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift na_event_list_name -> ^(EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift na_event_list_name)
    ;
 
 bullish_condition :
@@ -177,6 +177,10 @@ bearish_condition[CommonTree bcond] :
  fixed_start_shift :
   'override start shift with' WhiteChar fixedStartShift=constant WhiteChar DAYS SEMICOLUMN -> {$fixedStartShift.tree} |
   -> ^(Number NumberToken["-1"])
+ ;
+ na_event_list_name :
+  'override event list name with' WhiteChar eventListName=stringconstant SEMICOLUMN -> {$eventListName.tree} |
+  -> ^(String StringToken["FROM PARENT"])
  ;
 
 bearish_not_bullish[CommonTree bcond] :

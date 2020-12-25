@@ -142,8 +142,8 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				@SuppressWarnings({ "rawtypes", "unchecked" })
 				private void handleEnableDisableFormula() {
 
-					final Set<EventInfoOpsCompoOperation> availableOperations = new TreeSet(parameterizedBuilder.getCurrentOperations().values());
-					final Set<EventInfoOpsCompoOperation> enabledOperations = new TreeSet(parameterizedBuilder.getUserEnabledOperations().values());
+					final Set<EventInfoOpsCompoOperation> availableOperations = new TreeSet(parameterizedBuilder.getThisParserCompliantOperations().values());
+					final Set<EventInfoOpsCompoOperation> enabledOperations = new TreeSet(parameterizedBuilder.getThisParserCompliantUserEnabledOperations().values());
 					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("operationscompositionner"));//XXX
 
 					ActionDialogAction closeAction = new ActionDialogAction() {

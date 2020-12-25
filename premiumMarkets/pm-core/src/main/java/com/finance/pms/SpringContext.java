@@ -150,7 +150,7 @@ public class SpringContext extends GenericApplicationContext {
 
 		ConstructorArgumentValues masSCAV = new  ConstructorArgumentValues();
 		masSCAV.addGenericArgumentValue(args[0],"java.lang.String");
-		masSCAV.addGenericArgumentValue((args.length==2)?new Boolean(args[1]):true,"java.lang.Boolean");
+		masSCAV.addGenericArgumentValue((args.length==2)?Boolean.parseBoolean(args[1]):true,"java.lang.Boolean");
 		RootBeanDefinition masS = new RootBeanDefinition("com.finance.pms.mas.MasSource",masSCAV,  new MutablePropertyValues());
 		masS.setDestroyMethodName("stopThreads");
 
@@ -507,7 +507,6 @@ public class SpringContext extends GenericApplicationContext {
 
 				ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
 				try {
-
 					//Other ops reflective generators
 					List<OperationReflectiveGenerator> operationReflectiveGenerators = new ArrayList<>();
 					try {
@@ -527,6 +526,7 @@ public class SpringContext extends GenericApplicationContext {
 				} finally {
 					PostInitMonitor.stopOptPostInit();
 				}
+				//parameterizedOperationBuilder.getCurrentOperations(false).putAll(parameterizedIndicatorsBuilder.getCurrentOperations(false));
 
 			}
 		}).start();

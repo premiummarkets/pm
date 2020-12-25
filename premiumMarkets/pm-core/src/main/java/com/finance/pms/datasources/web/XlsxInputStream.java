@@ -46,19 +46,19 @@ public class XlsxInputStream extends InputStream {
 		            cell = cellIterator.next();
 
 		            switch (cell.getCellType()) {
-		                case Cell.CELL_TYPE_BOOLEAN:
+		                case BOOLEAN:
 		                    data.append(cell.getBooleanCellValue() + ",");
 
 		                    break;
-		                case Cell.CELL_TYPE_NUMERIC:
+		                case NUMERIC:
 		                    data.append(cell.getNumericCellValue() + ",");
 
 		                    break;
-		                case Cell.CELL_TYPE_STRING:
+		                case STRING:
 		                    data.append(cell.getStringCellValue() + ",");
 		                    break;
 
-		                case Cell.CELL_TYPE_BLANK:
+		                case BLANK:
 		                    data.append("" + ",");
 		                    break;
 		                default:

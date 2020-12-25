@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
@@ -45,6 +46,7 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
+import com.finance.pms.events.calculation.antlr.ParsingQueueProvider;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
@@ -56,8 +58,9 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	//@Autowired
 	ParameterizedOperationBuilder parameterizedOperationBuilder;
 
-	public ParameterizedIndicatorsBuilder(ParameterizedOperationBuilder parameterizedOperationBuilder) {
+	public ParameterizedIndicatorsBuilder(ParsingQueueProvider parsingQueueProvider, ParameterizedOperationBuilder parameterizedOperationBuilder) {
 		this();
+		this.parsingQueueProvider = parsingQueueProvider;
 		this.parameterizedOperationBuilder = parameterizedOperationBuilder;
 	}
 
@@ -78,6 +81,10 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		NativeParametrizedIndicators nativeIndicatorsContainer = NativeParametrizedIndicators.loadNativeIndicators();
 		nativeOperations = nativeIndicatorsContainer.getCalculators();
 		getCurrentOperations().putAll(nativeOperations);
+	}
+	
+	public void setParsingQueueProvider(ParsingQueueProvider parsingQueueProvider) {
+		this.parsingQueueProvider = parsingQueueProvider;
 	}
 
 	//	@PostConstruct
@@ -103,7 +110,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 				}
 				case OPERATION_cRud_IgnoreDisabled :	//Idem but ignoring disabled in the check
 				{
-					checkInUsed(operation, getUserEnabledOperations());
+					checkInUsed(operation, getThisParserCompliantUserEnabledOperations());
 					break;
 				}
 				case OPERATION_CrUD :					//Any Operation change or status change
@@ -171,27 +178,26 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	}
 
 	private void resetUserOperations() {
-		reloadUserOperations(userOperationsDir, false);
-		reloadUserOperations(disabledUserOperationsDir, true);
+		reloadUserOperations();
 	}
 
 	@Override
-	protected Operation fetchNativeOperation(String opRef) {
+	protected Operation fetchOneNativeOperation(String opRef) {
 		return parameterizedOperationBuilder.getCurrentOperations().get(opRef);
 	}
 
 	@Override
-	protected Operation fetchUserOperation(String opRef) {
+	protected Operation fetchOneUserOperation(String opRef) {
 		return parameterizedOperationBuilder.getUserCurrentOperations().get(opRef);
 	}
 
 	@Override
-	protected Operation fetchAsyncNativeOperation(String opRef) {
+	protected Operation fetchAsyncOneNativeOperation(String opRef) {
 		return parameterizedOperationBuilder.getCurrentOperations(false).get(opRef);
 	}
 
 	@Override
-	protected Operation fetchAsyncUserOperation(String opRef) {
+	protected Operation fetchAsyncOneUserOperation(String opRef) {
 		return parameterizedOperationBuilder.getUserCurrentOperations(false).get(opRef);
 	}
 
@@ -202,7 +208,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	@Override
 	public void updateEditableOperationLists() {
-		antlrParser.updateEditableOperationLists(parameterizedOperationBuilder.getNativeOperations(), parameterizedOperationBuilder.getUserEnabledOperations());
+		antlrParser.updateEditableOperationLists(parameterizedOperationBuilder.getNativeOperations(), parameterizedOperationBuilder.getThisParserCompliantUserEnabledOperations());
 	}
 
 	//Is called when Indicators are changed
@@ -233,7 +239,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	@Override
 	public void resetCaches() {
 		//getUserEnabledOperations().values().stream().forEach(o -> clearPreviousCalculations(o)); 	//XXX this will delete ALL the calculated events for ALL operations
-		resetCachesFor(getUserEnabledOperations().values());
+		resetCachesFor(getThisParserCompliantUserEnabledOperations().values());
 	}
 
 	@Override
@@ -250,6 +256,14 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	@Override
 	protected ParameterizedBuilder subjacentDuplicator() {
 		return this.parameterizedOperationBuilder;
+	}
+
+	@Override
+	public Map<String, Operation> getThisParserCompliantOperations() {
+		return getCurrentOperations().entrySet() 
+		          .stream() 
+		          .filter(map -> map.getValue() instanceof EventInfo) 
+		          .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
 	}
 
 }

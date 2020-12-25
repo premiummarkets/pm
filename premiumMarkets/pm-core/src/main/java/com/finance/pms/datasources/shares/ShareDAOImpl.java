@@ -144,14 +144,15 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 			@SuppressWarnings("unchecked")
 			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
 
-				String[] refSplit = ref.split("\\.");
-				String symbolRoot = (refSplit.length == 0)?ref:refSplit[0]+".%";
-
 				Criteria exactCriteria = session.createCriteria(Stock.class);
 				exactCriteria.add(Restrictions.eq("symbol", ref));
 				List<Stock> stocks = exactCriteria.list();
 
 				if (stocks.isEmpty()) {
+					
+					String[] refSplit = ref.split("\\.");
+					String symbolRoot = (refSplit.length == 0)?ref:refSplit[0]+".%";
+					
 					Criteria sndChanceCriteria = session.createCriteria(Stock.class);
 					sndChanceCriteria.add(Restrictions.or(Restrictions.like("symbol", symbolRoot), Restrictions.eq("isin", ref)));
 					stocks = sndChanceCriteria.list();

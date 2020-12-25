@@ -113,7 +113,6 @@ public abstract class ANTLRParserHelper {
 	public abstract NextToken checkNextToken(InputStream inputStream) throws IllegalArgumentException ;
 
 	public void updateEditableOperationLists(Map<String, Operation> nativeOperations, Map<String, Operation> userCurrentOperations) {
-
 		this.nativeOpEditorDescrs = new TreeSet<EditorOpDescr>();
 		updateNativeOperationList(nativeOperations, this.nativeOpEditorDescrs);
 		LOGGER.debug("available native ops : " + this.nativeOpEditorDescrs);

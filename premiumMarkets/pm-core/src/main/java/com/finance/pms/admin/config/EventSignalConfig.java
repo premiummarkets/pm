@@ -209,7 +209,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public List<EventInfo> tamperIndepAndParameterizedEventInfoList(String[] eventInfoStrings) {
 		ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
-		Map<String, Operation> userCurrentOperations = parameterizedIndiactorsBuilder.getUserEnabledOperations();
+		Map<String, Operation> userCurrentOperations = parameterizedIndiactorsBuilder.getThisParserCompliantUserEnabledOperations();
 		List<EventInfo> eventDefinitionsFilter = 
 				Arrays.stream(eventInfoStrings)
 				.map(s -> {
@@ -293,7 +293,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 								@SuppressWarnings("rawtypes")
 								Collection values;
 								if (this.filteredParameterised == null) {
-									values = PARAMETERIZEDINDICATORSBUILDER.getUserEnabledOperations().values();
+									values = PARAMETERIZEDINDICATORSBUILDER.getThisParserCompliantUserEnabledOperations().values();
 								} else {
 									values = this.filteredParameterised;
 								}

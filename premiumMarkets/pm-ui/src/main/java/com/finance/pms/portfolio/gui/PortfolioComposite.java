@@ -2548,8 +2548,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	private SlidingPortfolioShare tabBuildSlidingPortfolioShare(PortfolioShare portfolioShare) {
 
-		java.awt.Color paint = (java.awt.Color) PortfolioComposite.PAINTS[getNextColor()];
-		Color psColor = new Color(getDisplay(),paint.getRed(),paint.getGreen(),paint.getBlue());
+		Color psColor = new Color (getDisplay(), 0xC0,0xC0,0xC0); //Grey
+		if (portfolioShare.getQuantity(chartsComposite.getSlidingEndDate()).compareTo(BigDecimal.ZERO) > 0) {
+			java.awt.Color paint = (java.awt.Color) PortfolioComposite.PAINTS[getNextColor()];
+			psColor = new Color(getDisplay(),paint.getRed(),paint.getGreen(),paint.getBlue());
+		}
 		SlidingPortfolioShare slidingPS = new SlidingPortfolioShare(portfolioShare, 
 				chartsComposite.getSlidingStartDate(), chartsComposite.getSlidingEndDate(), 
 				slidingStartAnchor.getSelection(), slidingEndAnchor.getSelection(),

@@ -29,10 +29,8 @@
  */
 package com.finance.pms.events.calculation.antlr;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,8 +44,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
@@ -80,15 +76,14 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedBuilder.class);
 
-	private Queue<FormulaParser> parsingQueue;
-
 	protected String[] operationPackages;
 
-	protected File userOperationsDir;
+	public File userOperationsDir;
 	protected File disabledUserOperationsDir;
 	protected File trashUserOperationsDir;
 
 	protected ANTLRParserHelper antlrParser;
+	protected ParsingQueueProvider parsingQueueProvider;
 
 	//Pre parameterised xml native ops.
 	protected Map<String, Operation> nativeOperations;
@@ -118,54 +113,82 @@ public abstract class ParameterizedBuilder extends Observable {
 	public ParameterizedBuilder() {
 		super();
 		currentOperations = new HashMap<String, Operation>();
-		parsingQueue = new ConcurrentLinkedQueue<FormulaParser>();
 	}
 
+	//Returns everything (Sync==true)
 	public Map<String, Operation> getCurrentOperations() {
 		return getCurrentOperations(true);
 	}
 
+	//Returns everything - for Builder internal use
 	public Map<String, Operation> getCurrentOperations(boolean waitForSync) {
 		if (waitForSync) PostInitMonitor.waitForOptPostInitEnd();
 		return currentOperations;
 	}
-
-	protected Operation fetchNativeOperation(String opRef) {
-		return getNativeOperations().get(opRef);
+	
+	//Return This Builder specific natives
+	public Map<String, Operation> getNativeOperations() {
+		return nativeOperations;
 	}
-
-	protected Operation fetchAsyncNativeOperation(String opRef) {
-		return fetchNativeOperation(opRef);
-	}
-
-	protected Operation fetchUserOperation(String opRef) {
-		return getUserCurrentOperations().get(opRef);
-	}
-
-	protected Operation fetchAsyncUserOperation(String opRef) {
-		return getUserCurrentOperations(false).get(opRef);
-	}
-
+	
+	//Return User operations (ie Everything but natives) (Sync==true)
 	public Map<String, Operation> getUserCurrentOperations() {
 		return getUserCurrentOperations(true);
 	}
 
+	//Return User operations (ie Everything but natives) - for Builder internal use
 	public Map<String, Operation> getUserCurrentOperations(boolean waitForSync) {
-
 		Map<String, Operation> map = new HashMap<String, Operation>();
-		for (Operation operation : getCurrentOperations(waitForSync).values()) {
+		for (Operation operation : getCurrentOperations(waitForSync).values()) { //Removing natives
 			if (operation.getFormulae() != null) map.put(operation.getReference(), operation);
 		}
 		return map;
 	}
-
+	
+	//Returns Everything which is Enabled User operations (ie User operations but natives and disabled)
 	public Map<String, Operation> getUserEnabledOperations() {
-
 		Map<String, Operation> map = new HashMap<String, Operation>();
-		for (Operation operation : getCurrentOperations().values()) {
+		for (Operation operation : getUserCurrentOperations().values()) { //Removing natives and disabled
 			if (operation.getFormulae() != null && !operation.getDisabled()) map.put(operation.getReference(), operation);
 		}
 		return map;
+	}
+	
+	//Returns This Builder specific User operations (ie This Builder specific but natives)
+	public Map<String, Operation> getThisParserCompliantUserCurrentOperations() {
+		Map<String, Operation> map = new HashMap<String, Operation>();
+		for (Operation operation : getThisParserCompliantOperations().values()) { //Removing natives
+			if (operation.getFormulae() != null) map.put(operation.getReference(), operation);
+		}
+		return map;
+	}
+	
+	//Returns Everything which is This Builder specific (Sync==true)
+	public abstract Map<String, Operation> getThisParserCompliantOperations();
+
+	//Returns This Builder specific Enabled User operations (ie This Builder specific but natives and disabled)
+	public Map<String, Operation> getThisParserCompliantUserEnabledOperations() {
+		Map<String, Operation> map = new HashMap<String, Operation>();
+		for (Operation operation : getThisParserCompliantOperations().values()) { //Removing natives and disabled
+			if (operation.getFormulae() != null && !operation.getDisabled()) map.put(operation.getReference(), operation);
+		}
+		return map;
+	}
+
+	protected Operation fetchOneNativeOperation(String opRef) {
+		return getNativeOperations().get(opRef);
+	}
+
+	protected Operation fetchAsyncOneNativeOperation(String opRef) {
+		return fetchOneNativeOperation(opRef);
+	}
+
+	protected Operation fetchOneUserOperation(String opRef) {
+		return getUserCurrentOperations().get(opRef);
+	}
+
+	protected Operation fetchAsyncOneUserOperation(String opRef) {
+		return getUserCurrentOperations(false).get(opRef);
 	}
 
 	public void addFormula(String identifier, String formula) throws IOException {
@@ -175,7 +198,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		try {
 
 			LOGGER.info("Creating parser for formula "+identifier);
-			formulaParser = new FormulaParser(this, identifier, formula);
+			formulaParser = new FormulaParser(this, identifier, formula, false);
 
 			LOGGER.info("Parsing for formula "+identifier);
 			runParsing(formulaParser);
@@ -425,32 +448,10 @@ public abstract class ParameterizedBuilder extends Observable {
 		outputStream.close();
 	}
 
-	protected void reloadUserOperations(File operationsDir, Boolean disabled)  {
+	protected void reloadUserOperations() {
 
-		File[] list = Arrays.stream(operationsDir.listFiles()).filter(f -> !f.getName().equals("empty.txt")).collect(Collectors.toList()).toArray(new File[0]);
-		for (File formulaFile : list) {
-			String opName = formulaFile.getName().replace(".txt","");
-
-			try {
-
-				BufferedReader bufferedReader = new BufferedReader(new FileReader(formulaFile));
-				String formula = bufferedReader.readLine();
-				String line = null;
-				while ((line = bufferedReader.readLine()) != null) {
-					formula = formula + "\n"+ line;
-				}
-				bufferedReader.close();
-
-				FormulaParser formulaParser = new FormulaParser(this, opName, formula);
-				parsingQueue.offer(formulaParser);
-
-			} catch (Exception e) {
-				LOGGER.warn(e);
-				moveToTrash(opName);
-			}
-		}
-
-
+		Queue<FormulaParser> parsingQueue = parsingQueueProvider.filledParsingQueue();
+		
 		while(!parsingQueue.isEmpty()) {
 
 			FormulaParser formulaParser = parsingQueue.poll();
@@ -466,15 +467,14 @@ public abstract class ParameterizedBuilder extends Observable {
 
 				Operation parsedOp = formulaParser.getBuiltOperation();
 				if (parsedOp != null) {//Operation is complete
-
-					LOGGER.info(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + disabled + ", Formulae : " +parsedOp.getFormulae());
-					parsedOp.setDisabled(disabled);
+					LOGGER.info(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " +parsedOp.getFormulae());
+					parsedOp.setDisabled(formulaParser.isDisabled());
 					currentOperations.put(parsedOp.getReference(), parsedOp);
 
 				} else {//Operation not complete, we add it back to the queue or disable it
 
 					if (!unresolvedStuff.contains(formulaParser.getMissingReference())) {
-						LOGGER.info(this.getClass().getSimpleName() + ", Can't solve : "+formulaParser+". Disabling.");
+						LOGGER.info(this.getClass().getSimpleName() + ", Can't solve : " + formulaParser + ". Disabling.");
 						formulaParser.shutdown();
 						moveToTrash(formulaParser.getOperationName());
 					} else {
@@ -510,10 +510,6 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	public NextToken checkNextToken(String formula) throws IllegalArgumentException {
 		return antlrParser.checkNextToken(new StringInputStream(formula));
-	}
-
-	public Map<String, Operation> getNativeOperations() {
-		return nativeOperations;
 	}
 
 	public class InUseException extends RuntimeException {

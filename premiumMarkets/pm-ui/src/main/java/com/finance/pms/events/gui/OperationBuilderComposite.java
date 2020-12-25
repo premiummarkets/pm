@@ -1093,7 +1093,7 @@ public class OperationBuilderComposite extends Composite {
 
 		if (isSaved) {
 
-			Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
+			Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 
 			SortedSet<String> itemSet = new TreeSet<String>(allOps.keySet());
 			formulaReference.setItems(itemSet.toArray(new String[0]));

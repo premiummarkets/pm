@@ -123,6 +123,8 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 
 		String eventListNameValue = eventListName.getValue(targetStock);
+		if (eventListNameValue.equals("FROM PARENT")) eventListNameValue = targetStock.getAnalysisName();
+
 		List<Date> inconsistent = new ArrayList<>();
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
 		fullKeySet.addAll(bullishMap.keySet());

@@ -89,16 +89,18 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		}
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
+		adjustedStartCal.add(Calendar.DAY_OF_YEAR, -operationStartDateShift);
+		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+ ". Requested start: "+startDate+", adjusted start: "+adjustedStartCal.getTime()+" with shift: "+operationStartDateShift);
 
 		//Adjust end
 		Date lastQuote = stock.getLastQuote();
 		Date adjustedEndDate;
 		if (lastQuote.before(endDate)) {
 			adjustedEndDate = lastQuote;
-			LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+" end date shift to : "+operationStartDateShift+". Requested end : "+endDate+", calculated end : "+adjustedEndDate);
 		} else {
 			adjustedEndDate = endDate;
 		}
+		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+ ". Requested end: "+endDate+", adjusted end: "+adjustedEndDate+ ", last quote: " +lastQuote);
 
 		//Target stock instance
 		this.targetStock = new TargetStockInfo(analyseName, this.eventInfoOpsCompoOperationHolder, stock, adjustedStartCal.getTime(), adjustedEndDate);
