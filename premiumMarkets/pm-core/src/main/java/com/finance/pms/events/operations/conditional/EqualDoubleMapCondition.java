@@ -51,8 +51,8 @@ public class EqualDoubleMapCondition extends CmpDoubleMapCondition {
 		Double secondV = (Double) ops[1];
 		Double epsilonMaxError = ((Double) ops[2])/100;
 		return
-				secondV < firstV && (firstV-secondV)/secondV <= epsilonMaxError ||
-				firstV < secondV && (secondV-firstV)/firstV <= epsilonMaxError;
+				secondV < firstV && Math.abs((firstV-secondV)/secondV) <= epsilonMaxError ||
+				firstV < secondV && Math.abs((secondV-firstV)/firstV) <= epsilonMaxError;
 	}
 
 }

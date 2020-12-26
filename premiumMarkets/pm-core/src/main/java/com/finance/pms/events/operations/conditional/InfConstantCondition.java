@@ -49,7 +49,7 @@ public class InfConstantCondition extends CmpConstantCondition {
 		Double current = (Double) ops[0];
 		Double threshold = (Double) ops[1];
 		Double epsilonMinCrossing = (Double) ops[2];
-		return current < threshold  && (threshold-current)/current > epsilonMinCrossing;
+		return current < threshold  && Math.abs((threshold-current)/current) > epsilonMinCrossing;
 	}
 
 }

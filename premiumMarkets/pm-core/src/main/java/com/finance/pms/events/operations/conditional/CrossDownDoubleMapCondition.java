@@ -55,7 +55,7 @@ public class CrossDownDoubleMapCondition extends CrossDoubleMapCondition {
 		//return previousFirstOp >= previousSecondOp / (1 + alphaAdaption) && currentFirstOp < currentSecondOp / (1 + alphaAdaption + epsilonMinCrossing);
 		return
 				previousFirstOp >= previousSecondOp && //(previousFirstOp-previousSecondOp)/previousSecondOp > alphaAdaption &&
-				currentFirstOp < currentSecondOp && (currentSecondOp-currentFirstOp)/currentFirstOp > (alphaAdaption + epsilonMinCrossing);
+				currentFirstOp < currentSecondOp && Math.abs((currentSecondOp-currentFirstOp)/currentFirstOp) > (alphaAdaption + epsilonMinCrossing);
 	}
 
 }

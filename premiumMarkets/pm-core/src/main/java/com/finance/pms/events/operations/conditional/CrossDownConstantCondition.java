@@ -50,7 +50,7 @@ public class CrossDownConstantCondition extends CrossConstantCondition implement
 		Double current = (Double) ops[1];
 		Double threshold = (Double) ops[2];
 		Double epsilonMinCrossing = (Double) ops[3];
-		return previous >= threshold && threshold > current && (threshold-current)/current > epsilonMinCrossing;
+		return previous >= threshold && threshold > current && Math.abs((threshold-current)/current) > epsilonMinCrossing;
 	}
 
 	@Override
