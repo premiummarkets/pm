@@ -48,15 +48,17 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		//outputReference || discriminentConstant
 		String discriminantReference = (outputReference.getIsLeaf())?discriminentConstant.getValueAsString():outputReference.getReference();
 
-		//group
+		//group (: outputSelector)?
 		String group = getContainer().groupUniqueId().toString().substring(0, 8);
-		discriminantReference = (isMain())? discriminantReference + "(" + group + ")":"_" + group + ":" + discriminantReference;
+		discriminantReference = ((isMain())? "": "_") + group + ":" + discriminantReference
+								+ ((outputReference.getOutputSelector() != null)? ":" + outputReference.getOutputSelector():"");
 
-		//(operationReference)? (: outputSelector)?
+		//(operationReference)? 
 		String familyName =
-				(outputReference.getFormula() != null)?outputReference.getFormula():
-				(!(outputReference.getOperationReference().equals(discriminantReference))?outputReference.getOperationReference() :"") +
-				((outputReference.getOutputSelector() != null)? ":" + outputReference.getOutputSelector():"");
+				(outputReference.getFormula() != null)?
+						outputReference.getFormula():
+						(!(outputReference.getOperationReference().equals(discriminantReference))?outputReference.getOperationReference():"");
+		//familyName = familyName + ((outputReference.getOutputSelector() != null)? ":" + outputReference.getOutputSelector():"");
 
 		//(referenceAsOperand)?
 		String displayedAs = (outputReference.getReferenceAsOperand() != null)?outputReference.getReferenceAsOperand():"";
@@ -121,6 +123,17 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		return "OutputDescr [" + outputReference + ", container=" + container.getThisGroupMainOutputReference().getReference() +
 				", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + discriminentConstant + ", displayOnChart=" + displayOnChart + "]";
 	}
+	
+//	@Override
+//	public int compareToInfoObject(InfoObject o) {
+//		if (o instanceof OutputDescr) {
+//			int fqnCmp = fullQualifiedName().compareTo(((OutputDescr) o).fullQualifiedName());
+//			if (fqnCmp == 0) return this.compareTo((OutputDescr) o);
+//			return fqnCmp;
+//		} else {
+//			return InfoObject.super.compareToInfoObject(o);
+//		}
+//	}
 
 	@Override
 	public int compareTo(OutputDescr o) {

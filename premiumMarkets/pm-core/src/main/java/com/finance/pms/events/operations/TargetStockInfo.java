@@ -55,6 +55,7 @@ import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
+import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
@@ -236,6 +237,13 @@ public class TargetStockInfo {
 			//Only make available for chart the specific selector
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
 			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, startShift));
+		} else if (outputValue instanceof DoubleArrayMapValue) {
+			String mainRef = ((DoubleArrayMapValue) outputValue).getColumnsReferences().get(((DoubleArrayMapValue) outputValue).getMainIdx());
+			((DoubleArrayMapValue) outputValue).getColumnsReferences().stream().forEach(ref -> {
+				Output outputHolder = new Output(new OutputReference(operation, (ref.equals(mainRef)?null:ref)), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), startShift);
+				this.calculatedOutputsCache.add(outputHolder);
+				this.gatheredChartableOutputs.add(outputHolder);
+			});
 		} else {
 			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, startShift);
 			this.calculatedOutputsCache.add(outputHolder);

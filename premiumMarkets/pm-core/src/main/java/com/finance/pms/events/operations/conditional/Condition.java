@@ -59,8 +59,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 	For a status A to be true, we need that the status was at least once of value A over the past n days.
  * 	For an event (change of status) B to A to be true, we need that the status changed at least once from value B to value A over the past n days.
  *
- * 'for n days' : Look back period FOR which the condition has to be true.
- * 	Means that the condition was true for the n previous n days at the day we check.
+ * 'for n days' : Look back period FOR which the condition has to be true and remain true.
+ * 	Means that the condition was true for the n previous days at the day we check.
  * 	This makes sense only for a check on status value not a change of status.
  * 	In case there be missing values over the last n days, this will still be true if all present values are true.
  * 	These can be combined like for instance :
@@ -121,8 +121,8 @@ public class Condition<T> extends Operation {
 	}
 
 	/**
-	 * We fill in ahead a period a of 'overPeriod' length with the actual condition status if it is true.
-	 * Does nothing if the the actual condition status is false.
+	 * We fill in ahead a period of 'overPeriod' length with the actual condition status if it is true.
+	 * Does nothing if the actual condition status is false.
 	 * @param targetStock
 	 * @param fullKeySet data full date set
 	 * @param overPeriod

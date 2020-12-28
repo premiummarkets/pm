@@ -111,7 +111,6 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 	public ParameterizedBuilder() {
-		super();
 		currentOperations = new HashMap<String, Operation>();
 	}
 

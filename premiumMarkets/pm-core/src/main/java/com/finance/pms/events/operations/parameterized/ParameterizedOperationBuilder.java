@@ -113,6 +113,7 @@ public class ParameterizedOperationBuilder  extends ParameterizedBuilder {
 		List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
 		actualCheckInUse.addAll(notifyChanged(operation, (checkDisabled)?ObsMsgType.OPERATION_cRud:ObsMsgType.OPERATION_cRud_IgnoreDisabled));
 
+		if (actualCheckInUse.contains(operation)) actualCheckInUse.remove(actualCheckInUse.indexOf(operation));
 		return actualCheckInUse;
 
 	}

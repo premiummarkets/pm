@@ -36,7 +36,7 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 		super();
 		this.map = new TreeMap<>();
 		this.columnsReferences = new ArrayList<>();
-		this.mainIdx = -1;
+		this.mainIdx = 0;
 	}
 
 	@Override
@@ -83,6 +83,10 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 	//Hence, this has to be held in the value not the operation.
 	public List<String> getColumnsReferences() {
 		return this.columnsReferences;
+	}
+
+	public int getMainIdx() {
+		return mainIdx;
 	}
 
 	@Override

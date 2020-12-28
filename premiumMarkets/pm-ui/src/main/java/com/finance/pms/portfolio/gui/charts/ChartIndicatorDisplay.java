@@ -565,7 +565,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				trendSettingsButton.addSelectionListener(new SelectionListener() {
 
 					@Override
-					public void widgetSelected(SelectionEvent e) {	
+					public void widgetSelected(SelectionEvent e) {
 						handleTrendSettingsSelection();
 					}
 

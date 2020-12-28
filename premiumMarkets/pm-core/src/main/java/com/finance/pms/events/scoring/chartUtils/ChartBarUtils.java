@@ -96,7 +96,7 @@ public class ChartBarUtils {
 				}
 
 				int gradiant = (barSettings.getIsGradient()) ? serieIdx/3 : 1;
-				int alpha = 255 / (int) Math.ceil( barSettings.getAlphaDividend()*gradiant );
+				int alpha = 255 / Math.max(1,(int) Math.ceil(barSettings.getAlphaDividend()*gradiant));
 				TuningResDTO tuningResDTO = tuningRess.get(eventInfo);
 
 				DataSetBarDescr buyKey = 
