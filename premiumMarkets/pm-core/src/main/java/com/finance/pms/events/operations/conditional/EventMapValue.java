@@ -107,42 +107,6 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 
 	}
 
-	/*
-	 * Translates (or normalise) the bull/bear events into double values.
-	 * The chosen values are Max/Min of the first provided additional output or 1d/-1d if none provided.
-	 * This is to make it visible as EventMapValue.getValue does but adding relevant amplitude to make it comparable within the chart.
-	 */
-	public SortedMap<Date, Double> getNormalizedValue(TargetStockInfo targetStockInfo) {
-		if (collectedAdditionalOutputs == null) {
-			double max = 1d;
-			double min = -1d;
-			if (!additionalOutputs.values().isEmpty()) {
-				NumericableMapValue firstAdditionalOuput = additionalOutputs.values().iterator().next();
-				Date displayedStartDate = targetStockInfo.getStartDate(0);
-				Collection<Double> values = firstAdditionalOuput.getValue(null).subMap(displayedStartDate, targetStockInfo.getEndDate()).values();
-				MyApacheStats maxStats = new MyApacheStats(new Max());
-				max = maxStats.sEvaluate(values);
-				MyApacheStats minStats = new MyApacheStats(new Min());
-				min = minStats.sEvaluate(values);
-			}
-			double fMax = max;
-			double fMin = min;
-			collectedAdditionalOutputs = eventData.keySet().stream()
-					.collect(Collectors.toMap(e -> e.getDate(), e -> {
-						EventType t = e.getEventType();
-						switch (t) {
-						case BULLISH:
-							return fMax;
-						case BEARISH:
-							return fMin;
-						default:
-							return fMin + (fMax - fMin) / 2;
-						}
-					}, (a, b) -> a + b, TreeMap::new));
-		}
-		return collectedAdditionalOutputs;
-	}
-
 	public SortedMap<EventKey, EventValue> getEventMap() {
 		return eventData;
 	}

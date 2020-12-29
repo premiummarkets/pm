@@ -53,6 +53,8 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
  */
 public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
+	private static final int NB_RAND = 1000;
+
 	public class OutputId {
 		private int groupIx;
 		private int outputIdx;
@@ -113,7 +115,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	public EventDefDescriptorDynamic() {
 		super();
 		exportBaseFileName = Optional.empty();
-		randoms = new double[100];
+		randoms = new double[NB_RAND];
 		Arrays.setAll(randoms, i -> Math.random());
 	}
 
@@ -204,7 +206,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
-		int alpha = (int) (255 - 128*((double)groupIdx)/getGroupsCount());
+		int alpha = (int) (255 - 128*((double) groupIdx)/getGroupsCount());
 		Color[] grpColors = COLORS[groupIdx % COLORS.length];
 
 		switch (getOutputDescr(groupIdx, outputIdx).getType()) {
@@ -213,9 +215,10 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		case SIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha);
 		case BOTH :
-			return new Color((grpColors[2].getRed() + (int)(128*randoms[outputIdx%100])) % 256, (grpColors[2].getGreen() + (int)(128*randoms[(outputIdx+1)%100])) % 256, (grpColors[2].getBlue() + (int)(128*randoms[(outputIdx+2)%100])) % 256, alpha);
+			return new Color((grpColors[2].getRed() + (int)(128*randoms[outputIdx%NB_RAND])) % 256, (grpColors[2].getGreen() + (int)(128*randoms[(outputIdx+1)%NB_RAND])) % 256, (grpColors[2].getBlue() + (int)(128*randoms[(outputIdx+2)%NB_RAND])) % 256, alpha);
 		case MULTI :
-			return new Color((grpColors[3].getRed() + (int)(128*randoms[outputIdx%100])) % 256, (grpColors[3].getGreen() + (int)(128*randoms[(outputIdx+1)%100])) % 256, (grpColors[3].getBlue() + (int)(128*randoms[(outputIdx+2)%100])) % 256, alpha);
+			//return new Color((grpColors[3].getRed() + (int)(128*randoms[outputIdx%100])) % 256, (grpColors[3].getGreen() + (int)(128*randoms[(outputIdx+1)%100])) % 256, (grpColors[3].getBlue() + (int)(128*randoms[(outputIdx+2)%100])) % 256, alpha);
+			return new Color(((int)(256*randoms[outputIdx%NB_RAND])), ((int)(256*randoms[outputIdx%NB_RAND])), ((int)(256*randoms[outputIdx%NB_RAND])), alpha);
 		case MULTISIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/4);
 		default :

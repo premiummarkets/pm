@@ -167,11 +167,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				Value<?> outputData = output.getOutputData();
 				if (outputData != null) {
 					SortedMap<Date, Double> data;
-					if (outputData instanceof EventMapValue) {
-						data = ((EventMapValue) outputData).getNormalizedValue(targetStock);
-					} else {
-						data = ((NumericableMapValue) outputData).getValue(targetStock);
-					}
+					data = ((NumericableMapValue) outputData).getValue(targetStock);
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());
 				}

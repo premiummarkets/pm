@@ -46,6 +46,13 @@ public class ChartIndicLineSeriesDataSetBuilder {
 		this.eventsSeries = eventsSeries;
 	}
 
+	//XYPlot (indicPlot) contains 0..n renderer (one per group). Each renderer contains 0..n series (dataSet)
+	//One XYPlot will display several eventDef, each containing several groups, each containing several series.
+	//eventDefStartIdx is the the index of the eventDef (sequence in eventDef loop)
+	//groupIdx is the index of the group within the eventDef (sequence in group loop)
+	//seriesIdx is the index of the series within the group (sequence in output series loop)
+	// => the need to flatten the eventDef dimension: EventDef (eventDefIdx, groupIdx, seriesIdx) => XYPLOT shape (rendererIdx, seriesIdx)
+	//Also some groups are no displayed. Hence the variable eventDefNbOfRenderesCreatedIdx
 	public void build() {
 
 		try {
@@ -60,11 +67,12 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				fullDateSet.addAll(output.keySet());
 			}
 
-			int eventDefStartIdx = 0;
-			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {
+			int eventDefFirstRendererIdx = 0;
+			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {//Iterate EventDef
 
 				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
-				int eventDefNbOfGroupsDisplayed = 0;
+				int rendererIdx = eventDefFirstRendererIdx;
+				int eventDefNbOfRenderesCreatedIdx = 0;
 
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {//Iterate groups
 
@@ -73,7 +81,6 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						Boolean groupIsDisplayed = false;
 
 						//Renderer
-						int rendererIdx = eventDefStartIdx + groupIdx;
 						XYItemRenderer renderer = indicPlot.getRenderer(rendererIdx);
 						if (renderer == null) {
 							renderer = new XYLineAndShapeRenderer(true, false);
@@ -87,7 +94,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						int seriesIdx = 0;
 						double groupMaxY = -Double.MAX_VALUE;
 						double groupMinY = Double.MAX_VALUE;
-						for (int k = 0; k < outputIndexes.length; k++) {//Iterate outputs
+						for (int k = 0; k < outputIndexes.length; k++) {//Iterate outputs series
 
 							int outputIdx = outputIndexes[k];
 							if (eventDefDescriptor.isDisplayed(groupIdx, outputIdx)) {
@@ -156,7 +163,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 							}
 
-						} //Outputs loop
+						} //Outputs series loop
 
 						//Y Axe for group. Finalising the Group.
 						boolean hasData = (groupMinY != Double.MAX_VALUE && groupMaxY != -Double.MAX_VALUE);
@@ -168,20 +175,20 @@ public class ChartIndicLineSeriesDataSetBuilder {
 								double thresholdCenter = groupCenter(eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
 								rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
 
-								if (eventDefNbOfGroupsDisplayed == 0) {
+								if (eventDefNbOfRenderesCreatedIdx == 0) {
 									indicPlot.addRangeMarker(rendererIdx, new ValueMarker(0), Layer.FOREGROUND, false);
 									indicPlot.setRangeGridlinesVisible(true);
 									AxisLocation location = AxisLocation.TOP_OR_LEFT;
 									indicPlot.setRangeAxisLocation(rendererIdx, location);
 									rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-								} else if (eventDefNbOfGroupsDisplayed <= 2) {
+								} else if (eventDefNbOfRenderesCreatedIdx <= 2) {
 									AxisLocation location = AxisLocation.TOP_OR_RIGHT;
 									indicPlot.setRangeAxisLocation(rendererIdx, location);
 									rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
 								} else {
 									rangeAxis.setVisible(false);
 								}
-								eventDefNbOfGroupsDisplayed++;
+								eventDefNbOfRenderesCreatedIdx++;
 								indicPlot.setRangeAxis(rendererIdx, rangeAxis, true);
 
 							}
@@ -202,9 +209,11 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						LOGGER.error("Can't display group : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx), e);
 					}
 
+					rendererIdx = rendererIdx + eventDefNbOfRenderesCreatedIdx; //One renderer per group
+
 				} //Groups loop
 
-				eventDefStartIdx = eventDefStartIdx + eventDefNbOfGroupsDisplayed;
+				eventDefFirstRendererIdx = eventDefFirstRendererIdx + eventDefNbOfRenderesCreatedIdx;
 
 			} //EventDefs loop
 
