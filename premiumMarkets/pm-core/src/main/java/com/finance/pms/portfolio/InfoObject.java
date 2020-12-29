@@ -49,11 +49,7 @@ public interface InfoObject {
 	}
 
 	default public int compareToInfoObject(InfoObject o) {
-		int cmp = (groupId() != null && o.groupId() != null)?groupId().compareTo(o.groupId()):((groupId() == null)?((o.groupId() != null)?-1:0):1);
-		if (cmp != 0) return cmp;
-		cmp = (isMain() != null && o.isMain() != null)?o.isMain().compareTo(isMain()):((isMain() == null)?((o.isMain() != null)?1:0):-1);
-		if (cmp != 0) return cmp;
-		cmp = info().compareToIgnoreCase(o.info());
+		int cmp = info().compareToIgnoreCase(o.info());
 		if (cmp != 0) return cmp;
 		cmp = (toolTip() != null && o.toolTip() != null)?toolTip().compareTo(o.toolTip()):((toolTip() == null)?((o.toolTip() != null)?-1:0):1);
 		if (cmp != 0) return cmp;

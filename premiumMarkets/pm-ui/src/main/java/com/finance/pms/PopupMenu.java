@@ -257,7 +257,7 @@ public class PopupMenu<T extends InfoObject> {
 
 		}
 
-		int maxInfoLenth = (availableOptSet.size() > 30)?50:255;
+		int maxInfoLenth = 255/((availableOptSet.size()/40)+1);
 		for (final T buttonInfo : availableOptSet) {
 
 			final Button button = new Button(selectionShell, style);

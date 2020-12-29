@@ -124,16 +124,20 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 				", type=" + type + ", outputIndex=" + outputIndex + ", constant=" + discriminentConstant + ", displayOnChart=" + displayOnChart + "]";
 	}
 	
-//	@Override
-//	public int compareToInfoObject(InfoObject o) {
-//		if (o instanceof OutputDescr) {
-//			int fqnCmp = fullQualifiedName().compareTo(((OutputDescr) o).fullQualifiedName());
-//			if (fqnCmp == 0) return this.compareTo((OutputDescr) o);
-//			return fqnCmp;
-//		} else {
-//			return InfoObject.super.compareToInfoObject(o);
-//		}
-//	}
+	@Override
+	public int compareToInfoObject(InfoObject o) {
+		if (o instanceof OutputDescr) {
+			int cmp = getContainer().getThisGroupMainOutputReference().compareTo(((OutputDescr) o).getContainer().getThisGroupMainOutputReference());
+			if (cmp != 0) return cmp;
+			cmp = (groupId() != null && o.groupId() != null)?groupId().compareTo(o.groupId()):((groupId() == null)?((o.groupId() != null)?-1:0):1);
+			if (cmp != 0) return cmp;
+			cmp = (isMain() != null && o.isMain() != null)?o.isMain().compareTo(isMain()):((isMain() == null)?((o.isMain() != null)?1:this.compareTo((OutputDescr) o)):-1);
+			if (cmp != 0) return cmp;
+			return InfoObject.super.compareToInfoObject(o);
+		} else {
+			return InfoObject.super.compareToInfoObject(o);
+		}
+	}
 
 	@Override
 	public int compareTo(OutputDescr o) {
