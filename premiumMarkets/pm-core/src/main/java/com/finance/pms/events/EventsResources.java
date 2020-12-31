@@ -292,7 +292,7 @@ public class EventsResources {
 		String eventCacheProp = MainPMScmd.getMyPrefs().get("event.cache","true");
 		LOGGER.info("Event cache is set to "+eventCacheProp);
 
-		isEventCached = new Boolean(eventCacheProp);
+		isEventCached = Boolean.valueOf(eventCacheProp);
 
 		//FIXME At the moment, we can either use cache persistence or effectively persist in EVENTS table but not both together.
 		//TODO use an of shelf cache system.
@@ -825,7 +825,7 @@ public class EventsResources {
 					public Query toDataBase() {
 						//set
 						Query qupdate = new Query();
-						qupdate.addValue(new Integer(se.getEventsState().ordinal()));
+						qupdate.addValue(Integer.valueOf(se.getEventsState().ordinal()));
 						qupdate.addValue(eventValue.getEventDef().getEventDefId());
 						qupdate.addValue(new String(""+eventValue.getEventType().getEventTypeChar().toString()));
 						qupdate.addValue(eventValue.getMessage());
@@ -874,7 +874,7 @@ public class EventsResources {
 		Query qinsert = new Query();
 		qinsert.addValue(se.getSymbol());
 		qinsert.addValue(se.getIsin());
-		qinsert.addValue(new Integer(se.getEventsState().ordinal()));
+		qinsert.addValue(Integer.valueOf(se.getEventsState().ordinal()));
 		qinsert.addValue(eventValue.getDate());
 		qinsert.addValue(eventValue.getEventDefId());
 		qinsert.addValue(eventValue.getEventDef().getEventDefinitionRef());

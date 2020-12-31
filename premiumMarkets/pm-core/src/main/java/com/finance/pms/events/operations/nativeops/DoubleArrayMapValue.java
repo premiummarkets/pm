@@ -42,10 +42,10 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 	@Override
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 		if (collectedUnaryMapValue == null) {
-			if (mainIdx == -1) {//As we don't know which column to return, we return NaN
-				collectedUnaryMapValue = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> Double.NaN, (a,b) -> a, TreeMap::new));
-			} else {
+			if (isMainSet()) {
 				collectedUnaryMapValue = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[mainIdx], (a,b) -> a, TreeMap::new));
+			} else { //As we don't know which column to return, we return NaN
+				collectedUnaryMapValue = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> Double.NaN, (a,b) -> a, TreeMap::new));
 			}
 		}
 		return collectedUnaryMapValue;
@@ -84,9 +84,16 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 	public List<String> getColumnsReferences() {
 		return this.columnsReferences;
 	}
-
-	public int getMainIdx() {
-		return mainIdx;
+	
+	public String getMainColumnsReferences() {
+		if (isMainSet()) {
+			return this.columnsReferences.get(mainIdx);
+		}
+		return null;
+	}
+	
+	private boolean isMainSet() {
+		return 0 <= mainIdx && mainIdx < this.columnsReferences.size();
 	}
 
 	@Override

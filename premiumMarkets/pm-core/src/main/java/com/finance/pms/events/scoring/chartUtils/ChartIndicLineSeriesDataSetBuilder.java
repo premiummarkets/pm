@@ -12,7 +12,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.math3.stat.descriptive.rank.Median;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -21,6 +21,7 @@ import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
@@ -171,7 +172,6 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 							ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
 							if (rangeAxis == null) {
-
 								double thresholdCenter = groupCenter(eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
 								rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
 
@@ -195,7 +195,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 							//Set group dateSet
 							indicPlot.setDataset(rendererIdx, dataSet);
-							if ( rendererIdx != 0 ) indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
+							//if ( rendererIdx != 0 ) 
+							indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
 							LOGGER.debug("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 
@@ -234,8 +235,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				double thresholdValue = serie.get(serie.firstKey())[thresholdsIdxs[j]];
 				thresholdValues[j] = thresholdValue;
 			}
-			Median median = new Median();
-			thresholdCenter = median.evaluate(thresholdValues);
+			Mean mean = new Mean();
+			thresholdCenter = mean.evaluate(thresholdValues);
 		}
 		return thresholdCenter;
 	}
@@ -243,16 +244,15 @@ public class ChartIndicLineSeriesDataSetBuilder {
 	protected NumberAxis initYAxis(Double centerValue, double lower, double upper) {
 
 		NumberAxis indicYAxis = new NumberAxis();
-
-		if (centerValue.isNaN()) {
-			indicYAxis.setAutoRange(true);
-			indicYAxis.setAutoRangeStickyZero(false);
-			indicYAxis.setAutoRangeIncludesZero(false);
-		} else {
-			double maxMedian = Math.max(centerValue-lower, upper-centerValue);
-			indicYAxis.setRangeAboutValue(centerValue, maxMedian*2.1);
-		}
-
+		
+		upper = upper + upper * .10;
+		lower = lower - lower * .10;
+		double upperToCenter = Math.abs(upper - centerValue);
+		double lowerTocenter = Math.abs(lower - centerValue);
+		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
+		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
+		indicYAxis.setRange(new Range(lower, upper), true, true);
+		indicYAxis.setFixedDimension(upperToCenter + lowerTocenter);
 		indicYAxis.setTickLabelFont(indicYAxis.getTickLabelFont().deriveFont(7f));
 		indicYAxis.setLabelFont(indicYAxis.getLabelFont().deriveFont(10f));
 

@@ -343,7 +343,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				if (arg == null || ((SymbolEvents) arg).getDataResultMap().isEmpty()) {//No events found
 
-					if (!recalculationGranted) {//No events found despite recalc
+					if (!recalculationGranted) {//No events found despite recalculation
 						chartTarget.getMainChartWraper().resetBarChart();
 					} else {
 						noDataTrends.addAll(chartTarget.getChartedEvtDefsTrends());
@@ -449,14 +449,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 			if (!recalculationGranted && !outputDataNeedsUpdate) {//No indic found despite recalc
 				String errMsg = 
-						"No output data are available for display within the period you have selected share "+selectedShare.getFriendlyName()+" and selected indicators.\n" +
-								"If you just cleared the calculations results, you may want to Force and Update calculations.";
+						"No output data are available for display within the period you have selected share " + selectedShare.getFriendlyName() + " and selected calculators.\n" +
+								"If you just cleared the calculations results by editing a calculator or an operation, you may want to Force/Update calculations.";
 				String addMsg = 
-						"This may also happen if calculations failed, or if there is not enough quotations for the period.\n" +
-								//"Check the calculators in "+TRENDBUTTXT+" as well as the date boundaries against the available quotations.\n" +
-								"You may want to check the date boundaries against the available quotations.\n" +
-								"Also note that some calculators need full OLHC and Volume in order to be calculated.\n" +
-								"If the selected indicators were created by you, you may also want to check the formula.";
+						"This error may happen if calculations failed, there is not enough quotations for the period or a lack of memory to hold the entirety of the calculations.\n" +
+								"If the selected calculators were created by you, you may also want to check their formulae." +
+								"You may want to check the date boundaries choosen against the available quotations.\n" +
+								"You may want to lighten your simultaneous calculations.\n" +
+								"Also note that some calculators need full OLHC and Volume in order to be calculated.\n";
 				showPopupDialog(errMsg, "Ok", addMsg, null);
 			}
 

@@ -52,7 +52,7 @@ import com.finance.pms.talib.indicators.SMA;
 import com.finance.pms.talib.indicators.TalibException;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
-//@Deprecated
+@Deprecated
 public class SmaReversal extends TalibIndicatorsOperator {
 
 	private static final int DAYS_SPAN = 15;

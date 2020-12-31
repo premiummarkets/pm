@@ -102,7 +102,7 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 
 
 		{
-			//BULL : Stoch cross below low threshold (over sold) with an up trend (above sma)
+			//BULL : Stoch crosses above low threshold with an up trend (above sma)
 			boolean isCrossingLowerThreshold = 
 					this.stochasticOscillator.getSlowK()[stochIndicatorIndex-1] < getLowerThreshold() &&
 					getLowerThreshold() < this.stochasticOscillator.getSlowK()[stochIndicatorIndex]; // crosses above lower threshold
@@ -111,7 +111,7 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 					if (res.getBullishCrossOver()) return res;
 		} 
 		{
-			//BEAR : RSI cross above upper threshold (over bought) with a down trend (under sma)
+			//BEAR : Stoch crosses below upper threshold with a down trend (under sma)
 			boolean isCrossingUpperThreshold = 
 					this.stochasticOscillator.getSlowK()[stochIndicatorIndex-1] > getUpperThreshold() &&
 					getUpperThreshold() > this.stochasticOscillator.getSlowK()[stochIndicatorIndex];// crosses below upper threshold

@@ -238,7 +238,7 @@ public class TargetStockInfo {
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
 			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, startShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
-			String mainRef = ((DoubleArrayMapValue) outputValue).getColumnsReferences().get(((DoubleArrayMapValue) outputValue).getMainIdx());
+			String mainRef = ((DoubleArrayMapValue) outputValue).getMainColumnsReferences();
 			((DoubleArrayMapValue) outputValue).getColumnsReferences().stream().forEach(ref -> {
 				Output outputHolder = new Output(new OutputReference(operation, (ref.equals(mainRef)?null:ref)), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), startShift);
 				this.calculatedOutputsCache.add(outputHolder);

@@ -1059,7 +1059,7 @@ public class ChartMain extends Chart {
 
 	private void removeVline(ValueMarker valueMarker) {
 		mainPlot.removeDomainMarker(valueMarker);
-		mainPlot.removeAnnotation(lineAnnotations.remove(new Double(valueMarker.getValue()).longValue()));
+		mainPlot.removeAnnotation(lineAnnotations.remove(Double.valueOf(valueMarker.getValue()).longValue()));
 		if (indicPlot != null) {
 			indicPlot.removeDomainMarker(valueMarker);
 		}
@@ -1104,11 +1104,11 @@ public class ChartMain extends Chart {
 		if (mainDomainMarkers != null) {
 			for (ValueMarker valueMarker : mainDomainMarkers) {
 
-				XYTextAnnotation xyTextAnnotation = lineAnnotations.remove(new Double(valueMarker.getValue()).longValue());
+				XYTextAnnotation xyTextAnnotation = lineAnnotations.remove(Double.valueOf(valueMarker.getValue()).longValue());
 				mainPlot.removeAnnotation(xyTextAnnotation);
-				XYTextAnnotation newAnnotation = createVLineAnnotation(new Double(valueMarker.getValue()).longValue(), plotArea.getHeight());
+				XYTextAnnotation newAnnotation = createVLineAnnotation(Double.valueOf(valueMarker.getValue()).longValue(), plotArea.getHeight());
 				mainPlot.addAnnotation(newAnnotation);
-				lineAnnotations.put(new Double(xyTextAnnotation.getX()).longValue(), newAnnotation);
+				lineAnnotations.put(Double.valueOf(xyTextAnnotation.getX()).longValue(), newAnnotation);
 
 				if (indicPlot != null && (indicDomainMarkers == null || !indicDomainMarkers.contains(valueMarker))) {
 					indicPlot.addDomainMarker(valueMarker);
