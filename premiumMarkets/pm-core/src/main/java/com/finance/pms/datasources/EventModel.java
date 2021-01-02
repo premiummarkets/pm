@@ -451,7 +451,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 			return tuningRes;
 
 		} catch (NotEnoughDataException e) {
-			LOGGER.warn(e, e);
+			LOGGER.warn(e);
 			return null;
 		}
 

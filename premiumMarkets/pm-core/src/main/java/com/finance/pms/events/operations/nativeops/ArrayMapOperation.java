@@ -3,12 +3,15 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
 
+@XmlSeeAlso({OneInputAssemblerOperation.class})
 public abstract class ArrayMapOperation extends MapOperation implements UnaryCondition {
 	
 	public ArrayMapOperation() {

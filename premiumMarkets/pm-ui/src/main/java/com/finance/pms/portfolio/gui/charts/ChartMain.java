@@ -491,18 +491,20 @@ public class ChartMain extends Chart {
 								double compound = Double.NaN;
 								double priceChange = Double.NaN;
 								double periodRoc = Double.NaN;
-								try {
-									Date date = new Date((long) dataset.getXValue(series, item));
-									List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
-									PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
-									if (period == null) return "";
-									compound = serieDef.getTuningRes().getFollowProfitAt(date);
-									priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
-									periodRoc = period.getPriceRateOfChange();
-									if (period.getTrend().equals(EventType.BULLISH.name()) && periodRoc < 0) return "r" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
-									else if (period.getTrend().equals(EventType.BEARISH.name()) && periodRoc > 0) return "u" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
-								} catch (Exception e) {
-									LOGGER.warn(e,e);
+								if (serieDef.getTuningRes() != null) {
+									try {
+										Date date = new Date((long) dataset.getXValue(series, item));
+										List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
+										PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
+										if (period == null) return "";
+										compound = serieDef.getTuningRes().getFollowProfitAt(date);
+										priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
+										periodRoc = period.getPriceRateOfChange();
+										if (period.getTrend().equals(EventType.BULLISH.name()) && periodRoc < 0) return "r" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+										else if (period.getTrend().equals(EventType.BEARISH.name()) && periodRoc > 0) return "u" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+									} catch (Exception e) {
+										LOGGER.warn(e,e);
+									}
 								}
 								return "";
 							}

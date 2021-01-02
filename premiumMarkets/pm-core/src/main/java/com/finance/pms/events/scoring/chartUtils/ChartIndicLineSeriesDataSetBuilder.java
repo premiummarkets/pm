@@ -108,14 +108,19 @@ public class ChartIndicLineSeriesDataSetBuilder {
 									double[] ds = eventsSeries.get(chartedEvtDef).get(date);
 									Number value;
 									if (ds != null) {
-										value = ds[outputIdx];
-										//Negative Infinity means we should ignore the entry (won't break the line).
-										//NaN means not wanted for display and should breaks the line so it needs to be kept... except all is NaN
-										if (value != null && !Double.isNaN(value.doubleValue())) allNaN = false;
-										if (value != null && !Double.isInfinite(value.doubleValue())) {
-											RegularTimePeriod period = new Day(date);
-											TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
-											timeSeries.add(item, false);
+										try {
+											value = ds[outputIdx];
+											//Negative Infinity means we should ignore the entry (hence this won't break the drawn line continuity on chart).
+											//NaN means not wanted for display and should breaks the line continuity and it needs to be kept as such for the chart rendering... 
+											//Except when all is NaN, the line is not rendered.
+											if (value != null && !Double.isNaN(value.doubleValue())) allNaN = false;
+											if (value != null && !Double.isInfinite(value.doubleValue())) {
+												RegularTimePeriod period = new Day(date);
+												TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
+												timeSeries.add(item, false);
+											}
+										} catch (Exception e) {
+											LOGGER.error("This output index " + outputIdx + ", for '" + domain + "' does not have output data in " + chartedEvtDef.getEventDefinitionRef());
 										}
 									}
 								}
@@ -252,7 +257,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
 		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
 		indicYAxis.setRange(new Range(lower, upper), true, true);
-		indicYAxis.setFixedDimension(upperToCenter + lowerTocenter);
+		//indicYAxis.setFixedDimension(Math.max(upperToCenter,lowerTocenter)*2);
 		indicYAxis.setTickLabelFont(indicYAxis.getTickLabelFont().deriveFont(7f));
 		indicYAxis.setLabelFont(indicYAxis.getLabelFont().deriveFont(10f));
 

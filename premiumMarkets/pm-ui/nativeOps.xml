@@ -169,6 +169,33 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oneInputAssemblerOperation">
+            <reference>oneInputAssembler</reference>
+            <description>Assembles several inputs into one input into one output array.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>isExportToFile</referenceAsOperand>
+                    <description>If true, exports the result to a file.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>FALSE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>inputs</referenceAsOperand>
+                    <description>Inputs to assemble in one</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
             <description>Subtraction of two historical data series (a,b) -&gt; a - b</description>

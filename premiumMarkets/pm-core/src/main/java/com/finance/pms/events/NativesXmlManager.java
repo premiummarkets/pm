@@ -47,6 +47,7 @@ import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.MathOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
+import com.finance.pms.events.operations.nativeops.OneInputAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
 import com.finance.pms.events.operations.nativeops.PMBollingerOperation;
 import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
@@ -130,6 +131,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(leftShiterOperation);
 		FilterOperation filterOperation = new FilterOperation();
 		nativeOperations.addOperation(filterOperation);
+		OneInputAssemblerOperation oneInputAssemblerOperation = new OneInputAssemblerOperation();
+		nativeOperations.addOperation(oneInputAssemblerOperation);
 
 		//Other
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
