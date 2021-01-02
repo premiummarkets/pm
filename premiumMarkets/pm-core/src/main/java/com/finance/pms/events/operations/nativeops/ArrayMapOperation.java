@@ -9,10 +9,9 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
-import com.finance.pms.events.operations.conditional.UnaryCondition;
 
 @XmlSeeAlso({OneInputAssemblerOperation.class})
-public abstract class ArrayMapOperation extends MapOperation implements UnaryCondition {
+public abstract class ArrayMapOperation extends MapOperation {
 	
 	public ArrayMapOperation() {
 		super("multi historical data", "Multiple Time series of real historical data or resulting of calculations");

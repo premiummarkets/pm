@@ -13,6 +13,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -22,6 +23,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.Range;
+import org.jfree.data.RangeType;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
@@ -33,6 +35,7 @@ import org.jfree.ui.Layer;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.EventDefDescriptor;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
 
 public class ChartIndicLineSeriesDataSetBuilder {
 
@@ -177,7 +180,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 							ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
 							if (rangeAxis == null) {
-								double thresholdCenter = groupCenter(eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
+								double thresholdCenter = groupCenter(eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx, groupMinY, groupMaxY);
 								rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
 
 								if (eventDefNbOfRenderesCreatedIdx == 0) {
@@ -231,7 +234,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 	}
 
-	private double groupCenter(SortedMap<Date, double[]> serie, EventDefDescriptor eventDefDescriptor, int groupIdx) {
+	private double groupCenter(SortedMap<Date, double[]> serie, EventDefDescriptor eventDefDescriptor, int groupIdx, double groupYMin, double groupYMax) {
 		double thresholdCenter = Double.NaN;
 		Integer[] thresholdsIdxs = eventDefDescriptor.getThresholdsIdx(groupIdx);
 		if (thresholdsIdxs.length != 0) {
@@ -242,6 +245,10 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			}
 			Mean mean = new Mean();
 			thresholdCenter = mean.evaluate(thresholdValues);
+		} else {
+//			MyApacheStats median = new MyApacheStats(new Median());
+//			thresholdCenter = median.evaluate(serie.values());
+			thresholdCenter = groupYMax - groupYMin;
 		}
 		return thresholdCenter;
 	}
@@ -250,13 +257,14 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 		NumberAxis indicYAxis = new NumberAxis();
 		
-		upper = upper + upper * .10;
-		lower = lower - lower * .10;
+		upper = upper + Math.abs(upper * .10);
+		lower = lower - Math.abs(lower * .10);
 		double upperToCenter = Math.abs(upper - centerValue);
 		double lowerTocenter = Math.abs(lower - centerValue);
 		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
 		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
 		indicYAxis.setRange(new Range(lower, upper), true, true);
+		indicYAxis.setRangeAboutValue(centerValue, Math.max(upperToCenter,lowerTocenter)*2);
 		//indicYAxis.setFixedDimension(Math.max(upperToCenter,lowerTocenter)*2);
 		indicYAxis.setTickLabelFont(indicYAxis.getTickLabelFont().deriveFont(7f));
 		indicYAxis.setLabelFont(indicYAxis.getLabelFont().deriveFont(10f));

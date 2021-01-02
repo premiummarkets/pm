@@ -2,7 +2,6 @@ package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,16 +75,20 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 
 		//Build operands ref
 		List<Operation> operands = getOperands().subList(FIRST_INPUT, getOperands().size());
-		List<String> inputsOperandsRefs = IntStream.range(0, inputs.size() - 1)
-				.mapToObj(i -> {
-					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //Dynamic refs
-						return ((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences();
-					} else { //Static ops refs
-						return Arrays.asList(operands.get(i).getReference());
+		List<String> inputsOperandsRefs = new ArrayList<String>();
+		IntStream.range(0, inputs.size() - 1)
+				.forEach(i -> {
+					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
+						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
+						.forEach(cRef -> 
+							inputsOperandsRefs
+							.add(operands.get(i).getReference()+((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""))
+						);
+					} else { //Ops refs
+						inputsOperandsRefs
+						.add(operands.get(i).getReference()+((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""));
 					}
-				})
-				.flatMap(Collection::stream)
-				.collect(Collectors.toList());
+				});
 
 		try {
 			if (isExport) {
@@ -124,11 +127,6 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
 		//Nothing specific to this operation
-	}
-
-	@Override
-	public int mainInputPosition() {
-		return FIRST_INPUT;
 	}
 
 }
