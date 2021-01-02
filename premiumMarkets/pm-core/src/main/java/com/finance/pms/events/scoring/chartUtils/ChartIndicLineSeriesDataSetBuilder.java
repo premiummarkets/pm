@@ -248,7 +248,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 		} else {
 //			MyApacheStats median = new MyApacheStats(new Median());
 //			thresholdCenter = median.evaluate(serie.values());
-			thresholdCenter = groupYMax - groupYMin;
+			thresholdCenter = groupYMin + (groupYMax - groupYMin)/2;
 		}
 		return thresholdCenter;
 	}
@@ -264,7 +264,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
 		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
 		indicYAxis.setRange(new Range(lower, upper), true, true);
-		indicYAxis.setRangeAboutValue(centerValue, Math.max(upperToCenter,lowerTocenter)*2);
+		//indicYAxis.setRangeAboutValue(centerValue, Math.max(upperToCenter,lowerTocenter)*2);
 		//indicYAxis.setFixedDimension(Math.max(upperToCenter,lowerTocenter)*2);
 		indicYAxis.setTickLabelFont(indicYAxis.getTickLabelFont().deriveFont(7f));
 		indicYAxis.setLabelFont(indicYAxis.getLabelFont().deriveFont(10f));
