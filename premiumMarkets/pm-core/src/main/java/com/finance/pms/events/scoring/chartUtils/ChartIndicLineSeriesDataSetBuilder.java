@@ -13,7 +13,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
-import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -23,7 +22,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.Range;
-import org.jfree.data.RangeType;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
@@ -35,7 +33,6 @@ import org.jfree.ui.Layer;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.EventDefDescriptor;
-import com.finance.pms.events.scoring.functions.MyApacheStats;
 
 public class ChartIndicLineSeriesDataSetBuilder {
 

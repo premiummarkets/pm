@@ -19,7 +19,7 @@ import com.google.common.primitives.Doubles;
 public class SeriesPrinter {
 	
 
-	public static UUID runStamp = UUID.randomUUID();
+	public static UUID appRunStamp = UUID.randomUUID();
 
     public static String printo(String fileName, LinkedHashMap<String, SortedMap<Date, double[]>> series, String... forcedBaseFileName) {
         return printo(fileName, "tmp", series, forcedBaseFileName);
@@ -31,7 +31,7 @@ public class SeriesPrinter {
     	if (!printOutputs) return "None";
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        String baseFileName = (forcedBaseFileName == null || forcedBaseFileName.length != 1)?SeriesPrinter.runStamp.toString():forcedBaseFileName[0];
+        String baseFileName = (forcedBaseFileName == null || forcedBaseFileName.length != 1)?SeriesPrinter.appRunStamp.toString():forcedBaseFileName[0];
         File exportFile = new File(System.getProperty("installdir") + File.separator + ((subFolder != null)?subFolder + File.separator:"")+ baseFileName + "_" + fileName+".csv");
 
         try (FileWriter fileWriter = new FileWriter(exportFile); BufferedWriter bufferWriter = new BufferedWriter(fileWriter)) {

@@ -210,11 +210,6 @@ public class TargetStockInfo {
 		return calculatedOutputsCache.get(indexOf).outputData;
 	}
 
-	/**
-	 * This method also calls setMain for MultiSelectorsValue
-	 * @param outputDiscriminator
-	 * @param startShift 
-	 */
 	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int startShift) {
 
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), startShift);
@@ -238,10 +233,8 @@ public class TargetStockInfo {
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
 			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, startShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
-			String mainRef = ((DoubleArrayMapValue) outputValue).getMainColumnsReferences();
 			((DoubleArrayMapValue) outputValue).getColumnsReferences().stream().forEach(ref -> {
-				Output outputHolder = new Output(new OutputReference(operation, (ref.equals(mainRef)?null:ref)), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), startShift);
-				this.calculatedOutputsCache.add(outputHolder);
+				Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), startShift);
 				this.gatheredChartableOutputs.add(outputHolder);
 			});
 		} else {
