@@ -388,7 +388,7 @@ public class TargetStockInfo {
 			//pick up or create the group
 			int mainOpPosition = ((OnSignalCondition) operation).mainInputPosition();
 			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty(), displayByDefault);
-			LOGGER.info("Adding main " + operands.get(mainOpPosition).shortOutputReference() + " as OnSignalCondition. GroupId " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+			LOGGER.info("Chart adding main " + operands.get(mainOpPosition).shortOutputReference() + " as OnSignalCondition. GroupId " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 			//add the signal
 			int signalOpPosition = ((OnSignalCondition) operation).inputSignalPosition();
 			addChartInfoForSignal(chartedOutputGroup, operands.get(signalOpPosition), displayByDefault);
@@ -398,7 +398,7 @@ public class TargetStockInfo {
 			int mainOpPosition = ((OnThresholdCondition) operation).mainInputPosition();
 			Operation mainOp = operands.get(mainOpPosition);
 			chartedOutputGroup = setMain(mainOp, Optional.empty(), displayByDefault);
-			LOGGER.info("Adding main " + mainOp.shortOutputReference() + " as OnThresholdCondition. GroupId " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+			LOGGER.info("Chart adding main " + mainOp.shortOutputReference() + " as OnThresholdCondition. GroupId " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 			//add the constant
 			int thresholdOpPosition = ((OnThresholdCondition)operation).inputThresholdPosition();
 			chartedOutputGroup.addConstant(mainOp.getReference(), operands.get(thresholdOpPosition), (NumberValue) operandsOutputs.get(thresholdOpPosition), displayByDefault);
@@ -407,20 +407,20 @@ public class TargetStockInfo {
 			//pick up or create the group
 			int mainOpPosition = ((UnaryCondition) operation).mainInputPosition();
 			chartedOutputGroup = setMain(operands.get(mainOpPosition), Optional.empty(), displayByDefault);
-			LOGGER.info("Adding main " + operands.get(mainOpPosition).shortOutputReference() + " as OnThresholdCondition. GroupId " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+			LOGGER.info("Chart adding main " + operands.get(mainOpPosition).shortOutputReference() + " as OnThresholdCondition. GroupId " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 
 		} else { //The operation is not a ChartableWithMain but an operand up the calculation tree. It won't be visible by default.
 			//To create the group, we will rely on the operands only the first operand being pickup as main
-			LOGGER.info("Adding " + operation.shortOutputReference() + " as NOT ChartableWithMain.");
+			LOGGER.info("Chart adding " + operation.shortOutputReference() + " as NOT ChartableWithMain.");
 			for(int i = 0; i < operands.size(); i++) {
 				Value<?> ov = operandsOutputs.get(i);
 				Operation operand = operands.get(i);
 				if (ov instanceof NumericableMapValue && operand.getFormulae() != null) {
 					if (chartedOutputGroup == null) {
 						chartedOutputGroup = setMain(operand, Optional.empty(), false);
-						LOGGER.info("Adding main " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+						LOGGER.info("Chart adding main " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 					} else {
-						LOGGER.info("Adding other operand " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+						LOGGER.debug("Chart adding other operand " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 						//FIXME it seems we use outputSelector and operand Reference indiscriminately: this doesn't seem to work if the operand also have an outputSelector. There should be two different attributes.
 						Map<String, Type> additionalOutputsTypes = new HashMap<>();
 						additionalOutputsTypes.put((operand.getOutputSelector() == null)?operand.getReference():operand.getOutputSelector(), Type.MULTI);
@@ -444,7 +444,7 @@ public class TargetStockInfo {
 				if (!multiMapValueOutputTypes.isEmpty()) { //Operand with effective MultiValueMap output.
 					if (operand.getFormulae() != null) { //User defined operand. Itself being a NumericableMapValue, as all user defined operations are, the operand also has a main output and hence can be set as main of the group
 						ChartedOutputGroup multiVChartedOutputGroup = setMain(operand, Optional.ofNullable(operand.getOutputSelector()), displayByDefault);
-						LOGGER.info("Adding MutliMapValues with main " + operand.shortOutputReference() + " as operation with formulae. Group Id " + multiVChartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+						LOGGER.info("Chart adding MutliMapValues with main " + operand.shortOutputReference() + " as operation with formulae. Group Id " + multiVChartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
 					}
 					//We include only the remaining potential ChartableWithMain as other cases may cause scaling issues?
@@ -453,7 +453,7 @@ public class TargetStockInfo {
 							Operation mainOperandOfOperand = operand.getOperands().get(((ChartableWithMain) operand).mainInputPosition());
 							Optional<String> outputSelector = Optional.ofNullable(mainOperandOfOperand.getOutputSelector());
 							ChartedOutputGroup multiVChartedOutputGroup = setMain(mainOperandOfOperand, outputSelector, displayByDefault);
-							LOGGER.info("Adding MutliMapValues with main " + mainOperandOfOperand + " as ChartableWithMain. Group Id " + multiVChartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+							LOGGER.info("Chart adding MutliMapValues with main " + mainOperandOfOperand + " as ChartableWithMain. Group Id " + multiVChartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 							addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(mainOperandOfOperand, outputSelector.orElse(null)));
 						}
 					}

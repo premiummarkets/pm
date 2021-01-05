@@ -217,7 +217,7 @@ public class OTFTuningFinalizer {
 
 		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, evtDefInfo, observer);
 
-		LOGGER.info(export(buildResOnValidPeriods));
+		LOGGER.debug(export(buildResOnValidPeriods));
 
 		return buildResOnValidPeriods;
 	}

@@ -144,7 +144,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		String thisCallStack = parentCallStack + "=>" + this.shortOutputReference();
 		int thisStartShift = parentStartShift + operationStartDateShift();
-		LOGGER.info("Calculating:" + this.shortOutputReference() +
+		LOGGER.debug("Calculating:" + this.shortOutputReference() +
 				"\n\tCall stack : " + thisCallStack +
 				"\n\tStart shift: " + thisStartShift + " with parent " + parentStartShift);
 

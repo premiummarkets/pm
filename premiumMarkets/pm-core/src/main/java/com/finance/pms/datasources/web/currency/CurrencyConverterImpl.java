@@ -120,7 +120,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 					}
 
 				} else {
-					LOGGER.info("Currency update NOT granted for "+currencyStock+ " and "+today);
+					LOGGER.debug("Currency update NOT granted for "+currencyStock+ " and "+today);
 				}
 
 			}
