@@ -659,7 +659,7 @@
             <outputSelector>exponential</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oneInputAssemblerOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inputExporterOperation">
             <reference>outputExporter</reference>
             <description>Exports all inputs to a file.</description>
             <operands>

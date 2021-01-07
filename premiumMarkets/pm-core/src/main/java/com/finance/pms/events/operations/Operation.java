@@ -45,6 +45,7 @@ import javax.xml.bind.annotation.XmlType;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.Condition;
+import com.finance.pms.events.operations.nativeops.InputExporterOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
@@ -60,7 +61,7 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
  * Parameters : preset operands already resolved.
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
-@XmlSeeAlso({Condition.class, MapOperation.class, MATypeOperation.class, NumberOperation.class, StringOperation.class})
+@XmlSeeAlso({Condition.class, MapOperation.class, MATypeOperation.class, NumberOperation.class, StringOperation.class, InputExporterOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);

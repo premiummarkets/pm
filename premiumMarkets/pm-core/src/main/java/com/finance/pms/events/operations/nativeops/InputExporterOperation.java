@@ -52,12 +52,12 @@ public class InputExporterOperation extends Operation {
 
 		try {
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
-			String key = filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
-			series.put(key, factorisedInput);
+			String filename = filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
+			series.put(filePrefix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
-			headersPrefixes.put(key, inputsOperandsRefs);
-			String filePath = SeriesPrinter.printo(key, "tmp", headersPrefixes, series);
-			new StringValue(filePath);
+			headersPrefixes.put(filePrefix, inputsOperandsRefs);
+			String filePath = SeriesPrinter.printo(filename, "tmp", headersPrefixes, series);
+			return new StringValue(filePath);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}

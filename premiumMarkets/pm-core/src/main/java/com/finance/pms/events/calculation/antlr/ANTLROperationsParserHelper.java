@@ -112,7 +112,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 
 			RecognizerSharedState state = new RecognizerSharedState();
 			ParameterizedOperationsLexer lexer = new ParameterizedOperationsLexer(in, state);
-			OpsLexerDelegate editorLexerDelegate = new EditorOpsLexerDelegate(in, state,  nativeOpEditorDescrs, userCurrentOpEditorDescrs);
+			OpsLexerDelegate editorLexerDelegate = new EditorOpsLexerDelegate(in, state, nativeOpEditorDescrs, userCurrentOpEditorDescrs);
 			lexer.setLexerDelegate(editorLexerDelegate);
 			MyLexerErrorReporter lexerErrorReport = new MyLexerErrorReporter(lexer, exceptions, parsedLine);
 			lexer.setMyErrorReporter(lexerErrorReport);

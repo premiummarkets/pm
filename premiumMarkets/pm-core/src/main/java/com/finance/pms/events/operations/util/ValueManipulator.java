@@ -24,7 +24,7 @@ public class ValueManipulator {
 						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
 						.forEach(cRef -> 
 							inputsOperandsRefs
-							.add(operands.get(i).getReference()+((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""))
+							.add(cRef+((inputsOperandsRefs.contains(cRef))?Integer.toString(i):""))
 						);
 					} else { //Ops refs
 						inputsOperandsRefs
