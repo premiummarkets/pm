@@ -948,11 +948,11 @@ public class OperationBuilderComposite extends Composite {
 			// Sanity check
 			NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
 			if (checkNextToken != null) {
-				LOGGER.info("Invalid "+identifier+". Is saved :"+isSaved);
+				LOGGER.info("Invalid " + identifier + ". Is saved :" + isSaved);
 				openDialog(false, "Formula " + formula + " can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
 				isSaved=false;
 			} else {
-				LOGGER.info("Adding formula to operation list : "+identifier+". Is saved :"+isSaved);
+				LOGGER.info("Adding formula to operation list : " + identifier + ". Is saved :" + isSaved);
 				parameterizedBuilder.addFormula(identifier, formula);
 				isSaved = true;
 			}

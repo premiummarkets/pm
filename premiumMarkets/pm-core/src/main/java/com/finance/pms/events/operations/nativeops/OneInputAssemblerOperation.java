@@ -7,10 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.SeriesPrinter;
@@ -18,15 +15,20 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.util.ValueManipulator;
 
 public class OneInputAssemblerOperation extends ArrayMapOperation {
 
 	private static final int FIRST_INPUT = 1;
 	private static MyLogger LOGGER = MyLogger.getLogger(OneInputAssemblerOperation.class);
 	
+
+	public OneInputAssemblerOperation(String reference, String description, ArrayList<Operation> operands) {
+		super(reference, description, operands);
+	}
 	
 	public OneInputAssemblerOperation(String reference, String description, Operation ... operands) {
-		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+		this(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
 	public OneInputAssemblerOperation() {
@@ -47,48 +49,10 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
 
-		@SuppressWarnings("rawtypes")
-		List<? extends Value> developpedInputs = inputs.subList(FIRST_INPUT, inputs.size());
-
-		//Build one inputs
-		SortedMap<Date, double[]> factorisedInput = new TreeMap<>();
-
-		for (Date date : ((NumericableMapValue) developpedInputs.get(0)).getDateKeys()) {
-
-			List<Object> valuesList = developpedInputs.stream().map(i -> {
-				//TODO change this and use MultiMapValue features instead.
-				if (i instanceof DoubleArrayMapValue) {
-					return ((DoubleArrayMapValue)i).getDoubleArrayValue().get(date);
-				} else {
-					return ((NumericableMapValue)i).getValue(targetStock).get(date);
-				}
-			}).collect(Collectors.toList());
-
-			if (valuesList.stream().noneMatch(v -> v == null)) {
-				double[] array = valuesList.stream()
-						.map(value -> valueToDoubleArray(value)) //Transforms Double to double[]
-						.flatMapToDouble(Arrays::stream).toArray();
-				factorisedInput.put(date, array);
-			}
-
-		}
-
-		//Build operands ref
-		List<Operation> operands = getOperands().subList(FIRST_INPUT, getOperands().size());
-		List<String> inputsOperandsRefs = new ArrayList<String>();
-		IntStream.range(0, inputs.size() - 1)
-				.forEach(i -> {
-					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
-						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
-						.forEach(cRef -> 
-							inputsOperandsRefs
-							.add(operands.get(i).getReference()+((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""))
-						);
-					} else { //Ops refs
-						inputsOperandsRefs
-						.add(operands.get(i).getReference()+((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""));
-					}
-				});
+		@SuppressWarnings("unchecked")
+		List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
+		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs);
+		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(inputs.size(), getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 
 		try {
 			if (isExport) {
@@ -104,14 +68,6 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 		}
 
 		return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
-	}
-
-	private double[] valueToDoubleArray(Object value) {
-		if (value instanceof Double) {
-			return new double[]{((Double) value).doubleValue()};
-		} else if (value instanceof double[]) {
-			return (double[]) value;
-		} else throw new RuntimeException("Map value not supported for " + value + " of type " + value.getClass());
 	}
 
 	@Override

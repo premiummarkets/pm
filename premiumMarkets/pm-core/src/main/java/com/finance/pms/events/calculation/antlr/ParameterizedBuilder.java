@@ -199,15 +199,15 @@ public abstract class ParameterizedBuilder extends Observable {
 			LOGGER.info("Creating parser for formula "+identifier);
 			formulaParser = new FormulaParser(this, identifier, formula, false);
 
-			LOGGER.info("Parsing for formula "+identifier);
+			LOGGER.info("Parsing for formula " + identifier);
 			runParsing(formulaParser);
-			LOGGER.info("Parsing ok for formula "+identifier);
+			LOGGER.info("Parsing ok for formula " + identifier);
 
 			Operation operation = formulaParser.getBuiltOperation();
 
 			if (operation != null) {
 
-				LOGGER.info("Saving formula operation "+identifier);
+				LOGGER.info("Saving formula operation " + identifier);
 				saveUserOperation(identifier, formula);
 
 				Operation alreadyExists = getCurrentOperations().get(operation.getReference());
@@ -215,10 +215,10 @@ public abstract class ParameterizedBuilder extends Observable {
 
 				if (!isNewOp) {
 					try {
-						LOGGER.info("Updating usage of "+identifier);
+						LOGGER.info("Updating usage of " + identifier);
 						replaceInUse(operation);
 					} catch (StackOverflowError e) {
-						throw new InstantiationException("Can't solve : "+formulaParser+". The operation is calling its self. Please fix.");
+						throw new InstantiationException("Can't solve : " + formulaParser + ". The operation is calling its self. Please fix.");
 					}
 				}
 
@@ -229,17 +229,17 @@ public abstract class ParameterizedBuilder extends Observable {
 				getCurrentOperations().get(operation.getReference()).setDisabled(false);
 
 			} else {
-				throw new InstantiationException("Can't solve : "+formulaParser+". Please fix.");
+				throw new InstantiationException("Can't solve : " + formulaParser + ". Please fix.");
 			}
 
 			updateCaches(operation, isNewOp);
 
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(e, e);
 			throw new IOException(e);
 		} finally {
 			if (formulaParser != null) {
-				LOGGER.info("Shutting down the parser for "+identifier);
+				LOGGER.info("Shutting down the parser for " + identifier);
 				formulaParser.shutdown();
 			}
 		}

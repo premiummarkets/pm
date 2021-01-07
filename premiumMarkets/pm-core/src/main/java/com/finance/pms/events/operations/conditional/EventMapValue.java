@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.operations.conditional;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +39,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.commons.math3.stat.descriptive.rank.Max;
-import org.apache.commons.math3.stat.descriptive.rank.Min;
-
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
@@ -52,7 +48,6 @@ import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.scoring.functions.MyApacheStats;
 
 @XmlRootElement
 public class EventMapValue extends NumericableMapValue implements StringableMapValue, MultiMapValue {
@@ -65,7 +60,6 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 
 	//Cache
 	private SortedMap<Date, Double> collectedUnaryMapValue;
-	private TreeMap<Date, Double> collectedAdditionalOutputs;
 	private TreeMap<Date, String> collectedValueAsStringMap;
 
 	private Boolean isLooseCoupled;

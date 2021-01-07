@@ -32,7 +32,7 @@ public class SeriesPrinter {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         String baseFileName = (forcedBaseFileName == null || forcedBaseFileName.length != 1)?SeriesPrinter.appRunStamp.toString():forcedBaseFileName[0];
-        File exportFile = new File(System.getProperty("installdir") + File.separator + ((subFolder != null)?subFolder + File.separator:"")+ baseFileName + "_" + fileName+".csv");
+        File exportFile = new File(System.getProperty("installdir") + File.separator + ((subFolder != null)? subFolder + File.separator:"") + baseFileName + "_" + fileName+".csv");
 
         try (FileWriter fileWriter = new FileWriter(exportFile); BufferedWriter bufferWriter = new BufferedWriter(fileWriter)) {
             
