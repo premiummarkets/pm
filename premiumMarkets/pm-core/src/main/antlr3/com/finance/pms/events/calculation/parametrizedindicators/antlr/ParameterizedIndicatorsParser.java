@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2020-12-25 01:10:10
+// $ANTLR 3.5.2 com/finance/pms/events/calculation/parametrizedindicators/antlr/ParameterizedIndicators.g 2021-02-04 11:08:56
  //parser
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
     import com.finance.pms.events.calculation.antlr.MyErrorReporter;
@@ -275,7 +275,7 @@ public class ParameterizedIndicatorsParser extends Parser {
 
 			stream_na_event_list_name.add(na_event_list_name4.getTree());
 			// AST REWRITE
-			// elements: also_display, fixed_start_shift, bullish_condition, bearish_condition, na_event_list_name
+			// elements: bullish_condition, bearish_condition, also_display, na_event_list_name, fixed_start_shift
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 

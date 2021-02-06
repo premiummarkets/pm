@@ -399,7 +399,7 @@ presetcondition [CommonTree firstOp] :
       -> ^(LinearDirectedTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"down\""]) {$epsilon.tree} {$firstOp}));
 
 Operation
-      : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
+      : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '.' | '-' | '0'..'9')+
       ;
 
 NumberToken
@@ -407,7 +407,7 @@ NumberToken
       ;
 
 StringToken
-     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_' )* '"'
+     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_' | '/' | ',' | '=' | ('0'..'9') | '?' | ':' | '-' | '>')+ '"'
      ;
 
 HistoricalData

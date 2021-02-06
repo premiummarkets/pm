@@ -72,7 +72,7 @@ public class FlipOperation extends PMWithDataOperation {
 			ret.getValue(targetStock).putAll(fliped);
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
 		}
 		return ret;
 	}

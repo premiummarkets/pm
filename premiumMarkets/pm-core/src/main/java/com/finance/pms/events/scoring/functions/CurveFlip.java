@@ -55,7 +55,7 @@ public class CurveFlip implements CurvesConstantOperation {
 		
 		for (Date date : data1.keySet()) {
 			Double ds1 = data1.get(date);
-			ret.put(date, 2*middle - ds1);
+			ret.put(date, 2 * middle - ds1);
 		}
 
 		return ret;

@@ -47,7 +47,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Median;
 
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public abstract class CurvesComparatorOldBase implements  CurvesComparator {
+public abstract class CurvesComparatorOldBase implements CurvesComparator {
 
 	protected int maxShift;
 	private Date start;

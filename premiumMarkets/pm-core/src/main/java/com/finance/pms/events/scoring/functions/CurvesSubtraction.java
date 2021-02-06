@@ -45,7 +45,7 @@ public class CurvesSubtraction implements CurvesOperation, CurvesConstantOperati
 			double[] ds2 = data2.get(date);
 			if (ds2 != null) {
 				double[] ds1 = data1.get(date);
-				ret.put(date, new double[]{ds1[0] - ds2[0]});
+				ret.put(date, new double[]{operation(ds2[0], ds1[0])});
 			}
 		}
 		
@@ -57,7 +57,7 @@ public class CurvesSubtraction implements CurvesOperation, CurvesConstantOperati
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		for (Date date : data1.keySet()) {
 			double[] ds1 = data1.get(date);
-			ret.put(date, new double[]{ds1[0] - d});
+			ret.put(date, new double[]{operation(d, ds1[0])});
 		}
 
 		return ret;
@@ -68,7 +68,7 @@ public class CurvesSubtraction implements CurvesOperation, CurvesConstantOperati
 		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
 		for (Date date : data1.keySet()) {
 			Double ds1 = data1.get(date);
-			ret.put(date, ds1 - d);
+			ret.put(date, operation(d, ds1));
 		}
 
 		return ret;
@@ -82,11 +82,16 @@ public class CurvesSubtraction implements CurvesOperation, CurvesConstantOperati
 			Double ds2 = data2.get(date);
 			if (ds2 != null) {
 				Double ds1 = data1.get(date);
-				ret.put(date, ds1 - ds2);
+				ret.put(date, operation(ds2, ds1));
 			}
 		}
 		
 		return ret;
 	}
+	
+	protected double operation(double ds2, double ds1) {
+		return ds1 - ds2;
+	}
+
 
 }

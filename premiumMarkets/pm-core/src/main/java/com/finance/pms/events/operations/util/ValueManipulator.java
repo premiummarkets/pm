@@ -6,19 +6,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
 public class ValueManipulator {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(ValueManipulator.class);
 
-	public static List<String> buildOperandReferences(int inputSize, List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
+	public static List<String> buildOperandReferences(List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
 		List<String> inputsOperandsRefs = new ArrayList<String>();
-		IntStream.range(0, inputSize - 1)
+		IntStream.range(0, operands.size())
 				.forEach(i -> {
 					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
 						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
@@ -34,12 +38,19 @@ public class ValueManipulator {
 		return inputsOperandsRefs;
 	}
 
-	public static SortedMap<Date, double[]> buildOneInput(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs) {
+	public static SortedMap<Date, double[]> buildOneInput(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN) {
+		
+		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
+				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))
+				.reduce(new ConcurrentSkipListSet<>(), (a, e) -> { a.addAll(e); return a; });
+		
 		SortedMap<Date, double[]> factorisedInput = new TreeMap<>();
-		for (Date date : ((NumericableMapValue) developpedInputs.get(0)).getDateKeys()) {
+		SortedMap<Date, double[]> trailingNaNInput = new TreeMap<>();
+		for (Date date : allDates) {
 
-			List<Object> valuesList = developpedInputs.stream().map(i -> {
-				//TODO change this and use MultiMapValue features instead.
+			//Values at date can neither be Double, double[] or null. There will be one value per input at date
+			List<Object> valuesAtDate = developpedInputs.stream().map(i -> {
+				//TODO change this and use MultiMapValue features instead or merge the two concepts???
 				if (i instanceof DoubleArrayMapValue) {
 					return ((DoubleArrayMapValue)i).getDoubleArrayValue().get(date);
 				} else {
@@ -47,25 +58,41 @@ public class ValueManipulator {
 				}
 			}).collect(Collectors.toList());
 
-			if (valuesList.stream().noneMatch(v -> v == null)) {
-				double[] array = valuesList.stream()
-						.map(value -> valueToDoubleArray(value)) //Transforms Double to double[]
-						.flatMapToDouble(Arrays::stream).toArray();
+			if (factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(v -> v == null)) //Heading NaN
+				continue;
+			
+			double[] array = valuesAtDate.stream()
+					.map(value -> valueToDoubleArray(value)) //Transforms Potential Doubles to double[]s
+					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
+					.toArray();
+			if (valuesAtDate.stream().noneMatch(v -> v == null)) { //Don't add NaN in this loop
 				factorisedInput.put(date, array);
+			} else { //Only for trailing NaN (this is useful to create dataSet where all targets are not present).
+				trailingNaNInput.put(date, array);
 			}
 
+		}
+		
+		Boolean hasTrailing = !trailingNaNInput.isEmpty();
+		if (allowTrailingNaN) { //Adding potential trailing with NaN
+			Date factorisedLastKey = factorisedInput.lastKey();
+			factorisedInput.putAll(trailingNaNInput.tailMap(factorisedLastKey));
+			hasTrailing = !trailingNaNInput.headMap(factorisedLastKey).isEmpty();
+		}
+		if (hasTrailing) {
+			LOGGER.warn("Non authorised NaN data in series: " + trailingNaNInput);
 		}
 		return factorisedInput;
 	}
 	
 	public static double[] valueToDoubleArray(Object value) {
+		if (value == null) value = Double.NaN;
 		if (value instanceof Double) {
 			return new double[]{((Double) value).doubleValue()};
 		} else if (value instanceof double[]) {
 			return (double[]) value;
 		} else throw new RuntimeException("Map value not supported for " + value + " of type " + value.getClass());
 	}
-	
-	
+
 
 }

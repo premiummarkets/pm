@@ -32,7 +32,7 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 	}
 
 	public OneInputAssemblerOperation() {
-		this("oneInputAssembler", "Assembles several inputs into one input into one output array.",
+		this("oneInputAssembler", "Assembles several inputs into one input array. No NaN permited.",
 				new StringOperation("boolean", "isExportToFile", "If true, exports the result to a file.", new StringValue("FALSE")),
 				new DoubleMapOperation("data", "inputs", "Inputs to assemble in one", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -51,8 +51,8 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 
 		@SuppressWarnings("unchecked")
 		List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs);
-		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(inputs.size(), getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs, false);
+		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 
 		try {
 			if (isExport) {

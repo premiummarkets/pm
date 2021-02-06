@@ -19,7 +19,7 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 
 public class InputExporterOperation extends Operation {
 
-	private static final int FIRST_INPUT = 1;
+	private static final int FIRST_INPUT = 2;
 	private static MyLogger LOGGER = MyLogger.getLogger(InputExporterOperation.class);
 	
 	
@@ -28,7 +28,8 @@ public class InputExporterOperation extends Operation {
 	}
 
 	public InputExporterOperation() {
-		this("outputExporter", "Exports all inputs to a file.",
+		this("outputExporter", "Exports all assembled series to a file. Only tail NaN are permited.",
+				new StringOperation("string", "file name path", "Path of the output", new StringValue("")),
 				new StringOperation("string", "file name prefix", "Will prefix a random file name", new StringValue("")),
 				new DoubleMapOperation("data", "inputs", "Inputs to export", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -43,20 +44,21 @@ public class InputExporterOperation extends Operation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		String filePrefix = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String fileRootPath = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String filePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
 
 		@SuppressWarnings("unchecked")
 		List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs);
-		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(inputs.size(), getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs, true);
+		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 
 		try {
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
-			String filename = filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
+			String fileName = filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
 			series.put(filePrefix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(filePrefix, inputsOperandsRefs);
-			String filePath = SeriesPrinter.printo(filename, "tmp", headersPrefixes, series);
+			String filePath = SeriesPrinter.printo(fileName, fileRootPath, headersPrefixes, series);
 			return new StringValue(filePath);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);

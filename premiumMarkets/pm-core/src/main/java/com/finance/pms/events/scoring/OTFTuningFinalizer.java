@@ -331,7 +331,7 @@ public class OTFTuningFinalizer {
 		} else if (nbFailure == 0) {
 			ret.rating = Double.POSITIVE_INFINITY;
 		} else {
-			Double ln = Math.log(new Double(nbSuccess)/new Double(nbFailure));
+			Double ln = Math.log(Double.valueOf(nbSuccess)/Double.valueOf(nbFailure));
 			ret.rating = ln;
 		}
 
