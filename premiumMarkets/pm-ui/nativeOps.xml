@@ -665,6 +665,17 @@
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
+                    <referenceAsOperand>file name path</referenceAsOperand>
+                    <description>Path of the output</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
                     <referenceAsOperand>file name prefix</referenceAsOperand>
                     <description>Will prefix a random file name</description>
                     <defaultValue xsi:type="stringValue">

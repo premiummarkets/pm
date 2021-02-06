@@ -81,7 +81,7 @@ PropertyChangeListener {
 				 * we're going to change the JOptionPane's
 				 * value property.
 				 */
-				optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+				optionPane.setValue(Integer.valueOf(JOptionPane.CLOSED_OPTION));
 			}
 		});
 

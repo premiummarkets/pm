@@ -124,7 +124,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			logDisplay.pack();
 		}
 
-		double percentDone = (totalIter == 0)? 0 : new Double(nbIterDone)/new Double(totalIter);
+		double percentDone = (totalIter == 0)? 0 : Double.valueOf(nbIterDone)/Double.valueOf(totalIter);
 		progressBar.setSelection((int) Math.rint(percentDone*100));
 
 		this.layout();

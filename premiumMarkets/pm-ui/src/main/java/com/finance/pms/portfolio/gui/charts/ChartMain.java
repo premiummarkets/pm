@@ -500,8 +500,14 @@ public class ChartMain extends Chart {
 										compound = serieDef.getTuningRes().getFollowProfitAt(date);
 										priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
 										periodRoc = period.getPriceRateOfChange();
-										if (period.getTrend().equals(EventType.BULLISH.name()) && periodRoc < 0) return "r" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
-										else if (period.getTrend().equals(EventType.BEARISH.name()) && periodRoc > 0) return "u" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+//										if (period.getTrend().equals(EventType.BULLISH.name()) && periodRoc < 0) return "r" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+//										else if (period.getTrend().equals(EventType.BEARISH.name()) && periodRoc > 0) return "u" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+										boolean selling = period.getTrend().equals(EventType.BULLISH.name()); //finishing period is bull
+										boolean buying = period.getTrend().equals(EventType.BEARISH.name()); //finishing period is bear
+										String note = ((selling && periodRoc < 0) || (buying && periodRoc > 0))?"*":"";
+										String label = "period " + pf.format(periodRoc) + " (cmpnd " + pf.format(compound) + " / b&h " + pf.format(priceChange) + ") " + note;
+										LOGGER.info(((buying)?"Buy":"Sell") + " at " + date + " : " + label);
+										return label;
 									} catch (Exception e) {
 										LOGGER.warn(e,e);
 									}
