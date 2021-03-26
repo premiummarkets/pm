@@ -227,7 +227,7 @@ public class QuotationUpdate {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, stockList.size()));
 		}
 
-		ExecutorService executor = Executors.newFixedThreadPool((new Integer(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.nbthread", "20"))));
+		ExecutorService executor = Executors.newFixedThreadPool((Integer.valueOf(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.nbthread", "20"))));
 		List<Future<GetQuotationResult>> getQuoteRess = new ArrayList<Future<GetQuotationResult>>();
 		while (stlIt.hasNext()) {
 

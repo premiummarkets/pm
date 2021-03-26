@@ -186,7 +186,7 @@ public class GetQuotation  extends Observable implements Callable<GetQuotationRe
 			if (//TODO apply to any with currency factor <> 1
 					Currency.GBP.equals(stock.getMarketValuation().getCurrency()) && 
 					stock.getMarketValuation().getCurrencyFactor().doubleValue() > 1 &&
-					ret.isSuccessfulUpdate && ret.hasNewQuotations
+					(ret.isSuccessfulUpdate  != null && ret.isSuccessfulUpdate) && ret.hasNewQuotations
 			) {
 				QuotationFixer quotationFixer = new QuotationFixer();
 				quotationFixer.fixPennyPound(Arrays.asList(stock));

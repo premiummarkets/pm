@@ -44,6 +44,8 @@ import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
 import org.apache.commons.math3.stat.descriptive.UnivariateStatistic;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.apache.commons.math3.stat.descriptive.rank.Max;
+import org.apache.commons.math3.stat.descriptive.rank.Min;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
@@ -63,7 +65,7 @@ public class StatsOperation extends PMWithDataOperation {
 		super("stat", "Moving statistics",
 				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax"})));
 	}
 
 	public StatsOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -104,6 +106,12 @@ public class StatsOperation extends PMWithDataOperation {
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msum")) {
 				statFunction = lookBack -> lookBack.values().stream().filter(e -> !Double.isNaN(e)).reduce((r, e) -> r + e).orElse(0d);
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmin")) {
+				statFunction = new MyApacheStats(new Min());
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmax")) {
+				statFunction = new MyApacheStats(new Max());
 			}
 
 			if (period.isNaN()) {

@@ -158,7 +158,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			}
 
 			Param expectedParam = (currentOp.undeterministicParamCount())?currentOp.getCurrentParamOrVarArg(currentParamPos):currentOp.getParams().get(currentParamPos);
-			if (!expectedParam.getParamType().equals(paramType)) {
+			if (!ParamType.DATA.equals(paramType) && !expectedParam.getParamType().equals(paramType)) {
 
 				String msg = "Wrong parameter type '" + ((paramType == null)?"Not found in ParamType.valueOfTokenName":paramType.getTypeDescr()) + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
 				System.out.println(msg + " " + token);

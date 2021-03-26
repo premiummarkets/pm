@@ -464,12 +464,35 @@ public class ChartMain extends Chart {
 									default:
 										break;
 									}
+									
+									String profitTip = "";
+									if (serieDef.getTuningRes() != null) {
+										try {
+											List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
+											PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
+											if (period == null) {
+												profitTip = "";
+											} else {
+												double compound = serieDef.getTuningRes().getFollowProfitAt(date);
+												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
+												double periodRoc = period.getPriceRateOfChange();
+												boolean selling = period.getTrend().equals(EventType.BULLISH.name()); //finishing period is bull
+												boolean buying = period.getTrend().equals(EventType.BEARISH.name()); //finishing period is bear
+												String note = ((selling && periodRoc < 0) || (buying && periodRoc > 0))?"*":"";
+												profitTip = "change " + pf.format(periodRoc) + " ( cmpnd " + pf.format(compound) + " / b&h " + pf.format(priceChange) + " ) " + note;
+												LOGGER.info(((buying)?"Buy":"Sell") + " at " + date + " : " + profitTip);
+											}
+										} catch (Exception e) {
+											LOGGER.warn(e,e);
+										}
+									}
 
 									return "<html>" + "<font size='2'>" +
 									"<b>" + serieDef.getStockDescr() + "</b><br>" +
 									"<b>" + serieDef.getEventDisplayeDef() + "</b> on the " + x + "<br>" +
 									"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
 									"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" +
+									((profitTip.isEmpty())?"":"Period&nbsp;&nbsp;&nbsp;: " + profitTip + "<br>") +
 									barSerie.get(date).getToolTip() + "<br>" +
 									"</font>" + "</html>";
 
@@ -488,26 +511,17 @@ public class ChartMain extends Chart {
 						renderer.setSeriesItemLabelGenerator(eventDefSerieIdx, new XYItemLabelGenerator() {
 							@Override
 							public String generateLabel(XYDataset dataset, int series, int item) {
-								double compound = Double.NaN;
-								double priceChange = Double.NaN;
-								double periodRoc = Double.NaN;
 								if (serieDef.getTuningRes() != null) {
 									try {
 										Date date = new Date((long) dataset.getXValue(series, item));
 										List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
 										PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
 										if (period == null) return "";
-										compound = serieDef.getTuningRes().getFollowProfitAt(date);
-										priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
-										periodRoc = period.getPriceRateOfChange();
-//										if (period.getTrend().equals(EventType.BULLISH.name()) && periodRoc < 0) return "r" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
-//										else if (period.getTrend().equals(EventType.BEARISH.name()) && periodRoc > 0) return "u" + pf.format(periodRoc) + " (" + pf.format(compound) + "/" + pf.format(priceChange) + ")";
+										double periodRoc = period.getPriceRateOfChange();
 										boolean selling = period.getTrend().equals(EventType.BULLISH.name()); //finishing period is bull
 										boolean buying = period.getTrend().equals(EventType.BEARISH.name()); //finishing period is bear
 										String note = ((selling && periodRoc < 0) || (buying && periodRoc > 0))?"*":"";
-										String label = "period " + pf.format(periodRoc) + " (cmpnd " + pf.format(compound) + " / b&h " + pf.format(priceChange) + ") " + note;
-										LOGGER.info(((buying)?"Buy":"Sell") + " at " + date + " : " + label);
-										return label;
+										return note;
 									} catch (Exception e) {
 										LOGGER.warn(e,e);
 									}

@@ -30,6 +30,7 @@
 package com.finance.pms.events.gui;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -277,9 +278,10 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected Boolean checkIdCharacters(String identifier, String addMessage) {
+		List<Character> validSpecialChars = Arrays.asList(new Character[] {'_','-','.'});
 		for (int i = 0; i < identifier.length(); i++) {
 			char charAt = identifier.charAt(i);
-			if (!Character.isLetterOrDigit(charAt) && !Character.isWhitespace(charAt)) {
+			if (!Character.isLetterOrDigit(charAt) && !Character.isWhitespace(charAt) && !validSpecialChars.contains(identifier.charAt(i))) {
 				UserDialog dialog = new UserDialog(getShell(), "Please fill in a valid identifier", addMessage);
 				dialog.open();
 				return false;

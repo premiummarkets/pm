@@ -43,7 +43,7 @@ tokens {
         this.errorReporter = errorReporter;
     }
 
-		@Override
+	@Override
     public void reportError(RecognitionException e) {
         if (this.errorReporter !=null) {
           this.errorReporter.report(e);
@@ -128,7 +128,7 @@ operand : stockhistory -> stockhistory | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""]));
 
 HistoricalData
-     : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low'  | 'volume')
+     : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low' | 'volume')
      ;
 MATypeToken
      : {runtimeMATypeOpAhead()}? => ('Sma'|'Ema'|'Wma'|'Dema'|'Tema'| 'Trima'| 'Kama'| 'Mama'| 'T3')
@@ -140,7 +140,7 @@ Nativeop
      : {runtimeNativeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
      ;
 Userop 
-     : {runtimeUserOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')+
+     : {runtimeUserOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '.' | '-' | '0'..'9')+
      ;
 NumberToken 
      : ('-')? ('0'..'9')+ ('.' ('0'..'9')+)?
@@ -152,7 +152,7 @@ OutputSelector
      :	':' ('a'..'z' | 'A'..'Z')+
      ;
 
-//additionnal lexical rules (hidden chars)
+//additional lexical rules (hidden chars)
 WS  
     : (' '|'\r'|'\t'|'\u000C'|'\n') {$channel=HIDDEN;}
     ;

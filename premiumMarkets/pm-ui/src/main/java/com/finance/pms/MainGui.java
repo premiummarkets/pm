@@ -1007,7 +1007,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 		//Post inits
 		//First time update
-		Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
+		Integer hintNumber = Integer.valueOf(MainPMScmd.getMyPrefs().get("email.hint","0"));
 		if (hintNumber == 0) {
 			LOGGER.info("First run : updating quotes");
 			QuotationUpdate quotationUpdate = new QuotationUpdate();
@@ -1317,7 +1317,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			this.winTable[2].dispose();
 			this.getShell().dispose();
 
-			Integer hintNumber = new Integer(MainPMScmd.getMyPrefs().get("email.hint","0"));
+			Integer hintNumber = Integer.valueOf(MainPMScmd.getMyPrefs().get("email.hint","0"));
 			this.emailHint(hintNumber);
 
 			EventTaskQueue.getSingleton().close();

@@ -98,7 +98,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		SortedMap<Date, Double> map = new TreeMap<Date, Double>();
 		for (Date date : dateKeySet){
 			if ((j >= shift) && (j - shift) < array.length) {
-				map.put(date, new Double(array[j - shift]));
+				map.put(date, Double.valueOf(array[j - shift]));
 			}
 			j++;
 		}

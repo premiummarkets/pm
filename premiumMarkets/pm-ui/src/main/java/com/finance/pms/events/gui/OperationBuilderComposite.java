@@ -31,6 +31,7 @@ package com.finance.pms.events.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -421,22 +422,32 @@ public class OperationBuilderComposite extends Composite {
 				}
 
 				private void handleDeleteOp() {
-
-					int selectionIndex = formulaReference.getSelectionIndex();
-
-					OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-					try {
-						deleteFormula(getFormatedReferenceTxt());
-					} finally {
-						OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-					}
-
-					formulaReference.removeAll();
-					isSaved = true;
-					updateCombo(true);
-					if (formulaReference.getItemCount() > 0) {
-						forceSelection(selectionIndex % formulaReference.getItemCount());
-					}
+					
+					openActionDialog(
+							true, null, null, null, "Please, confirm the deletion of " + getFormatedReferenceTxt() + ".",
+							new ActionDialogAction() {
+								@Override
+								public void action() {
+									try {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+										int selectionIndex = formulaReference.getSelectionIndex();
+										try {
+											deleteFormula(getFormatedReferenceTxt());
+										} finally {
+											OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+										}
+										formulaReference.removeAll();
+										isSaved = true;
+										updateCombo(true);
+										if (formulaReference.getItemCount() > 0) {
+											forceSelection(selectionIndex % formulaReference.getItemCount());
+										}
+									} finally {
+										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+									}
+								}
+							},
+							false);
 
 				}
 
@@ -1020,8 +1031,9 @@ public class OperationBuilderComposite extends Composite {
 	}
 
 	protected Boolean checkIdCharacters(String identifier, String addMessage) {
+		List<Character> validSpecialChars = Arrays.asList(new Character[] {'_','-','.'});
 		for (int i = 0; i < identifier.length(); i++) {
-			if (!Character.isLetterOrDigit(identifier.charAt(i)) && identifier.charAt(i) != '_') {
+			if (!Character.isLetterOrDigit(identifier.charAt(i)) && !validSpecialChars.contains(identifier.charAt(i))) {
 				openDialog(true, "Please fill in a valid identifier", addMessage + "Must not contain white spaces.\n");
 				return false;
 			}

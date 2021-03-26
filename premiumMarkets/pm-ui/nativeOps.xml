@@ -171,7 +171,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oneInputAssemblerOperation">
             <reference>oneInputAssembler</reference>
-            <description>Assembles several inputs into one input into one output array.</description>
+            <description>Assembles several inputs into one input array. No NaN permited.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -425,6 +425,8 @@
                 <availableOutputSelector>mstdev</availableOutputSelector>
                 <availableOutputSelector>msimplereg</availableOutputSelector>
                 <availableOutputSelector>msum</availableOutputSelector>
+                <availableOutputSelector>mmin</availableOutputSelector>
+                <availableOutputSelector>mmax</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -661,7 +663,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inputExporterOperation">
             <reference>outputExporter</reference>
-            <description>Exports all inputs to a file.</description>
+            <description>Exports all assembled series to a file. Only tail NaN are permited.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>

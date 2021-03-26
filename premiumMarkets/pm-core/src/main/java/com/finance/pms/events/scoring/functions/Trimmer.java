@@ -35,62 +35,66 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class Trimmer {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(Trimmer.class);
-	
+
+//	private static MyLogger LOGGER = MyLogger.getLogger(Trimmer.class);
+
 	private MyApacheStats stdev;
-	
+
 	private int trimFactor;
 	private Date start;
 	private Date end;
-	
-	
-	public Trimmer(int trimFactor, Date start, Date end) {
+
+	private int slidingPeriod;
+
+	public Trimmer(int slidingPeriod, int trimFactor, Date start, Date end) {
 		super();
-		stdev = new MyApacheStats(new StandardDeviation());
+		this.stdev = new MyApacheStats(new StandardDeviation());
 		
+		this.slidingPeriod = slidingPeriod;
 		this.trimFactor = trimFactor;
-		
 		this.start = start;
-		
+
 		Calendar endCal = Calendar.getInstance();
 		endCal.setTime(end);
 		QuotationsFactories.getFactory().incrementDate(endCal, 1);
 		this.end = endCal.getTime();
 	}
 
-
 	public SortedMap<Date, double[]> trimmed(SortedMap<Date, double[]> data) {
-		
-		SortedMap<Date, double[]> subMap = data.subMap(start, end);
-		
-		double allStdev = stdev.evaluate(subMap.values());
-		LOGGER.info("Overall stdev : "+allStdev);
-		
+
 		SortedMap<Date, double[]> trimedHouseTrend = new TreeMap<Date, double[]>();
+
+		Calendar startDateCal = Calendar.getInstance();
+		startDateCal.setTime(data.firstKey());
+		QuotationsFactories.getFactory().incrementDate(startDateCal, +slidingPeriod);
+		Date startDate = (startDateCal.getTime().compareTo(start) > 0)?startDateCal.getTime():start;
+		SortedMap<Date, double[]> subMap = data.subMap(startDate, end);
 		
-		double positiveMax = trimFactor*allStdev;
-		double negativeMax = trimFactor*allStdev;
+		for (Date date : subMap.keySet()) {
 
-		for (Date date : subMap.keySet()) { 
+			Calendar currentDateCal = Calendar.getInstance();
+			currentDateCal.setTime(date);
+			QuotationsFactories.getFactory().incrementDate(currentDateCal, -slidingPeriod);
+			Date periodStart = currentDateCal.getTime();
+			double periodStdev = stdev.evaluate(data.subMap(periodStart, date).values());
+			double periodMax = trimFactor*periodStdev;
 
-			double[] ds = subMap.get(date);
-			if (ds[0] > positiveMax) {
-				trimedHouseTrend.put(date, new double[]{positiveMax});
-			}
-			else if (ds[0] < -negativeMax) {
-				trimedHouseTrend.put(date, new double[]{-negativeMax});
-			} else {
+			double[] ds = data.get(date);
+			if (Math.abs(ds[0]) <= periodMax) {
 				trimedHouseTrend.put(date, ds);
+			} else {
+				if (ds[0] > 0) {
+					trimedHouseTrend.put(date, new double[] { periodMax });
+				} else {
+					trimedHouseTrend.put(date, new double[] { -periodMax });
+				}
 			}
-			
+
 		}
-		
+
 		return trimedHouseTrend;
 	}
 
