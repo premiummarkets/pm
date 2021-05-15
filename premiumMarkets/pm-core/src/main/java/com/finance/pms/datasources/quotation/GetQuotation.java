@@ -65,7 +65,7 @@ import com.finance.pms.threads.ObserverMsg.ObsKey;
  * 
  * @author Guillaume Thoreton
  */
-public class GetQuotation  extends Observable implements Callable<GetQuotationResult> {
+public class GetQuotation extends Observable implements Callable<GetQuotationResult> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(GetQuotation.class);
 

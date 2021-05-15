@@ -79,13 +79,17 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 		//new DataSource("/home/guil/Developpement/Quotes/pms/db.properties");
 		
 		st = new Stock();
-		st.setSymbol("AFO.PA");
-		st.setIsin("FR0000044612");
-		MarketValuation market = new MarketValuation(Market.PARIS);
+//		st.setSymbol("AFO.PA");
+//		st.setIsin("FR0000044612");
+//		MarketValuation market = new MarketValuation(Market.PARIS);
+//		st.setMarketValuation(market);
+		st.setSymbol("ISF.L");
+		st.setIsin("IE0005042456");
+		MarketValuation market = new MarketValuation(Market.UNKNOWN);
 		st.setMarketValuation(market);
 		
-		
-		formater = new DayQuoteYahooFormater(null, st, st.getMarketValuation().getCurrency().toString());
+//		formater = new DayQuoteYahooFormater(null, st, st.getMarketValuation().getCurrency().toString());
+		formater = new DayQuoteInvestingFormater(null, st);
 		
 		
 	}
@@ -104,7 +108,7 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 	        List<Validatable> queries = new ArrayList<Validatable>();
 	        Set<Validatable> qL= new HashSet<Validatable>();
 	        
-	        try {   	
+	        try {
 	 
 	        	f =  new FileInputStream((new File("/home/guil/Developpement/tmp/GOOG.csv")));
 	            dis = new BufferedReader(new InputStreamReader(f));

@@ -37,6 +37,8 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteInvestingFormater;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
+import com.nixxcode.jvmbrotli.common.BrotliLoader;
+import com.nixxcode.jvmbrotli.dec.BrotliInputStream;
 
 
 public class ProvidersInvesting extends Providers implements QuotationProvider {
@@ -52,6 +54,7 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 	@Override
 	public void getQuotes(Stock stock, Date start, Date end) throws Exception {
 		
+		BrotliLoader.isBrotliAvailable();
 		
 		String symbolRoot = stock.getSymbolRoot();
 		TreeSet<Validatable> queries = new TreeSet<>();
@@ -66,7 +69,9 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 			//	
 			CloseableHttpResponse searchResponse = httpClient.execute(searchRequest);
 			HttpEntity searchResponseEntity = searchResponse.getEntity();
-			try (InputStream searchContent = searchResponseEntity.getContent()){
+			try (InputStream searchContent =
+					(searchResponseEntity.getContentEncoding().getValue().equals("br"))?
+							new BrotliInputStream(searchResponseEntity.getContent()):searchResponseEntity.getContent()){
 				Integer pair_ID = extractPairId(stock, symbolRoot, searchContent);
 				HttpPost request = new HttpPost("https://www.investing.com/instruments/HistoricalDataAjax");
 				initHeaders(request);
@@ -87,10 +92,13 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 				
 				CloseableHttpResponse response = httpClient.execute(request);
 				HttpEntity responseEntity = response.getEntity();
-				try (BufferedReader content = new BufferedReader(new InputStreamReader(responseEntity.getContent()))){
+				try (BufferedReader content = new BufferedReader(new InputStreamReader(
+						(responseEntity.getContentEncoding().getValue().equals("br"))?
+								new BrotliInputStream(responseEntity.getContent()):responseEntity.getContent()))) {
 					DayQuoteInvestingFormater dayQuoteInvestingFormater = new DayQuoteInvestingFormater(null, stock);
 					String line = "";
 					while ((line = content.readLine()) != null) {
+						System.out.println(line);
 						List<Validatable> formatLine = dayQuoteInvestingFormater.formatLine(line);
 						queries.addAll(formatLine);
 					};
