@@ -113,10 +113,10 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = 2; i < mainInputPosition(); i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
 	}

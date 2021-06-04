@@ -165,10 +165,10 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	}
 
 	@Override //Adding shift inherent to over, for and spanning
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = 0; i < OTHER_PARAMS; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
 	}

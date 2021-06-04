@@ -71,7 +71,7 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 

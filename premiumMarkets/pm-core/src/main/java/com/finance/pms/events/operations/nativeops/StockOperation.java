@@ -51,7 +51,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 
 
 @XmlRootElement
-public class StockOperation extends DoubleMapOperation {
+public class StockOperation extends DoubleMapOperation implements CachableOperation {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(StockOperation.class);
 
@@ -138,8 +138,13 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 1;
+	}
+
+	@Override
+	public Integer operationNaturalShift() {
+		return 0;
 	}
 
 }

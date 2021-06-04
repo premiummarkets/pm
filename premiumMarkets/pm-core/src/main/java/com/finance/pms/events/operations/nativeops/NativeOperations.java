@@ -29,13 +29,13 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.finance.pms.events.operations.Operation;
 
 public interface NativeOperations {
 
-	public abstract Map<String, Operation> getOperations();
+	public abstract ConcurrentHashMap<String, Operation> getOperations();
 
 	public abstract void addOperation(Operation operation);
 

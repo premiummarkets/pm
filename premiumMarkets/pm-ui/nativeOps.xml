@@ -121,6 +121,47 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="csvFileFilterOperation">
+            <reference>csvFilterOperation</reference>
+            <description>Loads filtered data from a csv file. Only the last match is returned.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>filePath</referenceAsOperand>
+                    <description>CSV File Path</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>autoPortfolioLogs/input.csv</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>columnIndex</referenceAsOperand>
+                    <description>Index of the column to retrieve</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>pattern</referenceAsOperand>
+                    <description>Simple pattern (.*[]{,}+ accepted), or contained sequence, used to filter one line.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>None</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="lnPeriodicOperation">
             <reference>periodicLn_</reference>
             <description>ln(n/(n-p)) ~ House Trend in base 'e'</description>
@@ -210,6 +251,25 @@
                 <operand xsi:type="doubleMapOperation">
                     <reference>subtrahend</reference>
                     <description>subtrahend</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockInfoOperation">
+            <reference>targetStockInfo</reference>
+            <description>Return informations about the targeted stock and dates bondaries</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>TargetStockInfo retreived</referenceAsOperand>
+                    <description>TargetStockInfo retreived</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>symbol</stringValue>
+                    </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>

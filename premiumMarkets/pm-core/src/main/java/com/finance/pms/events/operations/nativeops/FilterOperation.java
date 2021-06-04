@@ -95,7 +95,7 @@ public class FilterOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 

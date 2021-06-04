@@ -15,14 +15,14 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	private Boolean displayOnChart;
 
-	public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue disciminentConstant, Boolean displayOnChart) {
+	public OutputDescr(OutputReference outputReference, ChartedOutputGroup container, Type type, Integer outputIndex, StringableValue discriminentConstant, Boolean displayOnChart) {
 		super();
 		this.outputReference = outputReference;
 		this.container = container;
 
 		this.type = type;
 		this.outputIndex = outputIndex;
-		this.discriminentConstant = disciminentConstant;
+		this.discriminentConstant = discriminentConstant;
 
 		this.displayOnChart = displayOnChart;
 	}

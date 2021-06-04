@@ -41,9 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.antlr.runtime.tree.CommonTree;
 
@@ -105,21 +104,21 @@ public abstract class ANTLRParserHelper {
 		return parsedLine;
 	}
 
-	protected SortedSet<EditorOpDescr> userCurrentOpEditorDescrs;
-	protected SortedSet<EditorOpDescr> nativeOpEditorDescrs;
+	protected ConcurrentSkipListSet<EditorOpDescr> userCurrentOpEditorDescrs;
+	protected ConcurrentSkipListSet<EditorOpDescr> nativeOpEditorDescrs;
 
 	public abstract CommonTree buildTree(InputStream inputStream)  throws Exception;
 
 	public abstract NextToken checkNextToken(InputStream inputStream) throws IllegalArgumentException ;
 
 	public void updateEditableOperationLists(Map<String, Operation> nativeOperations, Map<String, Operation> userCurrentOperations) {
-		this.nativeOpEditorDescrs = new TreeSet<EditorOpDescr>();
+		this.nativeOpEditorDescrs = new ConcurrentSkipListSet<EditorOpDescr>();
 		updateNativeOperationList(nativeOperations, this.nativeOpEditorDescrs);
-		LOGGER.debug("available native ops : " + this.nativeOpEditorDescrs);
+		//LOGGER.debug("available native ops : " + this.nativeOpEditorDescrs);
 
-		this.userCurrentOpEditorDescrs = new TreeSet<EditorOpDescr>();
+		this.userCurrentOpEditorDescrs = new ConcurrentSkipListSet<EditorOpDescr>();
 		updateUserOperationList(userCurrentOperations, this.userCurrentOpEditorDescrs);
-		LOGGER.debug("available user ops : " + this.userCurrentOpEditorDescrs);
+		//LOGGER.debug("available user ops : " + this.userCurrentOpEditorDescrs);
 	}
 
 	//XXX Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either

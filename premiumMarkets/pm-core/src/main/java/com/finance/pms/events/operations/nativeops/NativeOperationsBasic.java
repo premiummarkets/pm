@@ -29,10 +29,9 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -55,8 +54,8 @@ public class NativeOperationsBasic implements NativeOperations {
 	}
 
 	@Override
-	public Map<String, Operation> getOperations() {
-		Map<String, Operation> ret = new HashMap<String, Operation>();
+	public ConcurrentHashMap<String, Operation> getOperations() {
+		ConcurrentHashMap<String, Operation> ret = new ConcurrentHashMap<String, Operation>();
 		for (Operation operation : operations) {
 			//TODO Lower?
 			ret.put(operation.getReference(), operation);

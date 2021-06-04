@@ -61,7 +61,7 @@ public class NumberOperation extends Operation implements LeafOperation {
 
 	@Override
 	//A parameter here is actually the value of the constant as in the formulae?
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return (getParameter() != null )?((NumberValue) getParameter()).getValue(null).intValue():0;
 	}
 

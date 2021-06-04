@@ -77,7 +77,7 @@ public class LeftShifterOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue();
 	}
 

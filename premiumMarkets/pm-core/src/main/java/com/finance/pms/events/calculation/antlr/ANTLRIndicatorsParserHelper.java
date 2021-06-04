@@ -43,6 +43,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -578,6 +579,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 
 	private void addUsualSuspectSuggestions(String prefix, String suffix, SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList, int[] eofPosition) {
+		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "with" + suffix, "Insert", "To add a 'precondition' expression", null, eofPosition));
 		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "matching" + suffix, "Insert", "To add a 'matching' expression", null, eofPosition));
 		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "or" + suffix, "Insert", "To add an 'or' expression", null, eofPosition));
 		altPrioListForTokType(priorityList, AltType.SUGGESTION, 1).add(new Alternative(AltType.SUGGESTION, TokenType.KEYWORDS, prefix + "and" + suffix, "Insert", "To  add an 'and' expression", null, eofPosition));
@@ -660,9 +662,9 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 	}
 
 
-	private SortedSet<EditorOpDescr> filterParamLessOps(Set<EditorOpDescr> ops) {
+	private ConcurrentSkipListSet<EditorOpDescr> filterParamLessOps(Set<EditorOpDescr> ops) {
 
-		SortedSet<EditorOpDescr>  paramLessOps = new TreeSet<EditorOpDescr>(new Comparator<EditorOpDescr>() {
+		ConcurrentSkipListSet<EditorOpDescr>  paramLessOps = new ConcurrentSkipListSet<EditorOpDescr>(new Comparator<EditorOpDescr>() {
 			@Override
 			public int compare(EditorOpDescr o1, EditorOpDescr o2) {
 				return o1.getName().compareTo(o2.getName());

@@ -38,6 +38,7 @@ import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
@@ -60,6 +61,7 @@ import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
+import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.nativeops.UnaryDivision;
 import com.finance.pms.events.operations.nativeops.UnaryProduct;
 import com.finance.pms.events.operations.nativeops.UnarySum;
@@ -102,8 +104,11 @@ public class NativesXmlManager {
 		UnaryDivision unaryDivision = new UnaryDivision();
 		nativeOperations.addOperation(unaryDivision);
 
+		//Stock
 		StockOperation stockOperation = new StockOperation();
 		nativeOperations.addOperation(stockOperation);
+		TargetStockInfoOperation targetStockInfoOperation = new TargetStockInfoOperation();
+		nativeOperations.addOperation(targetStockInfoOperation);
 
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();
@@ -136,6 +141,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(oneInputAssemblerOperation);
 		InputExporterOperation inputExporterOperation = new InputExporterOperation();
 		nativeOperations.addOperation(inputExporterOperation);
+		CsvFileFilterOperation csvFileFilterOperation = new CsvFileFilterOperation();
+		nativeOperations.addOperation(csvFileFilterOperation);
 
 		//Other
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();

@@ -78,7 +78,7 @@ public class InverseOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 }

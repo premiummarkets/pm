@@ -32,9 +32,8 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -95,8 +94,8 @@ public class NativeParametrizedIndicators {
 		}
 	}
 
-	public Map<String, Operation> getCalculators() {
-		Map<String, Operation> ret = new HashMap<String, Operation>();
+	public ConcurrentHashMap<String, Operation> getCalculators() {
+		ConcurrentHashMap<String, Operation> ret = new ConcurrentHashMap<String, Operation>();
 		for (Operation operation : calculators) {
 			//TODO lower?
 			ret.put(operation.getReference(), operation);

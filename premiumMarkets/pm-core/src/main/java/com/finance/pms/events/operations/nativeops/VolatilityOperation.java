@@ -123,10 +123,10 @@ public class VolatilityOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = 0; i < DATA_IDX; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift() + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift() + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;
 		}
 		return maxDateShift;
 	}

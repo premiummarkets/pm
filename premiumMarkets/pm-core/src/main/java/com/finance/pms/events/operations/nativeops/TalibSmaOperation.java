@@ -85,7 +85,7 @@ public class TalibSmaOperation extends TalibOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue()*7/5;
 	}
 

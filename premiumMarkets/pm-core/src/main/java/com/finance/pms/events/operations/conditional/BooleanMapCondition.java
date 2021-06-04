@@ -107,9 +107,9 @@ public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 				}
 				else if (exactDataSet) {
 					gruyereDetected = true;
-					//Detection of on element in an operand being not present at date in an other operand
+					//Detection of an element in an operand being not present at date in an other operand
 					//Will result in an empty output when the comparison is required exactDataSet true.
-					//ex : NOT, !linient AND
+					//ex : NOT, !lenient AND
 					//Otherwise the present elements will be compared ignoring the missing operand element.
 					//ex : OR
 					break;

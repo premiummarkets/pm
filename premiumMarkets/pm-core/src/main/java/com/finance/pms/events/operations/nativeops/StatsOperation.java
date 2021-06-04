@@ -131,10 +131,10 @@ public class StatsOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = 0; i < 1; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
 	}

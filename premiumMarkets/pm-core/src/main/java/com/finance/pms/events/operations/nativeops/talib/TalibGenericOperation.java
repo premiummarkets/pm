@@ -229,7 +229,7 @@ public class TalibGenericOperation extends TalibOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 
 		int thisOperationStartShift = 0;
 		for (int i = 0; i < inConstantsNames.size(); i++) {

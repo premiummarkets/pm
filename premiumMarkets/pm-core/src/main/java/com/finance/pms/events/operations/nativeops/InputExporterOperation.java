@@ -68,7 +68,7 @@ public class InputExporterOperation extends Operation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 	
@@ -79,7 +79,7 @@ public class InputExporterOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
-		//Nothing have exports have a unique name
+		//Nothing as exports have a unique name
 	}
 
 }

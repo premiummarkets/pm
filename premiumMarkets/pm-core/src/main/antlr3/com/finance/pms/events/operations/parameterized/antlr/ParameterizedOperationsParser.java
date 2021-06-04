@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2021-03-27 21:15:20
+// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2021-06-04 00:51:23
  //parser
     package com.finance.pms.events.operations.parameterized.antlr;
     import com.finance.pms.events.calculation.antlr.IErrorReporter;
@@ -352,7 +352,7 @@ public class ParameterizedOperationsParser extends Parser {
 			stream_21.add(char_literal5);
 
 			// AST REWRITE
-			// elements: Nativeop, OutputSelector, params
+			// elements: Nativeop, params, OutputSelector
 			// token labels: 
 			// rule labels: retval
 			// token list labels: 

@@ -82,7 +82,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 

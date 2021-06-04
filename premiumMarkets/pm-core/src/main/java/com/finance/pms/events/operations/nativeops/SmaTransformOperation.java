@@ -81,8 +81,8 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 	}
 
 	@Override
-	public int operationStartDateShift() {
-		int shift = getOperands().get(0).operationStartDateShift() + getOperands().get(1).operationStartDateShift();
+	public int operandsRequiredStartShift() {
+		int shift = getOperands().get(0).operandsRequiredStartShift() + getOperands().get(1).operandsRequiredStartShift();
 		return shift;
 	}
 

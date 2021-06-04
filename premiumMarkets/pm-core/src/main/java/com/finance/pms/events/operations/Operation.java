@@ -45,14 +45,16 @@ import javax.xml.bind.annotation.XmlType;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.Condition;
+import com.finance.pms.events.operations.nativeops.CachableOperation;
+import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.InputExporterOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 /**
@@ -61,7 +63,11 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
  * Parameters : preset operands already resolved.
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
-@XmlSeeAlso({Condition.class, MapOperation.class, MATypeOperation.class, NumberOperation.class, StringOperation.class, InputExporterOperation.class})
+@XmlSeeAlso({
+	Condition.class, MapOperation.class,
+	MATypeOperation.class, NumberOperation.class, StringOperation.class,
+	TargetStockInfoOperation.class,
+	InputExporterOperation.class, CsvFileFilterOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -141,13 +147,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.disabled = false;
 	}
 
-	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentStartShift) {
+	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift) {
 
 		String thisCallStack = parentCallStack + "=>" + this.shortOutputReference();
-		int thisStartShift = parentStartShift + operationStartDateShift();
+		int thisOperandsRequiredStartShift = parentRequiredStartShift + operandsRequiredStartShift();
 		LOGGER.debug("Calculating:" + this.shortOutputReference() +
 				"\n\tCall stack : " + thisCallStack +
-				"\n\tStart shift: " + thisStartShift + " with parent " + parentStartShift);
+				"\n\tOperands Required Start shift: " + thisOperandsRequiredStartShift + " with additional required from parent " + parentRequiredStartShift);
 
 		Value<?> alreadyCalculated = null;
 		try {
@@ -155,7 +161,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			if (parameter != null) {
 				return parameter;
 			}
-			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisStartShift)) != null) {
+			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), parentRequiredStartShift)) != null) {
 				return alreadyCalculated;
 			}
 			else {
@@ -164,17 +170,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				for (int i = 0; i < operands.size(); i++) {
 
 					Operation operand = operands.get(i);
-					Value<?> output = operand.run(targetStock, thisCallStack, thisStartShift);
+					Value<?> output = operand.run(targetStock, thisCallStack, thisOperandsRequiredStartShift);
 					operandsOutputs.add(output);
 
-					gatherCalculatedOutput(targetStock, operand, output, thisStartShift);
+					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift);
 
 				}
 
 				targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
 
-				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent " + parentStartShift + " and parent+this " + thisStartShift);
-				Value<?> operationOutput = calculate(targetStock, thisStartShift, operandsOutputs);
+				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift " + parentRequiredStartShift + " and parent+this " + thisOperandsRequiredStartShift);
+				Value<?> operationOutput = calculate(targetStock, thisOperandsRequiredStartShift, operandsOutputs);
 
 				if (LOGGER.isDebugEnabled())
 					LOGGER.debug("Operation " + this.getReference() + ((this.getOutputSelector() != null)?":" + this.getOutputSelector():"") + " returns " + operationOutput.toString());
@@ -189,15 +195,20 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
-	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int startShift) {
+	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift) {
+		
+		Integer storedStartShift = operandRequiredstartShift;
+		if (operand instanceof CachableOperation) {
+			storedStartShift = Math.max(operandRequiredstartShift, ((CachableOperation) operand).operationNaturalShift());
+		}
 
 		//We gather only outputs for StockOperation and User formulas.
-		if ( (output instanceof NumericableMapValue && (operand.getFormulae() != null)) || operand instanceof StockOperation) {
-			targetStock.gatherOneOutput(operand, output, Optional.empty(), startShift);
+		if ( (output instanceof NumericableMapValue && (operand.getFormulae() != null)) || operand instanceof CachableOperation) {
+			targetStock.gatherOneOutput(operand, output, Optional.empty(), storedStartShift);
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
-			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, startShift);
+			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, storedStartShift);
 		}
 
 	}
@@ -554,7 +565,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.operands.set(i, replacementOp);
 	}
 
-	public abstract int operationStartDateShift();
+	public abstract int operandsRequiredStartShift();
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
 	//This can be overridden by making this operation itself not idempotent

@@ -85,7 +85,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		if (!startShiftOverrideValue.equals(-1)) {
 			operationStartDateShift = startShiftOverrideValue;
 		} else {
-			operationStartDateShift = this.eventInfoOpsCompoOperationHolder.operationStartDateShift();
+			operationStartDateShift = this.eventInfoOpsCompoOperationHolder.operandsRequiredStartShift();
 		}
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
@@ -162,12 +162,16 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			List<Object> normOutputs = new ArrayList<>();
 			SortedSet<Date> fullDateSet = new TreeSet<>();
 
-			//Add UnarableMapValue outputs
+			//Add NumericableMapValue outputs
 			for (Output output : gatheredOutputs) {
 				Value<?> outputData = output.getOutputData();
 				if (outputData != null) {
 					SortedMap<Date, Double> data;
-					data = ((NumericableMapValue) outputData).getValue(targetStock);
+					if (outputData instanceof NumericableMapValue) {
+						data = ((NumericableMapValue) outputData).getValue(targetStock);
+					} else {
+						data = new TreeMap<>();
+					}
 					normOutputs.add(data);
 					fullDateSet.addAll(data.keySet());
 				}

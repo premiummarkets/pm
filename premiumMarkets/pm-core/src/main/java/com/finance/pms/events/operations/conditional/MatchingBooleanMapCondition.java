@@ -115,9 +115,12 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 
 		//Series
 		int inputMapsStartIdx = sofSize + constantInputSize; //sof size + constants size
+		
+		//Unary check
 		if (inputs.size() - inputMapsStartIdx == 1) { //Only one map was passed => return as is
 			return (BooleanMapValue) inputs.get(inputMapsStartIdx);
 		}
+		
 		List<BooleanMultiMapValue> checkedInputMaps = (List<BooleanMultiMapValue>) inputs.subList(inputMapsStartIdx, inputs.size());
 
 		//Build cmp : for each inputs -> for each additional output : build a list of maps one per input. Each map being <Date, Additional output> with date being the end of each additional output.

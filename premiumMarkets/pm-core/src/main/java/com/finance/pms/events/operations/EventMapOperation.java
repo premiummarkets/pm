@@ -36,7 +36,7 @@ public class EventMapOperation extends MapOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 

@@ -14,7 +14,8 @@ tokens {
   String;
 
   NullCondition;
-
+  
+  PreAndSignalCondition ;
   TruthOfCondition ;
   OrBooleanMapCondition ;
   AndBooleanMapCondition ;
@@ -46,7 +47,7 @@ tokens {
   LinearSimilarTrendsCondition ;
   LinearOppositeTrendsCondition ;
   LinearDirectedTrendsCondition ;
-  
+
   MatchingBooleanMapCondition ;
 
   EqualStringConstantCondition ;
@@ -56,6 +57,7 @@ tokens {
 
   OR ='or';
   AND ='and';
+  WITH ='with';
   MATCHING = 'matching';
   LENIENT = 'lenient';
   NOT = 'not';
@@ -200,7 +202,10 @@ and_expression :
   or_expression lenientParam=lenient (WhiteChar AND WhiteChar or_expression)* -> ^(AndBooleanMapCondition {$lenientParam.tree} or_expression or_expression*)
   ;
 or_expression :
-  matches_expression (WhiteChar OR WhiteChar matches_expression)* -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) matches_expression matches_expression*)
+  precondition_expression (WhiteChar OR WhiteChar precondition_expression)* -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) precondition_expression precondition_expression*)
+  ;
+precondition_expression :
+  matches_expression (WhiteChar WITH WhiteChar matches_expression)* -> ^(PreAndSignalCondition matches_expression matches_expression*)
   ;
 matches_expression :
   atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingBooleanMapCondition constant* atom atom?)

@@ -139,10 +139,10 @@ public abstract class LinearTrendsCondition extends DiscreteLinearOutputsConditi
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = 0; i <= getLastPeriodsIndex(); i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
 	}

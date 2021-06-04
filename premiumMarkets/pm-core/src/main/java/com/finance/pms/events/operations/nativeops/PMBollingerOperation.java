@@ -118,8 +118,8 @@ public class PMBollingerOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
-		return getOperands().get(0).operationStartDateShift() + 1;
+	public int operandsRequiredStartShift() {
+		return getOperands().get(0).operandsRequiredStartShift() + 1;
 	}
 
 }

@@ -81,6 +81,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	CrossDoubleMapCondition.class,
 	EqualStringConstantCondition.class,
 	NullCondition.class,
+	PreAndSignalCondition.class,
 	ReverseCondition.class,
 	DiscreteLinearOutputsCondition.class})
 public class Condition<T> extends Operation {
@@ -111,7 +112,7 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		return 0;
 	}
 

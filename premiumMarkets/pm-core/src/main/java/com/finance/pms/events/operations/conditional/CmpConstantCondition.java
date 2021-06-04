@@ -89,7 +89,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue()/100;
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
-		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
+		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period " + overPeriod + " and For Period " + forPeriod + " is not supported.");
 
 		BooleanMapValue outputs = new  BooleanMapValue();
 		if (Double.isNaN(threshold)) return outputs;
@@ -129,10 +129,10 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	}
 
 	@Override //Adding shift inherent to over, for and spanning
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = inputThresholdPosition()+1; i < OTHER_PARAMS; i++) { //epsilon is not part of the shift
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
 	}

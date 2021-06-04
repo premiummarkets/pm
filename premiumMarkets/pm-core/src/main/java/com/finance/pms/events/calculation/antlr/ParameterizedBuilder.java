@@ -44,6 +44,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
@@ -86,9 +87,9 @@ public abstract class ParameterizedBuilder extends Observable {
 	protected ParsingQueueProvider parsingQueueProvider;
 
 	//Pre parameterised xml native ops.
-	protected Map<String, Operation> nativeOperations;
+	protected ConcurrentHashMap<String, Operation> nativeOperations;
 	//User defined formula.txt ops 
-	protected Map<String, Operation> currentOperations;
+	protected ConcurrentHashMap<String, Operation> currentOperations;
 
 	public static String readableCamelCase(String desrc) {
 
@@ -111,7 +112,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 	public ParameterizedBuilder() {
-		currentOperations = new HashMap<String, Operation>();
+		currentOperations = new ConcurrentHashMap<>();
 	}
 
 	//Returns everything (Sync==true)

@@ -74,7 +74,7 @@ public class MyLogger {
 		return new MyLogger(Logger.getLogger(clazz));
 	}
 
-	private static long msgDelay = new Long(MainPMScmd.getMyPrefs().get("mail.log.delay", "4000"));
+	private static long msgDelay = Long.valueOf(MainPMScmd.getMyPrefs().get("mail.log.delay", "4000"));
 
 	private static String mailUserName = null;
 	private static String mailPassword = null; 

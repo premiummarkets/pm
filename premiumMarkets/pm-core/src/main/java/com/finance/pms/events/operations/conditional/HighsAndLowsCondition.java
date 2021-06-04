@@ -289,10 +289,10 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 	}
 
 	@Override
-	public int operationStartDateShift() {
+	public int operandsRequiredStartShift() {
 		int maxDateShift = 0;
 		for (int i = 0; i < THRESHOLDS_IDX; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operationStartDateShift();
+			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
 	}

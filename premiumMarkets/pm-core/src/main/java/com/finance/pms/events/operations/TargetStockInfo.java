@@ -55,11 +55,11 @@ import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
+import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.operations.nativeops.StockOperation;
 
 public class TargetStockInfo {
 
@@ -201,21 +201,21 @@ public class TargetStockInfo {
 		outputAnalysers.put(new OutputReference(operation, operation.getOutputSelector()), eventAnalyser);
 	}
 
-	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int startShift) {
-		if (outputSelector == null && operation.getFormulae() == null && !(operation instanceof StockOperation)) return null;
+	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int parentRequiredStartShift) {
+		if (outputSelector == null && operation.getFormulae() == null && !(operation instanceof CachableOperation)) return null;
 		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation, outputSelector)));
-		if (indexOf == -1 || (startShift > calculatedOutputsCache.get(indexOf).getStartShift())) {
+		if (indexOf == -1 || (parentRequiredStartShift > calculatedOutputsCache.get(indexOf).getStartShift())) {
 			return null;
 		}
 		return calculatedOutputsCache.get(indexOf).outputData;
 	}
 
-	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int startShift) {
+	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int oprationRequiredStartShift) {
 
-		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), startShift);
+		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), oprationRequiredStartShift);
 		if (alreadyCalculated != null) {
 			if (getIndexOfChartableOutput(operation, outputDiscriminator.orElse(operation.getOutputSelector())) == -1) {
-				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, startShift));
+				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, oprationRequiredStartShift));
 			}
 			return;
 		}
@@ -227,18 +227,18 @@ public class TargetStockInfo {
 				String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("); //encogPlus:xxxxx(... => encogPlus:selector(...
 				//constant = null as the selector output as to be an UnarableMapValue and hence can't be a constant.
 				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference());
-				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), startShift));
+				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), oprationRequiredStartShift));
 			}
 			//Only make available for chart the specific selector
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
-			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, startShift));
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, oprationRequiredStartShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
 			((DoubleArrayMapValue) outputValue).getColumnsReferences().stream().forEach(ref -> {
-				Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), startShift);
+				Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), oprationRequiredStartShift);
 				this.gatheredChartableOutputs.add(outputHolder);
 			});
 		} else {
-			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, startShift);
+			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, oprationRequiredStartShift);
 			this.calculatedOutputsCache.add(outputHolder);
 			this.gatheredChartableOutputs.add(outputHolder);
 		}
