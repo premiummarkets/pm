@@ -40,8 +40,9 @@ public class OutputReference implements Comparable<OutputReference> {
 	private String formula;
 	private String referenceAsOperand;
 	private StringableValue constant;
+	private String fullOperationString;
 
-	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, StringableValue constant, String operationReference) {
+	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, StringableValue constant, String operationReference, String operationFullString) {
 
 		//These are just names edited and don't discriminate the calculation
 		this.reference = reference;
@@ -51,6 +52,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.operationReference = operationReference;
 		this.outputSelector = outputSelector;
 		this.formula = formula;
+		this.fullOperationString = operationFullString.replaceAll("\\s+","");
 		this.constant = constant;
 
 	}
@@ -64,6 +66,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		this.operationReference = operation.getOperationReference();
 		this.outputSelector = multiOutputDiscriminator;
 		this.formula = operation.getFormulae();
+		this.fullOperationString = operation.toFullString().replaceAll("\\s+","");
 	}
 
 	@Override
@@ -71,6 +74,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((formula == null) ? 0 : formula.replaceAll("\\s+","").hashCode());
+		result = prime * result + ((fullOperationString == null) ? 0 : fullOperationString.hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
 		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
@@ -94,6 +98,15 @@ public class OutputReference implements Comparable<OutputReference> {
 		else if (other.formula == null) 
 			return false;
 		else if (!formula.replaceAll("\\s+","").equals(other.formula.replaceAll("\\s+","")))
+			return false;
+		
+		if (fullOperationString == null) {
+			if (other.fullOperationString != null)
+				return false;
+		}
+		else if (other.fullOperationString == null) 
+			return false;
+		else if (!fullOperationString.equals(other.fullOperationString))
 			return false;
 
 		if (outputSelector == null) {
@@ -150,6 +163,20 @@ public class OutputReference implements Comparable<OutputReference> {
 			}
 		}
 		if (compareTo == 0) {
+			if (this.fullOperationString == null && o.fullOperationString == null) {
+				compareTo = 0;
+			} 
+			else if (this.fullOperationString == null) {
+				compareTo = 1;
+			}
+			else if (o.fullOperationString == null) {
+				compareTo = -1;
+			}
+			else {
+				compareTo = this.fullOperationString.compareTo(o.fullOperationString);
+			}
+		}
+		if (compareTo == 0) {
 			if (this.constant == null && o.constant == null) {
 				compareTo = 0;
 			}
@@ -173,7 +200,8 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	@Override
 	public String toString() {
-		return "OutputReference [constant=" + constant + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", operationReference=" + operationReference + ", outputSelector=" + outputSelector + ", formula=" + formula + "]";
+		return "OutputReference [constant=" + constant + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", operationReference=" + operationReference +
+				", outputSelector=" + outputSelector + ", formula=" + formula + ", fullOperationString=" + fullOperationString + "]";
 	}
 
 	public String getOperationReference() {

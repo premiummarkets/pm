@@ -55,7 +55,6 @@ import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
-import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -202,7 +201,7 @@ public class TargetStockInfo {
 	}
 
 	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int parentRequiredStartShift) {
-		if (outputSelector == null && operation.getFormulae() == null && !(operation instanceof CachableOperation)) return null;
+		//XXX All operation will be checked although we know only numericable outputs and outputs for cachable are stored?/
 		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation, outputSelector)));
 		if (indexOf == -1 || (parentRequiredStartShift > calculatedOutputsCache.get(indexOf).getStartShift())) {
 			return null;
@@ -226,7 +225,8 @@ public class TargetStockInfo {
 				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
 				String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("); //encogPlus:xxxxx(... => encogPlus:selector(...
 				//constant = null as the selector output as to be an UnarableMapValue and hence can't be a constant.
-				OutputReference outputReference = new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference());
+				OutputReference outputReference = 
+						new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference(), operation.toFullString());
 				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), oprationRequiredStartShift));
 			}
 			//Only make available for chart the specific selector
@@ -447,8 +447,8 @@ public class TargetStockInfo {
 						LOGGER.info("Chart adding MutliMapValues with main " + operand.shortOutputReference() + " as operation with formulae. Group Id " + multiVChartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 						addChartInfoForAdditonalOutputs(operand, multiMapValueOutputTypes, getIndexOfChartableOutput(operand, operand.getOutputSelector()));
 					}
-					//We include only the remaining potential ChartableWithMain as other cases may cause scaling issues?
-					else if (chartedOutputGroup == null) { //Not a User defined operand and No main has been set for potential other operands in witch group the MutliMapValues of this operand could be reflected (case removed).
+					//We include only the remaining potential ChartableWithMain as other cases may cause scaling issues? This also includes anonymous user defined operations
+					else if (chartedOutputGroup == null) { //Not a User defined operand (or it is an anonymously User defined operand) and No main has been set for potential other operands in which group the MutliMapValues of this operand could be reflected (case removed).
 						if (operand instanceof ChartableWithMain) { //This operand itself has a main among its own operands. We reuse this main operand and group.
 							Operation mainOperandOfOperand = operand.getOperands().get(((ChartableWithMain) operand).mainInputPosition());
 							Optional<String> outputSelector = Optional.ofNullable(mainOperandOfOperand.getOutputSelector());

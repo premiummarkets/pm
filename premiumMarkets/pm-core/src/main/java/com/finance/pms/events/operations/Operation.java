@@ -202,8 +202,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			storedStartShift = Math.max(operandRequiredstartShift, ((CachableOperation) operand).operationNaturalShift());
 		}
 
-		//We gather only outputs for StockOperation and User formulas.
-		if ( (output instanceof NumericableMapValue && (operand.getFormulae() != null)) || operand instanceof CachableOperation) {
+		//We gather only outputs for Numericable outputs or if explicitly Cachable
+		if ( output instanceof NumericableMapValue || operand instanceof CachableOperation) {
 			targetStock.gatherOneOutput(operand, output, Optional.empty(), storedStartShift);
 		}
 		//We also gather extraneous chartable outputs from conditions.
