@@ -1,6 +1,7 @@
 package com.finance.pms.datasources.quotation;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -68,7 +69,7 @@ public class GetInflation {
 
 		BigDecimal inflationAtFirst = firstQs.getCloseSplit();
 		BigDecimal inflationAtSecond = secondQs.getCloseSplit();
-		BigDecimal knowQsInflationRate = inflationAtSecond.subtract(inflationAtFirst).divide(inflationAtFirst, 10, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal knowQsInflationRate = inflationAtSecond.subtract(inflationAtFirst).divide(inflationAtFirst, 10, RoundingMode.HALF_EVEN);
 
 		long knownQsSpan = TimeUnit.DAYS.convert(secondQs.getDate().getTime() - firstQs.getDate().getTime(), TimeUnit.MILLISECONDS);
 		long requestedDatesSpan = TimeUnit.DAYS.convert(secondDate.getTime() - firstDate.getTime(), TimeUnit.MILLISECONDS);

@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -99,7 +100,7 @@ public class CurrencyXRatesDailyFormater extends LineFormater {
 		}
 
 		if (fromCurrencyRate != null && toCurrencyRate !=null) {
-			BigDecimal rate = toCurrencyRate.divide(fromCurrencyRate, 10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal rate = toCurrencyRate.divide(fromCurrencyRate, 10, RoundingMode.HALF_EVEN);
 			Validatable rateLine = new CurrencyRate(fromCurrency, toCurrency, date, rate);
 			throw new StopParseFoundException(rateLine);
 		}

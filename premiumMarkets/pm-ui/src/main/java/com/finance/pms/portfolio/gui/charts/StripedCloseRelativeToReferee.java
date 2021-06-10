@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -96,8 +97,8 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 				Date dq = stockQuotations.get(i).getDate();
 				QuotationUnit relQuotationUnit = relativeQuotationsFull.get(relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, dq));
 
-				BigDecimal relativeQuotation = (relQuotationUnit.getCloseSplit().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, BigDecimal.ROUND_HALF_EVEN);
-				BigDecimal quotation = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal relativeQuotation = (relQuotationUnit.getCloseSplit().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, RoundingMode.HALF_EVEN);
+				BigDecimal quotation = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, RoundingMode.HALF_EVEN);
 				BigDecimal relatedCloseValue = quotation.subtract(relativeQuotation);
 
 				retA.add(relatedCloseValue);

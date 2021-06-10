@@ -32,6 +32,7 @@ package com.finance.pms.portfolio;
 
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -179,7 +180,7 @@ public class Portfolio extends AbstractSharesList {
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
-			BigDecimal quantity = unitAmount.divide(valueAtDate, 10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal quantity = unitAmount.divide(valueAtDate, 10, RoundingMode.HALF_EVEN);
 
 			return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 		} catch (NoQuotationsException e) {
@@ -319,7 +320,7 @@ public class Portfolio extends AbstractSharesList {
 			return BigDecimal.ZERO;
 		}
 		BigDecimal gainAmountForDate = this.getGainTotal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(basis, 10, BigDecimal.ROUND_HALF_EVEN);
+		return gainAmountForDate.divide(basis, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Transient
@@ -335,7 +336,7 @@ public class Portfolio extends AbstractSharesList {
 			return BigDecimal.ZERO;
 		}
 		BigDecimal gainAmountForDate = this.getGainUnReal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(basis, 10, BigDecimal.ROUND_HALF_EVEN);
+		return gainAmountForDate.divide(basis, 10, RoundingMode.HALF_EVEN);
 	}
 
 	public void rawRemoveShare(PortfolioShare portfolioShare) {
@@ -396,7 +397,7 @@ public class Portfolio extends AbstractSharesList {
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AIN)) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
-				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
 			};
 		}
 		return ret;
@@ -413,7 +414,7 @@ public class Portfolio extends AbstractSharesList {
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AOUT)) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
-				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
 			};
 		}
 		return ret.abs();
@@ -435,7 +436,7 @@ public class Portfolio extends AbstractSharesList {
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
-				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
 			}
 		}
 		return ret;
@@ -447,7 +448,7 @@ public class Portfolio extends AbstractSharesList {
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AOUT) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
-				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
+				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
 			}
 		}
 		return ret.abs();
@@ -473,7 +474,7 @@ public class Portfolio extends AbstractSharesList {
 	public BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal priceAvgBuyFor = getPriceAvgBuyFor(portfolioShare, currentStartDate, currentEndDate, targetCurrency);
 		BigDecimal quantityFor = this.getQuantityFor(portfolioShare, currentStartDate, currentEndDate);
-		return priceAvgBuyFor.multiply(quantityFor).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		return priceAvgBuyFor.multiply(quantityFor).setScale(10, RoundingMode.HALF_EVEN);
 
 	}
 
@@ -485,7 +486,7 @@ public class Portfolio extends AbstractSharesList {
 		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
-				totalMoneyInvested = totalMoneyInvested.add(convertedPrice.multiply(te.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN));
+				totalMoneyInvested = totalMoneyInvested.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
 				totalQuantityBought = totalQuantityBought.add(te.getQuantity());
 			}
 		}
@@ -494,7 +495,7 @@ public class Portfolio extends AbstractSharesList {
 			LOGGER.debug("getPriceAvgBuyFor : Bought Transaction sum to zero for "+portfolioShare);
 			return BigDecimal.ZERO;
 		} else {
-			return totalMoneyInvested.divide(totalQuantityBought, 10, BigDecimal.ROUND_HALF_EVEN);
+			return totalMoneyInvested.divide(totalQuantityBought, 10, RoundingMode.HALF_EVEN);
 		}
 
 	}
@@ -620,8 +621,8 @@ public class Portfolio extends AbstractSharesList {
 
 				BigDecimal transPrice = applyFee(buy, te.getPrice(), transactionFee);
 				BigDecimal convertedTransPrice  = applyFee(buy, currencyConverter.convert(te.getCurrency(), targetCurrency, transPrice, te.getDate()), exchangeFee);
-				BigDecimal transAmount =  transPrice.multiply(te.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
-				BigDecimal convertedTransAmount = convertedTransPrice.multiply(te.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal transAmount =  transPrice.multiply(te.getQuantity()).setScale(2, RoundingMode.HALF_EVEN);
+				BigDecimal convertedTransAmount = convertedTransPrice.multiply(te.getQuantity()).setScale(2, RoundingMode.HALF_EVEN);
 
 				if (buy) {
 					messagePortCurrency = 
@@ -636,7 +637,7 @@ public class Portfolio extends AbstractSharesList {
 					BigDecimal cpgPortCurrency = BigDecimal.ZERO;
 					if (isSellWithinCpgPeriod) {
 						BigDecimal priceAvgBuyPortCur = applyFee(true, applyFee(true, this.getShareForStock(currentStock).getPriceAvgBuy(startDate, te.getDate(), targetCurrency), transactionFee), exchangeFee);
-						cpgPortCurrency = te.getQuantity().multiply(priceAvgBuyPortCur).setScale(2, BigDecimal.ROUND_HALF_EVEN).subtract(convertedTransAmount);
+						cpgPortCurrency = te.getQuantity().multiply(priceAvgBuyPortCur).setScale(2, RoundingMode.HALF_EVEN).subtract(convertedTransAmount);
 						pss.get(currentStock)[0] = pss.get(currentStock)[0].add(cpgPortCurrency);
 					}
 					messagePortCurrency = 
@@ -646,7 +647,7 @@ public class Portfolio extends AbstractSharesList {
 					BigDecimal cpgNoConv = BigDecimal.ZERO;
 					if (isSellWithinCpgPeriod) {
 						BigDecimal priceAvgBuyNoConv = applyFee(true, this.getShareForStock(currentStock).getPriceAvgBuy(startDate, te.getDate(), currentStock.getMarketValuation().getCurrency()), transactionFee);
-						cpgNoConv = te.getQuantity().multiply(priceAvgBuyNoConv).setScale(2, BigDecimal.ROUND_HALF_EVEN).subtract(transAmount);
+						cpgNoConv = te.getQuantity().multiply(priceAvgBuyNoConv).setScale(2, RoundingMode.HALF_EVEN).subtract(transAmount);
 						pss.get(currentStock)[1] = pss.get(currentStock)[1].add(cpgNoConv);
 					}
 					messageNoConvertion = 
@@ -712,7 +713,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	private BigDecimal applyFee(boolean buy, BigDecimal price, BigDecimal transactionFee) {
-		return (transactionFee.compareTo(BigDecimal.ZERO) == 0)?price:price.multiply((buy)?BigDecimal.ONE.add(transactionFee):BigDecimal.ONE.subtract(transactionFee)).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+		return (transactionFee.compareTo(BigDecimal.ZERO) == 0)?price:price.multiply((buy)?BigDecimal.ONE.add(transactionFee):BigDecimal.ONE.subtract(transactionFee)).setScale(2, RoundingMode.HALF_EVEN);
 	}
 
 	protected SortedSet<TransactionElement> transactionsSortedByStock(Date startDate, Date endDate) {

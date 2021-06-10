@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -123,7 +124,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			{
 				Matcher fitCloseQuotation = quotationPattern.matcher(line);
 				if (fitCloseQuotation.find()) {
-					close = new BigDecimal(numberFormat.parse(noNbsp(fitCloseQuotation.group(1))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					close = new BigDecimal(numberFormat.parse(noNbsp(fitCloseQuotation.group(1))).toString()).setScale(4, RoundingMode.HALF_EVEN);
 					cpt++;
 				}
 				
@@ -133,7 +134,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			{
 				Matcher fitHighQuotation = quotationPattern.matcher(line);
 				if (fitHighQuotation.find()) {
-					high = new BigDecimal(numberFormat.parse(noNbsp(noNbsp(fitHighQuotation.group(1)))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					high = new BigDecimal(numberFormat.parse(noNbsp(noNbsp(fitHighQuotation.group(1)))).toString()).setScale(4, RoundingMode.HALF_EVEN);
 					cpt++;
 				}
 				break;
@@ -142,7 +143,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			{
 				Matcher fitLowQuotation = quotationPattern.matcher(line);
 				if (fitLowQuotation.find()) {
-					low = new BigDecimal(numberFormat.parse(noNbsp(fitLowQuotation.group(1))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					low = new BigDecimal(numberFormat.parse(noNbsp(fitLowQuotation.group(1))).toString()).setScale(4, RoundingMode.HALF_EVEN);
 					cpt++;
 				}
 				break;
@@ -151,7 +152,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			{
 				Matcher fitOpenQuotation = quotationPattern.matcher(line);
 				if (fitOpenQuotation.find()) {
-					open = new BigDecimal(numberFormat.parse(noNbsp(fitOpenQuotation.group(1))).toString()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					open = new BigDecimal(numberFormat.parse(noNbsp(fitOpenQuotation.group(1))).toString()).setScale(4, RoundingMode.HALF_EVEN);
 					cpt++;
 				}
 				break;

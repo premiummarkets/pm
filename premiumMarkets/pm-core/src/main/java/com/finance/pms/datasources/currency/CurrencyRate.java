@@ -30,6 +30,7 @@
 package com.finance.pms.datasources.currency;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -85,7 +86,7 @@ public class CurrencyRate extends Validatable {
 		this.fromCurrency = fromCurrency;
 		this.toCurrency = toCurrency;
 		this.date = date;
-		this.rate = new BigDecimal(rate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		this.rate = new BigDecimal(rate).setScale(10, RoundingMode.HALF_EVEN);
 	}
 
 	

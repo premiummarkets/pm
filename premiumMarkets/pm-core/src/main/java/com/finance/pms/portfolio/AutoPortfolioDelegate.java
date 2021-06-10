@@ -32,6 +32,7 @@ package com.finance.pms.portfolio;
 import java.io.File;
 import java.io.FileWriter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -236,7 +237,7 @@ public class AutoPortfolioDelegate {
 			try {
 				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 				BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);
-				BigDecimal quantity = availableAmount.divide(buyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal quantity = availableAmount.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
 
 				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
 					throw new NoQuotationsException("Invalid stock "+stock+" with price "+buyPrice+ " on "+currentDate +". Can't be bought");
@@ -371,7 +372,7 @@ public class AutoPortfolioDelegate {
 			BigDecimal quantityProrata;
 			BigDecimal quantity = portfolioShare.getQuantity(currentDate);
 			if (sellAmount != null) {
-				quantityProrata = sellAmount.divide(lastPrice, 10, BigDecimal.ROUND_HALF_EVEN);
+				quantityProrata = sellAmount.divide(lastPrice, 10, RoundingMode.HALF_EVEN);
 				quantityProrata = quantityProrata.min(quantity);
 			} else {
 				quantityProrata = quantity;
@@ -393,7 +394,7 @@ public class AutoPortfolioDelegate {
 
 	public void log(TransactionRecord transactionRecord) {
 
-		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice()).setScale(10, RoundingMode.HALF_EVEN);
 		String eventList = (transactionRecord.getEventList() == null)?"No Event":transactionRecord.getEventList().toAutoPortfolioLog();
 
 		this.log(

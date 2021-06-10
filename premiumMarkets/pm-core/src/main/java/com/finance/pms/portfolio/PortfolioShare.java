@@ -31,6 +31,7 @@ package com.finance.pms.portfolio;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayDeque;
 import java.util.Date;
@@ -211,7 +212,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return value.add(cashout).subtract(cashin).divide(cashin, 10, BigDecimal.ROUND_HALF_EVEN);
+			return value.add(cashout).subtract(cashin).divide(cashin, 10, RoundingMode.HALF_EVEN);
 		}
 	}
 
@@ -230,7 +231,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.warn("Basis is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 10, BigDecimal.ROUND_HALF_EVEN);
+			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 10, RoundingMode.HALF_EVEN);
 		}
 	}
 
@@ -250,7 +251,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 10, BigDecimal.ROUND_HALF_EVEN);
+			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 10, RoundingMode.HALF_EVEN);
 		}
 	}
 
@@ -267,7 +268,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		try {
 			InOutWeighted weightedInOut = getWeightedInvested(currentStartDate, currentEndDate, currency);
 			BigDecimal weightedInvestedStillIn = weightedInOut.getWeightedInvestedStillIn();
-			return 	getValue(currentStartDate, currentEndDate, currency).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(), 10, BigDecimal.ROUND_HALF_EVEN); 
+			return 	getValue(currentStartDate, currentEndDate, currency).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(), 10, RoundingMode.HALF_EVEN); 
 		} catch (ArithmeticException e) {
 			return BigDecimal.ZERO;
 		}
@@ -279,7 +280,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
 		BigDecimal cashout = this.getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal cashin = this.getCashin(currentStartDate, currentEndDate, currency);
-		return cashin.subtract(cashout).divide(quantity, 10, BigDecimal.ROUND_HALF_EVEN);
+		return cashin.subtract(cashout).divide(quantity, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Transient
@@ -301,7 +302,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	public BigDecimal getValue(Date currentStartDate, Date currentEndDate, Currency currency) {
 		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
 		BigDecimal priceClose = getPriceClose(currentEndDate, currency);
-		return quantity.multiply(priceClose).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		return quantity.multiply(priceClose).setScale(10, RoundingMode.HALF_EVEN);
 	}
 
 	@Enumerated(EnumType.ORDINAL)
@@ -441,7 +442,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		TransactionElement outPreviousTransaction = null;
 
 		BigDecimal inPrevPrice = currencyConverter.convert(inPreviousTransaction.getCurrency(), currency, inPreviousTransaction.getPrice(), inPreviousTransaction.getDate());
-		weightedCashin = inPreviousTransaction.getQuantity().multiply(inPrevPrice).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		weightedCashin = inPreviousTransaction.getQuantity().multiply(inPrevPrice).setScale(10, RoundingMode.HALF_EVEN);
 
 		while (!transactionsForStockQ.isEmpty()) {
 
@@ -454,10 +455,10 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 				//Weighting previous invest
 				BigDecimal inflationRate = getInflationAndAddedExpectedRate(inPreviousTransaction.getDate(), transaction.getDate(), false);
 				BigDecimal inflationRateFactor =  BigDecimal.ONE.add(inflationRate);
-				weightedCashin = weightedCashin.multiply(inflationRateFactor).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+				weightedCashin = weightedCashin.multiply(inflationRateFactor).setScale(10, RoundingMode.HALF_EVEN);
 
 				//Adding transaction
-				BigDecimal transactionValue = transaction.getQuantity().multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal transactionValue = transaction.getQuantity().multiply(price).setScale(10, RoundingMode.HALF_EVEN);
 				weightedCashin = weightedCashin.add(transactionValue);
 
 				inPreviousTransaction = transaction;
@@ -474,12 +475,12 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 					BigDecimal inflationRate = getInflationAndAddedExpectedRate(outPreviousTransaction.getDate(), transaction.getDate(), false);
 					BigDecimal inflationRateFactor =  BigDecimal.ONE.add(inflationRate);
-					weightedCashout = weightedCashout.multiply(inflationRateFactor).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+					weightedCashout = weightedCashout.multiply(inflationRateFactor).setScale(10, RoundingMode.HALF_EVEN);
 
 				}
 
 				//Adding transaction
-				BigDecimal transactionValue = transaction.getQuantity().abs().multiply(price).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal transactionValue = transaction.getQuantity().abs().multiply(price).setScale(10, RoundingMode.HALF_EVEN);
 				weightedCashout = weightedCashout.add(transactionValue);
 
 				outPreviousTransaction = transaction;
@@ -495,13 +496,13 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal toDateRateIn = getInflationAndAddedExpectedRate(inPreviousTransaction.getDate(), currentEndDate, false);
 		BigDecimal toDateRateInFactor = BigDecimal.ONE.add(toDateRateIn);
 		//Double compoundRate = compoundRate(inPreviousTransaction.getDate(), currentEndDate, r.doubleValue());
-		weightedCashin = weightedCashin.multiply(toDateRateInFactor).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		weightedCashin = weightedCashin.multiply(toDateRateInFactor).setScale(10, RoundingMode.HALF_EVEN);
 		//out
 		if (outPreviousTransaction != null) {
 			BigDecimal toDateRateOut = getInflationAndAddedExpectedRate(outPreviousTransaction.getDate(), currentEndDate, false);
 			BigDecimal toDateRateOutFactor = BigDecimal.ONE.add(toDateRateOut);
 			//Double compoundRateOut = compoundRate(inPreviousTransaction.getDate(), currentEndDate, rOut.doubleValue());
-			weightedCashout = weightedCashout.multiply(toDateRateOutFactor).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+			weightedCashout = weightedCashout.multiply(toDateRateOutFactor).setScale(10, RoundingMode.HALF_EVEN);
 		}
 
 		LOGGER.debug("Weighted invested value for " + this.stock.getIsin() + " is " + weightedCashin);
@@ -569,7 +570,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal weightedInvested = weightedInOut.getWeightedInvestedStillIn();
 		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
 		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
-		BigDecimal sellLimitGuardPrice = weightedInvested.divide(quantity, 10, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal sellLimitGuardPrice = weightedInvested.divide(quantity, 10, RoundingMode.HALF_EVEN);
 		return sellLimitGuardPrice;
 
 	}

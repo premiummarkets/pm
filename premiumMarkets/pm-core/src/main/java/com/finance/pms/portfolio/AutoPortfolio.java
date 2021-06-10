@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 
@@ -99,7 +100,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	@Transient
 	public BigDecimal getAvailableCash(Date currentDate) {
-		BigDecimal inMinusOut = getTotalInAmountEver(null, currentDate).subtract(getTotalOutAmountEver(null, currentDate)).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal inMinusOut = getTotalInAmountEver(null, currentDate).subtract(getTotalOutAmountEver(null, currentDate)).setScale(2, RoundingMode.HALF_EVEN);
 		return AutoPortfolioDelegate.DEFAULT_INITIAL_CASH.subtract(inMinusOut);
 	}
 

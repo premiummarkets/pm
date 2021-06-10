@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,7 +84,7 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 				if ((epsValueStr.equals("--") || epsValueStr.equals("NA"))) {
 					epsd = BigDecimal.ZERO;
 				} else {
-					epsd= new BigDecimal(epsValueStr).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+					epsd= new BigDecimal(epsValueStr).setScale(4, RoundingMode.HALF_EVEN);
 				}
 				
 				//stockPart.setReutersEPS(epsd.multiply(new BigDecimal(stockPart.getMarket().getCurrency().getToRatedUnitFactor())));

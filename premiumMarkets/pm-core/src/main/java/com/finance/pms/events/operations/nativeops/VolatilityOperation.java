@@ -18,9 +18,9 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
+import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
 import com.finance.pms.events.scoring.functions.StatsFunction;
-import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 
 public class VolatilityOperation extends PMWithDataOperation {
 

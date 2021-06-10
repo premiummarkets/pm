@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -161,7 +162,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 	private BigDecimal extractPattern(Matcher valueMatcher) {
 		BigDecimal value;
 		String valueStr = valueMatcher.group(1);
-		value = (valueStr.equals("--") || valueStr.equals("NA"))? BigDecimal.ZERO : new BigDecimal(valueStr).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+		value = (valueStr.equals("--") || valueStr.equals("NA"))? BigDecimal.ZERO : new BigDecimal(valueStr).setScale(4, RoundingMode.HALF_EVEN);
 		valueMatcher.reset();
 		return value;
 	}

@@ -32,6 +32,7 @@ package com.finance.pms.events.quotations;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -138,7 +139,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@Transient
 	public BigDecimal getCloseSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getCloseRaw();
-		return close.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+		return close.divide(split, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Column(name="HIGH")
@@ -149,7 +150,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@Transient
 	public BigDecimal getHighSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getHighRaw();
-		return high.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+		return high.divide(split, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Column(name="LOW")
@@ -160,7 +161,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@Transient
 	public BigDecimal getLowSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getLowRaw();
-		return low.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+		return low.divide(split, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Column(name="OPENVALUE")
@@ -171,7 +172,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@Transient
 	public BigDecimal getOpenSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getOpenRaw();
-		return open.divide(split, 10, BigDecimal.ROUND_HALF_EVEN);
+		return open.divide(split, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Column(name="VOLUME")

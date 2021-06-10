@@ -482,7 +482,7 @@ public class AdminDB {
 //					try {
 //						PortfolioShare ps;
 //						//ps = new PortfolioShare(symbol, date,quantity, cashin, cashout, lv, monitor);
-//						ps = new PortfolioShare(s, quantity, date, cashin, cashout, MonitorLevel.ANY,new BigDecimal(price).setScale(2, BigDecimal.ROUND_HALF_EVEN));
+//						ps = new PortfolioShare(s, quantity, date, cashin, cashout, MonitorLevel.ANY,new BigDecimal(price).setScale(2, RoundingMode.HALF_EVEN));
 //						///alerts
 //						Float current = PortfolioMgr.getInstance().loadLastDayClosed(s.getSymbol(),s.getIsin());
 //						ps.addBuyAlerts();
@@ -940,8 +940,8 @@ public class AdminDB {
 //				moneyIn = moneyIn.add(portfolioShare.getCashin());
 //				moneyOut = moneyOut.add(portfolioShare.getCashout());
 //			}
-//			portfolio.setTotalInAmountEver(moneyIn.setScale(2,BigDecimal.ROUND_HALF_EVEN));
-//			portfolio.setTotalOutAmountEver(moneyOut.setScale(2,BigDecimal.ROUND_HALF_EVEN));
+//			portfolio.setTotalInAmountEver(moneyIn.setScale(2,RoundingMode.HALF_EVEN));
+//			portfolio.setTotalOutAmountEver(moneyOut.setScale(2,RoundingMode.HALF_EVEN));
 //		}
 //		
 //		if (!boolean1) PortfolioMgr.getInstance().hibStorePortfolio();

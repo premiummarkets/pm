@@ -31,6 +31,7 @@ package com.finance.pms.portfolio;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -115,13 +116,13 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(9455.16, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(9455.16, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		//(Vin Weighted - Vin) / (Vin - Vout)
 		BigDecimal realInv = new BigDecimal(8314.74);
 		BigDecimal realOut = new BigDecimal(1787.28);
-		BigDecimal distanceToAvgBuyPrice = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(-0.17, distanceToAvgBuyPrice.setScale(10, BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distanceToAvgBuyPrice = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(-0.17, distanceToAvgBuyPrice.setScale(10, RoundingMode.HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -212,12 +213,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(82966.82, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(82966.82, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(68092.33);
 		BigDecimal realOut = new BigDecimal(49485.98);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(-0.8, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(-0.8, distToAvgBuy.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 	}
 	
 	@Test
@@ -245,12 +246,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(1381402.23, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(1381402.23, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(1331588.00);
 		BigDecimal realOut = new BigDecimal(296784.00);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(-0.05, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(-0.05, distToAvgBuy.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -279,12 +280,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(28921.35, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(28921.35, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(20311.75);
 		BigDecimal realOut = new BigDecimal(10765.39);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(-0.9, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(-0.9, distToAvgBuy.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -312,13 +313,13 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(501535.56, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(501535.56, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		//BigDecimal realInv = new BigDecimal(501400.00);
 		BigDecimal realInv = new BigDecimal(8163.12);
 		BigDecimal realOut = new BigDecimal(0);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(0.0, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(0.0, distToAvgBuy.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -346,12 +347,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(6451.16, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(6451.16, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(5163.00);
 		BigDecimal realOut = new BigDecimal(0);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(-0.25, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(-0.25, distToAvgBuy.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		
 	}
@@ -379,12 +380,12 @@ public class PortfolioShareOtherTest extends TestCase {
 			e.printStackTrace();
 		}
 		
-		//assertEquals(25953.57, weightedInvestedValue.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		//assertEquals(25953.57, weightedInvestedValue.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		BigDecimal realInv = new BigDecimal(25000);
 		BigDecimal realOut = new BigDecimal(0);
-		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,BigDecimal.ROUND_HALF_EVEN);
-		assertEquals(-0.03, distToAvgBuy.setScale(10,BigDecimal.ROUND_HALF_EVEN).doubleValue());
+		BigDecimal distToAvgBuy = realInv.subtract(weightedInvestedValue.getIn()).divide(realInv.subtract(realOut),10,RoundingMode.HALF_EVEN);
+		assertEquals(-0.03, distToAvgBuy.setScale(10,RoundingMode.HALF_EVEN).doubleValue());
 		
 		
 	}

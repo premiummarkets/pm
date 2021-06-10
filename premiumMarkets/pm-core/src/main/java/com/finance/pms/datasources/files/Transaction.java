@@ -30,6 +30,7 @@
 package com.finance.pms.datasources.files;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 import com.finance.pms.portfolio.InvalidQuantityException;
@@ -65,7 +66,7 @@ public class Transaction {
 	}
 
 	public void setTransactionSharePrice(Float transactionSharePrice) {
-		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		this.transactionSharePrice = new BigDecimal(transactionSharePrice.toString()).setScale(10, RoundingMode.HALF_EVEN);
 	}
 	
 	public BigDecimal getQuantity() {
@@ -75,7 +76,7 @@ public class Transaction {
 		this.quantity = quantity;
 	}
 	public void setQuantity(Float quantity) {
-		this.quantity = new BigDecimal(quantity.toString()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		this.quantity = new BigDecimal(quantity.toString()).setScale(10, RoundingMode.HALF_EVEN);
 	}
 
 	public TransactionType getModtype() {

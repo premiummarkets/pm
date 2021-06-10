@@ -32,6 +32,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -154,13 +155,13 @@ public class CurrencyImfHistoryFormater extends LineFormater {
 						if (fromRate.compareTo(BigDecimal.ZERO) >= 0 && toRate.compareTo(BigDecimal.ZERO) >= 0 ) {
 							BigDecimal rate = BigDecimal.ONE;
 							if (toUsdPerCurrency && fromUsdPerCurrency) {
-								rate = fromRate.divide(toRate, 10, BigDecimal.ROUND_HALF_EVEN);
+								rate = fromRate.divide(toRate, 10, RoundingMode.HALF_EVEN);
 							} else if (!toUsdPerCurrency && !fromUsdPerCurrency) {
-								rate = toRate.divide(fromRate, 10, BigDecimal.ROUND_HALF_EVEN);
+								rate = toRate.divide(fromRate, 10, RoundingMode.HALF_EVEN);
 							} else if (!toUsdPerCurrency && fromUsdPerCurrency) {
-								rate = fromRate.multiply(toRate).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+								rate = fromRate.multiply(toRate).setScale(10, RoundingMode.HALF_EVEN);
 							} else if (toUsdPerCurrency && !fromUsdPerCurrency) {
-								rate = BigDecimal.ONE.divide(fromRate.multiply(toRate), 10, BigDecimal.ROUND_HALF_EVEN);
+								rate = BigDecimal.ONE.divide(fromRate.multiply(toRate), 10, RoundingMode.HALF_EVEN);
 							}
 							Validatable rateLine = new CurrencyRate(fromCurrency, toCurrency, datesList.get(i), rate);
 							ret.add(rateLine);

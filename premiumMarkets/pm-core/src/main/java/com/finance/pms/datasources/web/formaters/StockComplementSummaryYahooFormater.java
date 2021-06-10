@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,7 +79,7 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 			if (div.equals("N/A")) {
 				divd = BigDecimal.ZERO;
 			} else {
-				divd= new BigDecimal(div).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				divd= new BigDecimal(div).setScale(2, RoundingMode.HALF_EVEN);
 			}
 			stockPart.setDividend(divd);
 			isDivSetOrReset = true;
@@ -91,7 +92,7 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 			if (eps.equals("N/A")) {
 				epsd = BigDecimal.ZERO;
 			} else {
-				epsd= new BigDecimal(eps).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+				epsd= new BigDecimal(eps).setScale(4, RoundingMode.HALF_EVEN);
 			}
 			
 			//stockPart.setYahooEPS(epsd.multiply(new BigDecimal(stockPart.getMarketValuation().getCurrency().getToRatedUnitFactor())));

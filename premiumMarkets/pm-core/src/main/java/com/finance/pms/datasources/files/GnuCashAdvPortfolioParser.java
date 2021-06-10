@@ -304,7 +304,7 @@ public class GnuCashAdvPortfolioParser {
 			//End fix
 
 			//			BigDecimal price = currencyConverter.convert(transactionCurrency, portfolioReportCurrency, transactionElement.getPrice(), transactionElement.getDate());
-			//			BigDecimal amount = price.multiply(transactionElement.getQuantity()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+			//			BigDecimal amount = price.multiply(transactionElement.getQuantity()).setScale(10, RoundingMode.HALF_EVEN);
 			//			if (amount.compareTo(BigDecimal.ZERO) > 0) {
 			//				calcCashin = calcCashin.add(amount);
 			//			} else {

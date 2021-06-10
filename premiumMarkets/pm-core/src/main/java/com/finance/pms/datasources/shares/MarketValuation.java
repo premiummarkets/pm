@@ -31,6 +31,7 @@ package com.finance.pms.datasources.shares;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
@@ -102,7 +103,7 @@ public class MarketValuation implements Serializable {
 	}
 	
 	public BigDecimal translateToBaseCurrencyUnit(BigDecimal amount) {
-		return amount.divide(this.currencyFactor, 10, BigDecimal.ROUND_HALF_EVEN);
+		return amount.divide(this.currencyFactor, 10, RoundingMode.HALF_EVEN);
 	}
 
 }

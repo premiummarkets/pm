@@ -30,6 +30,7 @@
 package com.finance.pms.datasources.web.currency;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
@@ -207,7 +208,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			exchangeRate = fetchRateForDate(fromCurrency, toCurrency, date);
 		}
 
-		return exchangeRate.multiply(amount).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		return exchangeRate.multiply(amount).setScale(10, RoundingMode.HALF_EVEN);
 	}
 
 	private BigDecimal fetchRateForDate(Currency fromCurrency, Currency toCurrency, Date date) {

@@ -523,7 +523,7 @@ public class TransactionPriceDialog extends Dialog {
 		try {
 			scanner.useDelimiter(pattern);
 			while (scanner.hasNextBigDecimal()) {
-				nums.add(scanner.nextBigDecimal().setScale(10, BigDecimal.ROUND_HALF_EVEN));
+				nums.add(scanner.nextBigDecimal().setScale(10, RoundingMode.HALF_EVEN));
 			}
 		} finally {
 			scanner.close();
@@ -548,13 +548,13 @@ public class TransactionPriceDialog extends Dialog {
 		for (Character character:ope) {
 			switch(character) {
 				case '*' : 
-					result=result.multiply(nums.get(numIndex)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+					result=result.multiply(nums.get(numIndex)).setScale(10, RoundingMode.HALF_EVEN);
 					break;
 				case '+' :
-					result=result.add(nums.get(numIndex)).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+					result=result.add(nums.get(numIndex)).setScale(10, RoundingMode.HALF_EVEN);
 					break;
 				case '/' :
-					result=result.divide(nums.get(numIndex), 10, BigDecimal.ROUND_HALF_EVEN);
+					result=result.divide(nums.get(numIndex), 10, RoundingMode.HALF_EVEN);
 					break;
 				case '-' :
 					result=result.subtract(nums.get(numIndex));
@@ -622,8 +622,8 @@ public class TransactionPriceDialog extends Dialog {
 			else if (changedField.equals("amount")) {
 				//Float amount = new Float(formatedAmount().toString());
 				//Float price = amount/quantity;
-				BigDecimal amount = new BigDecimal(formatedAmount().toString()).setScale(10, BigDecimal.ROUND_HALF_EVEN);
-				BigDecimal price = amount.divide(new BigDecimal(quantity), 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal amount = new BigDecimal(formatedAmount().toString()).setScale(10, RoundingMode.HALF_EVEN);
+				BigDecimal price = amount.divide(new BigDecimal(quantity), 10, RoundingMode.HALF_EVEN);
 				sharePriceText.setText(moneysFormat.format(price));
 				transaction.setTransactionSharePrice(price);
 			}
@@ -669,7 +669,7 @@ public class TransactionPriceDialog extends Dialog {
 	}
 
 	private BigDecimal amount() {
-		return transaction.getTransactionSharePrice().multiply(transaction.getQuantity()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+		return transaction.getTransactionSharePrice().multiply(transaction.getQuantity()).setScale(2, RoundingMode.HALF_EVEN);
 	}
 	
 	public BigDecimal outHistoryForTheLine() {

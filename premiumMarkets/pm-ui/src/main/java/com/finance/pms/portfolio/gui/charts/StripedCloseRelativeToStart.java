@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
 		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0) {
 			for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-				BigDecimal relatedCloseValue = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, BigDecimal.ROUND_HALF_EVEN);
+				BigDecimal relatedCloseValue = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, RoundingMode.HALF_EVEN);
 				retA.add(relatedCloseValue);
 			}
 		}

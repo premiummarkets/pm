@@ -35,6 +35,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class Trimmer {

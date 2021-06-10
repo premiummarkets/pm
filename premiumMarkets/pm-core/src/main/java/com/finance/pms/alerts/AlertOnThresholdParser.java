@@ -30,6 +30,7 @@
 package com.finance.pms.alerts;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -174,7 +175,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 		BigDecimal avgPriceDist = BigDecimal.ZERO;
 		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency());
 		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {
-			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice, 10, BigDecimal.ROUND_HALF_EVEN);
+			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice, 10, RoundingMode.HALF_EVEN);
 		}
 		return ".\nFYI, price ("+todaysQuotation+") is "+new DecimalFormat("#0.00 %").format(avgPriceDist.doubleValue())+" away from average cost per unit ("+avgBuyPrice+").";
 	}

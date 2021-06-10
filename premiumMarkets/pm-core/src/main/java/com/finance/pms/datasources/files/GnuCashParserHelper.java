@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -92,7 +93,7 @@ public class GnuCashParserHelper {
 	protected BigDecimal calculateBigDecimal(String textContent) throws ParseException {
 		try {
 			Number number = extractNumber(textContent);
-			return new BigDecimal(number.doubleValue()).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+			return new BigDecimal(number.doubleValue()).setScale(4, RoundingMode.HALF_EVEN);
 		} catch (ParseException e) {
 			throw e;
 		}

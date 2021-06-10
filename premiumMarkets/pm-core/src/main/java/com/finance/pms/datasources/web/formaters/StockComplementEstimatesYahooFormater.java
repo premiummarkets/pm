@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web.formaters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public class StockComplementEstimatesYahooFormater extends LineFormater {
 		if (ePSGrowthMatcher.find()) {
 			String estEps = ePSGrowthMatcher.group(3);
 			BigDecimal estEpsB;
-			estEpsB = (estEps.equals("N/A"))? BigDecimal.ZERO : new BigDecimal(estEps).setScale(4, BigDecimal.ROUND_HALF_EVEN);
+			estEpsB = (estEps.equals("N/A"))? BigDecimal.ZERO : new BigDecimal(estEps).setScale(4, RoundingMode.HALF_EVEN);
 			
 			stockPart.setYahooEstEPS(estEpsB);
 		}

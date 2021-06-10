@@ -1,6 +1,7 @@
 package com.finance.pms.datasources.web.formaters;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -67,7 +68,7 @@ public class CurrencyEuropeanCentralBankFormater extends LineFormater {
 			if (fromValue != null && toValue != null) {
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTimeInMillis(date.atTime(0, 0).toEpochSecond(ZoneOffset.UTC)*1000);
-				ret.add(new CurrencyRate(fromCurrency, toCurrency, DateFactory.midnithDate(calendar.getTime()), toValue.divide(fromValue, 10, BigDecimal.ROUND_HALF_EVEN)));
+				ret.add(new CurrencyRate(fromCurrency, toCurrency, DateFactory.midnithDate(calendar.getTime()), toValue.divide(fromValue, 10, RoundingMode.HALF_EVEN)));
 			}
 		}
 		

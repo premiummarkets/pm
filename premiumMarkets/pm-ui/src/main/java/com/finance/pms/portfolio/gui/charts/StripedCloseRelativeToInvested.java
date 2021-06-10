@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.InvalidParameterException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -94,7 +95,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 			BigDecimal value = BigDecimal.ZERO;
 			if (unitCost.compareTo(BigDecimal.ZERO) != 0) {
 				BigDecimal close = stockQuotations.get(i).getCloseSplit();
-				value = (close.subtract(unitCost).divide(unitCost.abs(), 10, BigDecimal.ROUND_HALF_EVEN));
+				value = (close.subtract(unitCost).divide(unitCost.abs(), 10, RoundingMode.HALF_EVEN));
 			} 
 			retA.add(value);
 		}
