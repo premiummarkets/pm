@@ -137,7 +137,7 @@ public class AutoPortfolioDelegate {
 				if (pr instanceof ConfigFreePonderationRule) {
 					return ((ConfigFreePonderationRule) pr).getBuyThreshold();
 				}
-				return new Float(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold());
+				return Float.valueOf(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold());
 			}
 
 			@Override
@@ -279,7 +279,7 @@ public class AutoPortfolioDelegate {
 				if (pr instanceof ConfigFreePonderationRule) {
 					return ((ConfigFreePonderationRule) pr).getSellThreshold();
 				}
-				return new Float(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold());
+				return Float.valueOf(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold());
 			}
 
 			@Override

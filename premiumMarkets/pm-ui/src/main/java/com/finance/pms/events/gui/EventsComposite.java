@@ -947,7 +947,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 			symbolEventsTableTreeItem.setData(se);
 			symbolEventsTableTreeItem.setText(0, se.getSymbol());
 			symbolEventsTableTreeItem.setText(1, se.getSymbolName());
-			symbolEventsTableTreeItem.setText(2, new Float(se.getWeight(this.action.getPonderationRule())).toString());
+			symbolEventsTableTreeItem.setText(2, Float.valueOf(se.getWeight(this.action.getPonderationRule())).toString());
 			// sous items events
 			{
 				subItems(symbolEventsTableTreeItem, se, new DataResultReversedComparator());

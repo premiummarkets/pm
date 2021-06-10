@@ -468,7 +468,7 @@ public class AdminDB {
 //					String symbol = st.nextToken();
 //					DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 //					Date date = df.parse(st.nextToken());
-//					Float quantity = new Float(st.nextToken());
+//					Float quantity = Float.valueOf(st.nextToken());
 //					String price = st.nextToken();
 //					Float cashout = 0F;
 //					//String monitor = st.nextToken();
@@ -478,7 +478,7 @@ public class AdminDB {
 //							Market.EURONEXT);
 //					s = DataSource.getInstance().loadStock(s);
 //					String name = s.getName();
-//					Float cashin = (new Float(new Float(price) * (new Float(quantity))));
+//					Float cashin = (Float.valueOf(Float.valueOf(price) * (Float.valueOf(quantity))));
 //					try {
 //						PortfolioShare ps;
 //						//ps = new PortfolioShare(symbol, date,quantity, cashin, cashout, lv, monitor);

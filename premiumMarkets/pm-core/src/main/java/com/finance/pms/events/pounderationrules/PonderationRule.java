@@ -133,8 +133,8 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 	protected int compareCal(SymbolEvents se1, SymbolEvents se2, PonderationRule p1, PonderationRule p2) {
 		int retour;
 		//inverse order (for data base access purpose??)
-		Float se2Weight = new Float(se2.getWeight(p2));
-		Float se1Weight = new Float(se1.getWeight(p1));
+		Float se2Weight = Float.valueOf(se2.getWeight(p2));
+		Float se1Weight = Float.valueOf(se1.getWeight(p1));
 		int weigth = se2Weight.compareTo(se1Weight);
 		if (weigth != 0) {
 			retour = weigth;

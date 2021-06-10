@@ -262,8 +262,8 @@ public class RandomPortfolio {
 //		float quantity = cash/PortfolioMgr.getInstance().loadLastDayClosed(ps.getSymbol(),ps.getIsin()).floatValue();
 //		
 //		try {
-//			//ps.setCashin(new Float(ps.getCashin().floatValue()+cash));
-//			//ps.setQuantity(new Float(ps.getQuantity().floatValue()+quantity));
+//			//ps.setCashin(Float.valueOf(ps.getCashin().floatValue()+cash));
+//			//ps.setQuantity(Float.valueOf(ps.getQuantity().floatValue()+quantity));
 //		} catch (Exception e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
@@ -303,8 +303,8 @@ public class RandomPortfolio {
 //		this.dispo = this.dispo + cashout;
 //		
 //		try {
-//			//ps.setCashout(new Float(ps.getCashout().floatValue()+cashout));
-//			//ps.setQuantity(new Float(ps.getQuantity().floatValue() - quantity));
+//			//ps.setCashout(Float.valueOf(ps.getCashout().floatValue()+cashout));
+//			//ps.setQuantity(Float.valueOf(ps.getQuantity().floatValue() - quantity));
 //		} catch (Exception e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
@@ -353,7 +353,7 @@ public class RandomPortfolio {
 ////		//cashout
 ////		float cashOut = 0;
 ////		
-////		retour = new PortfolioShare(s,new Float(quantity),new Date(),new Float(cashIn),new Float(cashOut),0); //,0F);
+////		retour = new PortfolioShare(s,Float.valueOf(quantity),new Date(),Float.valueOf(cashIn),Float.valueOf(cashOut),0); //,0F);
 ////		
 ////		return retour;
 //		return null;

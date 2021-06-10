@@ -449,13 +449,13 @@ public class TransactionPriceDialog extends Dialog {
 						
 						Float quantity = 0f;
 						try {
-							quantity = new Float(formatedQuantity().toString());
+							quantity = Float.valueOf(formatedQuantity().toString());
 						} catch (NumberFormatException e) {
 							LOGGER.warn(e);
 						}
 						Float amount=0f;
 						try {
-							amount = new Float(formatedAmount().toString());
+							amount = Float.valueOf(formatedAmount().toString());
 						} catch (NumberFormatException e) {
 							LOGGER.warn(e);
 						}
@@ -576,9 +576,9 @@ public class TransactionPriceDialog extends Dialog {
 	private void updateThirdFieldFor(String changedField) {
 		
 		if (transactionAmountPivot.getSelection()) {
-			Float amount = new Float(formatedAmount().toString());
+			Float amount = Float.valueOf(formatedAmount().toString());
 			if (changedField.equals("quantity")) {
-				Float quantity = new Float(formatedQuantity().toString());
+				Float quantity = Float.valueOf(formatedQuantity().toString());
 				transaction.setQuantity(quantity);
 				
 				Float transactionSharePrice = amount/quantity;
@@ -586,7 +586,7 @@ public class TransactionPriceDialog extends Dialog {
 				transaction.setTransactionSharePrice(transactionSharePrice);
 			} 
 			else if (changedField.equals("price")) {
-				Float price = new Float(formatedSharePrice().toString());
+				Float price = Float.valueOf(formatedSharePrice().toString());
 				transaction.setTransactionSharePrice(price);
 				
 				Float quantity = amount/price;
@@ -595,32 +595,32 @@ public class TransactionPriceDialog extends Dialog {
 			}
 		}
 		else if (sharePricePivot.getSelection()) {
-			Float price = new Float(formatedSharePrice().toString());
+			Float price = Float.valueOf(formatedSharePrice().toString());
 			if (changedField.equals("quantity")) {
-				Float quantity = new Float(formatedQuantity().toString());
+				Float quantity = Float.valueOf(formatedQuantity().toString());
 				transaction.setQuantity(quantity);
 				
 				Float amount = price*quantity;
 				transactionAmountText.setText(moneysFormat.format(amount));
 			} 
 			else if (changedField.equals("amount")) {
-				Float amount = new Float(formatedAmount().toString());
+				Float amount = Float.valueOf(formatedAmount().toString());
 				Float quantity = amount/price;
 				quantityText.setText(quantityFormat.format(quantity));
 				transaction.setQuantity(quantity);
 			}
 		}
 		else if (quantityPivot.getSelection()) {
-			Float quantity = new Float(formatedQuantity().toString());
+			Float quantity = Float.valueOf(formatedQuantity().toString());
 			if (changedField.equals("price")) {
-				Float price = new Float(formatedSharePrice().toString());
+				Float price = Float.valueOf(formatedSharePrice().toString());
 				transaction.setTransactionSharePrice(price);
 				
 				Float amount = quantity*price;
 				transactionAmountText.setText(moneysFormat.format(amount));
 			} 
 			else if (changedField.equals("amount")) {
-				//Float amount = new Float(formatedAmount().toString());
+				//Float amount = Float.valueOf(formatedAmount().toString());
 				//Float price = amount/quantity;
 				BigDecimal amount = new BigDecimal(formatedAmount().toString()).setScale(10, RoundingMode.HALF_EVEN);
 				BigDecimal price = amount.divide(new BigDecimal(quantity), 10, RoundingMode.HALF_EVEN);
