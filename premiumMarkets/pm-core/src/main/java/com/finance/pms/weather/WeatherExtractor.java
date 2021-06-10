@@ -131,9 +131,9 @@ public class WeatherExtractor {
 		while ((line = bufferedReader.readLine()) != null) {
 			String[] values = line.split(",");
 			WeatherElement weatherElement = new WeatherElement(new SimpleDateFormat("EEE MMM 01 00:00:00 z yyyy").parse(values[0]));
-			weatherElement.setMaxTemp(new Integer(values[1]));
-			weatherElement.setAvgTemp(new Integer(values[2]));
-			weatherElement.setMinTemp(new Integer(values[3]));	
+			weatherElement.setMaxTemp(Integer.valueOf(values[1]));
+			weatherElement.setAvgTemp(Integer.valueOf(values[2]));
+			weatherElement.setMinTemp(Integer.valueOf(values[3]));	
 			weatherElements.add(weatherElement);
 		}
 		bufferedReader.close();

@@ -195,7 +195,7 @@ public class MasSource implements SourceConnector {
 	public MasSource(String pathToprops, Boolean startServers) {
 		this(pathToprops);
 		
-		MasSource.NBTHREADSMAS = (new Integer(MainPMScmd.getMyPrefs().get("mas.poolsize", "10"))).intValue();
+		MasSource.NBTHREADSMAS = (Integer.valueOf(MainPMScmd.getMyPrefs().get("mas.poolsize", "10"))).intValue();
 		
 		if (startServers) {		
 			startAllSources();
@@ -222,7 +222,7 @@ public class MasSource implements SourceConnector {
 			}
 			try {
 				synchronized (this) {
-					wait((new Integer(MainPMScmd.getMyPrefs().get("mas.server.wait", "5000"))));
+					wait((Integer.valueOf(MainPMScmd.getMyPrefs().get("mas.server.wait", "5000"))));
 				}
 			} catch (NumberFormatException e) {
 				// TODO Auto-generated catch block
@@ -278,9 +278,9 @@ public class MasSource implements SourceConnector {
 		String loginParam = PeriodDates.get(PERIODS[0]).getStartDate() + "\t" + PeriodDates.get(PERIODS[0]).getEndDate();
 		//numero de port
 		int portNum = getNextAvailablePort(connectionId);
-		this.numPortMap.put(new Integer(connectionId), new Integer(portNum));
+		this.numPortMap.put(Integer.valueOf(connectionId), Integer.valueOf(portNum));
 		try {
-			return new MasConnection(MainPMScmd.getMyPrefs().get("mas.hostname", "localhost"), new Integer(portNum), loginParam, Integer
+			return new MasConnection(MainPMScmd.getMyPrefs().get("mas.hostname", "localhost"), Integer.valueOf(portNum), loginParam, Integer
 					.parseInt(MainPMScmd.getMyPrefs().get("mas.ctimeout", "20000")));
 		} catch (IOException e) {
 			LOGGER.debug("", e);
@@ -338,8 +338,8 @@ public class MasSource implements SourceConnector {
 	 */
 	private int getNextAvailablePort(int connectionId) {
 		int portNum;
-		if (this.numPortMap.containsKey(new Integer(connectionId))) {
-			Integer oldport = this.numPortMap.get(new Integer(connectionId));
+		if (this.numPortMap.containsKey(Integer.valueOf(connectionId))) {
+			Integer oldport = this.numPortMap.get(Integer.valueOf(connectionId));
 			portNum = oldport.intValue() + MasSource.NBTHREADSMAS;
 		} else {
 			portNum = Integer.parseInt(MainPMScmd.getMyPrefs().get("mas.port", "13579")) + connectionId;
@@ -365,11 +365,11 @@ public class MasSource implements SourceConnector {
 		} catch (IOException e) {
 			LOGGER.error("", e);
 		}
-		if (this.processMap.containsKey(new Integer(connectionId))) {
-			MasProcess mp = this.processMap.get(new Integer(connectionId));
-			LOGGER.debug("Stop pss " + this.numPortMap.get(new Integer(connectionId)));
+		if (this.processMap.containsKey(Integer.valueOf(connectionId))) {
+			MasProcess mp = this.processMap.get(Integer.valueOf(connectionId));
+			LOGGER.debug("Stop pss " + this.numPortMap.get(Integer.valueOf(connectionId)));
 			mp.stopProcess();
-			this.processMap.remove((new Integer(connectionId)));
+			this.processMap.remove((Integer.valueOf(connectionId)));
 		}
 	}
 
@@ -580,13 +580,13 @@ public class MasSource implements SourceConnector {
 	}
 
 	public int crashResart(int connectionId) {
-		if (this.processMap.containsKey(new Integer(connectionId))) {
-			MasProcess mp = this.processMap.get(new Integer(connectionId));
+		if (this.processMap.containsKey(Integer.valueOf(connectionId))) {
+			MasProcess mp = this.processMap.get(Integer.valueOf(connectionId));
 			mp.stopProcess();
 		}
 		startSource(connectionId);
 		// sleep time
-		int sleep = (new Integer(MainPMScmd.getMyPrefs().get("mas.server.wait", "5000")));
+		int sleep = (Integer.valueOf(MainPMScmd.getMyPrefs().get("mas.server.wait", "5000")));
 		return sleep;
 	}
 
@@ -620,7 +620,7 @@ public class MasSource implements SourceConnector {
 			MasProcessLogging mpl = new MasProcessLogging(p, outputfile, connectionId);
 			MasProcess mp = new MasProcess(p, mpl);
 			if (new Boolean(MainPMScmd.getMyPrefs().get("mas.logserver","false"))) mpl.start();
-			this.processMap.put(new Integer(connectionId), mp);
+			this.processMap.put(Integer.valueOf(connectionId), mp);
 		} catch (IOException e) {
 			LOGGER.debug("", e);
 		}

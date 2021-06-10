@@ -78,11 +78,11 @@ public class SlopeThresholdDerivator implements DiscretDerivator {
 			double current = values.get(i)[0];
 			
 			boolean currentBelowLowThreshold = current <= lowThreshold;
-			boolean isBuySlope = (buyCrossTowardCenter)? (current - prev) > (slope * new Double(period)) :  (current - prev) < (-slope * new Double(period));
+			boolean isBuySlope = (buyCrossTowardCenter)? (current - prev) > (slope * Double.valueOf(period)) :  (current - prev) < (-slope * Double.valueOf(period));
 			if ( isBuySlope  && currentBelowLowThreshold ) {
 				drv = 0;
 			} else {
-				boolean isSellSlope = (sellCrossTowardCenter)?  (current - prev) < (-slope * new Double(period))  : (current - prev) > (slope * new Double(period));
+				boolean isSellSlope = (sellCrossTowardCenter)?  (current - prev) < (-slope * Double.valueOf(period))  : (current - prev) > (slope * Double.valueOf(period));
 				boolean currentAboveHighThreshold = current >= highThreshold;
 				if ( isSellSlope  && currentAboveHighThreshold) {
 					drv = 1;

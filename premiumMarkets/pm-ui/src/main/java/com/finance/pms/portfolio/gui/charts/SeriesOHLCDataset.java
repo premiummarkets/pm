@@ -89,7 +89,7 @@ public Comparable<PortfolioShare> getSeriesKey(int series) {
    * @return The x-value.
    */
   public Number getX(int series, int item) {
-    return new Long(this.data.get(item).getDate().getTime());
+    return Long.valueOf(this.data.get(item).getDate().getTime());
   }
   
   /**

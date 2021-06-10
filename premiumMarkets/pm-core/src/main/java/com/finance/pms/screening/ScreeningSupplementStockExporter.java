@@ -203,7 +203,7 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 		Pattern pattern = Pattern.compile("Rank is : --([0-9]+)--");
 		Matcher matcher = pattern.matcher(previousEventValue.getMessage());
 		if (matcher.find()) {
-			return new Integer(matcher.group(1));
+			return Integer.valueOf(matcher.group(1));
 		} else {
 			LOGGER.error("Invalid trend event : "+previousEventValue, new Throwable());
 			return 0;

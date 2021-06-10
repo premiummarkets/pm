@@ -2714,7 +2714,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				try {
 
 					setChanged();
-					notifyObservers(new ObserverMsg(null, ObsKey.INITMSG , new Integer(selectedStocks.size())));
+					notifyObservers(new ObserverMsg(null, ObsKey.INITMSG , Integer.valueOf(selectedStocks.size())));
 
 					QuotationUpdate quotationUpdate = new QuotationUpdate();
 					Set<Observer> obss = new HashSet<Observer>();

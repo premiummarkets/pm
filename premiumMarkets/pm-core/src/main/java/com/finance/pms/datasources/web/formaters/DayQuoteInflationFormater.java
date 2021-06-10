@@ -89,7 +89,7 @@ public class DayQuoteInflationFormater extends LineFormater {
 		
 		Matcher fitYear = fullYearPattern.matcher(line);
 		if (fitYear.find()) {
-			year = new Integer(fitYear.group(1));
+			year = Integer.valueOf(fitYear.group(1));
 			if (year >= startDate.get(Calendar.YEAR)) {
 				for (int i = 2; i <= 13; i++) {
 					String value = fitYear.group(i);
@@ -108,7 +108,7 @@ public class DayQuoteInflationFormater extends LineFormater {
 						mainQuery.add(new BigDecimal(value));
 						mainQuery.add(new BigDecimal(value));
 						mainQuery.add(new BigDecimal(value));
-						mainQuery.add(new Long(0));
+						mainQuery.add(Long.valueOf(0));
 						validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 					}
 				}

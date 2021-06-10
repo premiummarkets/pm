@@ -81,7 +81,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 
 		for (final Portfolio portfolio : portfolios) {
 
-			ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("alertcalculator.semaphore.nbthread","5")));
+			ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("alertcalculator.semaphore.nbthread","5")));
 			List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
 
 			boolean isUserPortfolio = portfolio instanceof UserPortfolio; 

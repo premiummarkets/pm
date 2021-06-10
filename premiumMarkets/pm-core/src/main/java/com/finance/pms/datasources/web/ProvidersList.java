@@ -276,7 +276,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		Set<ScreeningSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 
 		Boolean trendSuppNeeded = new Boolean(MainPMScmd.getMyPrefs().get("marketlistretrieval.trendSuppNeeded","false"));
-		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("marketlistretrieval.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("marketlistretrieval.semaphore.nbthread","20")));
 		for (Observer observer : observers) {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, listAsFromWeb.size()));
 		}
@@ -404,7 +404,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 			LOGGER.guiInfo("Number of old tickers removed from the list : " + tobeRemovedFromList.size());
 			if (tobeRemovedFromList.size() > 0) {
-				if (new Double(tobeRemovedFromList.size()) <= (ShareListMgr.PERCENT_THRESHOLD/100d)*(new Double(thisSharesList.getListShares().size()))) {
+				if (Double.valueOf(tobeRemovedFromList.size()) <= (ShareListMgr.PERCENT_THRESHOLD/100d)*(Double.valueOf(thisSharesList.getListShares().size()))) {
 					thisSharesList.removeShares(tobeRemovedFromList);
 				} else {
 					LOGGER.error(
@@ -461,7 +461,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		int nbShares = shareList.size();
 		final Set<ScreeningSupplementedStock> listTrendIns = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 
-		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("screeninginforetrieval.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("screeninginforetrieval.semaphore.nbthread","20")));
 		for (final Stock stock : shareList) {
 
 			Thread t = new Thread(new Runnable() {

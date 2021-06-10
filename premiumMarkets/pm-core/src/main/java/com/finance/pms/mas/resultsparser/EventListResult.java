@@ -66,7 +66,7 @@ public class EventListResult implements Result {
 	 * @author Guillaume Thoreton
 	 */
 	EventListResult(String value,String k) {
-		this.key = new Integer(k);
+		this.key = Integer.valueOf(k);
 		this.value = value;
 	}
 

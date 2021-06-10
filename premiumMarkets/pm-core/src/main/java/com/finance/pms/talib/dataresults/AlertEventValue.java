@@ -70,10 +70,10 @@ public class AlertEventValue extends StandardEventValue {
 		}
 		
 		if (EventDefinition.SCREENER.equals(this.eventDef) && (EventType.BULLISH.equals(this.eventType) || EventType.NONE.equals(this.eventType)) ) {
-			return Math.max(0, TOP_ADDITIONAL_WEIGHT - new Integer(rankString));
+			return Math.max(0, TOP_ADDITIONAL_WEIGHT - Integer.valueOf(rankString));
 		}
 		
-		return new Integer(rankString);
+		return Integer.valueOf(rankString);
 		
 	}
 }

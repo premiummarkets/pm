@@ -64,9 +64,9 @@ public class FlatSlopeDerivator implements DiscretDerivator {
 			double prev = values.get(i-period)[0];
 			double current = values.get(i)[0];
 			if (Math.abs(current - prev) < slope) {
-				if ( (prev - prevPrev) > (slope * new Double(period)) ) { //&& current >= hightThreshold ) {
+				if ( (prev - prevPrev) > (slope * Double.valueOf(period)) ) { //&& current >= hightThreshold ) {
 					drv = 1;
-				} else if ( (prev - prevPrev) < (-slope * new Double(period)) ) { //&& current <= lowThreshold ) {
+				} else if ( (prev - prevPrev) < (-slope * Double.valueOf(period)) ) { //&& current <= lowThreshold ) {
 					drv = 0;
 				} 
 			}

@@ -72,11 +72,11 @@ public class SlopeDerivator implements DiscretDerivator, SDiscretDerivator {
 			double current = values.get(i)[0];
 			double percentDiff = (current - prev)/Math.abs(prev);
 			
-			boolean isBuySlope = (buyCrossTowardCenter)? percentDiff > (slope * new Double(period)) :  percentDiff < (-slope * new Double(period));
+			boolean isBuySlope = (buyCrossTowardCenter)? percentDiff > (slope * Double.valueOf(period)) :  percentDiff < (-slope * Double.valueOf(period));
 			if ( isBuySlope ) {
 				drv = 0;
 			} else {
-				boolean isSellSlope = (sellCrossTowardCenter)?  percentDiff < (-slope * new Double(period))  : percentDiff > (slope * new Double(period));
+				boolean isSellSlope = (sellCrossTowardCenter)?  percentDiff < (-slope * Double.valueOf(period))  : percentDiff > (slope * Double.valueOf(period));
 				if ( isSellSlope ) {
 					drv = 1;
 				}
@@ -106,11 +106,11 @@ public class SlopeDerivator implements DiscretDerivator, SDiscretDerivator {
 			double current = values.get(i);
 			double percentDiff = (current - prev)/Math.abs(prev);
 		
-			boolean isBuySlope = (buyCrossTowardCenter)? percentDiff > (slope * new Double(period)) :  percentDiff < (-slope * new Double(period));
+			boolean isBuySlope = (buyCrossTowardCenter)? percentDiff > (slope * Double.valueOf(period)) :  percentDiff < (-slope * Double.valueOf(period));
 			if ( isBuySlope ) {
 				drv = 0;
 			} else {
-				boolean isSellSlope = (sellCrossTowardCenter)?  percentDiff < (-slope * new Double(period))  : percentDiff > (slope * new Double(period));
+				boolean isSellSlope = (sellCrossTowardCenter)?  percentDiff < (-slope * Double.valueOf(period))  : percentDiff > (slope * Double.valueOf(period));
 				if ( isSellSlope ) {
 					drv = 1;
 				}

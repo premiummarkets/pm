@@ -204,10 +204,10 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	private void loadPrefs() {
 		
-		this.infCrit = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.inf", "-1"));
-		this.supCrit = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.sup", "1"));
-		this.nbDaysFilter = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.filternbdays", "5"));
-		this.nbMonthsAnalysis = new Integer(MainPMScmd.getMyPrefs().get("gui.crit.calcnbmonths", "18"));
+		this.infCrit = Integer.valueOf(MainPMScmd.getMyPrefs().get("gui.crit.inf", "-1"));
+		this.supCrit = Integer.valueOf(MainPMScmd.getMyPrefs().get("gui.crit.sup", "1"));
+		this.nbDaysFilter = Integer.valueOf(MainPMScmd.getMyPrefs().get("gui.crit.filternbdays", "5"));
+		this.nbMonthsAnalysis = Integer.valueOf(MainPMScmd.getMyPrefs().get("gui.crit.calcnbmonths", "18"));
 
 		this.selectedEventInfos = new HashSet<EventInfo>();//These are initialised in the set visible as it requires knowledge of the EventInfos (async back ground loaded)
 

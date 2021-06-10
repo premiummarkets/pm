@@ -90,25 +90,25 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private SortedSet<EventInfoOpsCompoOperation> filteredParameterised = null;
 
 
-	private Integer buyEventTriggerThreshold =  new Integer(MainPMScmd.getMyPrefs().get("event.buytrigger", "1"));
-	private Integer sellEventTriggerThreshold = new Integer(MainPMScmd.getMyPrefs().get("event.selltrigger", "-1"));
+	private Integer buyEventTriggerThreshold =  Integer.valueOf(MainPMScmd.getMyPrefs().get("event.buytrigger", "1"));
+	private Integer sellEventTriggerThreshold = Integer.valueOf(MainPMScmd.getMyPrefs().get("event.selltrigger", "-1"));
 	private List<String> sellIndicators;
 	private List<String> buyIndicators;
 
 	//TODO : different span and event thresholds for first and second pass ...
-	private Integer backwardDaySpan = new Integer(MainPMScmd.getMyPrefs().get("event.backwarddayspan", "40"));
-	//private Integer secondPassbackwardDaySpan = new Integer(MainPMScmd.prefs.get("event.backwarddayspan", "45"));
+	private Integer backwardDaySpan = Integer.valueOf(MainPMScmd.getMyPrefs().get("event.backwarddayspan", "40"));
+	//private Integer secondPassbackwardDaySpan = Integer.valueOf(MainPMScmd.prefs.get("event.backwarddayspan", "45"));
 
 	private String buyPonderationRule = MainPMScmd.getMyPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getMyPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
 	private String configListFileName = IndicatorCalculationServiceMain.UI_ANALYSIS;
 
 	//Roc
-	private int rocNNeuralHouseTrendPeriod = new Integer(MainPMScmd.getMyPrefs().get("rocnneural.houseTrendPeriod", "21"));
-	private int rocNNeuralQuoteSmthPeriod = new Integer(MainPMScmd.getMyPrefs().get("rocnneural.quoteSmthPeriod", "1"));
+	private int rocNNeuralHouseTrendPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("rocnneural.houseTrendPeriod", "21"));
+	private int rocNNeuralQuoteSmthPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("rocnneural.quoteSmthPeriod", "1"));
 
 	//Neural and Bar chart event occ span
-	private int perceptronTrainingPMEventOccLowerSpan = new Integer(MainPMScmd.getMyPrefs().get("perceptron.trainingPMEventOccLowerSpan", "12"));
+	private int perceptronTrainingPMEventOccLowerSpan = Integer.valueOf(MainPMScmd.getMyPrefs().get("perceptron.trainingPMEventOccLowerSpan", "12"));
 
 	//Encog
 	private boolean isIterative = false;
@@ -137,8 +137,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 		this();
 		this.analysis = analyse;
 
-		this.buyEventTriggerThreshold = new Integer(buyEventTriggerThreshold);
-		this.sellEventTriggerThreshold = new Integer(sellEventTriggerThreshold);
+		this.buyEventTriggerThreshold = Integer.valueOf(buyEventTriggerThreshold);
+		this.sellEventTriggerThreshold = Integer.valueOf(sellEventTriggerThreshold);
 
 		this.limitPriceAbove = new BigDecimal(stopLossRate).setScale(2);
 		this.sellLimitToPrice = new BigDecimal(sellAlertRate).setScale(2);
@@ -158,9 +158,9 @@ public class EventSignalConfig extends Config implements Cloneable {
 		this.analysis = analyse;
 		this.buyPonderationRule = buyPonderationRule;
 		this.sellPonderationRule = sellPonderationRule;
-		this.backwardDaySpan = new Integer(backDaysSpan);
-		this.buyEventTriggerThreshold = new Integer(buyThreshold);
-		this.sellEventTriggerThreshold = new Integer(sellThreshold);
+		this.backwardDaySpan = Integer.valueOf(backDaysSpan);
+		this.buyEventTriggerThreshold = Integer.valueOf(buyThreshold);
+		this.sellEventTriggerThreshold = Integer.valueOf(sellThreshold);
 
 		String[] indicatorsSplit = indicators.split(",");
 		this.indicators = (indicators.isEmpty())?Collections.unmodifiableList(new ArrayList<>()):Arrays.asList(indicatorsSplit);

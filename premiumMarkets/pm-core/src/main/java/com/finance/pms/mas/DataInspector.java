@@ -76,7 +76,7 @@ public class DataInspector {
 			 	if (count == 0) { //extraction de l'aquitement
 					StringTokenizer tResponse = new StringTokenizer(line,MasSource.MESSAGE_FIELD_SEPARATOR);
 					ack = tResponse.nextToken();
-					ackNumber = (new Integer(ack)).intValue();
+					ackNumber = (Integer.valueOf(ack)).intValue();
 					String suite = line.substring(ack.length()+MasSource.MESSAGE_FIELD_SEPARATOR.length());
 					message.append(suite);
 			 	} else {

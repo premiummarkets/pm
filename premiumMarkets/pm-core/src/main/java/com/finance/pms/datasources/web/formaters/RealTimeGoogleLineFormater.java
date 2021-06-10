@@ -67,25 +67,25 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		String[] headerLine = line.split("=");
 		if (headerLine.length == 2) {
 			if ("MARKET_OPEN_MINUTE".equals(headerLine[0])) {
-				openingMinute = new Integer(headerLine[1]);
+				openingMinute = Integer.valueOf(headerLine[1]);
 			} else 
 				if ("MARKET_CLOSE_MINUTE".equals(headerLine[0])) {
-					closingMinutes = new Integer(headerLine[1]);
+					closingMinutes = Integer.valueOf(headerLine[1]);
 				} else 
 					if ("TIMEZONE_OFFSET".equals(headerLine[0])) {
-						gmtTimeOffset = new Integer(headerLine[1]);
+						gmtTimeOffset = Integer.valueOf(headerLine[1]);
 
 					}
 		} else 
 			if (gmtTimeOffset != null) {
 				String[] quotationLine = line.split(",");
 				try {
-					int minuteOTOpenD = new Integer(quotationLine[0]);
+					int minuteOTOpenD = Integer.valueOf(quotationLine[0]);
 					QuotationUnit quotationUnit = addQuotationUnit(quotationLine, minuteOTOpenD);
 					ret.add(new ValidatableQuotationUnit(quotationUnit));
 
 				} catch (NumberFormatException e) {
-					long day = new Long(quotationLine[0].substring(1));
+					long day = Long.valueOf(quotationLine[0].substring(1));
 					quotationDate = Calendar.getInstance();
 					quotationDate.setTimeInMillis(day*1000);
 					QuotationUnit quotationUnit = addQuotationUnit(quotationLine, 0);
@@ -103,7 +103,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		BigDecimal low = new BigDecimal(quotationLine[3]);
 		BigDecimal close = new BigDecimal(quotationLine[4]);
 
-		long volume = new Long(quotationLine[5]);
+		long volume = Long.valueOf(quotationLine[5]);
 
 		DateToMinutesOTDConverter firstDateTimeMinutesConverter = new DateToMinutesOTDConverter(quotationDate, this.openingMinute + minuteOTOpenD);
 		firstDateTimeMinutesConverter.minuteOfTheDayToTime();

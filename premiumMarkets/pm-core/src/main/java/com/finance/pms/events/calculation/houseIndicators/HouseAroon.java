@@ -73,9 +73,9 @@ public class HouseAroon extends TalibIndicator {
 
 			for (int i = outBegIdx.value ; i <= endIdx; i++) {
 				int[] periodHighLowIdxs = periodHighLowIdxs(i, inData[1], inData[2], inData[0], period);
-				outAroonUp[ i - outBegIdx.value ] = (new Double(period - (i - periodHighLowIdxs[0]))/period.doubleValue()) * 100;
-				outAroonDown[ i - outBegIdx.value ] = (new Double(period - (i - periodHighLowIdxs[1]))/period.doubleValue()) * 100;
-				outAroonOsc[ i - outBegIdx.value ] = (new Double(periodHighLowIdxs[0] - periodHighLowIdxs[1])/period.doubleValue()) * 100;
+				outAroonUp[ i - outBegIdx.value ] = (Double.valueOf(period - (i - periodHighLowIdxs[0]))/period.doubleValue()) * 100;
+				outAroonDown[ i - outBegIdx.value ] = (Double.valueOf(period - (i - periodHighLowIdxs[1]))/period.doubleValue()) * 100;
+				outAroonOsc[ i - outBegIdx.value ] = (Double.valueOf(periodHighLowIdxs[0] - periodHighLowIdxs[1])/period.doubleValue()) * 100;
 			}
 
 		} catch (IndexOutOfBoundsException e) {

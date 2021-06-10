@@ -66,7 +66,7 @@ public class EventDataResult implements Result {
 		} catch (ParseException e) {
 			LOGGER.error("Error parsing Event data Result :"+this.toString(),e);
 		}
-		this.eventdef = new Integer(eventdef);
+		this.eventdef = Integer.valueOf(eventdef);
 		this.eventtype = eventtype.charAt(0);
 	}
 

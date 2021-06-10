@@ -47,7 +47,7 @@ public class ComparableSortedMap<K extends Comparable<K>, V extends Comparable<V
 	@Override
 	//XXX
 	public int compareTo(ComparableSortedMap<K,V> o) {
-		int size = new Integer(this.size()).compareTo(new Integer(o.size()));
+		int size = Integer.valueOf(this.size()).compareTo(Integer.valueOf(o.size()));
 		if (size != 0) {
 			return size;
 		} else {

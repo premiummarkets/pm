@@ -126,12 +126,12 @@ public class ProvidersGoogle extends Providers implements MarketListProvider, Qu
 		DateFormat df = new SimpleDateFormat("MMM");
 		
 		url = this.httpSource.getStockQuotationURL(ticker,
-				(new Integer(gcStart.get(Calendar.YEAR))).toString(),
+				(Integer.valueOf(gcStart.get(Calendar.YEAR))).toString(),
 				df.format(gcStart.getTime()), 
-				(new Integer(gcStart.get(Calendar.DAY_OF_MONTH))).toString(), 
-				(new Integer(gcEnd.get(Calendar.YEAR))).toString(),
+				(Integer.valueOf(gcStart.get(Calendar.DAY_OF_MONTH))).toString(), 
+				(Integer.valueOf(gcEnd.get(Calendar.YEAR))).toString(),
 				df.format(gcEnd.getTime()),
-				(new Integer(gcEnd.get(Calendar.DAY_OF_MONTH))).toString());
+				(Integer.valueOf(gcEnd.get(Calendar.DAY_OF_MONTH))).toString());
 		//end specific	
 		
 		return url;

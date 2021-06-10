@@ -97,7 +97,7 @@ public class UnEvenSlopeDerivator implements DiscretDerivator {
 		double prevBuy = values.get(j-period)[0];
 		double currentBuy = values.get(j)[0];
 		double percentDiffBuy = (currentBuy - prevBuy)/prevBuy;
-		boolean isBuySlope = percentDiffBuy > (slope * new Double(period));
+		boolean isBuySlope = percentDiffBuy > (slope * Double.valueOf(period));
 		return isBuySlope;
 	}
 
@@ -105,7 +105,7 @@ public class UnEvenSlopeDerivator implements DiscretDerivator {
 		double prevSell = values.get(j-period)[0];
 		double currentSell = values.get(j)[0];
 		double percentDiffSell = (currentSell - prevSell)/prevSell;
-		boolean isSellSlope = percentDiffSell < (-slope * new Double(period));
+		boolean isSellSlope = percentDiffSell < (-slope * Double.valueOf(period));
 		return isSellSlope;
 	}
 

@@ -132,7 +132,7 @@ public abstract class HttpSource implements SourceConnector {
 		//		initialState.addCookie(mycookie);
 
 		//init thread
-		this.nbHttpThreads = (new Integer(MainPMScmd.getMyPrefs().get("http.poolsize", "10"))).intValue();
+		this.nbHttpThreads = (Integer.valueOf(MainPMScmd.getMyPrefs().get("http.poolsize", "10"))).intValue();
 		this.threadPool = new PoolSemaphore(this.nbHttpThreads, this, false);
 
 		this.beanFactoryAware = beanFActoryAware;

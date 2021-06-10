@@ -184,12 +184,12 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^"+symbol;
 
 		url = this.httpSource.getStockQuotationURL(symbol,
-				(new Integer(gcStart.get(Calendar.YEAR))).toString(),
-				(new Integer(gcStart.get(Calendar.MONTH))).toString(), 
-				(new Integer(gcStart.get(Calendar.DAY_OF_MONTH))).toString(), 
-				(new Integer(gcEnd.get(Calendar.YEAR))).toString(),
-				(new Integer(gcEnd.get(Calendar.MONTH))).toString(),
-				(new Integer(gcEnd.get(Calendar.DAY_OF_MONTH))).toString());
+				(Integer.valueOf(gcStart.get(Calendar.YEAR))).toString(),
+				(Integer.valueOf(gcStart.get(Calendar.MONTH))).toString(), 
+				(Integer.valueOf(gcStart.get(Calendar.DAY_OF_MONTH))).toString(), 
+				(Integer.valueOf(gcEnd.get(Calendar.YEAR))).toString(),
+				(Integer.valueOf(gcEnd.get(Calendar.MONTH))).toString(),
+				(Integer.valueOf(gcEnd.get(Calendar.DAY_OF_MONTH))).toString());
 		
 		return url;
 	}

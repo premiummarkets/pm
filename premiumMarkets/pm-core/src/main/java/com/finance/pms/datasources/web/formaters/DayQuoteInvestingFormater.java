@@ -56,8 +56,8 @@ public class DayQuoteInvestingFormater extends LineFormater {
 				case 0 :
 					if (fit.find()) {
 						System.out.println("Date : "+line+" at cpt : "+cpt);
-						//date = LocalDateTime.ofEpochSecond(new Long(fit.group(1)), 0, ZoneOffset.UTC).toLocalDate();
-						date = new Long(fit.group(1));
+						//date = LocalDateTime.ofEpochSecond(Long.valueOf(fit.group(1)), 0, ZoneOffset.UTC).toLocalDate();
+						date = Long.valueOf(fit.group(1));
 						cpt ++;
 					}
 					break;
@@ -92,7 +92,7 @@ public class DayQuoteInvestingFormater extends LineFormater {
 				case 5 :
 					if (fit.find()) {
 						System.out.println("Volume : "+line+" at cpt : "+cpt);
-						volume = new Long(fit.group(1));
+						volume = Long.valueOf(fit.group(1));
 						LinkedList<Comparable<?>> mainQuery = new LinkedList<Comparable<?>>();
 						Calendar calendar = Calendar.getInstance();
 						calendar.setTimeInMillis(date*1000);

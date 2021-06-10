@@ -92,7 +92,7 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 						dayCal.set(Calendar.MINUTE, minutesCal.get(Calendar.MINUTE));
 						dayCal.set(Calendar.SECOND, minutesCal.get(Calendar.SECOND));
 
-						quotationUnitsStack.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), new Long(split[3]), ORIGIN.WEB, BigDecimal.ONE));
+						quotationUnitsStack.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), Long.valueOf(split[3]), ORIGIN.WEB, BigDecimal.ONE));
 
 					} catch (ParseException e) {
 						LOGGER.info("Ignored line :"+line);

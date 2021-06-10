@@ -33,24 +33,24 @@ import com.finance.pms.MainPMScmd;
 
 public class IndicatorsConfig extends Config {
 
-    private Integer smaReversalSmaPeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.smareversalsmaperiod", "50"));
-    private Integer stdDevSmaPeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.stddevsmaperiod", "100"));
-    private Integer varianceSmaPeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.variancesmaperiod", "200"));
+    private Integer smaReversalSmaPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.smareversalsmaperiod", "50"));
+    private Integer stdDevSmaPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.stddevsmaperiod", "100"));
+    private Integer varianceSmaPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.variancesmaperiod", "200"));
 
-    private Integer macdFastPeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.macd.fastperiod", "12"));
-    private Integer macdSlowPeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.macd.slowperiod", "26"));
-    private Integer macdSignal = new Integer(MainPMScmd.getMyPrefs().get("indicators.macd.signal", "9"));
+    private Integer macdFastPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.macd.fastperiod", "12"));
+    private Integer macdSlowPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.macd.slowperiod", "26"));
+    private Integer macdSignal = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.macd.signal", "9"));
 
     private Integer rsiTimePeriod = 14;
     private Integer rsiUpperThreshold = 70;
     private Integer rsiLowerThreshold = 30;
 
-    private Integer variationPeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.variation.period", "20"));
-    private Integer variationSpanDiff = new Integer(MainPMScmd.getMyPrefs().get("indicators.variation.spandiff", "10"));
+    private Integer variationPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.variation.period", "20"));
+    private Integer variationSpanDiff = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.variation.spandiff", "10"));
 
-    private Integer variancePeriod = new Integer(MainPMScmd.getMyPrefs().get("indicators.variance.period", "20"));
-    private Integer varianceSpanDiff = new Integer(MainPMScmd.getMyPrefs().get("indicators.variance.spandiff", "1"));
-    private Integer varianceMinValid = new Integer(MainPMScmd.getMyPrefs().get("indicators.variance.minvalid", "10"));
+    private Integer variancePeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.variance.period", "20"));
+    private Integer varianceSpanDiff = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.variance.spandiff", "1"));
+    private Integer varianceMinValid = Integer.valueOf(MainPMScmd.getMyPrefs().get("indicators.variance.minvalid", "10"));
 
     public IndicatorsConfig(
             Integer macdFastPeriod, Integer macdSignal, Integer macdSlowPeriod, 

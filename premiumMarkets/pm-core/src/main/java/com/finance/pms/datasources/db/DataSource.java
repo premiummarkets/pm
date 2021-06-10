@@ -155,8 +155,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		EVENTS.ANALYSE_NAME = MainPMScmd.getMyPrefs().get("events.type", "ANALYSENAME");
 
 		if (singleton == null) {
-			LOGGER.debug("Number of Long batch DB Threads :" + new Integer(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
-			threadPool = new PoolSemaphore((new Integer(MainPMScmd.getMyPrefs().get("db.poolsize", "10"))).intValue(), this, false);
+			LOGGER.debug("Number of Long batch DB Threads :" + Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
+			threadPool = new PoolSemaphore((Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10"))).intValue(), this, false);
 			singleton = this;
 		}
 	}

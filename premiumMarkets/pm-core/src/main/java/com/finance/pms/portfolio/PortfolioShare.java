@@ -532,7 +532,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		long firstMilli = firstDate.getTime(); 
 		long secondMilli = secondDate.getTime();
 		long diffMilli = secondMilli - firstMilli;
-		Double nbyears = new Double(diffMilli) / 1000 / 60 / 60 / 24 / 365;
+		Double nbyears = Double.valueOf(diffMilli) / 1000 / 60 / 60 / 24 / 365;
 		Double compoundRate = Math.pow((1 + yearlyRate), nbyears); // fv = pv * (1 + r) ^ np where r is the rate over 1 p == pv * Math.exp(r*np)
 		return compoundRate;
 	}

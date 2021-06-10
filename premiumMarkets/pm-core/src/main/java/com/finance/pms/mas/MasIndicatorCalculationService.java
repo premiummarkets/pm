@@ -117,7 +117,7 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 		try {
 			Calendar c = Calendar.getInstance();
 			c.setTime(datedeb);
-			c.add(Calendar.DAY_OF_YEAR, new Integer("-"+MainPMScmd.getMyPrefs().get("mas.daysbackwardday","30")));
+			c.add(Calendar.DAY_OF_YEAR, Integer.valueOf("-"+MainPMScmd.getMyPrefs().get("mas.daysbackwardday","30")));
 			datedeb = c.getTime();
 		} catch (NumberFormatException e) {
 			LOGGER.error("Invalid number of days back ward : "+"-"+MainPMScmd.getMyPrefs().get("mas.daysbackwardday","30"),e);
@@ -130,9 +130,9 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 		LOGGER.debug("Mas calculation date range : from "+datedeb+" to "+datefin);
 		
 //		ThreadSemaphore ts =
-//			ThreadSemaphore.getNewSemaphore(symbols.size(),(new Integer(MainPMScmd.prefs.get("mas.semaphore.nbthread","5"))));
+//			ThreadSemaphore.getNewSemaphore(symbols.size(),(Integer.valueOf(MainPMScmd.prefs.get("mas.semaphore.nbthread","5"))));
 		
-		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("mas.semaphore.nbthread","5")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("mas.semaphore.nbthread","5")));
 		for (Stock stock : symbols) {
 			
 			if (null != stock.getSymbol() && stock.getSymbol() != Stock.MISSINGCODE) {

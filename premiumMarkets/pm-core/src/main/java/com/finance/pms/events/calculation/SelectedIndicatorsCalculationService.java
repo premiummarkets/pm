@@ -59,7 +59,7 @@ public class SelectedIndicatorsCalculationService {
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 		List<Stock> failingStocks = new ArrayList<Stock>();
 
-		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
 		try {
 
 			Map<Stock, List<Future<SymbolEvents>>> futuresMap = new HashMap<>();

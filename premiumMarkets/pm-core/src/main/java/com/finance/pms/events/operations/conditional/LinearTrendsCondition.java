@@ -52,7 +52,7 @@ public abstract class LinearTrendsCondition extends DiscreteLinearOutputsConditi
 
 		inputsOps.stream().forEach(in -> fullKeySet.addAll(in.keySet()));
 		List<Date> fullKeyArray = new ArrayList<>(fullKeySet);
-		List<Integer> dateTimeKeys = fullKeySet.stream().map(d -> new Integer((int) (d.getTime()/DAY_IN_MILLI))).collect(Collectors.toList());
+		List<Integer> dateTimeKeys = fullKeySet.stream().map(d -> Integer.valueOf((int) (d.getTime()/DAY_IN_MILLI))).collect(Collectors.toList());
 
 		//		//Normalizing of Y to X //FIXME auto normalizing would require putting the inputs in different groups for charting as they may have different magnitude
 		//		Normalizer<Double> normalizer = new Normalizer<>(Double.class, fullKeySet.first(), fullKeySet.last(), 0, forPeriod);

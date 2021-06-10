@@ -152,7 +152,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 	private void calculateEventsForEachDateAndIndicatorComp(Set<IndicatorsOperator> evtCalculators, final SymbolEvents symbolEventsForStock, final Date datedeb, final Date datefin, final Stock stock) throws IncompleteDataSetException { 
 
-		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicEventsCalculator.semaphore.eventthread","1")));
 		final List<EventInfo> failing = new ArrayList<EventInfo>();
 
 		for (final IndicatorsOperator evtCalculator: evtCalculators ) {

@@ -157,7 +157,7 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 //		oneMonthAfterStart.add(Calendar.DAY_OF_MONTH, -1);
 //		
 //		// pb avec les chevauchement de mois entre ann�es
-//		int anneeStart = (new Integer(new SimpleDateFormat("yyyy").format(start))).intValue();
+//		int anneeStart = (Integer.valueOf(new SimpleDateFormat("yyyy").format(start))).intValue();
 //		if (oneMonthAfterStart.get(Calendar.YEAR) > anneeStart) {
 //			try {
 //				dateMax = new SimpleDateFormat("dd/MM/yyyy").parse("31/12/" + anneeStart);

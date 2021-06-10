@@ -72,7 +72,7 @@ public class LastUpdateStampCheckerTest {
 		
 		for (int i = 1; i <= LastUpdateStampChecker.MAXATTEMPTSINROW; i++) {
 			Boolean inRowAttempt = checker.isUpdateGranted();
-			assertEquals(new Integer(i), checker.nbAttempts);
+			assertEquals(Integer.valueOf(i), checker.nbAttempts);
 			assertTrue(inRowAttempt);
 		}
 		
@@ -85,11 +85,11 @@ public class LastUpdateStampCheckerTest {
 			calendar.add(Calendar.HOUR_OF_DAY, +1);
 			Boolean twoHoursAfterFirstAttempt = checker.isUpdateGranted();
 			assertTrue(twoHoursAfterFirstAttempt);
-			assertEquals(new Integer(i), checker.nbAttempts);
+			assertEquals(Integer.valueOf(i), checker.nbAttempts);
 			
 			Boolean twoHoursAfterSndtAttempt = checker.isUpdateGranted();
 			assertFalse(twoHoursAfterSndtAttempt);
-			assertEquals(new Integer(i), checker.nbAttempts);
+			assertEquals(Integer.valueOf(i), checker.nbAttempts);
 			
 			System.out.println(checker.nbAttempts+" "+calendar.getTime());
 			System.out.println("checker.lastMarketCloseUpdate "+checker.lastMarketCloseUpdate);
@@ -99,11 +99,11 @@ public class LastUpdateStampCheckerTest {
 		calendar.add(Calendar.HOUR_OF_DAY, +1);
 		Boolean twoHoursAfterFirstAttempt = checker.isUpdateGranted();
 		assertFalse(twoHoursAfterFirstAttempt);
-		assertEquals(new Integer(LastUpdateStampChecker.MAXATTEMPTS), checker.nbAttempts);
+		assertEquals(Integer.valueOf(LastUpdateStampChecker.MAXATTEMPTS), checker.nbAttempts);
 		
 		Boolean twoHoursAfterSndtAttempt = checker.isUpdateGranted();
 		assertFalse(twoHoursAfterSndtAttempt);
-		assertEquals(new Integer(LastUpdateStampChecker.MAXATTEMPTS), checker.nbAttempts);
+		assertEquals(Integer.valueOf(LastUpdateStampChecker.MAXATTEMPTS), checker.nbAttempts);
 		
 		System.out.println(checker.nbAttempts+" "+calendar.getTime());
 		System.out.println("checker.lastMarketCloseUpdate "+checker.lastMarketCloseUpdate);
@@ -111,7 +111,7 @@ public class LastUpdateStampCheckerTest {
 		//One day later
 		calendar.add(Calendar.DAY_OF_YEAR, +1);
 		Boolean dayAfterAttempt = checker.isUpdateGranted();
-		assertEquals(new Integer(0), checker.nbAttempts);
+		assertEquals(Integer.valueOf(0), checker.nbAttempts);
 		assertTrue(dayAfterAttempt);
 		 
 		System.out.println(checker.nbAttempts+" "+calendar.getTime());

@@ -107,7 +107,7 @@ public class MyLogger {
 			props.load(new FileInputStream((new File(System.getProperty("installdir")+File.separator+dbProperty))));
 
 			if (props.containsKey("mail.log.delay")) {
-				msgDelay = new Long(props.getProperty("mail.log.delay"));
+				msgDelay = Long.valueOf(props.getProperty("mail.log.delay"));
 			} else {
 				msgDelay = 4000;
 			}

@@ -106,7 +106,7 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 		if (!stockPart.isNOTSetYahooMeanRecommendations() && !stockPart.isNOTSetYahooTargetPrice()) {
 			Matcher mTarg = nbOpinions.matcher(line);
 			if (mTarg.find()) {
-				Integer nbOps = new Integer(mTarg.group(1));
+				Integer nbOps = Integer.valueOf(mTarg.group(1));
 				if (nbOps < 5) {
 					stockPart.setYahooMeanRecommendations(BigDecimal.ZERO);
 					stockPart.setYahooTargetPrice(BigDecimal.ZERO);

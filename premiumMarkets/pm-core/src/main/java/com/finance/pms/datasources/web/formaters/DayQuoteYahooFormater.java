@@ -79,7 +79,7 @@ public class DayQuoteYahooFormater extends DayQuoteFormater {
 						tokenisedLine.add(new BigDecimal(field));
 						break;
 					case 6 :
-						tokenisedLine.add(new Long(field));	
+						tokenisedLine.add(Long.valueOf(field));	
 						break;
 					default:
 						tokenisedLine.add(field);

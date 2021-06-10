@@ -90,7 +90,7 @@ public class DayQuoteBoursoramaFormater extends DayQuoteFormater {
 						fieldList.add(new BigDecimal(field));
 						break;
 					case 8:
-						fieldList.add(new Long(field));
+						fieldList.add(Long.valueOf(field));
 						break;
 					default:
 						fieldList.add(field);

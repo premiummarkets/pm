@@ -117,7 +117,7 @@ public class DayQuote1818Formater extends LineFormater {
 					mainQuery.add(high);
 					mainQuery.add(low);
 					mainQuery.add(close);
-					mainQuery.add(new Long(numberTransform(fitVolume)));
+					mainQuery.add(Long.valueOf(numberTransform(fitVolume)));
 					ret.add(new DailyQuotation(mainQuery, stock, stock.getMarketValuation().getCurrency().name()));
 					cpt = 0;
 				}

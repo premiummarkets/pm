@@ -105,7 +105,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Scre
 		staleDateLimit.setTime(endDate);
 		staleDateLimit.add(Calendar.MONTH, -TREND_OUTDATE_LIMIT);
 		
-		ExecutorService executor = Executors.newFixedThreadPool(new Integer(MainPMScmd.getMyPrefs().get("trendeventscalculation.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("trendeventscalculation.semaphore.nbthread","20")));
 		for (final ScreeningSupplementedStock trendedStock : listOfShares) {
 			
 			Runnable runnable = new Runnable() {
@@ -147,12 +147,12 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Scre
 			LOGGER.error(shutdownNow, e);
 		}
 		
-		Double totalTrends = new Double(listOfShares.size());
-		notToBefoundPerCentage = new Double(notToBeFoundTrends.size()) / totalTrends;
-		notCrediblePerCentage = new Double(notCredibleTrends.size()) / totalTrends;
-		staledPerCentage = new Double(staledTrends.size()) / totalTrends;
-		ignoredPerCentage = new Double(ignoredTrends.size()) / totalTrends;
-		invalidPerCentage = new Double(invalidTrends.size()) / totalTrends;
+		Double totalTrends = Double.valueOf(listOfShares.size());
+		notToBefoundPerCentage = Double.valueOf(notToBeFoundTrends.size()) / totalTrends;
+		notCrediblePerCentage = Double.valueOf(notCredibleTrends.size()) / totalTrends;
+		staledPerCentage = Double.valueOf(staledTrends.size()) / totalTrends;
+		ignoredPerCentage = Double.valueOf(ignoredTrends.size()) / totalTrends;
+		invalidPerCentage = Double.valueOf(invalidTrends.size()) / totalTrends;
 		
 		return ret;
 	}

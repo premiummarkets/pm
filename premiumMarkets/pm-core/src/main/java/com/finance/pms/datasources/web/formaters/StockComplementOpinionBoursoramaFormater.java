@@ -95,7 +95,7 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 		if (!stockPart.isNOTSetBoursoMeanRecommendations() && !stockPart.isNOTSetBoursoTargetPrice() &&  200 <= lineNumber && lineNumber <= 600) {
 			Matcher mTarg = nbOpinions.matcher(line);
 			if (mTarg.find()) {
-				Integer nbOps = new Integer(mTarg.group(1));
+				Integer nbOps = Integer.valueOf(mTarg.group(1));
 				if (nbOps < 3) {
 					stockPart.setBoursoMeanRecommendations(BigDecimal.ZERO);
 					stockPart.setBoursoTargetPrice(BigDecimal.ZERO);

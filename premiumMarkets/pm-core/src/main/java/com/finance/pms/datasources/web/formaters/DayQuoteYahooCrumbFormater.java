@@ -80,7 +80,7 @@ public class DayQuoteYahooCrumbFormater extends DayQuoteFormater {
                         tokenisedLine.add(new BigDecimal(field));
                         break;
                     case 6: //Volume
-                        tokenisedLine.add(new Long(field));	
+                        tokenisedLine.add(Long.valueOf(field));	
                         break;
                     default:
                         //tokenisedLine.add(field);

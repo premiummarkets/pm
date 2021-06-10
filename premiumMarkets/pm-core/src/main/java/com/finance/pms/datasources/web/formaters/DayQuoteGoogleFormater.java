@@ -71,7 +71,7 @@ public class DayQuoteGoogleFormater extends DayQuoteFormater {
 						tokenisedLine.add(new BigDecimal(field));
 						break;
 					case 5 :
-						tokenisedLine.add(new Long(field));	
+						tokenisedLine.add(Long.valueOf(field));	
 						break;
 					default:
 						tokenisedLine.add(field);

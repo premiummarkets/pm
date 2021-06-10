@@ -48,7 +48,7 @@ public class ComparableArray<T extends Comparable<T>> extends ArrayList<T> imple
 	@Override
 	//XXX
 	public int compareTo(ComparableArray<T> o) {
-		int size = new Integer(this.size()).compareTo(new Integer(o.size()));
+		int size = Integer.valueOf(this.size()).compareTo(Integer.valueOf(o.size()));
 		if (size != 0) {
 			return size;
 		} else {

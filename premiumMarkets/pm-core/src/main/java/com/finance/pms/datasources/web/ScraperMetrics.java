@@ -119,12 +119,12 @@ public class ScraperMetrics {
 			int nbHttpErrors = (httpErrorsForClass == null)?0:httpErrorsForClass.size();
 			int total = nbNoRes + nbNARes +nbSuccess + nbHttpErrors + nbFailures;
 			if (total > 0) {
-				percentTotalFail = (new Double(nbHttpErrors+nbFailures) / new Double(total))*100;
-				percentHttpErrors = (new Double(nbHttpErrors) / new Double(total))*100;
-				percentPatternEmptyRes = (new Double(nbNARes) / new Double(total))*100;
-				percentPatternNoRes = (new Double(nbNoRes) / new Double(total))*100;
-				percentPatternFailures = (new Double(nbFailures) / new Double(total))*100;
-				percentSuccess = (new Double(nbSuccess) / new Double(total))*100;
+				percentTotalFail = (Double.valueOf(nbHttpErrors+nbFailures) / Double.valueOf(total))*100;
+				percentHttpErrors = (Double.valueOf(nbHttpErrors) / Double.valueOf(total))*100;
+				percentPatternEmptyRes = (Double.valueOf(nbNARes) / Double.valueOf(total))*100;
+				percentPatternNoRes = (Double.valueOf(nbNoRes) / Double.valueOf(total))*100;
+				percentPatternFailures = (Double.valueOf(nbFailures) / Double.valueOf(total))*100;
+				percentSuccess = (Double.valueOf(nbSuccess) / Double.valueOf(total))*100;
 			} else {
 				percentTotalFail = 0d;
 				percentHttpErrors = 0d;

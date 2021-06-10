@@ -86,7 +86,7 @@ public class DayQuoteDoublonTest extends DayQuoteFormater {
 					strtL.add(new BigDecimal(s));
 					break;
 				case 6 :
-					strtL.add(new Long(s));
+					strtL.add(Long.valueOf(s));
 					break;
 				default:
 					//strtL.add(s);

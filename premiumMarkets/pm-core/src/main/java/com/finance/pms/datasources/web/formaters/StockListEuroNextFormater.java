@@ -87,7 +87,7 @@ public class StockListEuroNextFormater extends LineFormater {
 			} else {
 				Long capitalisation = 0L;
 				try {
-					capitalisation = new Long(strArray[13].replace(",",""));
+					capitalisation = Long.valueOf(strArray[13].replace(",",""));
 				} catch (NumberFormatException e) {
 					LOGGER.debug("No capitalisation value for "+strArray[4]);
 				}
