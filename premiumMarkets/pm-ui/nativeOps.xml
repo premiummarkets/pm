@@ -560,6 +560,41 @@
             <outputSelector>macd</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="indicatorStatsOperation">
+            <reference>indicatorStats</reference>
+            <description>Give the performance stats for buy and sell events input. ln(failed buy weight/succesful buy weight). Calculated from date range start to date and from date to date range end.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>backShiftPeriod</referenceAsOperand>
+                    <description>Look back period for accumulation, 'NaN' is the full range from start date.</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>221.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>quotations</referenceAsOperand>
+                    <description>Quotations map used for the events calculations</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="eventMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>indicatorsCompositioners</referenceAsOperand>
+                    <description>Indicators compositions Event Map list</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryDivision">
             <reference>divisionUnary_</reference>
             <description>Division of a series by a number</description>

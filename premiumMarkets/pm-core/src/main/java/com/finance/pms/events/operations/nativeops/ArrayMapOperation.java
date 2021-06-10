@@ -10,7 +10,7 @@ import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({OneInputAssemblerOperation.class})
+@XmlSeeAlso({OneInputAssemblerOperation.class, IndicatorStatsOperation.class})
 public abstract class ArrayMapOperation extends MapOperation {
 	
 	public ArrayMapOperation() {

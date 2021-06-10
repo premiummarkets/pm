@@ -86,6 +86,13 @@ public class TuningResDTO implements Serializable {
 	public Double getFollowProfit() {
 		return getFollowProfitAt(calculationEnd);
 	}
+	
+	/**
+	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStatsAt(Date)}
+	 */
+	public Double[] getStats() {
+		return getStatsBetween(calculationStart, calculationEnd);
+	}
 
 	public List<PeriodRatingDTO> getPeriods() {
 		return periods;
@@ -153,6 +160,64 @@ public class TuningResDTO implements Serializable {
 
 	public void setChartLink(String chartLink) {
 		this.chartLink = chartLink;
+	}
+
+	/**
+	 * @param date
+	 * @return avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance
+	 */
+	public Double[] getStatsBetween(Date from, Date to) {
+		
+		Double totalROC = 0d;
+		Double failedTotalROC = 0d;
+		double nbBullishPeriods = 0;
+		double nbFailedBullishPeriod = 0;
+		double maxROC = 0;
+		double minROC = 0;
+		Iterator<PeriodRatingDTO> iterator = periods.iterator();
+		PeriodRatingDTO currentPeriod = null; 
+		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(to) <= 0) {
+			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
+			if ("BULLISH".equals(currentPeriod.getTrend())) {//We can't use Enumerations in a DTO
+				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
+					nbBullishPeriods++;
+					totalROC = totalROC + bullishPeriodRateOfChange;
+					if (bullishPeriodRateOfChange < 0) {
+						nbFailedBullishPeriod++;
+						failedTotalROC = failedTotalROC + bullishPeriodRateOfChange;
+					}
+					if (bullishPeriodRateOfChange > maxROC) {
+						maxROC = bullishPeriodRateOfChange;
+					}
+					if (bullishPeriodRateOfChange < minROC) {
+						minROC = bullishPeriodRateOfChange;
+					}
+				};
+			}
+		}
+		Double avgROC = totalROC / nbBullishPeriods;
+		Double failedBullishRatio = nbFailedBullishPeriod / nbBullishPeriods;
+		
+		double succcesTotalROC = totalROC - failedTotalROC;
+		double TotalSpan = succcesTotalROC - failedTotalROC;
+		Double failureWeigh = failedTotalROC / TotalSpan ;
+		Double successWeigh = succcesTotalROC / TotalSpan ;
+		
+		Double variance = 0d;
+		Iterator<PeriodRatingDTO> iterator2 = periods.iterator();
+		while (iterator2.hasNext() && (currentPeriod = iterator2.next()).getTo().compareTo(to) <= 0) {
+			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
+			if ("BULLISH".equals(currentPeriod.getTrend())) {
+				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
+					variance  = variance + (bullishPeriodRateOfChange - avgROC)*(bullishPeriodRateOfChange - avgROC);
+				}
+			}
+		}
+		variance = variance / nbBullishPeriods;
+		
+		return new Double[]{avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance};
 	}
 
 	public Double getFollowProfitAt(Date date) {

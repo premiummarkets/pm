@@ -56,9 +56,9 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationDataType;
-import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -89,7 +89,16 @@ public class OTFTuningFinalizer {
 			if (eventsValues.isEmpty()) throw new NotEnoughDataException(stock, startDate, endDate, "", new RuntimeException());
 
 			//Build res
-			return buildTuningRes(stock, startDate, endDate, analyseName, eventsValues, noResMsg, evtDef.info(), observer);
+			LOGGER.info("Building Tuning res for " + stock.getFriendlyName() + " and " + evtDef.info() + " between " + startDate + " and " + endDate);
+			
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+			SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+			LOGGER.info("Quotations map for " + stock.getFriendlyName() + " ranges from " + mapFromQuotationsClose.firstKey() + " to " + mapFromQuotationsClose.lastKey() + " while requested from " + startDate + " to " + endDate);
+			
+			TuningResDTO buildTuningRes = buildTuningRes(stock, startDate, endDate, mapFromQuotationsClose, eventsValues);
+			
+			if (buildTuningRes.getPeriods().isEmpty())LOGGER.warn(String.format("No buy/sell movement was triggered for %s, %s, %s : %s", stock, startDate, endDate, noResMsg));
+			return buildTuningRes;
 
 
 		} catch (NoQuotationsException e) {
@@ -111,9 +120,8 @@ public class OTFTuningFinalizer {
 	 * Periods are from inclusive, to exclusive.
 	 */
 	protected List<PeriodRatingDTO> validPeriods(
-			Quotations quotations,
-			Stock stock, Date startDate, Date endDate,
-			Collection<EventValue> generatedEvents, String noResMsg) throws NotEnoughDataException, InvalidAlgorithmParameterException {
+			Stock stock, Date startDate, Date endDate, SortedMap<Date, ? extends Number> qMap,
+			Collection<EventValue> generatedEvents) throws NotEnoughDataException, InvalidAlgorithmParameterException {
 
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 
@@ -126,16 +134,24 @@ public class OTFTuningFinalizer {
 			if (eventDate.compareTo(endDate) > 0) {
 				throw new NotEnoughDataException(stock, startDate, endDate, "Event: " + eventValue + " is after " + endDate, new Exception());
 			}
+			
+			//Ignore event before start date
+			if (eventDate.compareTo(startDate) < 0) {
+				continue;
+			}
 
 			//Construct period
 			if (period != null && !eventDate.after(period.getFrom())) throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents);//Check erroneous input with events on the same date
 
+			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
+			SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), eventDate);
+			Number closeSplitedBeforeOrAtEventDate = subMapInclusive.get(subMapInclusive.lastKey());
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				if (period == null) {//First period
-					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BULLISH.name());
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate.doubleValue(), EventType.BULLISH.name());
 				}
 				else if (period.getTrend().equals(EventType.BEARISH.name())) { //& bear: sell
-					BigDecimal closestCloseForDate = quotations.getClosestCloseSpForDate(eventDate);
+					BigDecimal closestCloseForDate = new BigDecimal(closeSplitedBeforeOrAtEventDate.toString());
 					period.setTo(eventDate);
 					period.setPriceAtTo(closestCloseForDate.doubleValue());
 					period.setRealised(true);
@@ -145,10 +161,10 @@ public class OTFTuningFinalizer {
 			}
 			else if (eventValue.getEventType().equals(EventType.BEARISH)) {
 				if (period == null) {//First period
-					period = new PeriodRatingDTO(eventDate, quotations.getClosestCloseSpForDate(eventDate).doubleValue(), EventType.BEARISH.name());
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate.doubleValue(), EventType.BEARISH.name());
 				}
 				else if (period.getTrend().equals(EventType.BULLISH.name())) { //period != null: end of bearish
-					BigDecimal closestCloseForDate = quotations.getClosestCloseSpForDate(eventDate);
+					BigDecimal closestCloseForDate = new BigDecimal(closeSplitedBeforeOrAtEventDate.toString());
 					period.setTo(eventDate);
 					periods.add(period);
 					period.setPriceAtTo(closestCloseForDate.doubleValue());
@@ -160,18 +176,25 @@ public class OTFTuningFinalizer {
 
 		//Finalising unclosed last period
 		if (period != null) {
-			QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
-			if (quotationUnit.getDate().before(period.getFrom())) throw new RuntimeException();
-			period.setTo(quotationUnit.getDate());
-			period.setPriceAtTo(quotationUnit.getCloseSplit().doubleValue());
+			
+			//QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
+			Date qUnitDateBeforeOrAtEndDate =  null;
+			if (endDate.compareTo(qMap.firstKey()) >= 0) { //End date is withing the map
+				SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), endDate);
+				qUnitDateBeforeOrAtEndDate = subMapInclusive.lastKey();
+			} else {
+				qUnitDateBeforeOrAtEndDate = qMap.firstKey();
+			}
+			Number qUnitDateValueBeforeOrAtEndDate = qMap.get(qUnitDateBeforeOrAtEndDate);
+
+			if (qUnitDateBeforeOrAtEndDate.before(period.getFrom())) throw new RuntimeException();
+			period.setTo(qUnitDateBeforeOrAtEndDate);
+			period.setPriceAtTo(qUnitDateValueBeforeOrAtEndDate.doubleValue());
 			period.setRealised(false);
 			periods.add(period);
 		}
 
 		if (periods.isEmpty()) {
-			LOGGER.warn(String.format(
-					"No buy/sell movement was triggered for %s, %s, %s : %s",
-					stock, quotations.get(0).getDate(), quotations.get(quotations.getLastDateIdx()).getDate(), noResMsg));
 			return periods;
 		} else {
 			//Removing heading periods before start (out of range)
@@ -188,35 +211,27 @@ public class OTFTuningFinalizer {
 	}
 
 	TuningResDTO buildResOnValidPeriods(
-			List<PeriodRatingDTO> periods, SortedMap<Date, Number> qMap, Quotations quotations,
-			Stock stock, Date startDate, Date endDate, String analyseName,
-			String evtDefInfo, Observer observer) {
+			List<PeriodRatingDTO> periods, SortedMap<Date, ? extends Number> qMap,
+			Stock stock, Date startDate, Date endDate) {
 
 		String csvFile = "noOutputAvailable";
 		String chartFile = "noChartAvailable";
 
 		//Other init
-		BigDecimal firstClose = (BigDecimal) qMap.get(qMap.firstKey());
-		BigDecimal lastClose = (BigDecimal) qMap.get(qMap.lastKey());
+		BigDecimal firstClose = new BigDecimal(qMap.get(qMap.firstKey()).toString());
+		BigDecimal lastClose = new BigDecimal(qMap.get(qMap.lastKey()).toString());
 
 		return new TuningResDTO(periods, csvFile, chartFile, firstClose.doubleValue(), lastClose.doubleValue(), startDate, endDate);
 	}
 
 	public TuningResDTO buildTuningRes(
-			Stock stock, Date startDate, Date endDate, String analyseName,
-			Collection<EventValue> eventListForEvtDef, String noResMsg, String evtDefInfo, Observer observer) 
+			Stock stock, Date startDate, Date endDate,
+			SortedMap<Date, ? extends Number> mapFromQuotationsClose,
+			Collection<EventValue> eventListForEvtDef) 
 					throws NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
-
-		LOGGER.info("Building Tuning res for "+stock.getFriendlyName()+" and "+evtDefInfo+" between "+startDate+" and "+ endDate);
-
-		Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
-		SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-		LOGGER.info("Quotations map for "+stock.getFriendlyName()+" ranges from "+mapFromQuotationsClose.firstKey()+" to "+mapFromQuotationsClose.lastKey()+" while requested from "+startDate+" to "+endDate);
-
-		List<PeriodRatingDTO> periods = validPeriods(quotations, stock, startDate, endDate, eventListForEvtDef, noResMsg);
-
-		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, quotations, stock, startDate, endDate, analyseName, evtDefInfo, observer);
-
+		
+		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
+		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, startDate, endDate);
 		LOGGER.debug(export(buildResOnValidPeriods));
 
 		return buildResOnValidPeriods;

@@ -30,8 +30,7 @@
 package com.finance.pms.events.scoring.chartUtils;
 
 import java.awt.Color;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.util.Date;
 
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
@@ -154,23 +153,26 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		return labeled;
 	}
 
-	public String getTuningResStr() {
-		String tuningResLabel = "";
-		if (tuningRes != null) {
-			NumberFormat percentInstance = new DecimalFormat("#0.00 %");
-			tuningResLabel = "Profit (compound) : " + percentInstance.format(tuningRes.getFollowProfit()) + " V. Price change : " + percentInstance.format(tuningRes.getStockPriceChange());
-		}
-		return tuningResLabel;
-	}
-
 	public Double getFollowProfit() {
 		if (tuningRes == null) return Double.NaN;
 		return tuningRes.getFollowProfit();
+	}
+	
+	/**
+	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStatsAt(Date)}
+	 */
+	public Double[] getStats() {
+		if (tuningRes == null) return new Double[5];
+		return tuningRes.getStats();
 	}
 
 	public Double getStockPriceChange() {
 		if (tuningRes == null) return Double.NaN;
 		return tuningRes.getStockPriceChange();
+	}
+	
+	public Date[] getDateRange() {
+		return new Date[]{tuningRes.getCalculatedStart(), tuningRes.getCalculatedEnd()};
 	}
 
 	public String getEventDisplayeDef() {

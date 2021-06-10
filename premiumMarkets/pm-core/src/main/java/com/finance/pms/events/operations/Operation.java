@@ -574,6 +574,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (operands.isEmpty()) return true;
 		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
 	}
+	
+	public boolean isDateSensitive() {
+		if (operands.isEmpty()) return false;
+		return operands.stream().reduce(false, (r, e) -> r || e.isDateSensitive(), (a, b) -> a || b);
+	}
 
 	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock);
 

@@ -479,12 +479,11 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 			EventDefCacheEntry cacheEntry = cacheEntry4Stock.get(eventInfo);
 			if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before(cacheEntry.getUpdateStamp().start) || end.after(cacheEntry.getUpdateStamp().end)) {
 				LOGGER.info(
-						"Events : "+ eventInfo.getEventReadableDef()+" needs update : time stamp is "+
+						"Events : " + eventInfo.getEventReadableDef() + " needs update : time stamp is " +
 								( (cacheEntry == null || cacheEntry.getOutputMap() == null)?
-										"null": 
-											cacheEntry.getUpdateStamp().start+" to "+ cacheEntry.getUpdateStamp().end+" and is "+cacheEntry.getUpdateStamp().getOutputState()
-										)+
-								". Requested is "+start + " to "+end);
+										"null": cacheEntry.getUpdateStamp().start + " to " + cacheEntry.getUpdateStamp().end + " and is " + cacheEntry.getUpdateStamp().getOutputState()
+								) +
+								". Requested is " + start + " to " + end);
 				notUpToDateEventInfos.add(eventInfo);
 				needsUpdate = true;
 			}

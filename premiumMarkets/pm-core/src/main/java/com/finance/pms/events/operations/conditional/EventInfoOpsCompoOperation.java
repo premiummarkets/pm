@@ -180,7 +180,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		return getEventReadableDef();
 	}
 
-	// TODO 
+	//TODO 
 	public Boolean getIsContinous() {
 		return EventDefinition.PARAMETERIZED.getIsContinous();
 	}

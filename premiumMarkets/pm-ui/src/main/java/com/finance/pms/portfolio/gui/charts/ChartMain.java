@@ -420,6 +420,7 @@ public class ChartMain extends Chart {
 					int eventDefSerieIdx = 0;
 					final SimpleDateFormat df = new SimpleDateFormat("dd MMM yy");
 					final NumberFormat pf = new DecimalFormat("#0.00%");
+					//final NumberFormat af = new DecimalFormat("#0.00");
 					for (final DataSetBarDescr serieDef : barSeries.keySet()) {
 						SortedMap<Date, BarChart> barSerie = barSeries.get(serieDef);
 
@@ -430,9 +431,29 @@ public class ChartMain extends Chart {
 						if (serieDef.isLabeled()) {
 							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-							XYTextAnnotation annotation = new XYTextAnnotation(serieDef.getEventDisplayeDef() + " (r" + pf.format(serieDef.getFollowProfit()) + " / u" + pf.format(serieDef.getStockPriceChange()) + ")", annTP.getFirstMillisecond(), annV);
+							String compoundP = pf.format(serieDef.getFollowProfit());
+							String priceChange = pf.format(serieDef.getStockPriceChange());
+							Double[] stats = serieDef.getStats();
+							String annotationTxt = serieDef.getEventDisplayeDef() + 
+									" ("
+									+ "r" + compoundP + " / u" + priceChange
+									+ " / avg" + pf.format(stats[0]) + " / fail" + pf.format(stats[1])
+									+ " / fwght" + pf.format(Math.abs(stats[2])) + " / flog" + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
+									+ " / min" + pf.format(stats[4]) + " / max" + pf.format(stats[5]) + " / std" + pf.format(Math.sqrt(stats[6])) 
+									+ ")";
+							Date[] dateRange = serieDef.getDateRange();
+							LOGGER.info("Indicator stats from " + dateRange[0] + " to " + dateRange[1] + ": " + annotationTxt);
+							XYTextAnnotation annotation = new XYTextAnnotation(annotationTxt, annTP.getFirstMillisecond(), annV);
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
-							annotation.setToolTipText("<html>" + serieDef.getEventDisplayeDef() + "<br>" + serieDef.getTuningResStr() + "</html>");
+							String annotationToolTip = "<html>" 
+								+ serieDef.getEventDisplayeDef() + "<br>"
+								+ "Compound: " + compoundP + " V. Price change: " + priceChange + "<br>"
+								+ "Stats: Avg profit " + pf.format(stats[0]) + ", Failed buy ratio " + pf.format(stats[1]) 
+								+ ", Failure weight " + pf.format(Math.abs(stats[2])) 
+								+ ", failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
+								+ ", Min/Max profit " + pf.format(stats[4]) + "/" + pf.format(stats[5]) + ", Profit std " + pf.format(Math.sqrt(stats[6])) 
+								+ "</html>";
+							annotation.setToolTipText(annotationToolTip);
 							annotation.setPaint(Color.BLUE);
 							Color transpWhite = new Color(1f, 1f, 1f, 0.5f);
 							annotation.setBackgroundPaint(transpWhite);
