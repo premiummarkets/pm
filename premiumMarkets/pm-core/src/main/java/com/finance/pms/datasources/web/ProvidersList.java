@@ -275,7 +275,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		//Completing and adding new from web
 		Set<ScreeningSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 
-		Boolean trendSuppNeeded = new Boolean(MainPMScmd.getMyPrefs().get("marketlistretrieval.trendSuppNeeded","false"));
+		Boolean trendSuppNeeded = Boolean.valueOf(MainPMScmd.getMyPrefs().get("marketlistretrieval.trendSuppNeeded","false"));
 		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("marketlistretrieval.semaphore.nbthread","20")));
 		for (Observer observer : observers) {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, listAsFromWeb.size()));

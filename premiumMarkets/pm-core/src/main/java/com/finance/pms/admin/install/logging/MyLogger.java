@@ -184,7 +184,7 @@ public class MyLogger {
 				mailSessionProps.put("mail.smtp.host", MyLogger.mailHost);
 				mailSessionProps.put("mail.smtp.timeout", "5000");
 
-				Boolean isLocal = new Boolean(MainPMScmd.getMyPrefs().get("mail.log.local", "false"));
+				Boolean isLocal = Boolean.valueOf(MainPMScmd.getMyPrefs().get("mail.log.local", "false"));
 				if (isLocal) {
 
 					MyLogger.mailTo = MainPMScmd.getMyPrefs().get("mail.to", MyLogger.mailFrom);

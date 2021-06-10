@@ -60,7 +60,7 @@ public class InnerJmsTemplate extends JmsTemplate {
 	 */
 	private InnerJmsTemplate() {
 		super(new InnerConnectionFactory());
-		sendMailEnabled = new Boolean(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
+		sendMailEnabled = Boolean.valueOf(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
 	}
 
 	@Override

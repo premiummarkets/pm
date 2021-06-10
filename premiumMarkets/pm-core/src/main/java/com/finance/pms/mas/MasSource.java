@@ -619,7 +619,7 @@ public class MasSource implements SourceConnector {
 			//Log
 			MasProcessLogging mpl = new MasProcessLogging(p, outputfile, connectionId);
 			MasProcess mp = new MasProcess(p, mpl);
-			if (new Boolean(MainPMScmd.getMyPrefs().get("mas.logserver","false"))) mpl.start();
+			if (Boolean.valueOf(MainPMScmd.getMyPrefs().get("mas.logserver","false"))) mpl.start();
 			this.processMap.put(Integer.valueOf(connectionId), mp);
 		} catch (IOException e) {
 			LOGGER.debug("", e);

@@ -104,7 +104,7 @@ public class AdminDB {
 		StockList shares = new StockList();
 		shares.addAll(DataSource.getInstance().loadAllStocks());
 		
-		Boolean justcheckB = new Boolean(justcheck);
+		Boolean justcheckB = Boolean.valueOf(justcheck);
 		if (command.equals("-fixLastupdatedate")) fixLastUpdateDate(shares,justcheckB);
 		if (command.equals("-cleanobsoletequotes")) cleanObsoleteQuotes(shares,justcheckB);
 		//if (command.equals("-addsuffixe")) addSuffixe(shares,justcheckB);

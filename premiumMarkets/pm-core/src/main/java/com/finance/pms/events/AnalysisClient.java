@@ -163,7 +163,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				"Email/Popup potential (before filtering) message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : "+
 				symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
 
-		Boolean sendMailEnabled = new Boolean(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
+		Boolean sendMailEnabled = Boolean.valueOf(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
 
 		Boolean isFiltered = 
 				(

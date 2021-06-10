@@ -143,7 +143,7 @@ public class SingleEventMessage extends EmailMessage {
 	 * @see javax.jms.Message#getBooleanProperty(java.lang.String)
 	 */
 	public boolean getBooleanProperty(String arg0) throws JMSException {
-		return new Boolean(properties.getProperty(arg0));
+		return Boolean.valueOf(properties.getProperty(arg0));
 		//throw new UnsupportedOperationException();
 		//return false;
 	}
@@ -317,7 +317,7 @@ public class SingleEventMessage extends EmailMessage {
 	 * @see javax.jms.Message#setBooleanProperty(java.lang.String, boolean)
 	 */
 	public void setBooleanProperty(String arg0, boolean arg1) throws JMSException {
-		properties.setProperty(arg0, (new Boolean(arg1)).toString());
+		properties.setProperty(arg0, (Boolean.valueOf(arg1)).toString());
 		//throw new UnsupportedOperationException();
 	}
 
