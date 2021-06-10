@@ -1,6 +1,7 @@
 package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
@@ -133,9 +134,9 @@ public class AlertsMgrDelegate {
 		InOutWeighted weightedInOut = ps.getWeightedInvested(null, currentDate, ps.getTransactionCurrency());
 		BigDecimal sellLimitGuardPrice;
 		if (!weightedInOut.isEmpty()) {
-			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(ps.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
+			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
 			sellLimitGuardPriceRate = (avgBuyPrice.compareTo(BigDecimal.ZERO) > 0)?
-					sellLimitGuardPrice.divide(avgBuyPrice, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4)):
+					sellLimitGuardPrice.divide(avgBuyPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4)):
 					BigDecimal.ZERO;
 		} else {
 			sellLimitGuardPriceRate = getEventsConfig().getSellLimitGuardPrice();
@@ -299,10 +300,10 @@ public class AlertsMgrDelegate {
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
 
 			BigDecimal cashin = ps.getCashin(currentDate, ps.getTransactionCurrency());
-			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(cashin).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(cashin).setScale(10, RoundingMode.HALF_EVEN);
 			BigDecimal cashout = ps.getCashout(currentDate, ps.getTransactionCurrency());
-			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
-			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
+			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
+			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 
 			String aboveMessage = "(" + readablePercentOf(sellLimitToPriceRate) + " gain. Price is " + readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
 
@@ -328,10 +329,10 @@ public class AlertsMgrDelegate {
 			BigDecimal sellLimitBelowPriceRate = getEventsConfig().getSellLimitBelowPrice();
 
 			BigDecimal cashin = ps.getCashin(currentDate, ps.getTransactionCurrency());
-			BigDecimal reducedCashin = BigDecimal.ONE.subtract(sellLimitBelowPriceRate).multiply(cashin).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+			BigDecimal reducedCashin = BigDecimal.ONE.subtract(sellLimitBelowPriceRate).multiply(cashin).setScale(10, RoundingMode.HALF_EVEN);
 			BigDecimal cashout = ps.getCashout(currentDate, ps.getTransactionCurrency());
-			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, BigDecimal.ROUND_HALF_EVEN);
-			BigDecimal resultingPercentBelowAvgPrice = calculationPrice.divide(belowSellLimit, 10, BigDecimal.ROUND_HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
+			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
+			BigDecimal resultingPercentBelowAvgPrice = calculationPrice.divide(belowSellLimit, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 
 			String belowMessage = "(" + readablePercentOf(sellLimitBelowPriceRate) + " loss. Price is " + readablePercentOf(resultingPercentBelowAvgPrice) + " below threshold)";
 
@@ -344,7 +345,7 @@ public class AlertsMgrDelegate {
 	}
 
 	private BigDecimal addPercentage(BigDecimal calculationPrice, BigDecimal rateToCalculationPrice) {
-		BigDecimal percentToBeAdded = calculationPrice.multiply(rateToCalculationPrice).setScale(10, BigDecimal.ROUND_HALF_EVEN);
+		BigDecimal percentToBeAdded = calculationPrice.multiply(rateToCalculationPrice).setScale(10, RoundingMode.HALF_EVEN);
 		BigDecimal aboveSellLimit = calculationPrice.add(percentToBeAdded);
 		return aboveSellLimit;
 	}
