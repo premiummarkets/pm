@@ -39,16 +39,20 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.Normalizer;
+import com.finance.pms.events.scoring.functions.Trimmer;
 
 public class BandNormalizerOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(BandNormalizerOperation.class);
-	private static final int DATAINPUTIDX = 3;
+	private static final int DATAINPUTIDX = 4;
+	
+	private int slidingPeriod = 5*251;
 
 	public BandNormalizerOperation() {
 		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
 				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
 				new StringOperation("boolean","keepZero","Keep distance ratio of min and max to zero as the original", new StringValue("FALSE")),
+				new NumberOperation("integer", "trimFactor", "Stdev trim factor", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
@@ -65,15 +69,23 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 		int lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
 		int upperThreshold = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 		Boolean keepZero = Boolean.valueOf(((StringValue)inputs.get(2)).getValue(targetStock));
+		Double trimFactor = ((NumberValue)inputs.get(3)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
 		//Calc
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
 
-			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, data.firstKey(), data.lastKey(), lowerThreshold, upperThreshold, keepZero);
-			SortedMap<Date, Double> shifted = normalizer.normalised(data);
-			ret.getValue(targetStock).putAll(shifted);
+			SortedMap<Date, Double> trimmed = data;
+			if (!Double.isNaN(trimFactor)) {
+				Trimmer trimmer = new Trimmer(slidingPeriod, trimFactor.intValue(), data.firstKey(), data.lastKey());
+				trimmed = trimmer.sTrimmed(data);
+			}
+			
+			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmed.firstKey(), trimmed.lastKey(), lowerThreshold, upperThreshold, keepZero);
+			SortedMap<Date, Double> normalized = normalizer.normalised(trimmed);
+			
+			ret.getValue(targetStock).putAll(normalized);
 
 		} catch (Exception e) {
 			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
@@ -83,7 +95,9 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 
 	@Override
 	public int operandsRequiredStartShift() {
-		return 0;
+		double trimFactor = ((NumberValue)getOperands().get(DATAINPUTIDX-1).getParameter()).getValue(null).doubleValue();
+		if (Double.isNaN(trimFactor)) return 0;
+		return slidingPeriod;
 	}
 
 }

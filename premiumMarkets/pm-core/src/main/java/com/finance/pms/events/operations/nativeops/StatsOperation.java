@@ -34,8 +34,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -46,6 +44,7 @@ import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
+import org.apache.commons.math3.stat.descriptive.summary.Sum;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
@@ -105,7 +104,7 @@ public class StatsOperation extends PMWithDataOperation {
 				statFunction = new MySimpleRegression();
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msum")) {
-				statFunction = lookBack -> lookBack.values().stream().filter(e -> !Double.isNaN(e)).reduce((r, e) -> r + e).orElse(0d);
+				statFunction = new MyApacheStats(new Sum());
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmin")) {
 				statFunction = new MyApacheStats(new Min());
@@ -115,9 +114,7 @@ public class StatsOperation extends PMWithDataOperation {
 			}
 
 			if (period.isNaN()) {
-				double sEvaluate = statFunction.mEvaluate(data);
-				TreeMap<Date, Double> collected = data.keySet().stream().collect(Collectors.toMap(k -> k, k -> sEvaluate, (a, b) -> a, TreeMap<Date,Double>::new));
-				return new DoubleMapValue(collected);
+				return new DoubleMapValue(statFunction.evaluate(data));
 			} else {
 				return new DoubleMapValue(MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period.intValue(), statFunction));
 			}

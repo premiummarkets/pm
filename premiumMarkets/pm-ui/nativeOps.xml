@@ -446,6 +446,17 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>integer</reference>
+                    <referenceAsOperand>trimFactor</referenceAsOperand>
+                    <description>Trim stdev factor</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Data to normalise</reference>
                     <description>Data to normalise</description>
@@ -566,8 +577,8 @@
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
-                    <referenceAsOperand>backShiftPeriod</referenceAsOperand>
-                    <description>Look back period for accumulation, 'NaN' is the full range from start date.</description>
+                    <referenceAsOperand>periodRangeSpan</referenceAsOperand>
+                    <description>Look back period ratio for accumulation, 'NaN' is the full range from start to end date.</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>221.0</numberValue>
                     </defaultValue>

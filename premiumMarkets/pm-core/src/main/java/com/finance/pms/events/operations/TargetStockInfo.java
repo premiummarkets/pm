@@ -223,8 +223,10 @@ public class TargetStockInfo {
 			//Caches all the selectors outputs as the are all calculated at once.
 			for (String selector : ((MultiSelectorsValue) outputValue).getSelectors()) {
 				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
-				String tamperedFormula = operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("); //encogPlus:xxxxx(... => encogPlus:selector(...
-				//constant = null as the selector output as to be an UnarableMapValue and hence can't be a constant.
+				String tamperedFormula = (operation.getFormulae() != null)?
+						operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("): //encogPlus:xxxxx(... => encogPlus:selector(...
+						operation.toFullString() + ":" + selector; //Anonymous operation
+				//constant = null as the selector output as to be a NumericableMapValue and hence can't be a constant.
 				OutputReference outputReference = 
 						new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference(), operation.toFullString());
 				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), oprationRequiredStartShift));
@@ -423,7 +425,7 @@ public class TargetStockInfo {
 						LOGGER.debug("Chart adding other operand " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 						//FIXME it seems we use outputSelector and operand Reference indiscriminately: this doesn't seem to work if the operand also have an outputSelector. There should be two different attributes.
 						Map<String, Type> additionalOutputsTypes = new HashMap<>();
-						additionalOutputsTypes.put((operand.getOutputSelector() == null)?operand.getReference():operand.getOutputSelector(), Type.MULTI);
+						additionalOutputsTypes.put(operand.getOutputSelector(), Type.MULTI);
 						Integer indexOfMain = getIndexOfMainChartableOutput();
 						addChartInfoForAdditonalOutputs(operand, additionalOutputsTypes, indexOfMain);
 					}

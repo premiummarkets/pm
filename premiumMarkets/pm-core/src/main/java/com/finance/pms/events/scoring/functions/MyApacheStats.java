@@ -32,6 +32,8 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Collection;
 import java.util.Date;
 import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
 
@@ -69,6 +71,13 @@ public class MyApacheStats implements StatsFunction {
 		}
 
 		return statistic.evaluate(values);
+	}
+
+	@Override
+	public SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap) {
+		double sEvaluate = this.sEvaluate(subMap.values().stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList()));
+		TreeMap<Date, Double> collected = subMap.keySet().stream().collect(Collectors.toMap(k -> k, k -> sEvaluate, (a, b) -> a, TreeMap<Date,Double>::new));
+		return collected;
 	}
 
 }

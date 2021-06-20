@@ -61,7 +61,7 @@ public class MapUtils {
 		//Bypassing the potential from restrictive range
 		Date from = (map.firstKey().compareTo(startDate) > 0)? map.firstKey(): startDate;
 
-		TreeMap<Date, Double> movingStats =
+		final TreeMap<Date, Double> movingStats =
 				map.tailMap(from).keySet().stream()
 				.collect(Collectors.toMap(
 						endWindowK -> endWindowK,
@@ -78,7 +78,12 @@ public class MapUtils {
 
 		Date firstValidResult = DateFactory.incrementDateWraper(map.firstKey(), period);
 
-		return subMapInclusive(movingStats, firstValidResult, map.lastKey());
+		TreeMap<Date, Double> noNaNMovingStats = movingStats.keySet()
+				.stream()
+				.filter(k -> !Double.isNaN(movingStats.get(k)))
+				.collect(Collectors.toMap(k -> k, k -> movingStats.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
+		
+		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
 	}
 
 }

@@ -31,8 +31,10 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -62,6 +64,16 @@ public class Trimmer {
 		endCal.setTime(end);
 		QuotationsFactories.getFactory().incrementDate(endCal, 1);
 		this.end = endCal.getTime();
+	}
+	
+	public  SortedMap<Date, Double> sTrimmed(SortedMap<Date, Double> data) {
+		SortedMap<Date, double[]> doubleArrayMap = data.entrySet().stream()
+			.map(e -> Map.<Date, double[]>entry(e.getKey(), new double[] {e.getValue()}))
+			.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap<Date,double[]>::new));
+		SortedMap<Date, double[]> trimmed = trimmed(doubleArrayMap);
+		return trimmed.entrySet().stream()
+				.map(e -> Map.<Date, Double>entry(e.getKey(), e.getValue()[0]))
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap<Date,Double>::new));
 	}
 
 	public SortedMap<Date, double[]> trimmed(SortedMap<Date, double[]> data) {
