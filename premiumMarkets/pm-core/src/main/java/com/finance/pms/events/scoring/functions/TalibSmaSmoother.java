@@ -98,7 +98,7 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 		if (period <= 1) {
 
 			period = 0; //XXX
-			sma = Arrays.copyOfRange(inReal, startIdx, endIdx);
+			sma = Arrays.copyOfRange(inReal, startIdx, endIdx+1);
 			outBegIdx = new MInteger();
 			outBegIdx.value = startIdx;
 			outNBElement = new MInteger();

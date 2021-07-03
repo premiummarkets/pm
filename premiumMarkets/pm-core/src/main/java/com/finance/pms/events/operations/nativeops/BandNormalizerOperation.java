@@ -52,7 +52,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
 				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
 				new StringOperation("boolean","keepZero","Keep distance ratio of min and max to zero as the original", new StringValue("FALSE")),
-				new NumberOperation("integer", "trimFactor", "Stdev trim factor", new NumberValue(Double.NaN)),
+				new NumberOperation("integer", "trimFactor", "Stdev trim factor. Will only work for oscillators", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
@@ -75,7 +75,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 		//Calc
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
-
+			
 			SortedMap<Date, Double> trimmed = data;
 			if (!Double.isNaN(trimFactor)) {
 				Trimmer trimmer = new Trimmer(slidingPeriod, trimFactor.intValue(), data.firstKey(), data.lastKey());

@@ -150,7 +150,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>pattern</referenceAsOperand>
-                    <description>Simple pattern (.*[]{,}+ accepted), or contained sequence, used to filter one line.</description>
+                    <description>Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue>None</stringValue>
                     </defaultValue>
@@ -449,7 +449,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>integer</reference>
                     <referenceAsOperand>trimFactor</referenceAsOperand>
-                    <description>Trim stdev factor</description>
+                    <description>Stdev trim factor. Will only work for oscillators</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>

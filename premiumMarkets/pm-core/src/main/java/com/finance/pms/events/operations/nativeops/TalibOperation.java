@@ -106,15 +106,20 @@ public abstract class TalibOperation extends DoubleMapOperation {
 	}
 
 	protected double[] mapToArray(List<Date> smallestDateKeySet, SortedMap<Date, Double> map) {
-		double[] array = new double[smallestDateKeySet.size()];
-		int i=0;
-		for (Date date : map.keySet()) {
-			if (smallestDateKeySet.contains(date)) {
-				array[i] = map.get(date);
-				i++;
-			}
-		}
-		return array;
+//		double[] array = new double[smallestDateKeySet.size()];
+//		int i=0;
+//		for (Date date : map.keySet()) {
+//			if (smallestDateKeySet.contains(date)) {
+//				array[i] = map.get(date);
+//				i++;
+//			}
+//		}
+//		return array;
+		
+		return map.entrySet().stream()
+		.filter(e -> smallestDateKeySet.contains(e.getKey()))
+		.mapToDouble(e -> e.getValue().doubleValue())
+		.toArray();
 	}
 
 

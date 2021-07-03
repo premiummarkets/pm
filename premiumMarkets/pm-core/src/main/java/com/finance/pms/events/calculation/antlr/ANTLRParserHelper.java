@@ -120,6 +120,10 @@ public abstract class ANTLRParserHelper {
 		updateUserOperationList(userCurrentOperations, this.userCurrentOpEditorDescrs);
 		//LOGGER.debug("available user ops : " + this.userCurrentOpEditorDescrs);
 	}
+	
+	public boolean isInitialised() {
+		return nativeOpEditorDescrs != null && userCurrentOpEditorDescrs != null;
+	}
 
 	//XXX Native operation are supposed NOT to be a composition of other ops (is parameters can only be LeafOperation : Double or MapOfDouble). hence non reentrant either
 	private void updateNativeOperationList(Map<String, Operation> userCurrentOperations, Set<EditorOpDescr> userCurrentOperationList) {

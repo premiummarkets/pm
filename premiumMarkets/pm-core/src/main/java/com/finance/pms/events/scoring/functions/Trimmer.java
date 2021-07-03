@@ -30,12 +30,14 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -45,6 +47,7 @@ public class Trimmer {
 //	private static MyLogger LOGGER = MyLogger.getLogger(Trimmer.class);
 
 	private MyApacheStats stdev;
+	private MyApacheStats mean;
 
 	private int trimFactor;
 	private Date start;
@@ -55,6 +58,7 @@ public class Trimmer {
 	public Trimmer(int slidingPeriod, int trimFactor, Date start, Date end) {
 		super();
 		this.stdev = new MyApacheStats(new StandardDeviation());
+		this.mean = new MyApacheStats(new Mean());
 		
 		this.slidingPeriod = slidingPeriod;
 		this.trimFactor = trimFactor;
@@ -92,18 +96,20 @@ public class Trimmer {
 			currentDateCal.setTime(date);
 			QuotationsFactories.getFactory().incrementDate(currentDateCal, -slidingPeriod);
 			Date periodStart = currentDateCal.getTime();
-			double periodStdev = stdev.evaluate(data.subMap(periodStart, date).values());
-			double periodMax = trimFactor*periodStdev;
+			Collection<double[]> periodValues = data.subMap(periodStart, date).values();
+			double periodStdev = stdev.evaluate(periodValues);
+			double preriodMean = mean.evaluate(periodValues);
+			
+			double periodMax = preriodMean + trimFactor*periodStdev;
+			double periodMin = preriodMean - trimFactor*periodStdev;
 
 			double[] ds = data.get(date);
-			if (Math.abs(ds[0]) <= periodMax) {
-				trimedHouseTrend.put(date, ds);
+			if (ds[0] > periodMax) {
+				trimedHouseTrend.put(date, new double[] { periodMax });
+			} else if (ds[0] < periodMin) {
+				trimedHouseTrend.put(date, new double[] { periodMin });
 			} else {
-				if (ds[0] > 0) {
-					trimedHouseTrend.put(date, new double[] { periodMax });
-				} else {
-					trimedHouseTrend.put(date, new double[] { -periodMax });
-				}
+				trimedHouseTrend.put(date, ds);
 			}
 
 		}

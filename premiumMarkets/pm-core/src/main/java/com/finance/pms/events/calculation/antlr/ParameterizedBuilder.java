@@ -507,6 +507,10 @@ public abstract class ParameterizedBuilder extends Observable {
 	public void updateEditableOperationLists() {
 		antlrParser.updateEditableOperationLists(nativeOperations, getUserEnabledOperations());
 	}
+	
+	public boolean isAntlrInitialised() {
+		return antlrParser.isInitialised();
+	}
 
 	public NextToken checkNextToken(String formula) throws IllegalArgumentException {
 		return antlrParser.checkNextToken(new StringInputStream(formula));
