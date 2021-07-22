@@ -39,6 +39,8 @@ import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.apache.commons.math3.stat.descriptive.rank.Min;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -47,7 +49,11 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.scoring.functions.CurvesAddition;
+import com.finance.pms.events.scoring.functions.CurvesSubtraction;
 import com.finance.pms.events.scoring.functions.LeftShifter;
+import com.finance.pms.events.scoring.functions.MyApacheStats;
+import com.finance.pms.events.scoring.functions.StatsFunction;
 
 /**
  * 
@@ -92,7 +98,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		Integer overPeriod = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(3)).getValue(targetStock).intValue();
 		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue()/100;
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		SortedMap<Date, Double> data = sanitizedData(targetStock, inputs);
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
 
@@ -132,6 +138,26 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		}
 
 		return outputs;
+	}
+
+	protected SortedMap<Date, Double> sanitizedData(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+	}
+	
+	protected SortedMap<Date, Double> transformPositive(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		
+		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
+		
+		StatsFunction minFunc = new MyApacheStats(new Min());
+		SortedMap<Date, Double> min = minFunc.evaluate(data);
+		
+		CurvesSubtraction curvesSubtraction = new CurvesSubtraction();
+		SortedMap<Date, Double> zeroBasedData = curvesSubtraction.sOperate(data, min);
+		
+		CurvesAddition curvesAddition = new CurvesAddition();
+		SortedMap<Date, Double> oneBasedData = curvesAddition.sOperate(zeroBasedData, 1d);
+		
+		return oneBasedData;
 	}
 
 	public int mainInputPosition() {

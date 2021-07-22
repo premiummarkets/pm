@@ -142,19 +142,19 @@ public class AutoPortfolioDelegate {
 
 			@Override
 			public String toString() {
-				return "Event buy threshold = "+getWeight(null);
+				return "Event buy threshold = " + getWeight(null);
 			}
 
 		};
 
-		LOGGER.debug("Threshold event : "+symbolEventsThreshold);
+		LOGGER.debug("Threshold event : " + symbolEventsThreshold);
 
 		SortedSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
 		LOGGER.debug("Total bullish events : " + sortedSymbolEvents);
 
 		SortedSet<SymbolEvents> sortedSymbolEventsTail = sortedSymbolEvents.headSet(symbolEventsThreshold);
-		LOGGER.debug("Filtered bullish events tail : "+sortedSymbolEventsTail);
+		LOGGER.debug("Filtered bullish events tail : " + sortedSymbolEventsTail);
 
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
@@ -164,7 +164,7 @@ public class AutoPortfolioDelegate {
 					transactionHistory.add(buyTrans);
 				}
 			} catch (IgnoredEventDateException e) {
-				LOGGER.warn("Date of event is after buy current date. "+e);
+				LOGGER.warn("Date of event is after buy current date. " + e);
 			}
 		}
 
@@ -179,22 +179,24 @@ public class AutoPortfolioDelegate {
 
 	private TransactionRecord checkBuyability(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
 
-		LOGGER.info("Check buy for : "+ symbolEvents);
+		LOGGER.info("Check buy for: " + symbolEvents);
 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
-		LOGGER.debug("Last event date : " + latestEventDateAndNewBuyDate + " and current date : " + currentDate);
+		LOGGER.info("Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate);
 		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.after(currentDate)) {
-			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate + ". Invalid event date or no event found in "+symbolEvents, new Throwable());
+			throw new IgnoredEventDateException(
+					"Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate + ". " +
+					"Invalid event date or no event found in " + symbolEvents, new Throwable());
 		}
 
 		try {
 
 			//Check if already bought 
 			for (PortfolioShare alreadyBoughtShare : thisPortfolio.getListShares().values()) {
-				LOGGER.info("Checking already bought : " + alreadyBoughtShare);
-				if (alreadyBoughtShare.getStock().equals(symbolEvents.getStock()) && isInvalidBuyableDate(latestEventDateAndNewBuyDate, alreadyBoughtShare)) { 
+				LOGGER.info("Checking already bought: " + alreadyBoughtShare);
+				if (alreadyBoughtShare.getStock().equals(symbolEvents.getStock()) && !isValidBuyableDate(latestEventDateAndNewBuyDate, alreadyBoughtShare)) {
 					//Already bought
-					LOGGER.info("Already bought : " + alreadyBoughtShare + " on the " + alreadyBoughtShare.getLastTransactionDate() + ". Ignoring event from the " + latestEventDateAndNewBuyDate);
+					LOGGER.info("Already bought: " + alreadyBoughtShare + " on the " + alreadyBoughtShare.getLastTransactionDate() + ". Ignoring event from the " + latestEventDateAndNewBuyDate);
 					return null;
 				}
 			}
@@ -204,11 +206,11 @@ public class AutoPortfolioDelegate {
 			return buyTransactionRecord;
 
 		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.warn("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - no quotations : "+thisPortfolio.getName());
+			LOGGER.warn("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - no quotations: "+thisPortfolio.getName());
 		} catch (NoCashAvailableException e) {
 			LOGGER.info("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - no cash: "+thisPortfolio.getName()+" cause "+e.getMessage());
 		} catch (InvalidQuantityException e) {
-			LOGGER.error("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - invalid quantity : "+thisPortfolio.getName(),e);
+			LOGGER.error("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - invalid quantity: "+thisPortfolio.getName(),e);
 		} catch (Exception e) {
 			LOGGER.error("Can't buy share "+symbolEvents.getStock()+" in AutoPortfolio: "+thisPortfolio.getName(),e);
 		}
@@ -216,10 +218,10 @@ public class AutoPortfolioDelegate {
 		return null;
 	}
 
-	protected boolean isInvalidBuyableDate(Date latestEventDateAndNewBuyDate, PortfolioShare alreadyBoughtShare) {
-		LOGGER.info("Checking already bought : existing transactions "+ this.thisPortfolio.getTransactions());
-		LOGGER.info("Checking already bought : invalid if " + latestEventDateAndNewBuyDate + " before or equal "+ alreadyBoughtShare.getLastTransactionDate());
-		return !latestEventDateAndNewBuyDate.after(alreadyBoughtShare.getLastTransactionDate());
+	protected boolean isValidBuyableDate(Date latestEventDateAndNewBuyDate, PortfolioShare alreadyBoughtShare) {
+		LOGGER.info("Checking already bought: existing transactions " + this.thisPortfolio.getTransactions());
+		LOGGER.info("Checking already bought: invalid if " + latestEventDateAndNewBuyDate + " before or equal " + alreadyBoughtShare.getLastTransactionDate());
+		return latestEventDateAndNewBuyDate.after(alreadyBoughtShare.getLastTransactionDate());
 	}
 
 	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
@@ -232,7 +234,7 @@ public class AutoPortfolioDelegate {
 
 			BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
 
-			LOGGER.debug("Buying : "+stock +" on event "+symbolEvents);
+			LOGGER.info("Buying : " + stock + " on the " + currentDate + ". Available amount: " + availableAmount + ". Triggering event " + symbolEvents);
 
 			try {
 				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
@@ -240,7 +242,7 @@ public class AutoPortfolioDelegate {
 				BigDecimal quantity = availableAmount.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
 
 				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
-					throw new NoQuotationsException("Invalid stock "+stock+" with price "+buyPrice+ " on "+currentDate +". Can't be bought");
+					throw new NoQuotationsException("Invalid stock " + stock + " with price " + buyPrice + " on " + currentDate + ". Can't be bought");
 				}
 				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
 
@@ -333,7 +335,7 @@ public class AutoPortfolioDelegate {
 					return null;
 				}
 
-				if (isInvalidSellableDate(latestEventDateAndNewBuyDate, portfolioShare)) { 
+				if (!isValidSellableDate(latestEventDateAndNewBuyDate, portfolioShare)) { 
 					//already sold with that signal
 					LOGGER.info("Already sold with that signal or not bought yet : " + portfolioShare + " last transaction on the " + portfolioShare.getLastTransactionDate());
 					return null;
@@ -359,8 +361,8 @@ public class AutoPortfolioDelegate {
 
 	}
 
-	protected boolean isInvalidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
-		return !latestEventDateAndNewBuyDate.after(portfolioShare.getLastTransactionDate());
+	protected boolean isValidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
+		return latestEventDateAndNewBuyDate.after(portfolioShare.getLastTransactionDate());
 	}
 
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal sellAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {

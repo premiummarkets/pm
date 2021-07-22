@@ -61,13 +61,13 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	}
 
 	@Override
-	protected boolean isInvalidBuyableDate(Date latestEventDateAndNewBuyDate, PortfolioShare alreadyBoughtShare) {
-		return false;
+	protected boolean isValidBuyableDate(Date latestEventDateAndNewBuyDate, PortfolioShare alreadyBoughtShare) {
+		return true;
 	}
 
 	@Override
-	protected boolean isInvalidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
-		return false;
+	protected boolean isValidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
+		return true;
 	}
 
 }

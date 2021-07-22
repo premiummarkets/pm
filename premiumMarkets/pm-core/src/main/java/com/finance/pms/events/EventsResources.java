@@ -560,7 +560,7 @@ public class EventsResources {
 	private EventCacheEntry bigestCacheEntry(final Date date) {
 
 		Date midnithDate = DateFactory.midnithDate(date);
-		EventDefinition infinite = EventDefinition.INFINITE;
+		EventDefinition infinite = EventDefinition.zzzINFINITE;
 		EventType none = EventType.NONE;
 		return new EventCacheEntry(new EventKey() {
 
@@ -588,7 +588,7 @@ public class EventsResources {
 	private EventCacheEntry smallestCacheEntry(final Date date) {
 
 		Date midnithDate = DateFactory.midnithDate(date);
-		EventDefinition zero = EventDefinition.ZERO;
+		EventDefinition zero = EventDefinition.AAAZERO;
 		EventType none = EventType.NONE;
 		return new EventCacheEntry(new EventKey() {
 

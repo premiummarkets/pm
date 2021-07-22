@@ -30,8 +30,13 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.Value;
 
 public class DownRatioCondition extends CrossConstantCondition implements UnaryCondition {
 
@@ -54,5 +59,12 @@ public class DownRatioCondition extends CrossConstantCondition implements UnaryC
 		return (current - prev)/prev < -ratio;
 
 	}
+
+	@Override
+	protected SortedMap<Date, Double> sanitizedData(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		return super.transformPositive(targetStock, inputs);
+	}
+	
+	
 
 }

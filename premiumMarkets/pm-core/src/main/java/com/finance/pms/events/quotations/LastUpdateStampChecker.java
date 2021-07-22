@@ -29,13 +29,22 @@
  */
 package com.finance.pms.events.quotations;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.DateFactory;
 
 public class LastUpdateStampChecker {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(LastUpdateStampChecker.class);
 	
 	static final Integer MAXATTEMPTS = 10;
 	static final Integer MAXATTEMPTSINROW = 3;
@@ -46,8 +55,9 @@ public class LastUpdateStampChecker {
 	
 	public LastUpdateStampChecker() {
 		super();
-		this.lastMarketCloseUpdate = DateFactory.dateAtZero();
-		this.lastAttemptDate = DateFactory.dateAtZero();
+		Date[] lastUpdatesReads = lastUpdatesRead();
+		this.lastMarketCloseUpdate = lastUpdatesReads[0];
+		this.lastAttemptDate = lastUpdatesReads[1];
 		this.nbAttempts = 0;
 	}
 
@@ -55,7 +65,7 @@ public class LastUpdateStampChecker {
 		
 		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
 		Date now = DateFactory.getNowEndDateCalendar().getTime();
-		Calendar  lastMarketCloseTime = lastMarketCloseTime(now);
+		Calendar lastMarketCloseTime = lastMarketCloseTime(now);
 		if ( this.lastMarketCloseUpdate.after(lastMarketCloseTime.getTime()) || this.lastMarketCloseUpdate.equals(lastMarketCloseTime.getTime()) ) {
 			if (nbAttempts >= MAXATTEMPTS) {
 				return false;
@@ -72,6 +82,7 @@ public class LastUpdateStampChecker {
 			nbAttempts = 0;
 			this.lastMarketCloseUpdate = lastMarketCloseTime.getTime();
 			this.lastAttemptDate = now;
+			lastUpdatesWrite(this.lastMarketCloseUpdate, this.lastAttemptDate);
 			return true;
 		}
 		
@@ -93,6 +104,50 @@ public class LastUpdateStampChecker {
 		calendar.set(Calendar.MILLISECOND, 0);
 		
 		return calendar;
+	}
+	
+	private Date[] lastUpdatesRead() {
+		
+		String updateTraker = System.getProperty("installdir") + File.separator + "update_traker.txt";
+		
+		File updateTrakerFile = new File(updateTraker);
+		if (!updateTrakerFile.isFile()) {
+			lastUpdatesWrite(DateFactory.dateAtZero(), DateFactory.dateAtZero());
+		}
+		
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date[] results = new Date[2];
+		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(updateTrakerFile))) {
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				try {
+					String[] lineSplit = line.split("=");
+					if (lineSplit[0].equals("lastMarketCloseUpdate")) {
+						results[0] = dateFormat.parse(lineSplit[1]);
+					}
+					else if (lineSplit[0].equals("lastAttemptDate")) {
+						results[1] = dateFormat.parse(lineSplit[1]);
+					}
+				} catch (Exception e) {
+					LOGGER.warn("Unreadable line in " + updateTraker + " : " + line + ". Cause: " + e);
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return results;
+	}
+
+	private void lastUpdatesWrite(Date lastMarketCloseUpdate, Date lastAttemptDate) {
+		String updateTraker = System.getProperty("installdir") + File.separator + "update_traker.txt";
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(updateTraker))) {
+			bufferedWriter.write("lastMarketCloseUpdate=" + dateFormat.format(lastMarketCloseUpdate));
+			bufferedWriter.newLine();
+			bufferedWriter.write("lastAttemptDate=" + dateFormat.format(lastMarketCloseUpdate));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

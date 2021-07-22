@@ -237,6 +237,7 @@ public class TargetStockInfo {
 		} else if (outputValue instanceof DoubleArrayMapValue) {
 			((DoubleArrayMapValue) outputValue).getColumnsReferences().stream().forEach(ref -> {
 				Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), oprationRequiredStartShift);
+				this.calculatedOutputsCache.add(outputHolder);
 				this.gatheredChartableOutputs.add(outputHolder);
 			});
 		} else {

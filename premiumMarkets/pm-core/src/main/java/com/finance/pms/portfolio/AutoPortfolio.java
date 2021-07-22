@@ -48,7 +48,7 @@ import com.finance.pms.threads.ObserverMsg;
 
 /**
  * @author Guillaume Thoreton
- * AutoPortfolio based on Screening events and used for virtual portfolios buy daily buy and sell.
+ * AutoPortfolio based on Screening events and used for virtual portfolios with daily automated buy and sell.
  * TODO These portfolios are multi currencies. The calculation is made using the stock currency.
  * TODO The total amounts will need conversion in a target currency.
  *

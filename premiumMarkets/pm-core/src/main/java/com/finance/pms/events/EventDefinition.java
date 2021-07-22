@@ -52,7 +52,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
 public enum EventDefinition implements Serializable, EventInfo {
 
 	//Start
-	ZERO(0,"Zero", false, null),
+	AAAZERO(0,"Zero", false, null),
 
 	//Mas
 	MACDBUY(2, "MAS MACD Crossover (Buy)", false, null),
@@ -191,7 +191,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 			new EventDefDescriptorStatic(null, null, null, null, null, null,"PARAMETERIZED", null,"PARAMETERIZED", null)),
 
 	//End
-	INFINITE (999,"All", false, null), 
+	zzzINFINITE (999,"All", false, null), 
 
 
 	PMRSIDIVERGENCEOLD (620,"Old RSI Divergence", false, new EventDefDescriptorStatic(null, null, null, null, null, null, "Bearish", null, "Bullish", null)),
@@ -394,7 +394,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 	}
 
 	public static List<EventInfo> nonTechEventDef() {
-		return Arrays.asList(new EventInfo[]{EventDefinition.ALERTTHRESHOLD, EventDefinition.SCREENER, EventDefinition.UNKNOWN99, EventDefinition.ZERO, EventDefinition.INFINITE});
+		return Arrays.asList(new EventInfo[]{EventDefinition.ALERTTHRESHOLD, EventDefinition.SCREENER, EventDefinition.UNKNOWN99, EventDefinition.AAAZERO, EventDefinition.zzzINFINITE});
 	}
 
 

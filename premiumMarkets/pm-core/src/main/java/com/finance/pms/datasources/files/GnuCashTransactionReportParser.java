@@ -151,25 +151,19 @@ public class GnuCashTransactionReportParser {
 
 	private void checkTitles(Element row) throws XPathExpressionException {
 
-		// <TH ALIGN="center">
-		// <B>Date</B>
-		// </TH>
-		// <TH ALIGN="center">
-		// <B>Description</B>
-		// </TH>
-		// <TH ALIGN="center">
-		// <B>Account</B>
-		// </TH>
-		// <TH ALIGN="center">
-		// <B>Shares</B>
-		// </TH>
-		// <TH ALIGN="center">
-		// <B>Price</B>
-		// </TH>
-		// <TH ALIGN="center">
-		// <B>Amount</B>
-		// </TH>
-
+//		<table cellspacing="0" cellpadding="4" border="0">
+//	      <thead>
+//	        <tr>
+//	          <th></th>
+//	          <th>Date</th>
+//	          <th>Description</th>
+//	          <th>Account</th>
+//	          <th>Shares</th>
+//	          <th>Price</th>
+//	          <th>Amount</th>
+//	        </tr>
+//	      </thead>
+      
 		NodeList rowAtts = extractAtts(row, "th");
 		Element dateItem = (Element) rowAtts.item(DATE_COLUMN);
 		boolean hasDate = dateItem != null && "Date".equals(dateItem.getTextContent().trim());

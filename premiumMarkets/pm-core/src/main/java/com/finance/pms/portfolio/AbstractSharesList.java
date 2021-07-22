@@ -95,7 +95,7 @@ public abstract class AbstractSharesList extends Observable {
 	public AbstractSharesList(AbstractSharesList portfolio) {
 		this();
 
-		this.name = portfolio.name;		
+		this.name = portfolio.name;
 		for (PortfolioShare portfolioShare: portfolio.getListShares().values()) {
 			this.listShares.put(portfolioShare.getStock(), new PortfolioShare(portfolioShare));
 		}

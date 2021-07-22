@@ -163,7 +163,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	private List<CurrencyRate> fiveDaysCompletion(Currency fromCurrency, Currency toCurrency, Date today, Date lastCurrencyRateDate) {
 
-		LOGGER.info("Currency daily completion from "+fromCurrency+" to "+ toCurrency + " between "+lastCurrencyRateDate+" and "+today);
+		LOGGER.info("Currency daily completion from " + fromCurrency + " to " + toCurrency + " between " + lastCurrencyRateDate + " and " + today);
 		ExchangeRatesFetcher fetcher = new XRatesIterativeFetcher(httpSource);
 
 		List<CurrencyRate> webRates = fetch(fetcher, fromCurrency, toCurrency, lastCurrencyRateDate, today);

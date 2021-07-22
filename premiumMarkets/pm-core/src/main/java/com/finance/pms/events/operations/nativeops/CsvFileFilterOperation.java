@@ -26,7 +26,7 @@ public class CsvFileFilterOperation extends Operation {
 	public CsvFileFilterOperation() {
 		this("csvFilterOperation", "Loads filtered data from a csv file. Only the last match is returned.",
 			new StringOperation("string","filePath", "CSV File Path", new StringValue("autoPortfolioLogs/input.csv")),
-			new NumberOperation("number","columnIndex", "Index of the column to retrieve", new NumberValue(0.0)), 
+			new NumberOperation("number","columnIndex", "Index of the column to retrieve", new NumberValue(0.0)),
 			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("None")));
 	}
 
@@ -68,7 +68,7 @@ public class CsvFileFilterOperation extends Operation {
 			}
 
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("File:" + filePath, e);
 		}
 		
 		if (matchingLines.size() != 1) {

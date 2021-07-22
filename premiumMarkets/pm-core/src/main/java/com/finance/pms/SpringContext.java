@@ -402,6 +402,10 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("nbMonthCalculation.SECTOR",props);
 			putInPrefs("nbMonthCalculation.NEURAL",props);
 			putInPrefs("nbMonthCalculation.gxWebNeural",props);
+			
+			//Keras
+			putInPrefs("kerasweb.hostip",props);
+			putInPrefs("kerasweb.hostport",props);
 
 			//Q fact
 			putInPrefs("bean.quotationFactory", props);

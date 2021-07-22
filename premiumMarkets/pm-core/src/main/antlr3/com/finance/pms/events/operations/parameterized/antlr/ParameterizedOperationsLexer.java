@@ -1,20 +1,16 @@
-// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2021-06-04 00:51:23
+// $ANTLR 3.5.2 com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g 2021-07-13 14:48:31
  //lexer
     package com.finance.pms.events.operations.parameterized.antlr;
-    import org.antlr.runtime.BaseRecognizer;
-import org.antlr.runtime.CharStream;
-import org.antlr.runtime.DFA;
-import org.antlr.runtime.EarlyExitException;
-import org.antlr.runtime.FailedPredicateException;
-import org.antlr.runtime.IntStream;
-import org.antlr.runtime.Lexer;
-import org.antlr.runtime.MismatchedSetException;
-import org.antlr.runtime.NoViableAltException;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.RecognizerSharedState;
+    import com.finance.pms.events.calculation.antlr.IErrorReporter;
+    import com.finance.pms.events.calculation.antlr.MyErrorReporter;
+    import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+    
+ 
 
-import com.finance.pms.events.calculation.antlr.MyErrorReporter;
-import com.finance.pms.events.calculation.antlr.OpsLexerDelegate;
+import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class ParameterizedOperationsLexer extends Lexer {
@@ -686,17 +682,17 @@ public class ParameterizedOperationsLexer extends Lexer {
 		try {
 			int _type = StringToken;
 			int _channel = DEFAULT_TOKEN_CHANNEL;
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' | '*' | '[' | ']' | '{' | '}' | '+' )+ '\"' )
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' | '*' | '[' | ']' | '{' | '}' | '+' )+ '\"'
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:6: ( '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' | '*' | '[' | ']' | '{' | '}' | '(' | ')' | '\\'' | '+' )+ '\"' )
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:8: '\"' ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' | '*' | '[' | ']' | '{' | '}' | '(' | ')' | '\\'' | '+' )+ '\"'
 			{
 			match('\"'); 
-			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' | '*' | '[' | ']' | '{' | '}' | '+' )+
+			// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:149:12: ( 'a' .. 'z' | 'A' .. 'Z' | '.' | '_' | '/' | ',' | '=' | ( '0' .. '9' ) | '?' | ':' | '-' | '>' | '*' | '[' | ']' | '{' | '}' | '(' | ')' | '\\'' | '+' )+
 			int cnt9=0;
 			loop9:
 			while (true) {
 				int alt9=2;
 				int LA9_0 = input.LA(1);
-				if ( ((LA9_0 >= '*' && LA9_0 <= ':')||(LA9_0 >= '=' && LA9_0 <= '?')||(LA9_0 >= 'A' && LA9_0 <= '[')||LA9_0==']'||LA9_0=='_'||(LA9_0 >= 'a' && LA9_0 <= '{')||LA9_0=='}') ) {
+				if ( ((LA9_0 >= '\'' && LA9_0 <= ':')||(LA9_0 >= '=' && LA9_0 <= '?')||(LA9_0 >= 'A' && LA9_0 <= '[')||LA9_0==']'||LA9_0=='_'||(LA9_0 >= 'a' && LA9_0 <= '{')||LA9_0=='}') ) {
 					alt9=1;
 				}
 
@@ -704,7 +700,7 @@ public class ParameterizedOperationsLexer extends Lexer {
 				case 1 :
 					// com/finance/pms/events/operations/parameterized/antlr/ParameterizedOperations.g:
 					{
-					if ( (input.LA(1) >= '*' && input.LA(1) <= ':')||(input.LA(1) >= '=' && input.LA(1) <= '?')||(input.LA(1) >= 'A' && input.LA(1) <= '[')||input.LA(1)==']'||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= '{')||input.LA(1)=='}' ) {
+					if ( (input.LA(1) >= '\'' && input.LA(1) <= ':')||(input.LA(1) >= '=' && input.LA(1) <= '?')||(input.LA(1) >= 'A' && input.LA(1) <= '[')||input.LA(1)==']'||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= '{')||input.LA(1)=='}' ) {
 						input.consume();
 					}
 					else {

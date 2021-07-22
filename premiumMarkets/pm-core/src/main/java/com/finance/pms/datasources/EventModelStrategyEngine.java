@@ -161,7 +161,7 @@ public abstract class EventModelStrategyEngine<X> {
 
 				Boolean isAllEventsOkForStock = true;
 				for (EventInfo eventDefinition : indicators) {
-					if (EventDefinition.ZERO.equals(eventDefinition)) continue;
+					if (EventDefinition.AAAZERO.equals(eventDefinition)) continue;
 					Map<EventInfo, EventDefCacheEntry> map = callbackForlastAnalyseOutput.get(stock);
 					EventDefCacheEntry evtDefRes = (map != null)?map.get(eventDefinition):null;
 					if (evtDefRes == null || evtDefRes.getUpdateStamp() == null || evtDefRes.getUpdateStamp().isFailing()) {

@@ -74,9 +74,9 @@ public class XRatesIterativeFetcher implements ExchangeRatesFetcher {
 					
 					while (currentCal.getTime().before(midnightEnd) || currentCal.getTime().equals(midnightEnd)) {
 						String xRatesHistoryUrl = httpSource.getXRatesHistoryUrl(currentCal.getTime());
-						LOGGER.info("Fetching exchange rates : "+xRatesHistoryUrl);
+						LOGGER.info("Fetching exchange rates : " + xRatesHistoryUrl);
 						List<Validatable> readURL = httpSource.readURL(new CurrencyXRatesDailyFormater(fromCurrency, toCurrency, currentCal.getTime(), xRatesHistoryUrl));
-						LOGGER.info("Found : "+readURL);
+						LOGGER.info("Found : " + readURL);
 						rates.addAll(readURL);
 						QuotationsFactories.getFactory().incrementDate(currentCal, 1);
 					}
