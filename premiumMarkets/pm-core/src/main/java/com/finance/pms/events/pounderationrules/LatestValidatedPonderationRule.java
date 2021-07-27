@@ -35,17 +35,18 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
+import com.finance.pms.events.scoring.OTFTuningFinalizer.FinalRating;
 
 public class LatestValidatedPonderationRule extends LatestEventsPonderationRule {
 
 	private static final long serialVersionUID = 573802685420097964L;
 	private static MyLogger LOGGER = MyLogger.getLogger(LatestValidatedPonderationRule.class);
 
-	private HashMap<Stock, Validity> tuningValidityList;
+	private HashMap<Stock, FinalRating> calculationsRatings;
 
-	public LatestValidatedPonderationRule(Integer sellThreshold, Integer buyThreshold, HashMap<Stock, Validity> tuningValidityList) {
+	public LatestValidatedPonderationRule(Integer sellThreshold, Integer buyThreshold, HashMap<Stock, FinalRating> calculationsRatings) {
 		super(sellThreshold, buyThreshold);
-		this.tuningValidityList = tuningValidityList;
+		this.calculationsRatings = calculationsRatings;
 	}
 
 	@Override
@@ -53,8 +54,8 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 
 		SymbolEvents se1 = o1;
 		SymbolEvents se2 = o2;
-		PonderationRule p1 = new LatestValidatedPonderationRule(sellThreshold, buyThreshold, tuningValidityList);
-		PonderationRule p2 = new LatestValidatedPonderationRule(sellThreshold, buyThreshold, tuningValidityList);
+		PonderationRule p1 = new LatestValidatedPonderationRule(sellThreshold, buyThreshold, calculationsRatings);
+		PonderationRule p2 = new LatestValidatedPonderationRule(sellThreshold, buyThreshold, calculationsRatings);
 
 		return compareCal(se1, se2, p1, p2);
 	}
@@ -62,18 +63,22 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
 
-		Validity validity = tuningValidityList.get(symbolEvents.getStock());
+		FinalRating rating = calculationsRatings.get(symbolEvents.getStock());
 
 		boolean isValid = false;
-		if (validity != null) {
-			isValid = validity.equals(Validity.SUCCESS);
+		if (rating != null) {
+			isValid = rating.getRatingValidityScore().equals(Validity.SUCCESS);
 		} else {
-			LOGGER.warn("No validity information found for " +symbolEvents.getStock()+ " while parsing events "+symbolEvents+". Neural trend was not calculated for that stock.");
+			LOGGER.warn("No validity for " + symbolEvents.getStock() + " / " + symbolEvents + ". Neural calculation may have failed.");
 		}
 
 		if (isValid) {
-			return super.finalWeight(symbolEvents);
+			//It is assumed that events are prioritised by weight: see compare/compareCal.
+			//We also assume flog < 0 to be valid with the bigger abs(flog) the better. 
+			float factor = Double.valueOf(Math.abs(rating.getFlog())).floatValue();
+			return super.finalWeight(symbolEvents)*factor;
 		} else {
+			LOGGER.warn("Calculation rating marked as " + rating.getRatingValidityScore() + " for " + symbolEvents.getStock() + " / " + symbolEvents );
 			return 0.0f;
 		}
 

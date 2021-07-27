@@ -34,56 +34,71 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.DateFactory;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class LastUpdateStampChecker {
 	
+	private static final String JSON_DUMP_PATH = System.getProperty("installdir") + File.separator + "update_traker.json";
+
 	private static MyLogger LOGGER = MyLogger.getLogger(LastUpdateStampChecker.class);
 	
-	static final Integer MAXATTEMPTS = 10;
-	static final Integer MAXATTEMPTSINROW = 3;
+	static final Integer MAXATTEMPTS = 3;
+	static final Integer MAXATTEMPTSINROW = 2;
 	
-	Date lastMarketCloseUpdate;
-	Date lastAttemptDate;
-	Integer nbAttempts;
+	private LastUpDateStampRecords stampRecords;
 	
 	public LastUpdateStampChecker() {
 		super();
-		Date[] lastUpdatesReads = lastUpdatesRead();
-		this.lastMarketCloseUpdate = lastUpdatesReads[0];
-		this.lastAttemptDate = lastUpdatesReads[1];
-		this.nbAttempts = 0;
+		this.stampRecords = lastUpdatesRead();
 	}
 
-	public Boolean isUpdateGranted() {
+	public Boolean isUpdateGranted(String asset) {
 		
-		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
-		Date now = DateFactory.getNowEndDateCalendar().getTime();
-		Calendar lastMarketCloseTime = lastMarketCloseTime(now);
-		if ( this.lastMarketCloseUpdate.after(lastMarketCloseTime.getTime()) || this.lastMarketCloseUpdate.equals(lastMarketCloseTime.getTime()) ) {
-			if (nbAttempts >= MAXATTEMPTS) {
-				return false;
-			} else {
-				if (now.getTime() > this.lastAttemptDate.getTime() + 1000*60*30 || nbAttempts < MAXATTEMPTSINROW) {
-					nbAttempts ++;
-					this.lastAttemptDate = now;
-					return true;
+		LastUpDateStampRecord lastUpDateStampRecordForAsset = null;
+		if (stampRecords.getLastUpDateStampRecords().containsKey(asset)) {
+			lastUpDateStampRecordForAsset = stampRecords.getLastUpDateStampRecords().get(asset);
+		} else {
+			lastUpDateStampRecordForAsset = new LastUpDateStampRecord(DateFactory.dateAtZero(), 0);
+			stampRecords.getLastUpDateStampRecords().put(asset, lastUpDateStampRecordForAsset);
+		}
+		
+		try {
+			//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
+			Date now = DateFactory.getNowEndDateCalendar().getTime(); //Today midnight date. This can also be random date in the past.
+			Calendar lastMarketCloseAtNow = lastMarketCloseTime(now); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM
+			LOGGER.info("Last close day recorded: " + stampRecords.getLastMarketCloseRecorded() + " and Latest actual close day 6PM (US) at Now: " + lastMarketCloseAtNow);
+			if ( stampRecords.getLastMarketCloseRecorded().compareTo(lastMarketCloseAtNow.getTime()) >= 0 ) { //Last close day recorded >= Latest actual close day 6PM at Now
+				//Basically: There is NO new close date to worry about.
+				if (lastUpDateStampRecordForAsset.getNbAttempts() < MAXATTEMPTS) { //How many times did we check
+					//We checked less then MAXATTEMPTS so we can check again.
+					if (now.compareTo(lastUpDateStampRecordForAsset.getLastAttemptDate()) > 0 || lastUpDateStampRecordForAsset.getNbAttempts() < MAXATTEMPTSINROW) {//Either the last attempt was yesterday or ?something went wrong? less then MAXATTEMPTSINROW times
+						lastUpDateStampRecordForAsset.setNbAttempts(lastUpDateStampRecordForAsset.getNbAttempts()+1);
+						lastUpDateStampRecordForAsset.setLastAttemptDate(now);
+						return true;
+					} else {
+						return false;
+					}
 				} else {
 					return false;
 				}
+			} else {//Last close day recorded < Previous close day 6PM. There is a new close date after our last attempt => update without further ado.
+				stampRecords.setLastMarketCloseRecorded(lastMarketCloseAtNow.getTime());
+				lastUpDateStampRecordForAsset.setNbAttempts(0);
+				lastUpDateStampRecordForAsset.setLastAttemptDate(now);
+				return true;
 			}
-		} else {
-			nbAttempts = 0;
-			this.lastMarketCloseUpdate = lastMarketCloseTime.getTime();
-			this.lastAttemptDate = now;
-			lastUpdatesWrite(this.lastMarketCloseUpdate, this.lastAttemptDate);
-			return true;
+		} finally {
+			lastUpdatesWrite(stampRecords);
 		}
 		
 	}
@@ -91,10 +106,10 @@ public class LastUpdateStampChecker {
 	//Now will always be after the last market close time
 	private Calendar lastMarketCloseTime(Date now) {
 		
-		Calendar calendar = Calendar.getInstance(Locale.US);
+		Calendar calendar = Calendar.getInstance(Locale.US); //XXX This is for Yahoo
 		calendar.setTime(now);
 		
-		if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {//Before 6PM, we take the previous day
+		if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {//Now is before 6PM, we take the previous day
 			calendar.add(Calendar.DAY_OF_YEAR, -1);
 		}
 		
@@ -106,45 +121,39 @@ public class LastUpdateStampChecker {
 		return calendar;
 	}
 	
-	private Date[] lastUpdatesRead() {
+	private synchronized LastUpDateStampRecords lastUpdatesRead() {
 		
-		String updateTraker = System.getProperty("installdir") + File.separator + "update_traker.txt";
-		
-		File updateTrakerFile = new File(updateTraker);
+		File updateTrakerFile = new File(JSON_DUMP_PATH);
 		if (!updateTrakerFile.isFile()) {
-			lastUpdatesWrite(DateFactory.dateAtZero(), DateFactory.dateAtZero());
+			lastUpdatesWrite(new LastUpDateStampRecords(DateFactory.dateAtZero()));
 		}
 		
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date[] results = new Date[2];
+		LastUpDateStampRecords readStampRecords = null;
+		
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(updateTrakerFile))) {
-			String line;
-			while ((line = bufferedReader.readLine()) != null) {
-				try {
-					String[] lineSplit = line.split("=");
-					if (lineSplit[0].equals("lastMarketCloseUpdate")) {
-						results[0] = dateFormat.parse(lineSplit[1]);
-					}
-					else if (lineSplit[0].equals("lastAttemptDate")) {
-						results[1] = dateFormat.parse(lineSplit[1]);
-					}
-				} catch (Exception e) {
-					LOGGER.warn("Unreadable line in " + updateTraker + " : " + line + ". Cause: " + e);
-				}
-			}
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			readStampRecords = gson.fromJson(bufferedReader, new TypeToken<LastUpDateStampRecords>() {
+				private static final long serialVersionUID = 1L;
+			}.getType());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			if (readStampRecords == null || readStampRecords.getLastMarketCloseRecorded() == null) {
+				LOGGER.warn("File present but with inconsistent values : " + readStampRecords + " in " + JSON_DUMP_PATH);
+				readStampRecords = new LastUpDateStampRecords(DateFactory.dateAtZero());
+				lastUpdatesWrite(readStampRecords);
+			}
 		}
-		return results;
+		
+		return readStampRecords;
+		
 	}
 
-	private void lastUpdatesWrite(Date lastMarketCloseUpdate, Date lastAttemptDate) {
-		String updateTraker = System.getProperty("installdir") + File.separator + "update_traker.txt";
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(updateTraker))) {
-			bufferedWriter.write("lastMarketCloseUpdate=" + dateFormat.format(lastMarketCloseUpdate));
-			bufferedWriter.newLine();
-			bufferedWriter.write("lastAttemptDate=" + dateFormat.format(lastMarketCloseUpdate));
+	private synchronized void lastUpdatesWrite(LastUpDateStampRecords lastUpDateStampRecords) {
+		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(JSON_DUMP_PATH))) {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			gson.toJson(lastUpDateStampRecords, bufferedWriter);
+			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -152,7 +161,80 @@ public class LastUpdateStampChecker {
 
 	@Override
 	public String toString() {
-		return "LastUpdateStampChecker [lastUpdateDate=" + lastMarketCloseUpdate + ", nbAttempts=" + nbAttempts + "]";
+		return "LastUpdateStampChecker " + stampRecords;
+	}
+
+	public Integer getNbAttempts(String asset) {
+		return stampRecords.getLastUpDateStampRecords().get(asset).getNbAttempts();
+	}
+	
+	public LastUpDateStampRecord getLastUpDateStampRecord(String asset) {
+		return stampRecords.getLastUpDateStampRecords().get(asset);
+	}
+
+	public Date getLastMarketCloseRecorded() {
+		return stampRecords.getLastMarketCloseRecorded();
+	}
+	
+	private class LastUpDateStampRecords {
+		
+		private Date lastMarketCloseRecorded;
+		private Map<String, LastUpDateStampRecord> lastUpDateStampRecords;
+		
+		public LastUpDateStampRecords(Date lastMarketCloseRecorded) {
+			super();
+			this.lastMarketCloseRecorded = lastMarketCloseRecorded;
+			this.lastUpDateStampRecords = new ConcurrentHashMap<>();
+		}
+		
+		public Date getLastMarketCloseRecorded() {
+			return lastMarketCloseRecorded;
+		}
+		public void setLastMarketCloseRecorded(Date lastMarketCloseRecorded) {
+			this.lastMarketCloseRecorded = lastMarketCloseRecorded;
+		}
+		public Map<String, LastUpDateStampRecord> getLastUpDateStampRecords() {
+			return lastUpDateStampRecords;
+		}
+		
+		@Override
+		public String toString() {
+			return "LastUpDateStampRecords [lastMarketCloseRecorded=" + lastMarketCloseRecorded + ", lastUpDateStampRecords=" + lastUpDateStampRecords + "]";
+		}
+		
+	}
+	
+	private class LastUpDateStampRecord {
+
+		private Date lastAttemptDate;
+		private Integer nbAttempts;
+		
+		public LastUpDateStampRecord(Date lastAttemptDate, Integer nbAttempts) {
+			super();
+			this.lastAttemptDate = lastAttemptDate;
+			this.nbAttempts = nbAttempts;
+		}
+
+		public Date getLastAttemptDate() {
+			return lastAttemptDate;
+		}
+		public Integer getNbAttempts() {
+			return nbAttempts;
+		}
+		
+		public void setLastAttemptDate(Date lastAttemptDate) {
+			this.lastAttemptDate = lastAttemptDate;
+		}
+
+		public void setNbAttempts(Integer nbAttempts) {
+			this.nbAttempts = nbAttempts;
+		}
+		
+		@Override
+		public String toString() {
+			return "LastUpDateStampRecord [lastAttemptDate=" + lastAttemptDate + ", nbAttempts=" + nbAttempts + "]";
+		}
+		
 	}
 
 }

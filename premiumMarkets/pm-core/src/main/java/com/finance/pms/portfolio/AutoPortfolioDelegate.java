@@ -227,32 +227,31 @@ public class AutoPortfolioDelegate {
 	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
 
 		Stock stock = symbolEvents.getStock();
-		//XXX what if we buy twice the same share but with a different currency?
-		Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null)? stock.getMarketValuation().getCurrency(): this.thisPortfolio.getPortfolioCurrency();
+		// XXX what if we buy twice the same share but with a different currency?
+		Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null) ? stock.getMarketValuation().getCurrency() : this.thisPortfolio.getPortfolioCurrency();
 
-		synchronized (thisPortfolio) {
+		try {
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+			BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);
 
-			BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
+			synchronized (thisPortfolio) {
 
-			LOGGER.info("Buying : " + stock + " on the " + currentDate + ". Available amount: " + availableAmount + ". Triggering event " + symbolEvents);
-
-			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
-				BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);
+				BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
 				BigDecimal quantity = availableAmount.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
+				LOGGER.info("Buying: " + quantity + " " + stock + " on the " + currentDate + ". Available amount: " + availableAmount + ". Triggering event " + symbolEvents);
 
 				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
 					throw new NoQuotationsException("Invalid stock " + stock + " with price " + buyPrice + " on " + currentDate + ". Can't be bought");
 				}
 				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
 
-				//Log
+				// Log
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
-
-			} catch (NoQuotationsException e) {
-				LOGGER.warn(e);
-				throw new InvalidAlgorithmParameterException(e);
 			}
+
+		} catch (NoQuotationsException e) {
+			LOGGER.warn(e);
+			throw new InvalidAlgorithmParameterException(e);
 		}
 	}
 
@@ -343,10 +342,11 @@ public class AutoPortfolioDelegate {
 
 				TransactionRecord sellTransactionRecord = sell(symbolEvents, currentDate, unitAmount, portfolioShare);
 				thisPortfolio.setChanged();
+				
 				return sellTransactionRecord;
 
 			} else {
-				LOGGER.debug("Nothing to sell, share "+symbolEvents.getSymbol()+ " on event "+symbolEvents+", is not in shareList.");
+				LOGGER.debug("Nothing to sell, share " + symbolEvents.getSymbol() + " on event " + symbolEvents + ", is not in shareList.");
 			}
 
 		} catch (InvalidAlgorithmParameterException e) 	{
@@ -380,9 +380,9 @@ public class AutoPortfolioDelegate {
 				quantityProrata = quantity;
 			}
 
-			synchronized (this) {
+			synchronized (thisPortfolio) {
 				thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
-				LOGGER.debug("Share sold : "+portfolioShare+", quantity : "+quantityProrata+", quantity left : "+quantity);
+				LOGGER.info("Selling: " + quantityProrata + " " + portfolioShare + ", quantity left : " + quantity);
 
 				//log
 				return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, lastPrice, currentDate);
@@ -401,7 +401,7 @@ public class AutoPortfolioDelegate {
 
 		this.log(
 				transactionRecord.getAvailableCash().toString(),new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(transactionRecord.getDate()),
-				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(),transactionRecord.getStock().getName(), transactionRecord.getStock().getMarketValuation().getCurrency().toString(),
+				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(), transactionRecord.getStock().getName(), transactionRecord.getStock().getMarketValuation().getCurrency().toString(),
 				transactionRecord.getMovement(), transactionRecord.getTransactionQuantity().toString(), transactionRecord.getTransactionPrice().toString(), amount.toString(),
 				eventList, LocalDateTime.now().toString());
 	}
@@ -409,7 +409,10 @@ public class AutoPortfolioDelegate {
 
 	public TransactionRecord log(String movement, AutoPortfolioWays shareList, Stock stock, SymbolEvents symbolEvents, BigDecimal quantity, BigDecimal price, Date currentDate) {
 
-		TransactionRecord transactionRecord = new TransactionRecord(thisPortfolio.getName(), shareList.getAvailableCash(currentDate), currentDate, stock, movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
+		TransactionRecord transactionRecord = 
+				new TransactionRecord(
+						thisPortfolio.getName(), shareList.getAvailableCash(currentDate), currentDate,
+						stock, movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
 		getTransactionHistory().add(transactionRecord);
 
 		this.log(transactionRecord);
@@ -420,7 +423,7 @@ public class AutoPortfolioDelegate {
 
 	protected void log(String availableCash, String calcDate,String symbol,String isin, String sharename, String currency, String movement, String quantity, String price, String amount, String eventList, String timeStamp) {
 
-		File log = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName()+"_Log.csv");
+		File log = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName() + "_Log.csv");
 		FileWriter fos = null;
 		try {
 
@@ -430,8 +433,9 @@ public class AutoPortfolioDelegate {
 			String cleanEventList= "\"" + eventList.replaceAll("\"", "'") + "\"";
 			String cleanSharename = "\"" + sharename.replaceAll("\"", "'") + "\"";
 			line
-				.append(availableCash+",").append(calcDate+","+symbol+","+isin+",").append(cleanSharename+",").append(currency+",")
-				.append(movement+",").append(quantity+",").append(price+",").append(amount+",").append(timeStamp+",").append(cleanEventList);
+				.append(availableCash + ",").append(calcDate + "," + symbol + "," + isin + ",").append(cleanSharename + ",").append(currency + ",")
+				.append(("sell".equals(movement)?"-":"") + quantity + ",").append(price + ",").append(("sell".equals(movement)?"-":"") + amount + ",")
+				.append(timeStamp + ",").append(cleanEventList);
 			LOGGER.debug(line);
 
 			fos.write(line.toString()+"\n");

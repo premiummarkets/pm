@@ -336,9 +336,9 @@ public class OTFTuningFinalizer {
 		return periodValidity;
 	}
 
-	public FinalRating tuningFinalizationRating(Double totProfit, Double totPriceChange, int nbSuccess, int nbFailure) {
+	private FinalRating tuningFinalizationRating(Double totProfit, Double totPriceChange, int nbSuccess, int nbFailure) {
 
-		FinalRating ret = new FinalRating(nbSuccess, nbFailure, totPriceChange);
+		FinalRating ret = new FinalRating(totProfit, totPriceChange, nbSuccess, nbFailure);
 
 		ret.rating = 0.0;
 		if (nbFailure == 0 && nbSuccess == 0) {
@@ -354,31 +354,31 @@ public class OTFTuningFinalizer {
 
 		if (totProfit < 0 && totProfit < totPriceChange) {
 			ret.cause += "Negative profit under performs share price change. ";
-			ret.validity = Validity.FAILURE;
+			ret.ratingValidityScore = Validity.FAILURE;
 			return ret;
 		}
 
 		if (totProfit < 0) {
 			ret.cause += "Negative profit.";
-			ret.validity = Validity.FAILURE;
+			ret.ratingValidityScore = Validity.FAILURE;
 			return ret;
 		}
 
 		if (totProfit > 0 && totProfit >= totPriceChange) {
 			ret.cause += "Positive profit.";
-			ret.validity = Validity.SUCCESS;
+			ret.ratingValidityScore = Validity.SUCCESS;
 			return ret;
 		}
 
 		if (ret.rating < threshold ) { //More failure than success it is very likely that profit will be sub zero
 			ret.cause =  "Below Success/Failure threshold. ";
-			ret.validity = Validity.FAILURE;
+			ret.ratingValidityScore = Validity.FAILURE;
 			return ret;
 		} 
 
 		if (ret.rating >= threshold) {
 			ret.cause = "Above Success/Failure threshold. ";
-			ret.validity = Validity.SUCCESS;
+			ret.ratingValidityScore = Validity.SUCCESS;
 			return ret;
 		}
 
@@ -389,24 +389,28 @@ public class OTFTuningFinalizer {
 
 		private Double rating;
 		private Double totPrcChgUsed;
+		private Double totFollowProfit;
 		private int nbSuccess;
 		private int nbFailure;
-		private Validity validity;
+		private Validity ratingValidityScore;
+		private double flog;
 		private String cause;
+		private double failureWeightAbs;
 
-		public FinalRating(int nbSuccess, int nbFailure, Double totPrcChgUsed) {
+		public FinalRating(Double totFollowProfit, Double totPrcChgUsed, int nbSuccess, int nbFailure) {
 			super();
+			this.totFollowProfit = totFollowProfit;
+			this.totPrcChgUsed = totPrcChgUsed;
 			this.nbSuccess = nbSuccess;
 			this.nbFailure = nbFailure;
-			this.totPrcChgUsed = totPrcChgUsed;
 		}
 
 		public Double getRating() {
 			return rating;
 		}
 
-		public Validity getValidity() {
-			return validity;
+		public Validity getRatingValidityScore() {
+			return ratingValidityScore;
 		}
 
 		public String getCause() {
@@ -420,14 +424,55 @@ public class OTFTuningFinalizer {
 		public int getNbFailure() {
 			return nbFailure;
 		}
+		
+		public double getFlog() {
+			return flog;
+		}
+		
+		public double getFailureWeightAbs() {
+			return failureWeightAbs;
+		}
 
 		@Override
 		public String toString() {
-			return "Failure : "+nbFailure+", Success : "+nbSuccess + ", TotPrcChgUsed : "+totPrcChgUsed+ ", Rating : "+rating+ ", Validity : "+validity+", Cause : "+cause;
+			return "Failure: " + nbFailure + ", Success: " + nbSuccess + ", TotFollowProfit: " + totFollowProfit + ", TotPrcChgUsed: " + totPrcChgUsed + 
+					", Legacy Rating: " + rating + ", Legacy Cause : " + cause +
+					", ratingValidityScore: " + ratingValidityScore + ", failureWeightAbs: " + failureWeightAbs + ", flog: " + flog;
+
+		}
+		
+		public String toCsv() {
+			return nbFailure + "," + nbSuccess + "," + totFollowProfit + "," + totPrcChgUsed + "," + rating + "," + cause + "," + ratingValidityScore + "," + failureWeightAbs + "," + flog;
+		}
+
+
+//		+ " / avg" + pf.format(stats[0]) + " / fail" + pf.format(stats[1])
+//		+ " / fwght" + pf.format(Math.abs(stats[2])) + " / flog" + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
+//		+ " / min" + pf.format(stats[4]) + " / max" + pf.format(stats[5]) + " / std" + pf.format(Math.sqrt(stats[6])) 
+//		+ ")"
+		public void applyFlog(Double[] statsBetween) {
+			
+//			avgROC = statsBetween[0];
+//			failedBullishRatio = statsBetween[1];
+			Double failureWeigh = statsBetween[2];
+			Double successWeigh = statsBetween[3];
+//			minROC = statsBetween[4];
+//			maxROC = statsBetween[5];
+//			variance = statsBetween[6];
+			
+			failureWeightAbs = Math.abs(failureWeigh);
+			flog = Math.log(failureWeightAbs/successWeigh);
+			
+			if (failureWeightAbs >= .5 || flog >= -.5) {
+				this.ratingValidityScore = Validity.FAILURE;
+			} else {
+				this.ratingValidityScore = Validity.SUCCESS;
+			}
+			
 		}
 	}
 
-	public FinalRating calculateRating(TuningResDTO tuningRes) {
+	public FinalRating calculateRating(TuningResDTO tuningRes, Date start, Date end) {
 
 		int nbSuccess = 0;
 		int nbFailure = 0;
@@ -440,11 +485,14 @@ public class OTFTuningFinalizer {
 				nbFailure = nbFailure + ((periodValidity.equals(Validity.FAILURE))?1:0);
 			}
 		}
-
+		
+		//Legacy
 		FinalRating finalRating = tuningFinalizationRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
-
-		//Test 
-		//finalRating.validity = Validity.SUCCESS;
+		
+		//New
+		//FinalRating finalRating = new FinalRating(nbSuccess, nbFailure, tuningRes.getStockPriceChange());
+		Double[] statsBetween = tuningRes.getStatsBetween(start, end);
+		finalRating.applyFlog(statsBetween);
 
 		return finalRating;
 	}

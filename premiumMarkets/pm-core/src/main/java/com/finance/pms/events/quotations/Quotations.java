@@ -46,7 +46,6 @@ import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
-import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
@@ -63,8 +62,8 @@ public class Quotations {
 
 	public static enum ValidityFilter {NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV}; //NONE doesn't return anything. ALL returns everything? (not implemented)
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
-	private static ConcurrentHashMap<Validatable, LastUpdateStampChecker> UPDATESTAMP_CACHE = new ConcurrentHashMap<Validatable, LastUpdateStampChecker>();
-
+	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
+	
 	protected Stock stock;
 	private Currency targetCurrency;
 
@@ -701,13 +700,8 @@ public class Quotations {
 		}
 	}
 
-	public static LastUpdateStampChecker checkLastQuotationUpdateFor(Validatable stock) {
-		LastUpdateStampChecker lastUpdateStamp = UPDATESTAMP_CACHE.get(stock);
-		if (lastUpdateStamp == null) {
-			lastUpdateStamp = new LastUpdateStampChecker();
-			UPDATESTAMP_CACHE.put(stock, lastUpdateStamp);
-		}
-		return lastUpdateStamp;
+	public static LastUpdateStampChecker checkLastQuotationUpdateFor() {
+		return LAST_UPDATE_STAMP_CHECKER;
 	}
 
 	public Currency getTargetCurrency() {

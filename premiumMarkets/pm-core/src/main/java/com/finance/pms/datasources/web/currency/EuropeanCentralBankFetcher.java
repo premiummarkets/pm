@@ -25,6 +25,7 @@ public class EuropeanCentralBankFetcher implements ExchangeRatesFetcher {
 		this.httpSource = httpSource;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<CurrencyRate> getRatesForPeriod(Currency fromCurrency, Currency toCurrency, Date start, Date end) throws HttpException, InterruptedException {
 		
@@ -39,7 +40,6 @@ public class EuropeanCentralBankFetcher implements ExchangeRatesFetcher {
 		LOGGER.debug("Url : "+url);
 		
 		Thread thread = new Thread(new Runnable() {
-
 			public void run() {
 				try {
 					rates.addAll(httpSource.readURL(new CurrencyEuropeanCentralBankFormater(fromCurrency, toCurrency, new MyUrl(url))));

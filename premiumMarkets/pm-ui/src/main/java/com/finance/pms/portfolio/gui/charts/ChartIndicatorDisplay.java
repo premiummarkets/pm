@@ -359,7 +359,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							SortedMap<EventKey, EventValue> evtDefEvents = ses.getDataResultMap().entrySet().stream().filter(e -> e.getKey().getEventInfo().equals(eventDefinition)).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> b, TreeMap::new));
 							tuningResDTO = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, evtDefEvents, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
 						} catch (Exception e) {
-							LOGGER.warn("No event results were found for "+eventDefinition+". Calculation needed. " + e);
+							LOGGER.warn("No event results were found for " + eventDefinition + ". Calculation needed. " + e);
 						}
 						if (tuningResDTO == null) {
 							noDataTrends.add(eventDefinition);

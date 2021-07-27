@@ -32,11 +32,15 @@ public class RocSmoother extends Smoother {
 			
 			List<Double> iterationRocs = rocsFor(MapUtils.subMapInclusive(data, currentDate, reSeedDate), fixBias);
 			double previousRocEnd = ((collected.size() > 0) ? collected.lastEntry().getValue()[0] : 0);
-			double rocAcc = 1;
-			for (int i = 0; i < iterationRocs.size(); i++) {
-				collected.put(currentDate, new double[] {previousRocEnd + rocAcc});
+			double rocAcc = 1; //Arbitrary value: Does imply that -1 < rocs < 1?
+			if (!iterationRocs.isEmpty()) {
+				for (int i = 0; i < iterationRocs.size(); i++) {
+					collected.put(currentDate, new double[] {previousRocEnd + rocAcc});
+					currentDate = keyIterator.next();
+					rocAcc = rocAcc + iterationRocs.get(i);
+				} 
+			} else {
 				currentDate = keyIterator.next();
-				rocAcc = rocAcc + iterationRocs.get(i);
 			}
 			collected.put(currentDate, new double[] {previousRocEnd + rocAcc});
 		}
@@ -45,11 +49,10 @@ public class RocSmoother extends Smoother {
 	}
 
 	private Date getNextReSeedingDate(Date currentDate) {
-		Date reSeedDate;
 		Calendar reSeedDateCal = Calendar.getInstance();
 		reSeedDateCal.setTime(currentDate);
 		QuotationsFactories.getFactory().incrementDate(reSeedDateCal, reSeedingPeriod);
-		reSeedDate = reSeedDateCal.getTime();
+		Date reSeedDate = reSeedDateCal.getTime();
 		return reSeedDate;
 	}
 

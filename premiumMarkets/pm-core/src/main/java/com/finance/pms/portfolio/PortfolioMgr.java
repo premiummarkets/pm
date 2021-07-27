@@ -127,6 +127,21 @@ public class PortfolioMgr implements ApplicationContextAware {
 		}
 	}
 
+	
+	public AutoPortfolio createOverwriteAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
+
+		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
+
+		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
+		int index = this.portfolios.indexOf(autoPortfolio);
+		if (index != -1) {
+			removePortfolio(this.portfolios.get(index));
+		}
+
+		this.portfolios.add(autoPortfolio);
+		portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
+		return autoPortfolio;
+	}
 
 	public AbstractSharesList getPortfolio(String portfolioName) {
 

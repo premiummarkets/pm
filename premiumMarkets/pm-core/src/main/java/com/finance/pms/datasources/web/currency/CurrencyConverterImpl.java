@@ -99,8 +99,12 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			if (dbRates.isEmpty() || lastCurrencyRateDate.before(today)) {
 
 				Stock currencyStock = new CurrencyStockBuilder(fromCurrency, toCurrency).buildStock();
-				LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(currencyStock);
-				Boolean updateGranted = lastUpdateChecker.isUpdateGranted();
+				LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
+				
+				Boolean updateGranted = false;
+				synchronized (lastUpdateChecker) {
+					updateGranted = lastUpdateChecker.isUpdateGranted(fromCurrency.toString()+"to"+toCurrency.toString());
+				}
 
 				if (updateGranted) {//Additional Grant check necessary as the update of exchange rate can come also from calls to convert as well as update quotations
 					LOGGER.info("Currency update granted for "+currencyStock+ " between "+lastCurrencyRateDate+" and "+today);

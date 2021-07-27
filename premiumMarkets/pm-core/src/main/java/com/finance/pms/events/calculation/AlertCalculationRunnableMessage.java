@@ -65,7 +65,14 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 	private Date endDate;
 	private Date startDate;
 	private Collection<Portfolio> portfolios;
-
+	
+	/**
+	 * Attention the events are generated against the porfolio name, not the analysis name
+	 * @param springContext
+	 * @param analysisName
+	 * @param endDate
+	 * @param portfolios
+	 */
 	public AlertCalculationRunnableMessage(SpringContext springContext, String analysisName, Date endDate, Portfolio... portfolios ) {
 		super(1000, springContext, analysisName);
 		this.endDate = endDate;

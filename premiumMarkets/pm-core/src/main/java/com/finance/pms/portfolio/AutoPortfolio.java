@@ -84,18 +84,20 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	public synchronized BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
+		
+		Currency portfolioCurrency = (this.getPortfolioCurrency() == null) ? Currency.EUR : this.getPortfolioCurrency();
 
-		BigDecimal ret = BigDecimal.ZERO;
+		BigDecimal withDrawn = BigDecimal.ZERO;
 
 		BigDecimal availableCash = getAvailableCash(currentDate);
 		if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0) {
-			ret = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+			withDrawn = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 		}
 		else {
 			throw new NoCashAvailableException("Not enough cash left : " + availableCash);
 		}
 
-		return PortfolioMgr.getInstance().getCurrencyConverter().convert(Currency.EUR, transactionCurrency, ret, currentDate);
+		return PortfolioMgr.getInstance().getCurrencyConverter().convert(portfolioCurrency, transactionCurrency, withDrawn, currentDate);
 	}
 
 	@Transient

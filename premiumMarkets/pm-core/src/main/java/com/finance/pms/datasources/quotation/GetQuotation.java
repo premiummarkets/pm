@@ -115,8 +115,10 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 				if (dateFin.before(updateStart)) {//Update not needed
 					LOGGER.guiInfo("Quotation for "+stock.getFriendlyName()+ " are up to date to the "+new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
 				} else {//Check last quote update
-					LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor(stock);
-					updateGranted = lastUpdateChecker.isUpdateGranted();
+					LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
+					synchronized (lastUpdateChecker) {
+						updateGranted = lastUpdateChecker.isUpdateGranted(stock.getSymbol());
+					}
 					if (reset || updateGranted) { //Update granted for today
 
 						LOGGER.guiInfo(	"Updating quotation for "+stock.getFriendlyName()+
@@ -130,7 +132,9 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 					} else {//No Update : already done today
 
 						ret.isSuccessfulUpdate = null;
-						LOGGER.guiInfo("Request for updating "+stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin + " : nothing to do as last update was on the "+lastUpdateChecker);
+						LOGGER.guiInfo(
+								"Ungranted quotation update for " + stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin + ":"
+								+ " nothing to do as last update was on the " + lastUpdateChecker.getLastUpDateStampRecord(stock.getSymbol()));
 
 					}
 				}

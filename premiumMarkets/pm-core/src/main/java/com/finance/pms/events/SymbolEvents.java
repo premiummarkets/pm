@@ -394,7 +394,7 @@ public class SymbolEvents implements Serializable {
 		try {
 			return getWeightData().getLatestRelevantEventDate();
 		} catch (Exception e) {
-			LOGGER.warn("No weigth was calculated :" + e);
+			//LOGGER.warn("No weigth was calculated :" + e);
 			return DateFactory.dateAtZero();
 		}
 	}
@@ -403,7 +403,7 @@ public class SymbolEvents implements Serializable {
 		try {
 			return getWeightData().getBuyTriggeringEvents();
 		} catch (Exception e) {
-			LOGGER.warn("No weigth was calculated :" + e);
+			//LOGGER.warn("No weigth was calculated :" + e);
 			return new HashSet<>();
 		}
 	}
@@ -412,7 +412,7 @@ public class SymbolEvents implements Serializable {
 		try {
 			return getWeightData().getFinalWeight();
 		} catch (Exception e) {
-			LOGGER.warn("No weigth was calculated :" + e);
+			//LOGGER.warn("No weigth was calculated :" + e);
 			return 0f;
 		}
 	}
@@ -421,13 +421,13 @@ public class SymbolEvents implements Serializable {
 		try {
 			return getWeightData().getSellTriggeringEvents();
 		} catch (Exception e) {
-			LOGGER.warn("No weigth was calculated :" + e);
+			//LOGGER.warn("No weigth was calculated :" + e);
 			return new HashSet<>();
 		}
 	}
 	
 	private SymbolEventsWeightData getWeightData() {
-		if (weightData == null) throw new UnsupportedOperationException("Weight not initialised for this "+this.getSymbol() + " and " + this.getEventDefList());
+		if (weightData == null) throw new UnsupportedOperationException("Weight not initialised for this " + this.getSymbol() + " and " + this.getEventDefList());
 		return weightData;
 	}
 

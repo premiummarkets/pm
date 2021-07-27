@@ -178,7 +178,7 @@ public class TuningResDTO implements Serializable {
 		PeriodRatingDTO currentPeriod = null; 
 		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(to) <= 0) {
 			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
-			if ("BULLISH".equals(currentPeriod.getTrend())) {//We can't use Enumerations in a DTO
+			if ("BULLISH".equals(currentPeriod.getTrend())) {//We can't use Enums in a DTO
 				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
 					nbBullishPeriods++;

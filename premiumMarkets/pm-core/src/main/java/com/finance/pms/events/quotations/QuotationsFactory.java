@@ -35,7 +35,6 @@ import java.util.SortedMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -94,7 +93,7 @@ public interface QuotationsFactory {
     SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
     SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 
-    public abstract LastUpdateStampChecker checkLastQuotationUpdateFor(Validatable stock);
+    public abstract LastUpdateStampChecker checkLastQuotationUpdateFor();
 
     /**
      * @deprecated use ExactMaps

@@ -67,55 +67,55 @@ public class LastUpdateStampCheckerTest {
 		expect( DateFactory.getNowEndDateCalendar() ).andReturn( calendar ).anyTimes();
 		replayAll();
 		
-		Boolean firstAttempt = checker.isUpdateGranted();
+		Boolean firstAttempt = checker.isUpdateGranted("FTSE");
 		assertTrue(firstAttempt);
 		
 		for (int i = 1; i <= LastUpdateStampChecker.MAXATTEMPTSINROW; i++) {
-			Boolean inRowAttempt = checker.isUpdateGranted();
-			assertEquals(Integer.valueOf(i), checker.nbAttempts);
+			Boolean inRowAttempt = checker.isUpdateGranted("FTSE");
+			assertEquals(Integer.valueOf(i), checker.getNbAttempts("FTSE"));
 			assertTrue(inRowAttempt);
 		}
 		
-		Boolean secondAttempt = checker.isUpdateGranted();
+		Boolean secondAttempt = checker.isUpdateGranted("FTSE");
 		assertFalse(secondAttempt);
-		assertTrue(checker.nbAttempts == LastUpdateStampChecker.MAXATTEMPTSINROW);
+		assertTrue(checker.getNbAttempts("FTSE") == LastUpdateStampChecker.MAXATTEMPTSINROW);
 		
 		//One hours later loop
 		for (int i = LastUpdateStampChecker.MAXATTEMPTSINROW+1; i <= LastUpdateStampChecker.MAXATTEMPTS; i++) {
 			calendar.add(Calendar.HOUR_OF_DAY, +1);
-			Boolean twoHoursAfterFirstAttempt = checker.isUpdateGranted();
+			Boolean twoHoursAfterFirstAttempt = checker.isUpdateGranted("FTSE");
 			assertTrue(twoHoursAfterFirstAttempt);
-			assertEquals(Integer.valueOf(i), checker.nbAttempts);
+			assertEquals(Integer.valueOf(i), checker.getNbAttempts("FTSE"));
 			
-			Boolean twoHoursAfterSndtAttempt = checker.isUpdateGranted();
+			Boolean twoHoursAfterSndtAttempt = checker.isUpdateGranted("FTSE");
 			assertFalse(twoHoursAfterSndtAttempt);
-			assertEquals(Integer.valueOf(i), checker.nbAttempts);
+			assertEquals(Integer.valueOf(i), checker.getNbAttempts("FTSE"));
 			
-			System.out.println(checker.nbAttempts+" "+calendar.getTime());
-			System.out.println("checker.lastMarketCloseUpdate "+checker.lastMarketCloseUpdate);
+			System.out.println(checker.getNbAttempts("FTSE")+" "+calendar.getTime());
+			System.out.println("checker.lastMarketCloseUpdate "+checker.getLastMarketCloseRecorded());
 		}
 		
 		//Max attemps reached
 		calendar.add(Calendar.HOUR_OF_DAY, +1);
-		Boolean twoHoursAfterFirstAttempt = checker.isUpdateGranted();
+		Boolean twoHoursAfterFirstAttempt = checker.isUpdateGranted("FTSE");
 		assertFalse(twoHoursAfterFirstAttempt);
-		assertEquals(Integer.valueOf(LastUpdateStampChecker.MAXATTEMPTS), checker.nbAttempts);
+		assertEquals(Integer.valueOf(LastUpdateStampChecker.MAXATTEMPTS), checker.getNbAttempts("FTSE"));
 		
-		Boolean twoHoursAfterSndtAttempt = checker.isUpdateGranted();
+		Boolean twoHoursAfterSndtAttempt = checker.isUpdateGranted("FTSE");
 		assertFalse(twoHoursAfterSndtAttempt);
-		assertEquals(Integer.valueOf(LastUpdateStampChecker.MAXATTEMPTS), checker.nbAttempts);
+		assertEquals(Integer.valueOf(LastUpdateStampChecker.MAXATTEMPTS), checker.getNbAttempts("FTSE"));
 		
-		System.out.println(checker.nbAttempts+" "+calendar.getTime());
-		System.out.println("checker.lastMarketCloseUpdate "+checker.lastMarketCloseUpdate);
+		System.out.println(checker.getNbAttempts("FTSE")+" "+calendar.getTime());
+		System.out.println("checker.lastMarketCloseUpdate "+checker.getLastMarketCloseRecorded());
 		
 		//One day later
 		calendar.add(Calendar.DAY_OF_YEAR, +1);
-		Boolean dayAfterAttempt = checker.isUpdateGranted();
-		assertEquals(Integer.valueOf(0), checker.nbAttempts);
+		Boolean dayAfterAttempt = checker.isUpdateGranted("FTSE");
+		assertEquals(Integer.valueOf(0), checker.getNbAttempts("FTSE"));
 		assertTrue(dayAfterAttempt);
 		 
-		System.out.println(checker.nbAttempts+" "+calendar.getTime());
-		System.out.println("checker.lastMarketCloseUpdate "+checker.lastMarketCloseUpdate);
+		System.out.println(checker.getNbAttempts("FTSE")+" "+calendar.getTime());
+		System.out.println("checker.lastMarketCloseUpdate "+checker.getLastMarketCloseRecorded());
 		
 		verifyAll();
 		 
