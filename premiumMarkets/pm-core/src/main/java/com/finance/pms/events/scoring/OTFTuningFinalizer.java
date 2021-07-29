@@ -336,55 +336,6 @@ public class OTFTuningFinalizer {
 		return periodValidity;
 	}
 
-	private FinalRating tuningFinalizationRating(Double totProfit, Double totPriceChange, int nbSuccess, int nbFailure) {
-
-		FinalRating ret = new FinalRating(totProfit, totPriceChange, nbSuccess, nbFailure);
-
-		ret.rating = 0.0;
-		if (nbFailure == 0 && nbSuccess == 0) {
-			ret.rating = 0.0;
-		} else if (nbFailure == 0) {
-			ret.rating = Double.POSITIVE_INFINITY;
-		} else {
-			Double ln = Math.log(Double.valueOf(nbSuccess)/Double.valueOf(nbFailure));
-			ret.rating = ln;
-		}
-
-		double threshold = Math.log(100.00/75.00);
-
-		if (totProfit < 0 && totProfit < totPriceChange) {
-			ret.cause += "Negative profit under performs share price change. ";
-			ret.ratingValidityScore = Validity.FAILURE;
-			return ret;
-		}
-
-		if (totProfit < 0) {
-			ret.cause += "Negative profit.";
-			ret.ratingValidityScore = Validity.FAILURE;
-			return ret;
-		}
-
-		if (totProfit > 0 && totProfit >= totPriceChange) {
-			ret.cause += "Positive profit.";
-			ret.ratingValidityScore = Validity.SUCCESS;
-			return ret;
-		}
-
-		if (ret.rating < threshold ) { //More failure than success it is very likely that profit will be sub zero
-			ret.cause =  "Below Success/Failure threshold. ";
-			ret.ratingValidityScore = Validity.FAILURE;
-			return ret;
-		} 
-
-		if (ret.rating >= threshold) {
-			ret.cause = "Above Success/Failure threshold. ";
-			ret.ratingValidityScore = Validity.SUCCESS;
-			return ret;
-		}
-
-		return ret;
-	}
-
 	public class FinalRating {
 
 		private Double rating;
@@ -403,6 +354,7 @@ public class OTFTuningFinalizer {
 			this.totPrcChgUsed = totPrcChgUsed;
 			this.nbSuccess = nbSuccess;
 			this.nbFailure = nbFailure;
+			this.cause = "";
 		}
 
 		public Double getRating() {
@@ -470,6 +422,53 @@ public class OTFTuningFinalizer {
 			}
 			
 		}
+		
+		public void applyLegacyRating(Double totFollowProfit, Double totPriceChange) {
+
+			rating = 0.0;
+			if (nbFailure == 0 && nbSuccess == 0) {
+				rating = 0.0;
+			} else if (nbFailure == 0) {
+				rating = Double.POSITIVE_INFINITY;
+			} else {
+				Double ln = Math.log(Double.valueOf(nbSuccess) / Double.valueOf(nbFailure));
+				rating = ln;
+			}
+
+			double threshold = Math.log(100.00 / 75.00);
+
+			if (totFollowProfit < 0 && totFollowProfit < totPriceChange) {
+				cause += "Negative profit under performs share price change. ";
+				ratingValidityScore = Validity.FAILURE;
+				return;
+			}
+
+			if (totFollowProfit < 0) {
+				cause += "Negative profit.";
+				ratingValidityScore = Validity.FAILURE;
+				return;
+			}
+
+			if (totFollowProfit > 0 && totFollowProfit >= totPriceChange) {
+				cause += "Positive profit.";
+				ratingValidityScore = Validity.SUCCESS;
+				return;
+			}
+
+			if (rating < threshold) { // More failure than success it is very likely that profit will be sub zero
+				cause = "Below Success/Failure threshold. ";
+				ratingValidityScore = Validity.FAILURE;
+				return;
+			}
+
+			if (rating >= threshold) {
+				cause = "Above Success/Failure threshold. ";
+				ratingValidityScore = Validity.SUCCESS;
+				return;
+			}
+
+		}
+		
 	}
 
 	public FinalRating calculateRating(TuningResDTO tuningRes, Date start, Date end) {
@@ -486,8 +485,10 @@ public class OTFTuningFinalizer {
 			}
 		}
 		
+		FinalRating finalRating = new FinalRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
+		
 		//Legacy
-		FinalRating finalRating = tuningFinalizationRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
+		finalRating.applyLegacyRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange());
 		
 		//New
 		//FinalRating finalRating = new FinalRating(nbSuccess, nbFailure, tuningRes.getStockPriceChange());

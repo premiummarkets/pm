@@ -43,6 +43,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ObserverMsg;
 
 /**
@@ -78,8 +79,8 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Override
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
-		return getUserPortfolioDelegate().calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
+		return getUserPortfolioDelegate().calculate(listEvents, currentDate, buyStrategy, buyPonderationRule, sellPonderationRule);
 	}
 
 	@Transient
@@ -123,6 +124,12 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 			userPortfolioDelegate = new UserPortfolioDelegate(this);
 		}
 		return userPortfolioDelegate;
+	}
+
+	@Override
+	@Transient
+	public Boolean isAutoCalculationIdempotent() {
+		return true;
 	}
 
 }

@@ -70,16 +70,19 @@ import com.finance.pms.threads.ObserverMsg;
  */
 public class AutoPortfolioDelegate {
 
+	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
+	
 	public static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
 	public static final BigDecimal DEFAULT_INITIAL_CASH;
-
-	private TransactionHistory transactionHistory;
-
+	public static final int DEFAULT_MAXIMUM_SIZE;
 	static {
 		DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(10));
+		DEFAULT_MAXIMUM_SIZE = DEFAULT_INITIAL_CASH.divide(DEFAULT_TRANSACTION_AMOUNT).intValue();
 	}
-
-	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
+	
+	private TransactionHistory transactionHistory;
+	
+	public enum BuyStrategy { REINVEST, LIMITLINE };
 
 	protected AutoPortfolioWays thisPortfolio;
 
@@ -95,14 +98,16 @@ public class AutoPortfolioDelegate {
 		return transactionHistory;
 	}
 
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyComparator, PonderationRule sellComparator) {
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyComparator, PonderationRule sellComparator) {
 
 		TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
 
-		LOGGER.debug("Checking events for AutoPortfolio : "+thisPortfolio.getName()+" and date "+currentDate);
+		LOGGER.debug("Checking events for AutoPortfolio : " + thisPortfolio.getName() + " and date " + currentDate);
 		thisCalculationHistory.addAll(this.checkSellSignals(currentDate, listEvents, sellComparator));
-		thisCalculationHistory.addAll(this.checkBuySignals(currentDate, listEvents, buyComparator));
-		LOGGER.debug("Just checked events for AutoPortfolio : "+thisPortfolio.getName()+" and date "+currentDate);
+		if (0 < BigDecimal.ZERO.compareTo(canBuy(buyStrategy, currentDate))) {
+			thisCalculationHistory.addAll(this.checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
+		}
+		LOGGER.debug("Just checked events for AutoPortfolio : " + thisPortfolio.getName() + " and date " + currentDate);
 
 		thisPortfolio.notifyObservers(new ObserverMsg(null, ObserverMsg.ObsKey.PRGSMSG, "Setting Quotations data"));
 
@@ -110,8 +115,25 @@ public class AutoPortfolioDelegate {
 
 	}
 
+	protected BigDecimal canBuy(BuyStrategy buyStrategy, Date currentDate) {
+		switch (buyStrategy) {
+		case LIMITLINE:
+			if (thisPortfolio.getListShares().size() == DEFAULT_MAXIMUM_SIZE) return BigDecimal.ZERO;
+			if (thisPortfolio.getListShares().size() > DEFAULT_MAXIMUM_SIZE) throw new RuntimeException();
+			break;
+		case REINVEST:
+			break;
+		default:
+			break;
+		}
+		BigDecimal availableCash = thisPortfolio.getAvailableCash(currentDate);
+		if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0)
+			return availableCash;
+		else
+			return BigDecimal.ZERO;
+	}
 
-	private TransactionHistory checkBuySignals(Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
+	private TransactionHistory checkBuySignals(BuyStrategy buyStrategy, Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
 
 		SymbolEvents symbolEventsThreshold = 
 				new SymbolEvents(
@@ -137,7 +159,7 @@ public class AutoPortfolioDelegate {
 				if (pr instanceof ConfigFreePonderationRule) {
 					return ((ConfigFreePonderationRule) pr).getBuyThreshold();
 				}
-				return Float.valueOf(((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold());
+				return Float.valueOf(((EventSignalConfig) ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold());
 			}
 
 			@Override
@@ -159,7 +181,7 @@ public class AutoPortfolioDelegate {
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
 			try {
-				TransactionRecord buyTrans = buyShare(symbolEvents, currentDate);
+				TransactionRecord buyTrans = buyShare(buyStrategy ,symbolEvents, currentDate);
 				if (buyTrans != null) {
 					transactionHistory.add(buyTrans);
 				}
@@ -173,11 +195,11 @@ public class AutoPortfolioDelegate {
 	}
 
 
-	private TransactionRecord buyShare(SymbolEvents symbolEvents,Date currentDate) throws IgnoredEventDateException {
-		return checkBuyability(symbolEvents, currentDate, null);
+	private TransactionRecord buyShare(BuyStrategy buyStrategy, SymbolEvents symbolEvents,Date currentDate) throws IgnoredEventDateException {
+		return checkBuyability(buyStrategy, symbolEvents, currentDate, null);
 	}
 
-	private TransactionRecord checkBuyability(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
+	private TransactionRecord checkBuyability(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
 
 		LOGGER.info("Check buy for: " + symbolEvents);
 
@@ -201,18 +223,18 @@ public class AutoPortfolioDelegate {
 				}
 			}
 
-			TransactionRecord buyTransactionRecord = buy(symbolEvents, currentDate);
+			TransactionRecord buyTransactionRecord = buy(buyStrategy, symbolEvents, currentDate);
 			thisPortfolio.setChanged();
 			return buyTransactionRecord;
 
 		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.warn("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - no quotations: "+thisPortfolio.getName());
+			LOGGER.warn("Can't buy " + symbolEvents.getStock()+" in AutoPortfolio - no quotations: " + thisPortfolio.getName());
 		} catch (NoCashAvailableException e) {
-			LOGGER.info("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - no cash: "+thisPortfolio.getName()+" cause "+e.getMessage());
+			LOGGER.info("Can't buy " + symbolEvents.getStock()+" in AutoPortfolio - no cash: " + thisPortfolio.getName() + " cause " + e.getMessage());
 		} catch (InvalidQuantityException e) {
-			LOGGER.error("Can't buy "+symbolEvents.getStock()+" in AutoPortfolio - invalid quantity: "+thisPortfolio.getName(),e);
+			LOGGER.error("Can't buy " + symbolEvents.getStock() + " in AutoPortfolio - invalid quantity: " + thisPortfolio.getName(), e);
 		} catch (Exception e) {
-			LOGGER.error("Can't buy share "+symbolEvents.getStock()+" in AutoPortfolio: "+thisPortfolio.getName(),e);
+			LOGGER.error("Can't buy share " + symbolEvents.getStock() + " in AutoPortfolio: " + thisPortfolio.getName(), e);
 		}
 
 		return null;
@@ -224,7 +246,7 @@ public class AutoPortfolioDelegate {
 		return latestEventDateAndNewBuyDate.after(alreadyBoughtShare.getLastTransactionDate());
 	}
 
-	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
+	protected TransactionRecord buy(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
 
 		Stock stock = symbolEvents.getStock();
 		// XXX what if we buy twice the same share but with a different currency?
@@ -234,8 +256,9 @@ public class AutoPortfolioDelegate {
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);
 
-			synchronized (thisPortfolio) {
-
+			BigDecimal availableCash = canBuy(buyStrategy, currentDate);
+			if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0) {
+				
 				BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
 				BigDecimal quantity = availableAmount.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
 				LOGGER.info("Buying: " + quantity + " " + stock + " on the " + currentDate + ". Available amount: " + availableAmount + ". Triggering event " + symbolEvents);
@@ -247,6 +270,9 @@ public class AutoPortfolioDelegate {
 
 				// Log
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
+				
+			} else {
+				throw new NoCashAvailableException("Not enough cash left : " + availableCash);
 			}
 
 		} catch (NoQuotationsException e) {
@@ -285,10 +311,10 @@ public class AutoPortfolioDelegate {
 
 			@Override
 			public String toString() {
-				return "Event sell threshold = "+getWeight(null);
+				return "Event sell threshold = " + getWeight(null);
 			}
 		};
-		LOGGER.debug("Threshold event : "+symbolEventThreshold);
+		LOGGER.debug("Threshold event : " + symbolEventThreshold);
 
 		NavigableSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
@@ -380,13 +406,12 @@ public class AutoPortfolioDelegate {
 				quantityProrata = quantity;
 			}
 
-			synchronized (thisPortfolio) {
-				thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
-				LOGGER.info("Selling: " + quantityProrata + " " + portfolioShare + ", quantity left : " + quantity);
+			thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, lastPrice, TransactionType.AOUT);
+			LOGGER.info("Selling: " + quantityProrata + " " + portfolioShare + ", quantity left : " + quantity);
 
-				//log
-				return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, lastPrice, currentDate);
-			}
+			//log
+			return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, lastPrice, currentDate);
+
 		} catch (NoQuotationsException e) {
 			LOGGER.warn(e);
 			throw new InvalidAlgorithmParameterException(e);

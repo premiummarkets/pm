@@ -51,6 +51,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.portfolio.AutoPortfolioWays;
 import com.finance.pms.portfolio.TransactionHistory;
 import com.finance.pms.portfolio.TransactionRecord;
@@ -72,47 +73,49 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 	private PonderationRule buyPonderationRule;
 	private PonderationRule sellPonderationRule;
+	private BuyStrategy buyStrategy;
 
 
 	public AutoPortfolioBuySellMessageRunnable(
-			AutoPortfolioWays portfolio, Date spanEnd, EventInfo eventInfo, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, 
+			AutoPortfolioWays portfolio, Date spanEnd, EventInfo eventInfo, 
+			BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, 
 			List<SymbolEvents> reducedEvents, String... eventListName) {
 		super(5000, SpringContext.getSingleton(), portfolio.getName());
 		this.portfolio = portfolio;
 		this.spanEnd = spanEnd;
 		this.eventInfo = eventInfo;
+		this.buyStrategy = buyStrategy;
 		this.buyPonderationRule = buyPonderationRule;
 		this.sellPonderationRule = sellPonderationRule;
 		this.additionalEventListNames = eventListName;
 		this.reducedEvents = reducedEvents;
 	}
 
-	public void runAsyncBuyNSellCalculation() throws InterruptedException {
-		this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
-	}
-	
-
 	public void runBuyNSellCalculation() throws InterruptedException {
-		synchronized (syncObject) {
+		if (this.portfolio.isAutoCalculationIdempotent()) {
 			this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
-			LOGGER.info(Thread.currentThread() + ": waiting on " + syncObject.hashCode());
-			syncObject.wait();
+		} else {
+			synchronized (syncObject) {
+				this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
+				LOGGER.info(Thread.currentThread() + ": waiting on " + syncObject.hashCode());
+				syncObject.wait();
+			}
+			LOGGER.info(Thread.currentThread() + ": released " + syncObject.hashCode());
 		}
-		LOGGER.info(Thread.currentThread() + ": released " + syncObject.hashCode());
 	}
 
 	public void run() {
 
 		try {
 			
-			LOGGER.info("Processing signals " + getAnalysisName() + " with " +  Arrays.toString(additionalEventListNames));
+			LOGGER.info("Processing signals " + getAnalysisName() + " with " + Arrays.toString(additionalEventListNames));
 			if (reducedEvents.isEmpty()) return;
 
 			for (String configName : getPassedThroughConfigs().keySet()) {
 				ConfigThreadLocal.set(configName, getPassedThroughConfigs().get(configName));
 			}
 
-			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyPonderationRule, sellPonderationRule, additionalEventListNames);
+			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyStrategy, buyPonderationRule, sellPonderationRule, additionalEventListNames);
 			sendTransactionHistory(calculationTransactions);
 
 			LOGGER.info("Processor message completed : " + getAnalysisName() + " with " + Arrays.toString(additionalEventListNames));

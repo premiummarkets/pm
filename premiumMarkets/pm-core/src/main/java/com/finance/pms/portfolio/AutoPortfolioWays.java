@@ -42,38 +42,39 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ObserverMsg;
 
 public interface AutoPortfolioWays {
+	
+	
+	//The concurrency thing
+	TransactionHistory calculate(List<SymbolEvents> events, Date enDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName);
+	Boolean isAutoCalculationIdempotent();
 
+	//The buy and sell thing
+	BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException;
+	BigDecimal getAvailableCash(Date currentDate);
+	
+	Currency getPortfolioCurrency();
+	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
+	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException;
+
+	//The transactions thing
+	TransactionHistory getTransactionHistory();
+	void log(TransactionRecord transactionRecord);
+	String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable;
+	SortedSet<TransactionElement> getTransactions();
+	
+	//Other things
 	String getName();
 
 	void notifyObservers(ObserverMsg msg);
+	void setChanged();
 
 	Map<Stock, PortfolioShare> getListShares();
 
-	BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException;
-
-	BigDecimal getAvailableCash(Date currentDate);
-
-	void setChanged();
-
-	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException;
-
-	TransactionHistory calculate(List<SymbolEvents> events, Date enDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName);
-
 	void exportAutoportfolioContent(Date date);
 
-	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
-
-	public TransactionHistory getTransactionHistory();
-
-	public Currency getPortfolioCurrency();
-
-	public void log(TransactionRecord transactionRecord);
-
-	public String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable;
-	
-	public SortedSet<TransactionElement> getTransactions();
 
 }

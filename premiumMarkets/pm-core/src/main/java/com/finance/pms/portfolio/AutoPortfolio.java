@@ -43,6 +43,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
+import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -63,9 +64,11 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	private AutoPortfolioDelegate autoPortfolioDelegate;
 
-	private String[] additionalPortfolioEventListNames = new String[0];
 
 	private EventSignalConfig eventSignalConfig;
+	
+	private String[] additionalPortfolioEventListNames = new String[0];
+
 
 	@SuppressWarnings("unused")
 	private AutoPortfolio() {
@@ -74,8 +77,8 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	public AutoPortfolio(AutoPortfolio portfolio) {
 		super(portfolio);
-		additionalPortfolioEventListNames = portfolio.additionalPortfolioEventListNames;
 		eventSignalConfig = portfolio.eventSignalConfig;
+		additionalPortfolioEventListNames = portfolio.additionalPortfolioEventListNames;
 	}
 
 	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency, EventSignalConfig eventSignalConfig) {
@@ -84,19 +87,8 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	public synchronized BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
-		
+		BigDecimal withDrawn = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 		Currency portfolioCurrency = (this.getPortfolioCurrency() == null) ? Currency.EUR : this.getPortfolioCurrency();
-
-		BigDecimal withDrawn = BigDecimal.ZERO;
-
-		BigDecimal availableCash = getAvailableCash(currentDate);
-		if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0) {
-			withDrawn = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
-		}
-		else {
-			throw new NoCashAvailableException("Not enough cash left : " + availableCash);
-		}
-
 		return PortfolioMgr.getInstance().getCurrencyConverter().convert(portfolioCurrency, transactionCurrency, withDrawn, currentDate);
 	}
 
@@ -115,10 +107,13 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		super.setChanged();
 	}
 
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
 
-		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
-		return getAutoPortfolioDelegate().calculate(listEvents, currentDate, buyPonderationRule, sellPonderationRule);
+		synchronized (this) { //We need to synch as we don't want concurrent buy and sell actions on this portfolio
+			ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
+			return getAutoPortfolioDelegate().calculate(listEvents, currentDate, buyStrategy, buyPonderationRule, sellPonderationRule);
+		}
+
 	}
 
 	@Override
@@ -154,6 +149,12 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 			autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
 		}
 		return autoPortfolioDelegate;
+	}
+
+	@Override
+	@Transient
+	public Boolean isAutoCalculationIdempotent() {
+		return false;
 	}
 
 }

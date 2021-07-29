@@ -50,7 +50,7 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	}
 
 	@Override
-	protected TransactionRecord buy(SymbolEvents symbolEvents, Date currentDate) {
+	protected TransactionRecord buy(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) {
 		if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
 			TransactionRecord transactionRecord = 
 					new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "buy", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
@@ -68,6 +68,11 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	@Override
 	protected boolean isValidSellableDate(Date latestEventDateAndNewBuyDate, PortfolioShare portfolioShare) {
 		return true;
+	}
+
+	@Override
+	protected BigDecimal canBuy(BuyStrategy buyStrategy, Date currentDate) {
+		return BigDecimal.ONE;
 	}
 
 }
