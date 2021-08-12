@@ -82,7 +82,7 @@ public class AutoPortfolioDelegate {
 	
 	private TransactionHistory transactionHistory;
 	
-	public enum BuyStrategy { REINVEST, LIMITLINE };
+	public enum BuyStrategy { REINVEST, LIMITROWS, INFINITCASH };
 
 	protected AutoPortfolioWays thisPortfolio;
 
@@ -104,11 +104,13 @@ public class AutoPortfolioDelegate {
 
 		LOGGER.debug("Checking events for AutoPortfolio : " + thisPortfolio.getName() + " and date " + currentDate);
 		thisCalculationHistory.addAll(this.checkSellSignals(currentDate, listEvents, sellComparator));
-		if (0 < BigDecimal.ZERO.compareTo(canBuy(buyStrategy, currentDate))) {
+		BigDecimal canBuy = canBuy(buyStrategy, currentDate);
+		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
 			thisCalculationHistory.addAll(this.checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
+		} else {
+			LOGGER.info("No cash left " + canBuy + " at date " + currentDate + ", Can't buy: " + listEvents);
 		}
-		LOGGER.debug("Just checked events for AutoPortfolio : " + thisPortfolio.getName() + " and date " + currentDate);
-
+		
 		thisPortfolio.notifyObservers(new ObserverMsg(null, ObserverMsg.ObsKey.PRGSMSG, "Setting Quotations data"));
 
 		return thisCalculationHistory;
@@ -117,20 +119,20 @@ public class AutoPortfolioDelegate {
 
 	protected BigDecimal canBuy(BuyStrategy buyStrategy, Date currentDate) {
 		switch (buyStrategy) {
-		case LIMITLINE:
-			if (thisPortfolio.getListShares().size() == DEFAULT_MAXIMUM_SIZE) return BigDecimal.ZERO;
-			if (thisPortfolio.getListShares().size() > DEFAULT_MAXIMUM_SIZE) throw new RuntimeException();
-			break;
+		case LIMITROWS:
+			int ownedSharesSize = thisPortfolio.getOwnedPorfolioShares().size();
+			if (ownedSharesSize == DEFAULT_MAXIMUM_SIZE) return BigDecimal.ZERO;
+			if (ownedSharesSize > DEFAULT_MAXIMUM_SIZE) throw new RuntimeException();
+			return AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+		case INFINITCASH:
+			return AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 		case REINVEST:
-			break;
+			BigDecimal availableCash = thisPortfolio.getAvailableCash(currentDate);
+			return (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0)? availableCash : BigDecimal.ZERO;
 		default:
-			break;
+			throw new UnsupportedOperationException();
 		}
-		BigDecimal availableCash = thisPortfolio.getAvailableCash(currentDate);
-		if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0)
-			return availableCash;
-		else
-			return BigDecimal.ZERO;
+		
 	}
 
 	private TransactionHistory checkBuySignals(BuyStrategy buyStrategy, Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
@@ -186,7 +188,12 @@ public class AutoPortfolioDelegate {
 					transactionHistory.add(buyTrans);
 				}
 			} catch (IgnoredEventDateException e) {
-				LOGGER.warn("Date of event is after buy current date. " + e);
+				LOGGER.warn("Can't buy: Date of event is after buy current date. " + e);
+			} catch (NoCashAvailableException e) {
+				LOGGER.info("Can't buy: " + symbolEvents.getStock() + " in AutoPortfolio - no cash: " + thisPortfolio.getName() + " cause " + e.getMessage());
+				break;
+			} catch (Exception e) {
+				LOGGER.error("Can't buy: " + symbolEvents.getStock() + " in AutoPortfolio: " + thisPortfolio.getName(), e);
 			}
 		}
 
@@ -195,11 +202,11 @@ public class AutoPortfolioDelegate {
 	}
 
 
-	private TransactionRecord buyShare(BuyStrategy buyStrategy, SymbolEvents symbolEvents,Date currentDate) throws IgnoredEventDateException {
+	private TransactionRecord buyShare(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) throws IgnoredEventDateException, NoCashAvailableException {
 		return checkBuyability(buyStrategy, symbolEvents, currentDate, null);
 	}
 
-	private TransactionRecord checkBuyability(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException {
+	private TransactionRecord checkBuyability(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount) throws IgnoredEventDateException, NoCashAvailableException {
 
 		LOGGER.info("Check buy for: " + symbolEvents);
 
@@ -213,10 +220,10 @@ public class AutoPortfolioDelegate {
 
 		try {
 
-			//Check if already bought 
-			for (PortfolioShare alreadyBoughtShare : thisPortfolio.getListShares().values()) {
-				LOGGER.info("Checking already bought: " + alreadyBoughtShare);
-				if (alreadyBoughtShare.getStock().equals(symbolEvents.getStock()) && !isValidBuyableDate(latestEventDateAndNewBuyDate, alreadyBoughtShare)) {
+			//Check if already bought
+			PortfolioShare alreadyBoughtShare  = null;
+			if ((alreadyBoughtShare = thisPortfolio.getListShares().get(symbolEvents.getStock())) != null) { //is it the same stock?
+				if (!isValidBuyableDate(latestEventDateAndNewBuyDate, alreadyBoughtShare)) { //is it the same signal?
 					//Already bought
 					LOGGER.info("Already bought: " + alreadyBoughtShare + " on the " + alreadyBoughtShare.getLastTransactionDate() + ". Ignoring event from the " + latestEventDateAndNewBuyDate);
 					return null;
@@ -229,12 +236,8 @@ public class AutoPortfolioDelegate {
 
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.warn("Can't buy " + symbolEvents.getStock()+" in AutoPortfolio - no quotations: " + thisPortfolio.getName());
-		} catch (NoCashAvailableException e) {
-			LOGGER.info("Can't buy " + symbolEvents.getStock()+" in AutoPortfolio - no cash: " + thisPortfolio.getName() + " cause " + e.getMessage());
 		} catch (InvalidQuantityException e) {
 			LOGGER.error("Can't buy " + symbolEvents.getStock() + " in AutoPortfolio - invalid quantity: " + thisPortfolio.getName(), e);
-		} catch (Exception e) {
-			LOGGER.error("Can't buy share " + symbolEvents.getStock() + " in AutoPortfolio: " + thisPortfolio.getName(), e);
 		}
 
 		return null;
@@ -272,7 +275,7 @@ public class AutoPortfolioDelegate {
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
 				
 			} else {
-				throw new NoCashAvailableException("Not enough cash left : " + availableCash);
+				throw new NoCashAvailableException("Not enough cash left : " + availableCash + ". Can't buy: " + symbolEvents);
 			}
 
 		} catch (NoQuotationsException e) {

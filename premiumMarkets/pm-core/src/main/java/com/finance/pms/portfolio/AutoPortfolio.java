@@ -107,7 +107,8 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		super.setChanged();
 	}
 
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
+	@Override
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
 
 		synchronized (this) { //We need to synch as we don't want concurrent buy and sell actions on this portfolio
 			ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);

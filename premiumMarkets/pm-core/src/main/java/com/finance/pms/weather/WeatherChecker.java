@@ -126,12 +126,12 @@ public class WeatherChecker extends IndicatorsOperator {
 
 		SortedMap<EventKey, EventValue> eventData = new TreeMap<EventKey, EventValue>();
 		if (!meanEventValue.getEventType().equals(EventType.NONE)) {
-			LOGGER.info("Weather mean temperature hint : " +meanEventValue);
+			LOGGER.info("Weather mean temperature hint : " + meanEventValue);
 			addEvent(eventData, meanEventValue.getDate(), meanEventValue.getEventDef(), meanEventValue.getEventType(), meanEventValue.getMessage(), eventListName, "mean");
 		}
 
 		if (!trendChangeEventValue.getEventType().equals(EventType.NONE)) {
-			LOGGER.info("Weather trend change in temperature hint : " +trendChangeEventValue);
+			LOGGER.info("Weather trend change in temperature hint : " + trendChangeEventValue);
 			addEvent(eventData, trendChangeEventValue.getDate(), trendChangeEventValue.getEventDef(), trendChangeEventValue.getEventType(), trendChangeEventValue.getMessage(), eventListName, "trend");
 		}
 

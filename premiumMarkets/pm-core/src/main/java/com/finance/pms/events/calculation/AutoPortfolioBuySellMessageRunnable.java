@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.calculation;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +66,6 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 	private AutoPortfolioWays portfolio;
 
 	private Date spanEnd;
-	private String[] additionalEventListNames;
 	private EventInfo eventInfo;
 	private List<SymbolEvents> reducedEvents;
 
@@ -79,7 +77,7 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 	public AutoPortfolioBuySellMessageRunnable(
 			AutoPortfolioWays portfolio, Date spanEnd, EventInfo eventInfo, 
 			BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, 
-			List<SymbolEvents> reducedEvents, String... eventListName) {
+			List<SymbolEvents> reducedEvents) {
 		super(5000, SpringContext.getSingleton(), portfolio.getName());
 		this.portfolio = portfolio;
 		this.spanEnd = spanEnd;
@@ -87,7 +85,6 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 		this.buyStrategy = buyStrategy;
 		this.buyPonderationRule = buyPonderationRule;
 		this.sellPonderationRule = sellPonderationRule;
-		this.additionalEventListNames = eventListName;
 		this.reducedEvents = reducedEvents;
 	}
 
@@ -108,17 +105,17 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 		try {
 			
-			LOGGER.info("Processing signals " + getAnalysisName() + " with " + Arrays.toString(additionalEventListNames));
+			LOGGER.info("Processing signals " + getAnalysisName() + " with " + reducedEvents.size() + " events.");
 			if (reducedEvents.isEmpty()) return;
 
 			for (String configName : getPassedThroughConfigs().keySet()) {
 				ConfigThreadLocal.set(configName, getPassedThroughConfigs().get(configName));
 			}
 
-			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyStrategy, buyPonderationRule, sellPonderationRule, additionalEventListNames);
+			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyStrategy, buyPonderationRule, sellPonderationRule);
 			sendTransactionHistory(calculationTransactions);
 
-			LOGGER.info("Processor message completed : " + getAnalysisName() + " with " + Arrays.toString(additionalEventListNames));
+			LOGGER.info("Processor message completed : " + getAnalysisName() + " with " + reducedEvents.size() + " events.");
 
 		} catch (Exception e) {
 			LOGGER.error("Error in " + this.toString(), e);

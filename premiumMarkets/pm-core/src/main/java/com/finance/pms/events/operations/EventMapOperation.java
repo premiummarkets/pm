@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
+@XmlSeeAlso({RandomOperation.class})
 public class EventMapOperation extends MapOperation {
 
 	public EventMapOperation() {

@@ -82,6 +82,10 @@ public interface QuotationsFactory {
     default SortedMap<Date, double[]> buildExactMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
         throw new NotImplementedException("TODO");
     }
+    
+    default SortedMap<Date, double[]> buildExactMapFromQuotations(Quotations quotations, int from, int to, QuotationDataType... quotationDataTypes) throws NotEnoughDataException{
+        throw new NotImplementedException("TODO");
+    }
 
     /**
      * @deprecated use ExactMaps
@@ -91,6 +95,7 @@ public interface QuotationsFactory {
      */
     @Deprecated
     SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
+    
     SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 
     public abstract LastUpdateStampChecker checkLastQuotationUpdateFor();

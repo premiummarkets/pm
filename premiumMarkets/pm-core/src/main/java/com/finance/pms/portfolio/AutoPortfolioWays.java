@@ -49,7 +49,7 @@ public interface AutoPortfolioWays {
 	
 	
 	//The concurrency thing
-	TransactionHistory calculate(List<SymbolEvents> events, Date enDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName);
+	TransactionHistory calculate(List<SymbolEvents> events, Date enDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule);
 	Boolean isAutoCalculationIdempotent();
 
 	//The buy and sell thing
@@ -73,8 +73,10 @@ public interface AutoPortfolioWays {
 	void setChanged();
 
 	Map<Stock, PortfolioShare> getListShares();
+	List<PortfolioShare> getOwnedPorfolioShares();
 
 	void exportAutoportfolioContent(Date date);
+
 
 
 }

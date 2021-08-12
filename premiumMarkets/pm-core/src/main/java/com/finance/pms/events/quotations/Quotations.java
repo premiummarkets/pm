@@ -60,7 +60,23 @@ public class Quotations {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 
-	public static enum ValidityFilter {NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV}; //NONE doesn't return anything. ALL returns everything? (not implemented)
+	public static enum ValidityFilter {
+		NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV; //NONE doesn't return anything. ALL returns everything? (not implemented)
+		public QuotationDataType[] toQuotationDataType() {
+			switch (this) {
+			case VOLUME:
+				return new QuotationDataType[] {QuotationDataType.VOLUME};
+			case CLOSE:
+				return new QuotationDataType[] {QuotationDataType.CLOSE};
+			case OHLC:
+				return new QuotationDataType[] {QuotationDataType.OPEN, QuotationDataType.HIGH, QuotationDataType.LOW, QuotationDataType.CLOSE};
+			case OHLCV:
+				return QuotationDataType.values(); 
+			default:
+				throw new UnsupportedOperationException();
+			}
+		}; 
+	}
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
 	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
 	
@@ -597,7 +613,14 @@ public class Quotations {
 			if ( validClose && qj.getCloseSplit().compareTo(BigDecimal.ZERO) == 0 ) {
 				continue;
 			}
-			if ( validOhlc && qj.getHighSplit().compareTo(qj.getLowSplit()) == 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) == 0 ) {
+			if ( validOhlc && 
+					(
+							(qj.getHighSplit().compareTo(qj.getLowSplit()) == 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) == 0) //H==L==C i.e. no OHL
+							|| 
+							!( qj.getHighSplit().compareTo(qj.getOpenSplit()) >= 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) >= 0
+							&& qj.getLowSplit().compareTo(qj.getOpenSplit()) <= 0 && qj.getLowSplit().compareTo(qj.getCloseSplit()) <= 0) //! (open <= high && close <= high && low <= open && low <= close)
+							)
+					) {
 				continue;
 			}
 			if ( validVolume && qj.getVolumeSplit() == 0 ) {

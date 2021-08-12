@@ -51,7 +51,13 @@ public class MyApacheStats implements StatsFunction {
 		return this.sEvaluate(subMap.values());
 	}
 
+	/**
+	 * XXX only evaluate the first dim of the passed arrays.
+	 * @param subMap
+	 * @return
+	 */
 	public double evaluate(Collection<double[]> subMap) {
+		statistic.setData(null);
 		double[] values = new double[subMap.size()];
 		int i = 0;
 		for (double[] element : subMap) {
@@ -61,8 +67,25 @@ public class MyApacheStats implements StatsFunction {
 
 		return statistic.evaluate(values);
 	}
+	
+	public double[] aEvaluate(Collection<double[]> subMap) {
+		statistic.setData(null);
+		SortedMap<Integer, double[]> valuesMap = new TreeMap<>();
+		int i = 0;
+		for (double[] element : subMap) {
+			for (int j=0; j < element.length; j++) {
+				double[] jValues = valuesMap.getOrDefault(j, new double[subMap.size()]);
+				jValues[i] = element[j];
+				valuesMap.put(j, jValues);
+			}
+			i++;
+		}
+		double[] results = valuesMap.values().stream().map(va -> statistic.evaluate(va)).mapToDouble(d -> d).toArray();
+		return results;
+	}
 
 	public double sEvaluate(Collection<Double> subMap) {
+		statistic.setData(null);
 		double[] values = new double[subMap.size()];
 		int i = 0;
 		for (Double element : subMap) {

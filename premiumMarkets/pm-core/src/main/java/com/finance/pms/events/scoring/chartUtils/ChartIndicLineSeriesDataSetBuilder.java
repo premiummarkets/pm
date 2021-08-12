@@ -262,6 +262,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
 		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
 		indicYAxis.setRange(new Range(lower, upper), true, true);
+		indicYAxis.setAutoRange(false);
+		indicYAxis.setAutoRangeIncludesZero(false);
 		//indicYAxis.setRangeAboutValue(centerValue, Math.max(upperToCenter,lowerTocenter)*2);
 		//indicYAxis.setFixedDimension(Math.max(upperToCenter,lowerTocenter)*2);
 		indicYAxis.setTickLabelFont(indicYAxis.getTickLabelFont().deriveFont(7f));

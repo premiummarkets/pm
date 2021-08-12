@@ -173,7 +173,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 				SharesListId.valueOf(ProvidersList.shareListSplit(list)[0]);
 				validShareLists.add(list);
 			} catch (IllegalArgumentException e) {
-				LOGGER.warn("Unrecognised list in the data base : "+list);
+				LOGGER.warn("Unrecognised list in the data base : " + list);
 			}
 		}
 		return validShareLists;
@@ -256,7 +256,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	public IndepShareList loadIndepShareList(String shareListName) {
 		String upperShareListName = shareListName.toUpperCase();
 		IndepShareList shareList = (IndepShareList)this.getHibernateTemplate().get(IndepShareList.class, upperShareListName);
-		if (shareList == null) shareList = new IndepShareList(upperShareListName);	
+		if (shareList == null) shareList = new IndepShareList(upperShareListName);
 		return shareList;
 	}
 

@@ -313,7 +313,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					this.operands.add(nextOverridingOperand);
 				}
 			} else {//error
-				throw new IllegalArgumentException(this + " rejected " + overridingOperands+" are too many operands. Expected : "+operands+", Parameterised : "+parameter);
+				String msg = this + " rejected " + overridingOperands + " are too many operands. Expected : " + operands + ", Parameterised : " + parameter;
+				LOGGER.error(msg);
+				throw new IllegalArgumentException(msg);
 			}
 		}
 
@@ -330,12 +332,16 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (this.availableOutputSelectors != null && !this.availableOutputSelectors.isEmpty()) {
 			//But not provided or wrong
 			if (outputSelector == null || !this.availableOutputSelectors.contains(outputSelector)) {
-				throw new IllegalArgumentException(this + " rejected " + outputSelector + " is not a valid output Selector. Expected : " + this.availableOutputSelectors);
+				String msg = this + " rejected " + outputSelector + " is not a valid output Selector. Expected : " + this.availableOutputSelectors;
+				LOGGER.error(msg);
+				throw new IllegalArgumentException(msg);
 			}
 			//No Output needed but provided
 		} else {
 			if (outputSelector != null) {
-				throw new IllegalArgumentException(this + " rejected " + outputSelector + ". No output selector is expected for this operation.");
+				String msg = this + " rejected " + outputSelector + ". No output selector is expected for this operation.";
+				LOGGER.error(msg);
+				throw new IllegalArgumentException(msg);
 			}
 		}
 		this.outputSelector = outputSelector;

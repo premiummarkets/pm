@@ -129,7 +129,9 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 			EventDefinition eventDefinition = (EventDefinition) calculator.getEventDefinition();
 			EventDefDescriptorStatic eventDefDescriptor = eventDefinition.getEventDefDescriptor();
 			if (eventDefDescriptor == null) {
-				throw new NotImplementedException("No static descriptor implemented for "+eventDefinition+". This operation compositioner can't be reflected. Please implement.");
+				throw new NotImplementedException(
+						"No static descriptor implemented for " + eventDefinition + ". "
+						+ "This operation compositioner can't be reflected. Please implement.");
 			}
 
 			SortedMap<Date, double[]> calculationOutput = calculator.calculationOutput();

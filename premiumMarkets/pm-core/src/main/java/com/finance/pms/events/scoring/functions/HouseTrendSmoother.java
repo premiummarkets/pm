@@ -85,22 +85,30 @@ public class HouseTrendSmoother extends Smoother implements SSmoother {
     public double[][] smooth(double[][] xs) {
         double[][] ysArray = new double[xs.length - period][];
         for (int i = period; i < xs.length; i++) {
-            double yi = function(xs, i);
-            if (!Double.isNaN(yi)) {
-                ysArray[i-period] = new double[]{yi};
-            } else if (i >= ynCount*period) {
-                String message = "NaN at index " + i + ", with " + Arrays.asList(xs).subList(i-ynCount*period, i+1).stream().map(Arrays::toString).reduce((r, e) -> r+e);
-                throw new RuntimeException(message);
+            double[] ysi = function(xs, i);
+            if (Arrays.stream(ysi).allMatch(yi -> !Double.isNaN(yi))) {
+                ysArray[i-period] = ysi;
+            } else {
+            	LOGGER.warn("NaN at index " + i + ": " + Arrays.toString(ysi));
+            	if (i >= ynCount*period) {
+	                String message = "NaN at index " + i + ", with " + Arrays.asList(xs).subList(i-ynCount*period, i+1).stream().map(Arrays::toString).reduce((r, e) -> r+e);
+	                throw new RuntimeException(message);
+            	}
             }
         }
         return ysArray;
     }
 
-    protected double function(double[][] values, int i) {
-        double xi = values[i][0];
-        double xi_1 = values[i-period][0];
-        if (xi <= 0 || xi_1 <= 0 ) throw new NotImplementedException("currentValue : " + xi + ", previousValue " + xi_1);
-        return Math.log(xi/xi_1);
+    protected double[] function(double[][] values, int i) {
+    	double[] ds = values[i];
+    	double[] lns = new double[ds.length];
+    	for (int j = 0 ; j < ds.length; j ++) {
+	        double xij = ds[j];
+	        double xi_1j = values[i-period][j];
+	        if (xij <= 0 || xi_1j <= 0 ) throw new NotImplementedException("currentValue : " + xij + ", previousValue " + xi_1j);
+	        lns[j] = Math.log(xij/xi_1j);
+    	}
+        return lns;
     }
 
     @Override

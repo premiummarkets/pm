@@ -17,16 +17,18 @@ public class HouseTrend2ndSmoother extends HouseTrendSmoother {
     }
 
     @Override
-    protected double function(double[][] values, int i) {
+    protected double[] function(double[][] values, int i) {
+    	
+    	if (values[i].length != 1) throw new UnsupportedOperationException("Plz fix.");
 
-        if (i < ynCount*period) return Double.NaN;
+        if (i < ynCount*period) return new double[] {Double.NaN};
         double xi = values[i][0];
         double xi_1 = values[i-1*period][0];
         double xi_N_1 = values[i-(ynCount-1)*period][0];
         double xi_N_2 = values[i-ynCount*period][0];
 
         double yi = Math.log(( LIFTER_ABOVE_0 + Math.log(xi)-Math.log(xi_N_1) )/( LIFTER_ABOVE_0 + Math.log(xi_1)- Math.log(xi_N_2) ));
-        return yi;
+        return new double[] {yi};
 
     }
 

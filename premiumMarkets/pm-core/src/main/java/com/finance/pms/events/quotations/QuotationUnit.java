@@ -83,7 +83,9 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		super();
 	}
 
-	public QuotationUnit(Stock stock, Currency currency, Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, ORIGIN origin, BigDecimal split) {
+	public QuotationUnit(Stock stock, Currency currency, 
+			Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, 
+			ORIGIN origin, BigDecimal split) {
 		this.stock = stock;
 		this.currency=currency;
 		this.date = date;

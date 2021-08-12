@@ -37,6 +37,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.RandomOperation;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.Division;
@@ -158,6 +159,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(volatilityOperation);
 		VolatilityOtherOperation volatilityOtherOperation = new VolatilityOtherOperation();
 		nativeOperations.addOperation(volatilityOtherOperation);
+		RandomOperation randomOperation = new RandomOperation();
+		nativeOperations.addOperation(randomOperation);
 
 		return nativeOperations;
 	}

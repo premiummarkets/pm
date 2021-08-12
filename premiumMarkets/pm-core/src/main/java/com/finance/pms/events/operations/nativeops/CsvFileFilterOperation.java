@@ -20,7 +20,7 @@ public class CsvFileFilterOperation extends Operation {
 	private static Logger LOGGER = Logger.getLogger(CsvFileFilterOperation.class);
 
 	public CsvFileFilterOperation(String reference, String description, Operation ... operands) {
-		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+		super(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
 	public CsvFileFilterOperation() {

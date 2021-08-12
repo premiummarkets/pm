@@ -30,6 +30,7 @@
 package com.finance.pms.events.quotations;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.SortedMap;
@@ -215,13 +216,24 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 				(result, qU) -> result.put(qU.getDate(), new double[] {qU.getData(QuotationDataType.CLOSE).doubleValue()}),
 				TreeMap::putAll);
 	}
+	
+	@Override
+	public SortedMap<Date, double[]> buildExactMapFromQuotations(Quotations quotations, int from, int to, QuotationDataType... quotationDataTypes) throws NotEnoughDataException {
+		return quotations.getQuotationData().subList(from, to+1).stream().collect(
+				TreeMap::new,
+				(result, qU) -> {
+					double[] value = Arrays.stream(quotationDataTypes).map(qt -> qU.getData(qt).doubleValue()).mapToDouble(d -> d).toArray();
+					result.put(qU.getDate(), value);
+				},
+				TreeMap::putAll);
+	}
 
 	@Override
 	public SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
 		SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
 		for (int i = from; i <= to; i++) {
 			QuotationUnit quotationUnit = quotations.get(i);
-			fullRefSQuotationsMap.put(quotationUnit.getDate(),quotationUnit.getData(field).doubleValue());
+			fullRefSQuotationsMap.put(quotationUnit.getDate(), quotationUnit.getData(field).doubleValue());
 		}
 		return fullRefSQuotationsMap;
 	}

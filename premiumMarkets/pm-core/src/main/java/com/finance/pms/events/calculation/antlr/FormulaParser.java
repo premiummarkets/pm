@@ -197,7 +197,10 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 				return constructor.newInstance(operands, outputSelector);
 
 			} catch (Exception e) {
-				LOGGER.debug(e.toString() + ", cause " + ((e.getCause() != null)?e.getCause().toString():"unknown")+". child obj : "+child +"; root obj "+child.getAncestor(0)+ "; operands : "+operands+". Can't Instantiate : "+opPackage);
+				LOGGER.warn(
+						e.toString() + ","
+						+ " cause: " + ((e.getCause() != null)?e.getCause().toString():"unknown") + ". "
+						+ "child obj : " + child + "; root obj " + child.getAncestor(0) + "; operands : " + operands + ". Can't Instantiate : " + opPackage);
 			}
 
 		}

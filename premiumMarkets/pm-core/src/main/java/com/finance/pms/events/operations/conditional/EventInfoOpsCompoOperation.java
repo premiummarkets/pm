@@ -78,7 +78,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	private static MyLogger LOGGER = MyLogger.getLogger(EventInfoOpsCompoOperation.class);
 
 	@XmlTransient
-	private EventDefDescriptorDynamic eventDefDescriptor;
+	private EventDefDescriptorDynamic eventDefDescriptor; //It is assumed that unlike 'normal' operations, this class is NOT a singleton.
 
 	public EventInfoOpsCompoOperation() {
 		this("operationscompositionner", "operationscompositionner");

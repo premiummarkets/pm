@@ -10,7 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.MainPMScmd;
@@ -20,6 +22,16 @@ public class SeriesPrinter {
 	
 
 	public static UUID appRunStamp = UUID.randomUUID();
+	
+	
+	public static String printoS(String fileName, LinkedHashMap<String, SortedMap<Date, Double>> series, String... forcedBaseFileName) {
+		LinkedHashMap<String, SortedMap<Date, double[]>> collect2 = series.entrySet().stream()
+		.collect(Collectors.toMap(e -> e.getKey(), e -> {
+			return e.getValue().entrySet().stream()
+					.collect(Collectors.toMap(es -> es.getKey(), es -> new double[] { es.getValue() }, (a, b) -> a, TreeMap::new));
+			}, (a, b) -> a, LinkedHashMap::new));
+		return printo(fileName, collect2, forcedBaseFileName);
+	}
 
     public static String printo(String fileName, LinkedHashMap<String, SortedMap<Date, double[]>> series, String... forcedBaseFileName) {
         return printo(fileName, "tmp", series, forcedBaseFileName);

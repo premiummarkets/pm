@@ -76,8 +76,9 @@ public class LastUpdateStampChecker {
 			//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
 			Date now = DateFactory.getNowEndDateCalendar().getTime(); //Today midnight date. This can also be random date in the past.
 			Calendar lastMarketCloseAtNow = lastMarketCloseTime(now); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM
-			LOGGER.info("Last close day recorded: " + stampRecords.getLastMarketCloseRecorded() + " and Latest actual close day 6PM (US) at Now: " + lastMarketCloseAtNow);
-			if ( stampRecords.getLastMarketCloseRecorded().compareTo(lastMarketCloseAtNow.getTime()) >= 0 ) { //Last close day recorded >= Latest actual close day 6PM at Now
+			Date lastMrktCloseAtNowDate = lastMarketCloseAtNow.getTime();
+			LOGGER.info("Last close day recorded: " + stampRecords.getLastMarketCloseRecorded() + " and Latest actual close day 6PM (US) at Now: " + lastMrktCloseAtNowDate);
+			if ( stampRecords.getLastMarketCloseRecorded().compareTo(lastMrktCloseAtNowDate) >= 0 ) { //Last close day recorded >= Latest actual close day 6PM at Now
 				//Basically: There is NO new close date to worry about.
 				if (lastUpDateStampRecordForAsset.getNbAttempts() < MAXATTEMPTS) { //How many times did we check
 					//We checked less then MAXATTEMPTS so we can check again.
@@ -92,7 +93,7 @@ public class LastUpdateStampChecker {
 					return false;
 				}
 			} else {//Last close day recorded < Previous close day 6PM. There is a new close date after our last attempt => update without further ado.
-				stampRecords.setLastMarketCloseRecorded(lastMarketCloseAtNow.getTime());
+				stampRecords.setLastMarketCloseRecorded(lastMrktCloseAtNowDate);
 				lastUpDateStampRecordForAsset.setNbAttempts(0);
 				lastUpDateStampRecordForAsset.setLastAttemptDate(now);
 				return true;

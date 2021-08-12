@@ -84,7 +84,8 @@ public class CurrencyStockBuilder {
 			currencyStock = new Stock(
 					isinSymbol, isinSymbol, name, 
 					true, StockCategories.CURRENCY_RATE,
-					new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), new MarketValuation(Market.UNKNOWN, BigDecimal.ONE, target), "", TradingMode.CONTINUOUS, 0l
+					new SymbolMarketQuotationProvider(MarketQuotationProviders.CURRENCY, SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
+					new MarketValuation(Market.UNKNOWN, BigDecimal.ONE, target), "", TradingMode.CONTINUOUS, 0l
 				);
 		}
 		return currencyStock;

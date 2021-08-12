@@ -78,7 +78,7 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 			float factor = Double.valueOf(Math.abs(rating.getFlog())).floatValue();
 			return super.finalWeight(symbolEvents)*factor;
 		} else {
-			LOGGER.warn("Calculation rating marked as " + rating.getRatingValidityScore() + " for " + symbolEvents.getStock() + " / " + symbolEvents );
+			LOGGER.warn("Calculation rating marked as " + rating.getRatingValidityScore() + " for " + symbolEvents.getStock() + " / " + symbolEvents + ". Rating " + rating);
 			return 0.0f;
 		}
 

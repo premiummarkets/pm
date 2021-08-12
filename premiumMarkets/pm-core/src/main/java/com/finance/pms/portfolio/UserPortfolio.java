@@ -79,7 +79,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Override
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, String... eventListName) {
+	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
 		return getUserPortfolioDelegate().calculate(listEvents, currentDate, buyStrategy, buyPonderationRule, sellPonderationRule);
 	}
 

@@ -210,6 +210,69 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="randomOperation">
+            <reference>gx_random</reference>
+            <description>Random bullish/bearish.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>min</referenceAsOperand>
+                    <description>Min period length</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>max</referenceAsOperand>
+                    <description>Max Period length</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>138.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>mean</referenceAsOperand>
+                    <description>Mean of the Period lengths</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>8.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>median</referenceAsOperand>
+                    <description>Median of the Period lengths</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>3.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>std</referenceAsOperand>
+                    <description>Stdev of the Period lengths</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>15.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oneInputAssemblerOperation">
             <reference>oneInputAssembler</reference>
             <description>Assembles several inputs into one input array. No NaN permited.</description>

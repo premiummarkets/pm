@@ -32,11 +32,15 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.StringValue;
 
 public class NotBooleanMapCondition extends BooleanMapCondition {
 
 	private NotBooleanMapCondition() {
-		super("not", "Return the complementary of a boolean series.", new Condition<Boolean>("boolean historical data"));
+		super("not", "Return the complementary of a boolean series.", 
+				new StringOperation("boolean", "isLenient", "If false, the output keySet is an intersection of the input keySets, if true a union", new StringValue("FALSE")),
+				new Condition<Boolean>("boolean historical data"));
 	}
 
 	public NotBooleanMapCondition(ArrayList<Operation> operands, String outputSelector) {

@@ -148,10 +148,12 @@ public enum EventDefinition implements Serializable, EventInfo {
 	SCREENER (302,"Screener Alert", false, null), //Not discardable
 
 	//Indeps
-	WEATHER (401,"Temperature", false, new EventDefDescriptorStatic(null, null, null, null, null, null,"Bearish Temperature reversal", null, "Bullish Temperature reversal", null)),  //Not discardable
+	WEATHER (401,"Temperature", false, new EventDefDescriptorStatic(null, null, null, null, null, null,"Bearish Temperature reversal", null, "Bullish Temperature reversal", null)),//Not discardable
+	
+	RANDOM (402, "Random", false, null),
 
 	CRASHGUARD (502,"Crash", false, null),
-
+	
 	//Neural related
 	NEURALNEUROPH (503,"Neural", true, 
 			new  EventDefDescriptorStatic("Second Neural output", "First Neural output", "Row output", null, null, null,
