@@ -62,6 +62,7 @@ public class Quotations {
 
 	public static enum ValidityFilter {
 		NONE, ALL, SPLITFREE, OHLC, CLOSE, VOLUME, OHLCV; //NONE doesn't return anything. ALL returns everything? (not implemented)
+		
 		public QuotationDataType[] toQuotationDataType() {
 			switch (this) {
 			case VOLUME:
@@ -71,11 +72,23 @@ public class Quotations {
 			case OHLC:
 				return new QuotationDataType[] {QuotationDataType.OPEN, QuotationDataType.HIGH, QuotationDataType.LOW, QuotationDataType.CLOSE};
 			case OHLCV:
-				return QuotationDataType.values(); 
+				return QuotationDataType.values();
 			default:
 				throw new UnsupportedOperationException();
 			}
-		}; 
+		};
+		
+		public static boolean isValidClose(ArrayList<ValidityFilter> filters) {
+			return filters.contains(ValidityFilter.CLOSE) || filters.contains(ValidityFilter.OHLC) || filters.contains(ValidityFilter.OHLCV) || filters.contains(ValidityFilter.VOLUME);
+		}
+		
+		public static boolean isValidOhlc(ArrayList<ValidityFilter> filters) {
+			return filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV);
+		}
+
+		public static boolean isValidVolume(ArrayList<ValidityFilter> filters) {
+			return filters.contains(ValidityFilter.VOLUME) || filters.contains(ValidityFilter.OHLCV);
+		}
 	}
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
 	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
@@ -597,9 +610,9 @@ public class Quotations {
 		filters.add(cacheFilter);
 		filters.addAll(otherCacheFilters);
 
-		boolean validClose = filters.contains(ValidityFilter.CLOSE) || filters.contains(ValidityFilter.OHLC) || filters.contains(ValidityFilter.OHLCV) || filters.contains(ValidityFilter.VOLUME);
-		boolean validOhlc = filters.contains(ValidityFilter.OHLC) ||  filters.contains(ValidityFilter.OHLCV);
-		boolean validVolume = filters.contains(ValidityFilter.VOLUME) || filters.contains(ValidityFilter.OHLCV);
+		boolean validClose = ValidityFilter.isValidClose(filters);
+		boolean validOhlc = ValidityFilter.isValidOhlc(filters);
+		boolean validVolume = ValidityFilter.isValidVolume(filters);
 		boolean splitFree = filters.contains(ValidityFilter.SPLITFREE);
 
 		QuotationData allQs = quotationDataFilters.get(ValidityFilter.ALL.name());
@@ -616,11 +629,19 @@ public class Quotations {
 			if ( validOhlc && 
 					(
 							(qj.getHighSplit().compareTo(qj.getLowSplit()) == 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) == 0) //H==L==C i.e. no OHL
+							||
+							!(  //! (open <= high && close <= high && low <= open && low <= close)
+									qj.getHighSplit().compareTo(qj.getOpenSplit()) >= 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) >= 0
+									&& qj.getLowSplit().compareTo(qj.getOpenSplit()) <= 0 && qj.getLowSplit().compareTo(qj.getCloseSplit()) <= 0
+							) 
 							|| 
-							!( qj.getHighSplit().compareTo(qj.getOpenSplit()) >= 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) >= 0
-							&& qj.getLowSplit().compareTo(qj.getOpenSplit()) <= 0 && qj.getLowSplit().compareTo(qj.getCloseSplit()) <= 0) //! (open <= high && close <= high && low <= open && low <= close)
+							(  // Unrealistic variations ( > 20%)
+								( 0.8 > qj.getHighSplit().doubleValue()/qj.getOpenSplit().doubleValue() || qj.getHighSplit().doubleValue()/qj.getOpenSplit().doubleValue() > 1.2 ) ||
+								( 0.8 > qj.getLowSplit().doubleValue()/qj.getOpenSplit().doubleValue() || qj.getLowSplit().doubleValue()/qj.getOpenSplit().doubleValue() > 1.2 ) ||
+								( 0.8 > qj.getCloseSplit().doubleValue()/qj.getOpenSplit().doubleValue() || qj.getCloseSplit().doubleValue()/qj.getOpenSplit().doubleValue() > 1.2 )
 							)
-					) {
+					)
+				) {
 				continue;
 			}
 			if ( validVolume && qj.getVolumeSplit() == 0 ) {
