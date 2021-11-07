@@ -1,22 +1,46 @@
 package com.finance.pms.events.quotations;
 
 public class SplitData {
-	public SplitData(double span, double delta, double split) {
+	
+	private double span;
+	private double splitSpanAdjustment;
+	private long splitRate;
+	private double mergeSpanAdjustment;
+	private long mergeRate;
+	
+	public SplitData(double span, double spanAdjustmentDeltaUp, long splitRate, double adjustementDeltaDown, long mergeRate) {
 		super();
 		this.span = span;
-		this.delta = delta;
-		this.split = split;
+		this.splitSpanAdjustment = spanAdjustmentDeltaUp;
+		this.splitRate = splitRate;
+		this.mergeSpanAdjustment = adjustementDeltaDown;
+		this.mergeRate = mergeRate;
 	}
-	double span;
-	double delta;
-	double split;
 	public double getSpan() {
 		return span;
 	}
-	public double getDelta() {
-		return delta;
+	public double getSplitSpanAdjustment() {
+		return splitSpanAdjustment;
 	}
-	public double getSplit() {
-		return split;
+	public long getSplitRate() {
+		return splitRate;
 	}
+	public double getMergeSpanAdjustment() {
+		return mergeSpanAdjustment;
+	}
+	/**
+	 * Needs inversion before use.
+	 * @return
+	 */
+	public long getMergeRate() {
+		return mergeRate;
+	}
+	@Override
+	public String toString() {
+		return "SplitData [span=" + span +
+				", splitSpanAdjustment=" + splitSpanAdjustment + ", splitRate=" + splitRate +
+				", mergeSpanAdjustment=" + mergeSpanAdjustment + ", mergeRate=" + mergeRate + "]";
+	}
+	
+	
 }

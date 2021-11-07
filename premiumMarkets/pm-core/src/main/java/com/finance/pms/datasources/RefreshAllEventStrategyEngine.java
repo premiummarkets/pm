@@ -74,7 +74,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 	public void callbackForStockListFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException {
 
-		LOGGER.debug("Updating list of shares  : "+rootParam);
+		LOGGER.debug("Updating list of shares : "+rootParam);
 		for (Object shareList : rootParam) {
 			MarketListProvider provider = ProvidersList.getMarketListInstance(((ShareListInfo) shareList).info());
 			provider.addObservers(engineObservers);

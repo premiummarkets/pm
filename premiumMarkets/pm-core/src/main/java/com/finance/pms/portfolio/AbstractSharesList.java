@@ -83,7 +83,6 @@ public abstract class AbstractSharesList extends Observable {
 
 
 	protected AbstractSharesList() {
-		super();
 		this.listShares = new ConcurrentHashMap<Stock, PortfolioShare>();
 	}
 

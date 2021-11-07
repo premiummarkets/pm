@@ -59,13 +59,10 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	ParameterizedOperationBuilder parameterizedOperationBuilder;
 
 	public ParameterizedIndicatorsBuilder(ParsingQueueProvider parsingQueueProvider, ParameterizedOperationBuilder parameterizedOperationBuilder) {
-		this();
+		
 		this.parsingQueueProvider = parsingQueueProvider;
 		this.parameterizedOperationBuilder = parameterizedOperationBuilder;
-	}
 
-	public ParameterizedIndicatorsBuilder() {
-		super();
 		operationPackages = new String[] {"com.finance.pms.events.operations.conditional.", "com.finance.pms.events.operations.nativeops."};
 		antlrParser = new ANTLRIndicatorsParserHelper();
 
@@ -81,10 +78,6 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		NativeParametrizedIndicators nativeIndicatorsContainer = NativeParametrizedIndicators.loadNativeIndicators();
 		nativeOperations = nativeIndicatorsContainer.getCalculators();
 		getCurrentOperations().putAll(nativeOperations);
-	}
-	
-	public void setParsingQueueProvider(ParsingQueueProvider parsingQueueProvider) {
-		this.parsingQueueProvider = parsingQueueProvider;
 	}
 
 	//	@PostConstruct

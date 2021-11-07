@@ -292,10 +292,10 @@ public class Stock extends Validatable {
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 				lastDateStr = dateFormat.format(this.lastQuote);
 			}
-			str = getFriendlyName().replace(")", " / ") + lastDateStr +" / "+currency + ")";
+			str = getFriendlyName().replace(")", " / ") + lastDateStr + " / " + currency + ")";
 
 		} catch (RuntimeException e) {
-			LOGGER.error("Can't print stock : "+this.symbol+";"+this.isin+";"+this.name+";"+lastQuote, e);
+			LOGGER.error("Can't print stock : " + this.symbol + ";" + this.isin + ";" + this.name + ";" + lastQuote, e);
 		}
 
 		return str;

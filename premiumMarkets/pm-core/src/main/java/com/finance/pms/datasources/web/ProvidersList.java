@@ -256,8 +256,8 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 		if (marketQuotationsProviders == null) marketQuotationsProviders = defaultMarketQuotationProviders();
 
-		String shareListDescrTxt = this.getSharesListIdEnum()+" with indices "+this.getIndices();
-		LOGGER.warn("From Web - "+this.getClass().getSimpleName()+" ( "+shareListDescrTxt+") : ", true);
+		String shareListDescrTxt = this.getSharesListIdEnum() + " with indices " + this.getIndices();
+		LOGGER.warn("From Web - " + this.getClass().getSimpleName() + " ( " + shareListDescrTxt + ") : ", true);
 
 		//Share list
 		SharesList thisSharesList = loadSharesListForThisListProvider();

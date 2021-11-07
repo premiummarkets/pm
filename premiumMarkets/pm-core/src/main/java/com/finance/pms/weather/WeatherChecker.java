@@ -312,7 +312,7 @@ public class WeatherChecker extends IndicatorsOperator {
 
 	@Override
 	public ValidityFilter quotationsValidity() {
-		return ValidityFilter.NONE;
+		return ValidityFilter.NONEVALID;
 	}
 
 }

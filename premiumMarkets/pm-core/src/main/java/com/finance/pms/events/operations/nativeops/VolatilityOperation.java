@@ -116,7 +116,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 			return new MultiSelectorsValue(selectorOutputs, getOutputSelector());
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " calculating " + getReference() + " : " + e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " calculating " + getReference() + ": " + e, e);
 		}
 
 		return new MultiSelectorsValue(getAvailableOutputSelectors(), getOutputSelector());

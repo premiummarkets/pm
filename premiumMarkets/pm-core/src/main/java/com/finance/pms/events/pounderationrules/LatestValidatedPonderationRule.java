@@ -29,7 +29,7 @@
  */
 package com.finance.pms.events.pounderationrules;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -42,9 +42,9 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 	private static final long serialVersionUID = 573802685420097964L;
 	private static MyLogger LOGGER = MyLogger.getLogger(LatestValidatedPonderationRule.class);
 
-	private HashMap<Stock, FinalRating> calculationsRatings;
+	private Map<Stock, FinalRating> calculationsRatings;
 
-	public LatestValidatedPonderationRule(Integer sellThreshold, Integer buyThreshold, HashMap<Stock, FinalRating> calculationsRatings) {
+	public LatestValidatedPonderationRule(Integer sellThreshold, Integer buyThreshold, Map<Stock, FinalRating> calculationsRatings) {
 		super(sellThreshold, buyThreshold);
 		this.calculationsRatings = calculationsRatings;
 	}
@@ -74,7 +74,8 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 
 		if (isValid) {
 			//It is assumed that events are prioritised by weight: see compare/compareCal.
-			//We also assume flog < 0 to be valid with the bigger abs(flog) the better. 
+			//We also assume flog < 0 to be valid with the bigger abs(flog) the better.
+			if (rating.getFlog() > 0) throw new RuntimeException("A positive flog can't be valid in " + rating);
 			float factor = Double.valueOf(Math.abs(rating.getFlog())).floatValue();
 			return super.finalWeight(symbolEvents)*factor;
 		} else {

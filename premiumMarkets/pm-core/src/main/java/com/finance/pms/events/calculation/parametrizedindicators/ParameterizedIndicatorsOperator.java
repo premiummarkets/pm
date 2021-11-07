@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Observer;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -58,6 +59,7 @@ import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 /**
@@ -90,7 +92,8 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
 		adjustedStartCal.add(Calendar.DAY_OF_YEAR, -operationStartDateShift);
-		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+ ". Requested start: "+startDate+", adjusted start: "+adjustedStartCal.getTime()+" with shift: "+operationStartDateShift);
+		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference() + "."
+				+ " Requested start: " + startDate + ", adjusted start: " + adjustedStartCal.getTime() + " with shift: " + operationStartDateShift);
 
 		//Adjust end
 		Date lastQuote = stock.getLastQuote();
@@ -100,7 +103,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		} else {
 			adjustedEndDate = endDate;
 		}
-		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference()+ ". Requested end: "+endDate+", adjusted end: "+adjustedEndDate+ ", last quote: " +lastQuote);
+		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference() + ". Requested end: " + endDate + ", adjusted end: " + adjustedEndDate + ", last quote: " + lastQuote);
 
 		//Target stock instance
 		this.targetStock = new TargetStockInfo(analyseName, this.eventInfoOpsCompoOperationHolder, stock, adjustedStartCal.getTime(), adjustedEndDate);
@@ -134,7 +137,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 				previousKey = currentKey;
 			}
-			if (!toRemove.isEmpty()) throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef()+"' : "+toRemove);
+			if (!toRemove.isEmpty()) throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "' : " + toRemove);
 
 			eData.putAll(returnedEvents);
 
@@ -248,7 +251,8 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 	@Override
 	public ValidityFilter quotationsValidity() {
-		return ValidityFilter.CLOSE;
+		Set<QuotationDataType> requieredStockData = this.eventInfoOpsCompoOperationHolder.getRequieredStockData();
+		return ValidityFilter.getFilterFor(requieredStockData);
 	}
 
 	@Override

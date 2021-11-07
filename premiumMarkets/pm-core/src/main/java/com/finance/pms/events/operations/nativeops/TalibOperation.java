@@ -122,6 +122,4 @@ public abstract class TalibOperation extends DoubleMapOperation {
 		.toArray();
 	}
 
-
-
 }

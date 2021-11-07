@@ -47,6 +47,7 @@ public class CsvFileFilterOperation extends Operation {
 			int prevLength = 0;
 
 			while ((line = bufferedReader.readLine()) != null) {
+				if (line.isEmpty() || line.startsWith("#")) continue;
 				String[] rowSplit = line.split(",");
 				
 				// file check
@@ -78,6 +79,7 @@ public class CsvFileFilterOperation extends Operation {
 		String result = "None";
 		if (!matchingLines.isEmpty()) {
 			result = matchingLines.get(matchingLines.size()-1);
+			LOGGER.info("Taking: " + result);
 		}
 		return new StringValue(result);
 

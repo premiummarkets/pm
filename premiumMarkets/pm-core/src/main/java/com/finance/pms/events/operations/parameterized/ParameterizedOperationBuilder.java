@@ -80,7 +80,7 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 		//Xml operations based on NativesXmlManager impl
 		NativeOperations nativeOperationsContainer = nativesXmlManager.loadNativeOperations();
 		nativeOperations = nativeOperationsContainer.getOperations();
-		currentOperations.putAll(nativeOperations);
+		parsingQueueProvider.getCurrentOperations().putAll(nativeOperations);
 
 		//Talib based operations (DoubleMapOperation)
 		talibOperationGenerator.initSynoData();
@@ -97,10 +97,6 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 
 	public void setNativesXmlManager(NativesXmlManager nativesXmlManager) {
 		this.nativesXmlManager = nativesXmlManager;
-	}
-	
-	public void setParsingQueueProvider(ParsingQueueProvider parsingQueueProvider) {
-		this.parsingQueueProvider = parsingQueueProvider;
 	}
 
 	@Override

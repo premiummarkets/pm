@@ -105,7 +105,7 @@ public class LastUpdateStampChecker {
 	}
 
 	//Now will always be after the last market close time
-	private Calendar lastMarketCloseTime(Date now) {
+	Calendar lastMarketCloseTime(Date now) {
 		
 		Calendar calendar = Calendar.getInstance(Locale.US); //XXX This is for Yahoo
 		calendar.setTime(now);

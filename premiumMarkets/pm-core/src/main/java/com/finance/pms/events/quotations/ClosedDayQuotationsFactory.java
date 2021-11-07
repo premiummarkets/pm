@@ -38,6 +38,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -46,6 +47,8 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(ClosedDayQuotationsFactory.class);
 
 	@Override
 	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
@@ -62,7 +65,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
 
-	public  Calendar incrementDate(Calendar calendar, int amount) {
+	public Calendar incrementDate(Calendar calendar, int amount) {
 		calendar.add(Calendar.DAY_OF_YEAR, noGapsAmount(amount));
 		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;

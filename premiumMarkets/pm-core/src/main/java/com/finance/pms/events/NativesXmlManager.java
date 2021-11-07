@@ -59,6 +59,7 @@ import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.Product;
 import com.finance.pms.events.operations.nativeops.RecursiveOperation;
+import com.finance.pms.events.operations.nativeops.RefiterOperation;
 import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
@@ -147,6 +148,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(csvFileFilterOperation);
 		IndicatorStatsOperation indicatorStatsOperation = new IndicatorStatsOperation();
 		nativeOperations.addOperation(indicatorStatsOperation);
+		RefiterOperation refiterOperation = new RefiterOperation();
+		nativeOperations.addOperation(refiterOperation);
 
 		//Other
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();

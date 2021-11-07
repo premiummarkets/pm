@@ -96,6 +96,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
 import com.finance.pms.datasources.RefreshFourToutStrategyEngine;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.antlr.ANTLROperationsParserHelper;
 import com.finance.pms.events.calculation.antlr.ANTLRParserHelper;
 import com.finance.pms.events.calculation.antlr.Alternative;
@@ -701,13 +702,13 @@ public class OperationBuilderComposite extends Composite {
 
 		if (!isSaved) {
 
-			LOGGER.info("Handling saving of "+id+". Is saved :"+isSaved);
+			LOGGER.info("Handling saving of " + id + ". Is saved :" + isSaved);
 
 			if (isValidId(id)) {
 				saveOrUpdateFormula(id, true);
 			}
 
-			LOGGER.info(id+" is saved ? : "+isSaved);
+			LOGGER.info(id + " is saved ? : " + isSaved);
 
 		}
 	}
@@ -908,43 +909,53 @@ public class OperationBuilderComposite extends Composite {
 
 	private void saveOrUpdateFormula(final String identifier, Boolean checkOverWrite) {
 
-		LOGGER.info("Save or update of "+identifier+". Is saved :"+isSaved);
+		LOGGER.info("Save or update of " + identifier + ". Is saved :"+isSaved);
 
 		final String formula = formatedEditorTxt();
 		if (formula == null || formula.isEmpty()) {//Is valid?
 			openDialog(false, "Please fill in a valid formula", null);
 			isSaved=false;
-			LOGGER.info("Is invalid "+identifier+". Is saved :"+isSaved);
+			LOGGER.info("Invalid formulae for " + identifier + ". Is saved :" + isSaved);
 		} else if (!hasChanged(identifier)) {//Has not Changed?
 			isSaved=true;
-			LOGGER.info("Has not changed "+identifier+". Is saved :"+isSaved);
-		} else {//Is valid and has changed
+			LOGGER.info("Has not changed " + identifier + ". Is saved :" + isSaved);
+		} else { //Is valid and has changed
 			Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
 			if (existingOp != null && checkOverWrite) {//Already exist?
-				LOGGER.info("Already exist, updating "+identifier+". Is saved :"+isSaved);
+				LOGGER.info("Already exist, updating " + identifier + ". Is saved :" + isSaved);
 				if (existingOp.getDisabled()) {//Is disabled?
 					LOGGER.info("Is disabled "+identifier+". Is saved :"+isSaved);
 					isSaved=true;
 				} else {
 
-					LOGGER.info("Launching confirmation dialog "+identifier+". Is saved :"+isSaved);
+					LOGGER.info("Launching confirmation dialog " + identifier + ". Is saved :" + isSaved);
 					updateComboAndSelect(identifier, true); //This is an update so this should have no impact?
 					ActionDialogAction action = new ActionDialogAction() {
 						@Override
 						public void action() {
-							LOGGER.info("Saving warning dialog running "+identifier+". Is saved :"+isSaved);
+							LOGGER.info("Saving warning dialog running " + identifier + ". Is saved :" + isSaved);
 							doSaveFormula(identifier, formula);
-							LOGGER.info("Updated and saved "+identifier+". Is saved :"+isSaved);
+							LOGGER.info("Updated and saved " + identifier + ". Is saved :" + isSaved);
 						}
 					};
-					openActionDialog(true, "Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, save.", action, false);
+					Boolean isExistingOpAnIndicator = existingOp instanceof EventInfo;
+					Boolean isThisFormulaAnIndicator = this instanceof IndicatorBuilderComposite;
+					if (isExistingOpAnIndicator == isThisFormulaAnIndicator) {
+						openActionDialog(true, 
+								"Updating formula", "Do you want to update " + existingOp.getReference() + "?", 
+								null, "OK, update.", action, false);
+					} else {
+						openDialog(true, existingOp.getReference() + " operation name alreday used.\nPlease change.", null);
+						isSaved=false;
+					}
+					
 				}
 
 			} else {
-				LOGGER.info("Is new "+identifier+". Is saved :" + isSaved);
+				LOGGER.info("Is new " + identifier + ". Is saved :" + isSaved);
 				doSaveFormula(identifier, formula);
 				updateComboAndSelect(identifier, true);
-				LOGGER.info("New saved "+identifier+". Is saved :" + isSaved);
+				LOGGER.info("New saved " + identifier + ". Is saved :" + isSaved);
 			}
 		}
 
@@ -952,7 +963,7 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void doSaveFormula(final String identifier, String formula) {
 
-		LOGGER.info("Actually persistence of "+identifier+". Is saved :" + isSaved);
+		LOGGER.info("Actually persistence of " + identifier + ". Is saved :" + isSaved);
 
 		// Save formula
 		try {
@@ -969,24 +980,24 @@ public class OperationBuilderComposite extends Composite {
 			}
 
 		} catch (IOException e) {
-			LOGGER.info("An error occurred " + identifier + ". Is saved :"+isSaved);
+			LOGGER.info("An error occurred " + identifier + ". Is saved :" + isSaved);
 			openDialog(false, "Formula can't be saved.\n Please fill in a valid formula", e);
 			isSaved=false;
 
 		} catch (Exception e) {
-			LOGGER.info("An error occurred " + identifier + ". Is saved :"+isSaved);
+			LOGGER.info("An error occurred " + identifier + ". Is saved :" + isSaved);
 			openDialog(true, "Found invalid formulas while storing data.", e);
 			isSaved=false;
 		}
 
-		LOGGER.info("Refresh for : "+identifier+", if is saved :"+isSaved);
+		LOGGER.info("Refresh for : " + identifier + ", if is saved :" + isSaved);
 		if (isSaved) {
 			if (createDefaultIndicatorOnSave) {
 				parameterizedBuilder.notifyChanged(parameterizedBuilder.getCurrentOperations().get(identifier), ObsMsgType.CREATE_INDICTOR);
 			}
 			previousCalcsAsDirty(identifier);
 			refreshViews();
-			LOGGER.info("Refresh done/running : "+identifier+". Is saved :"+isSaved);
+			LOGGER.info("Refresh done/running : " + identifier + ". Is saved :" + isSaved);
 		}
 
 	}

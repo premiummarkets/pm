@@ -695,8 +695,8 @@ public class ChartMain extends Chart {
 			Number[] relativeCloses = stripedCloseFunction.targetShareData(portfolioShare, bdQuotes, startIdx, endIdx);
 			List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(startIdx.value, endIdx.value);
 
-			for (int i = 0; i <= Math.min(relativeCloses.length-1, endIdx.value); i++) {
-				QuotationUnit trade = quotationUnits.get( i + startIdx.value);
+			for (int i = 0; i <= Math.min(relativeCloses.length-1, endIdx.value-startIdx.value); i++) {
+				QuotationUnit trade = quotationUnits.get(i);
 				RegularTimePeriod period = new Day(trade.getDate());
 				Number value = relativeCloses[i].doubleValue();
 				timeSeries.add(new TimeSeriesDataItem(period, value));

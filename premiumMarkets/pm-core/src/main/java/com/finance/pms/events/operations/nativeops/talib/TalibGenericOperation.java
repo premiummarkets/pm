@@ -72,7 +72,7 @@ public class TalibGenericOperation extends TalibOperation {
 		ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
 		for (String inConstantName : inConstantsNames) {
 			if (inConstantName.contains("MAType")) {
-				MATypeOperation maType = new MATypeOperation("moving average type", inConstantName, inConstantName + ". One of "+EnumSet.allOf(MAType.class), null);
+				MATypeOperation maType = new MATypeOperation("moving average type", inConstantName, inConstantName + ". One of " + EnumSet.allOf(MAType.class), null);
 				overridingOperands.add(maType);
 			} else {
 				NumberOperation constant = new NumberOperation("number", inConstantName, inConstantName, null);

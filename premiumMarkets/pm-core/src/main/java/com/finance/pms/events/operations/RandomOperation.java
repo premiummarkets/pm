@@ -83,23 +83,22 @@ public class RandomOperation extends EventMapOperation {
 		double gr = 10;
 		//DoubleStream randomDoubles = new SecureRandom().doubles(Math.log10(min)/Math.log10(gr), Math.log10(max)/Math.log10(gr));
 		DoubleStream randomDoubles = new SecureRandom().doubles(0, 1);
-		edata.putAll(
-			randomDoubles
-				.mapToObj(random -> {
-					//x = log(1-u)/(-lambda)
-					//int duration = (int) Math.pow(gr, random);
-					int duration = (int) (Math.log(1-random)/(-1d/0.5d));
-					
-					LOGGER.info("duration: " + duration + ". From ln: " + random);
-					calendar.add(Calendar.DAY_OF_YEAR, duration);
-					Date eventDate = calendar.getTime();
-					calendar.setTime(eventDate);
-					eventTypeHolder[0] = (eventTypeHolder[0].equals(EventType.BULLISH)) ? EventType.BEARISH : EventType.BULLISH;
-					return new ParameterizedEventKey(eventDate, EventDefinition.RANDOM, eventTypeHolder[0]);
-				})
-				.takeWhile(ek -> ek.getDate().compareTo(endDate) <= 0)
-				.collect(Collectors
-						.toMap(ek -> ek, ek -> new EventValue(ek.getDate(), ek.getEventInfo(), ek.getEventType(), targetStock.getAnalysisName()), (a, b) -> a, TreeMap<EventKey, EventValue>::new)));
+		TreeMap<EventKey, EventValue> randomEvents = randomDoubles
+			.mapToObj(random -> {
+				//x = log(1-u)/(-lambda)
+				//int duration = (int) Math.pow(gr, random);
+				int duration = (int) (Math.log(1-random)/(-1d/0.5d));
+				
+				LOGGER.info("duration: " + duration + ". From ln: " + random);
+				calendar.add(Calendar.DAY_OF_YEAR, duration);
+				Date eventDate = calendar.getTime();
+				calendar.setTime(eventDate);
+				eventTypeHolder[0] = (eventTypeHolder[0].equals(EventType.BULLISH)) ? EventType.BEARISH : EventType.BULLISH;
+				return new ParameterizedEventKey(eventDate, EventDefinition.RANDOM, eventTypeHolder[0]);
+			})
+			.takeWhile(ek -> ek.getDate().compareTo(endDate) <= 0)
+			.collect(Collectors.toMap(ek -> ek, ek -> new EventValue(ek.getDate(), ek.getEventInfo(), ek.getEventType(), targetStock.getAnalysisName()), (a, b) -> a, TreeMap<EventKey, EventValue>::new));
+		edata.putAll(randomEvents);
 
 		log(edata.keySet(), endDate);
 		

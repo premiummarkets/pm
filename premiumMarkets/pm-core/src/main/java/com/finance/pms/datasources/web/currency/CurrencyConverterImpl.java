@@ -85,7 +85,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		this.currencyDBAccessSemaphore = new Semaphore(1);
 	}
 
-	private void fetchHistoricalRatesAvailable(Currency fromCurrency, Currency toCurrency) {
+	private void fetchHistoricalRatesAvailable(Currency fromCurrency, Currency toCurrency, boolean updateGranted) {
 
 		try {
 			currencyDBAccessSemaphore.acquire();
@@ -96,15 +96,10 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			Date today = DateFactory.midnithDate(new Date());
 
 			Date lastCurrencyRateDate = fetchStart(dbRates);
+			
 			if (dbRates.isEmpty() || lastCurrencyRateDate.before(today)) {
 
 				Stock currencyStock = new CurrencyStockBuilder(fromCurrency, toCurrency).buildStock();
-				LastUpdateStampChecker lastUpdateChecker  = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
-				
-				Boolean updateGranted = false;
-				synchronized (lastUpdateChecker) {
-					updateGranted = lastUpdateChecker.isUpdateGranted(fromCurrency.toString()+"to"+toCurrency.toString());
-				}
 
 				if (updateGranted) {//Additional Grant check necessary as the update of exchange rate can come also from calls to convert as well as update quotations
 					LOGGER.info("Currency update granted for "+currencyStock+ " between "+lastCurrencyRateDate+" and "+today);
@@ -125,7 +120,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 					}
 
 				} else {
-					LOGGER.debug("Currency update NOT granted for "+currencyStock+ " and "+today);
+					LOGGER.debug("Currency update NOT granted for " + currencyStock + " and "+today);
 				}
 
 			}
@@ -217,8 +212,15 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	private BigDecimal fetchRateForDate(Currency fromCurrency, Currency toCurrency, Date date) {
 
-		if (isCacheEmptyFor(fromCurrency, toCurrency) || isCacheOutOfDate(fromCurrency, toCurrency, date) ) {		
-			fetchHistoricalRatesAvailable(fromCurrency, toCurrency);
+		if (isCacheEmptyFor(fromCurrency, toCurrency) || isCacheOutOfDate(fromCurrency, toCurrency, date) ) {
+			
+			LastUpdateStampChecker lastUpdateChecker = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
+			Boolean isUpdateGranted = false;
+			synchronized (lastUpdateChecker) {
+				isUpdateGranted = lastUpdateChecker.isUpdateGranted(fromCurrency.toString() +" to " + toCurrency.toString());
+			}
+			
+			fetchHistoricalRatesAvailable(fromCurrency, toCurrency, isUpdateGranted);
 		}
 
 		BigDecimal exchangeRate;
@@ -234,8 +236,16 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	public List<CurrencyRate> fetchRateHistoryUpTo(Currency fromCurrency, Currency toCurrency, Date date) {
 
-		if (isCacheEmptyFor(fromCurrency, toCurrency) || isCacheOutOfDate(fromCurrency, toCurrency, date) ) {		
-			fetchHistoricalRatesAvailable(fromCurrency, toCurrency);
+		if (isCacheEmptyFor(fromCurrency, toCurrency) || isCacheOutOfDate(fromCurrency, toCurrency, date) ) {
+			
+			LastUpdateStampChecker lastUpdateChecker = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
+			Boolean isUpdateGranted = false;
+			synchronized (lastUpdateChecker) {
+				isUpdateGranted = lastUpdateChecker.isUpdateGranted(fromCurrency.toString() +" to " + toCurrency.toString());
+			}
+			
+			fetchHistoricalRatesAvailable(fromCurrency, toCurrency, isUpdateGranted);
+			
 		}
 
 		try {

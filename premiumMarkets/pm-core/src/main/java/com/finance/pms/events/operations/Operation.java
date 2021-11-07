@@ -30,11 +30,14 @@
 package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -53,9 +56,11 @@ import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
+import com.finance.pms.events.quotations.QuotationDataType;
 
 /**
  * !!Operations must be state less across calculations as reused!! 
@@ -599,6 +604,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						o.invalidateAllNonIdempotentOperands(analysisName, stock);
 					}
 				});
+	}
+	
+	public Set<QuotationDataType> getRequieredStockData() {
+		Set<QuotationDataType> quotationDataTypes = new HashSet<>();
+		if (this instanceof StockOperation) {
+			quotationDataTypes.add(QuotationDataType.valueOf(this.getOutputSelector().toUpperCase()));
+		}
+		if (!operands.isEmpty()) {
+			quotationDataTypes.addAll(operands.stream().flatMap(o -> o.getRequieredStockData().stream()).collect(Collectors.toList()));
+		}
+		return quotationDataTypes;
 	}
 
 }

@@ -132,6 +132,7 @@ public class QuotationFixer {
 	 * @param deltaUnit ex : 0.5 (i.e. 50%)
 	 * @return
 	 */
+	@Deprecated //FIXME This should use the SplitData.mergeRate() value
 	public List<Optional<List<QuotationUnit>>> checkCounterSplit(List<Stock> loadShares, double deltaUnit) {
 
 		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
@@ -145,20 +146,14 @@ public class QuotationFixer {
 						.mapToObj(i -> {
 							QuotationUnit qIm1 = quotations.get(i-1);
 							QuotationUnit qI = quotations.get(i);
-//							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
-//							double dI = qI.getCloseRaw().doubleValue();
-//							double dIm1 = qIm1.getCloseRaw().doubleValue();
-//							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
-//							double adjustedDIm1 = dIm1 + dIm1*delta;
-//							double counterSplit = dI/adjustedDIm1;
 							SplitData counterSplitData = Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
-							double counterSplit = counterSplitData.getSplit();
+							long counterSplit = counterSplitData.getSplitRate();
 
 							List<QuotationUnit> adjacents = new ArrayList<>();
-							if ( counterSplit > 1 ) {
+							if ( counterSplit > 2 ) {
 								int iPrim = i;
 								//We check adjacent forward until condition is false
-								while(iPrim < quotations.size() && (counterSplit > 1)) {
+								while(iPrim < quotations.size() && (counterSplit > 2)) {
 									//FIXME counterSplit = quotations.get(iPrim).getCloseRaw().doubleValue()/adjustedDIm1;
 									adjacents.add(quotations.get(iPrim));
 									iPrim++;
@@ -200,6 +195,7 @@ public class QuotationFixer {
 		return collected;
 	}
 
+	@Deprecated //FIXME This should use the SplitData.mergeRate() value
 	public List<Optional<List<QuotationUnit>>> checkCounterSplitFailFast(List<Stock> loadShares, double deltaUnit) {
 
 		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
@@ -213,16 +209,10 @@ public class QuotationFixer {
 						.mapToObj(i -> {
 							QuotationUnit qIm1 = quotations.get(i-1);
 							QuotationUnit qI = quotations.get(i);
-//							double span = Math.min(5, QuotationsFactories.getFactory().nbOpenIncrementBetween(qIm1.getDate(), qI.getDate()));
-//							double delta = span*Math.pow(1.5, 1d-span)*deltaUnit;
-//							double dI = qI.getCloseRaw().doubleValue();
-//							double dIm1 = qIm1.getCloseRaw().doubleValue();
-//							double adjustedDIm1 = dIm1 + dIm1*delta;
-//							double counterSplit = dI/adjustedDIm1;
 							SplitData counterSplitData = Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
-							double counterSplit = counterSplitData.getSplit();
+							long counterSplit = counterSplitData.getSplitRate();
 							List<QuotationUnit> adjacents = new ArrayList<>();
-							if ( counterSplit > 1 ) {
+							if ( counterSplit > 2 ) {
 								adjacents.add(qI);
 							}
 							return adjacents;

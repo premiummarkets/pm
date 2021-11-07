@@ -19,9 +19,9 @@ public class PreAndSignalCondition extends Condition<Boolean> {
 	protected static MyLogger LOGGER = MyLogger.getLogger(PreAndSignalCondition.class);
 
 	private PreAndSignalCondition() {
-		super("with", "Is true when the first series is true and the following 'with' series conditions have been fulfilled.");
-//				new Condition<Boolean>("Signal condition"),
-//				new Condition<Boolean>("Preconditions. Boolean data Series"));
+		super("with", "Is true when the boolean series becomes true as the boolean series in the 'with' conjonction have been fulfilled.");
+//				new Condition<Boolean>("Signal condition. One boolean data Series"),
+//				new Condition<Boolean>("Preconditions. Multiple boolean data Series"));
 //		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true); //FIXME not supported
 	}
 

@@ -210,6 +210,30 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="refiterOperation">
+            <reference>refit</reference>
+            <description>Refits the end of an operation output (prediction) to an other operation output (desired).</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>refitee</reference>
+                    <referenceAsOperand>refitee</referenceAsOperand>
+                    <description>Output to be refited</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>refiter</reference>
+                    <referenceAsOperand>refiter</referenceAsOperand>
+                    <description>Output to refit to</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="randomOperation">
             <reference>gx_random</reference>
             <description>Random bullish/bearish.</description>

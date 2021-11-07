@@ -189,13 +189,17 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		return getVolumeRaw();
 	}
 
+	/**
+	 * Valid for split and merge
+	 * @return
+	 */
 	@Transient
 	public BigDecimal getSplit() {
 		return split;
 	}
 
 	public void setSplit(BigDecimal split) {
-		this.split = split.setScale(10);
+		this.split = split;
 	}
 
 	@Override

@@ -921,7 +921,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 
 			for (int i=0; i< existingShareLists.getColumns().length; i++) {
 				existingShareLists.getColumn(i).pack();
-			}	
+			}
 			existingShareLists.setSelection(newItem);
 			handleExistingListSelection();
 		}
@@ -965,7 +965,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 							"The stock quotations could not be found using your settings. It may be that the information typed in is not valid.\n"+
 									"You may want to review the 'Insert Manually' form information and try again.\n" +
 									"If you know this stock is listed with one of the available provider try and use the exact same SYMBOL and ISIN as the one used be the provider.\n"+
-									"Note that the stock informations will nevertheless be inserted but will lake quotations data.", null);
+									"Note that the stock informations will nevertheless be inserted but will lack quotation data.", null);
 					inst.open();
 				} else {
 					throw e;

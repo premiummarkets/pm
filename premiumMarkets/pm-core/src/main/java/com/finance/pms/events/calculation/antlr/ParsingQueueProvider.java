@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 public class ParsingQueueProvider {
@@ -19,8 +21,12 @@ public class ParsingQueueProvider {
 	
 	private Queue<FormulaParser> parsingQueue;
 	
+	//User defined formula.txt ops 
+	private ConcurrentHashMap<String, Operation> currentOperations;
+	
 	public ParsingQueueProvider() {
 		parsingQueue = new ConcurrentLinkedQueue<FormulaParser>();
+		currentOperations = new ConcurrentHashMap<>();
 	}
 
 
@@ -59,6 +65,11 @@ public class ParsingQueueProvider {
 			fillParsingQueue(parameterizedIndicatorsBuilder, parameterizedIndicatorsBuilder.disabledUserOperationsDir, true);
 		}
 		return parsingQueue;
+	}
+	
+	
+	public ConcurrentHashMap<String, Operation> getCurrentOperations() {
+		return currentOperations;
 	}
 
 }

@@ -102,7 +102,6 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		return this.getHibernateTemplate().execute(new HibernateCallback<List<Stock>>() {
 
 			public List<Stock> doInHibernate(Session session) throws HibernateException, SQLException {
-
 				Query query = session.createQuery("select distinct stock from PortfolioShare as portfolioShare where portfolioShare.monitorLevel <> :monitorLevel");
 				query.setParameter("monitorLevel", MonitorLevel.NONE);
 				return query.list();
@@ -255,7 +254,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 
 	@Override
 	public void saveOrUpdateQuotationUnit(QuotationUnit quotationUnit) {
-		if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: "+quotationUnit);
+		if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: " + quotationUnit);
 		getHibernateTemplate().saveOrUpdate(quotationUnit);
 	}
 
@@ -264,7 +263,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		//getHibernateTemplate().saveOrUpdateAll(quotationUnits);
 		for (QuotationUnit quotationUnit : quotationUnits) {
 			//FIXME ..
-			if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: "+quotationUnit);
+			if (quotationUnit.getSplit().compareTo(BigDecimal.ONE) != 0) throw new NotImplementedException("Can't save quotation unit with non neutral split: " + quotationUnit);
 			getHibernateTemplate().saveOrUpdate(quotationUnit);
 		}
 	}

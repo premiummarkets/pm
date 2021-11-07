@@ -88,8 +88,6 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	//Pre parameterised xml native ops.
 	protected ConcurrentHashMap<String, Operation> nativeOperations;
-	//User defined formula.txt ops 
-	protected ConcurrentHashMap<String, Operation> currentOperations;
 
 	public static String readableCamelCase(String desrc) {
 
@@ -111,10 +109,6 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	public ParameterizedBuilder() {
-		currentOperations = new ConcurrentHashMap<>();
-	}
-
 	//Returns everything (Sync==true)
 	public Map<String, Operation> getCurrentOperations() {
 		return getCurrentOperations(true);
@@ -123,7 +117,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	//Returns everything - for Builder internal use
 	public Map<String, Operation> getCurrentOperations(boolean waitForSync) {
 		if (waitForSync) PostInitMonitor.waitForOptPostInitEnd();
-		return currentOperations;
+		return parsingQueueProvider.getCurrentOperations();
 	}
 	
 	//Return This Builder specific natives
@@ -467,9 +461,9 @@ public abstract class ParameterizedBuilder extends Observable {
 
 				Operation parsedOp = formulaParser.getBuiltOperation();
 				if (parsedOp != null) {//Operation is complete
-					LOGGER.info(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " +parsedOp.getFormulae());
+					LOGGER.info(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " + parsedOp.getFormulae());
 					parsedOp.setDisabled(formulaParser.isDisabled());
-					currentOperations.put(parsedOp.getReference(), parsedOp);
+					parsingQueueProvider.getCurrentOperations().put(parsedOp.getReference(), parsedOp);
 
 				} else {//Operation not complete, we add it back to the queue or disable it
 
@@ -484,7 +478,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				}
 
 			} catch (Exception e) {
-				LOGGER.info(this.getClass().getSimpleName() + ", Error solving : "+formulaParser+". Disabling. Cause : "+e);
+				LOGGER.info(this.getClass().getSimpleName() + ", Error solving : " + formulaParser + ". Disabling. Cause : " + e);
 				formulaParser.shutdown();
 				moveToTrash(formulaParser.getOperationName());
 			}

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -21,13 +22,14 @@ import java.util.SortedMap;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
@@ -35,10 +37,10 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationDataType;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.quotations.SplitData;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 import com.finance.pms.portfolio.IndepShareList;
 import com.finance.pms.portfolio.PortfolioDAO;
@@ -65,6 +67,7 @@ public class VolatilityClassifier {
 		if (existsCsvFile) {
 			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
 			List<Entry<Stock, Double[]>> entries = filterSubListSameCurrency(currency, sorted);
+			LOGGER.info("Nb of entries for currency " + currency + ": " + entries.size());
 			exportToLowMedHighVolsShareLists(currency.name(), nbRows, entries);
 		}
 
@@ -154,69 +157,97 @@ public class VolatilityClassifier {
 	}
 
 	void generateNewCalculationFilteredToFile() throws Exception {
+		
+		Map<String, List<Stock>> invalidityAcc = new HashMap<>();
+		Map<Stock, double[]> splitTrace = new HashMap<>();
+		
+		Boolean allowQuotesUpdate = false;
 
 		List<Predicate<Stock>> predicates = new ArrayList<Predicate<Stock>>();
 
-		//		//Last quote was n years ago and minimum length is m years.
-		//		{
-		//			Date nYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(1)).atStartOfDay(ZoneId.systemDefault()).toInstant());
-		//			Date mYearsAgo = Date.from(LocalDate.now().minus(Period.ofYears(10)).atStartOfDay(ZoneId.systemDefault()).toInstant());
-		//			Predicate<Stock> predicate = s -> {
-		//				Boolean match = DataSource.getInstance().getLastQuotationDateFromShares(s).after(nYearsAgo) &&
-		//						DataSource.getInstance().getFirstQuotationDateFromQuotations(s).before(mYearsAgo);
-		//				if (!match) LOGGER.info(s + " does not match 'ends after " + nYearsAgo + " years ago' and 'starts before " + mYearsAgo+ " years ago' predicate.");
-		//				return match;
-		//			};
-		//			predicates.add(predicate);
-		//		}
-		//		//Has quotes.
-		//		{
-		//			Predicate<Stock> predicate = s -> {
-		//				try {
-		//					return QuotationsFactories.getFactory()
-		//							.getRawQuotationsInstance(s, DateFactory.dateAtZero(), DateFactory.getNowEndDate(), true, s.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE)
-		//							.hasQuotations();
-		//				} catch (NoQuotationsException e) {
-		//					return false;
-		//				}
-		//			};
-		//			predicates.add(predicate);
-		//		}
 		//N years minimum length.
 		Predicate<Stock> nYearsPredicate = s -> {
-			Date lastQuotationDateFromShares = DataSource.getInstance().getLastQuotationDateFromShares(s);
-			Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations(s);
-			Duration diff = Duration.between(new Date(firstQuotationDateFromQuotations.getTime()).toInstant(), new Date(lastQuotationDateFromShares.getTime()).toInstant());
-			Boolean match = diff.toDays()/365 > 9;
-			if (!match) LOGGER.info(s + " does not match 'minimum length " + 9 + " years'.");
+			int minYears = 9;
+			Boolean match = false;
+			for (int i = 0; !match && i <= 1; i++) {
+				Date lastQuotationDateFromShares = DataSource.getInstance().getLastQuotationDateFromShares(s);
+				Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations(s);
+				Duration diff = Duration.between(new Date(firstQuotationDateFromQuotations.getTime()).toInstant(), new Date(lastQuotationDateFromShares.getTime()).toInstant());
+				match = diff.toDays()/365 > minYears;
+				if (!allowQuotesUpdate) break;
+				if (!match && i < 1) { //Quote updates and then retry
+					LOGGER.info(s + " may not be up to date for 'minimum length " + minYears + " years'. Will try again.");
+					try {
+						QuotationUpdate quotationUpdate = new QuotationUpdate();
+						quotationUpdate.getQuotesFor(s);
+					} catch (QuotationUpdateException e) {
+						LOGGER.warn("Can't update quotation for: " + s + " because " + e);
+					}
+				}
+			}
+			if (!match) {
+				LOGGER.info(s + " does not match 'minimum length " + minYears + " years'.");
+				List<Stock> predicateAcc = invalidityAcc.getOrDefault("nYearsPredicate", new ArrayList<>());
+				predicateAcc.add(s);
+				invalidityAcc.put("nYearsPredicate", predicateAcc);
+			}
 			return match;
 		};
-		//Daily change max up
-		Predicate<Stock> maxUpPredicate = stock -> {
+		
+		Predicate<Stock> ohlcPredicate = stock -> {
 			try {
-				//We use the values before split as counter split are messing up data split fixes
-				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
-				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-				List<Double> values = new ArrayList<>(closeQuotations.values());
-				List<Date> keys = new ArrayList<>(closeQuotations.keySet());
-				double deltaUnit = 0.50;
-				Boolean doNotMatch = IntStream
-						.range(1, closeQuotations.size())
-						.anyMatch(i -> {
-							//Daily change <= 100%
-							//double maxReturn = Math.log(200d/100d);
-							//Boolean hasHugeDailyChange = Math.abs(Math.log(values.get(i)/values.get(i-1))) <= maxReturn;
-
-							//Change <= +x% with an exponentially decreasing daily increase maximum estimated starting from x%.
-							//Also called CounterSplitPattern as in QuotationFixer.
-							SplitData counterSplitData = Quotations.calculateSplit(keys.get(i), values.get(i),keys.get(i-1), values.get(i-1));
-							double counterSplit = counterSplitData.getSplit();
-							if (counterSplit > 1) LOGGER.info(
-									stock + " increase exceeded between " + keys.get(i-1) + " and " + keys.get(i) +
-									" with m-1: " + values.get(i-1) + " and m: " + values.get(i) + " and delta: " + counterSplitData.getDelta());
-							return counterSplit > 1;
+				Quotations ohlcQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLC);
+				Quotations closeQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+				double ratio = 0.80;
+				boolean match = (double)ohlcQuotations.size()/(double)closeQuotations.size() >= ratio;
+				if (!match) {
+					LOGGER.info(stock + " does not match 'ohlc validity >= " + ratio + "'.");
+					List<Stock> predicateAcc = invalidityAcc.getOrDefault("ohlcPredicate", new ArrayList<>());
+					predicateAcc.add(stock);
+					invalidityAcc.put("ohlcPredicate", predicateAcc);
+				}
+				return match;
+			} catch (Exception e) {
+				LOGGER.error(e);
+				return false;
+			}
+		};	
+		
+		Predicate<Stock> splitMergePredicate = stock -> {
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+				
+				double mergeMax = 100d;
+				double splitMax = 100d;
+				double maxSplitPerYear = 1d;
+				
+				List<QuotationUnit> quotationsData = quotations.getQuotationUnits(0, quotations.size()-1);
+				List<BigDecimal> splits = quotationsData.stream()
+						.map(qu -> qu.getSplit())
+						.collect(ArrayList::new, (a, split) -> {
+							if (a.isEmpty() || split.compareTo(a.get(a.size()-1)) != 0) {
+								a.add(split);
+							}
+						}, (a,b) -> a.addAll(b));
+				double yearsSpan = ((double) java.time.temporal.ChronoUnit.DAYS.between(
+						new Date(quotationsData.get(0).getDate().getTime()).toInstant(),
+						new Date(quotationsData.get(quotationsData.size()-1).getDate().getTime()).toInstant()))/365d;
+				Boolean doNotMatch = 
+						((double)splits.size())/yearsSpan > maxSplitPerYear || 
+						splits.stream().anyMatch( split -> split.compareTo(new BigDecimal(splitMax)) > 0 || 1d/split.doubleValue() > mergeMax );
+				if (doNotMatch) {
+					LOGGER.info(
+							stock + " with years span " + yearsSpan + " does not match 'splits constrains' " +
+							"maxSplitPerYear: " + maxSplitPerYear + ", splitMax:" + splitMax + ", mergeMin:" + 1d/mergeMax + " predicate. " + splits);
+					List<Stock> predicateAcc = invalidityAcc.getOrDefault("splitMergeValidity", new ArrayList<>());
+					predicateAcc.add(stock);
+					invalidityAcc.put("splitMergeValidity", predicateAcc);
+				}
+				splitTrace.put(stock, new double[] {
+							(double)splits.size(), yearsSpan, 
+							splits.stream().map(s -> s.doubleValue()).reduce(0d, (a, s) -> {if (s > a) return s; else return a;}),
+							splits.stream().map(s -> 1d/s.doubleValue()).reduce(0d, (a, s) -> {if (s > a) return s; else return a;})
 						});
-				if (doNotMatch) LOGGER.info(stock + " does not match 'daily increase max < " + deltaUnit + "%' predicate.");
 				return !doNotMatch;
 			} catch (NoQuotationsException e) {
 				LOGGER.warn(e);
@@ -226,41 +257,23 @@ public class VolatilityClassifier {
 				return false;
 			}
 		};
-		//Daily change max down
-		Predicate<Stock> maxDownPredicate = stock -> {
-			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
-				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-				List<Double> values = new ArrayList<>(closeQuotations.values());
-				List<Date> keys = new ArrayList<>(closeQuotations.keySet());
-				double deltaUnit = 0.50;
-				Boolean doNotMatch = IntStream
-						.range(1, closeQuotations.size())
-						.anyMatch(i -> {
-							//Change <= +x% with an exponentially decreasing daily decrease maximum estimated starting from x%.
-							SplitData splitData = Quotations.calculateSplit(keys.get(i-1), values.get(i-1),keys.get(i), values.get(i));
-							double split = splitData.getSplit();
-							if (split > 1) LOGGER.info(
-									stock + " decrease (after split fix) exceeded between " +  keys.get(i-1) + " and " + keys.get(i) +
-									" with m-1: " + values.get(i-1) + " and m: " + values.get(i) + " and delta: " + splitData.getDelta());
-							return split > 1;
-						});
-				if (doNotMatch) LOGGER.info(stock + " does not match 'daily decrease (after split fix) max < " + deltaUnit + "%' predicate.");
-				return !doNotMatch;
-			} catch (NoQuotationsException e) {
-				LOGGER.warn(e);
-				return false;
-			} catch (Exception e) {
-				LOGGER.error(e);
-				return false;
-			}
-		};
-
+//		predicates.add(Last quote was n years ago and minimum length is m years);
 		predicates.add(nYearsPredicate);
-		predicates.add(maxUpPredicate);
-		predicates.add(maxDownPredicate);
+		predicates.add(ohlcPredicate);
+		predicates.add(splitMergePredicate);
+//		predicates.add(maxUpPredicate);
+//		predicates.add(maxDownPredicate);
 
 		Set<Stock> filteredStocks = filterStocks(predicates);
+		
+		LOGGER.info("Validitiy accounting: " + invalidityAcc.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Validitiy accounting: " + invalidityAcc);
+		LOGGER.info("Split checks:\n"+
+		"stock, size, nbyears, split max, merge max\n" +
+				splitTrace.entrySet().stream()
+				.map(e -> e.getKey().getSymbol() + ", " + Arrays.toString(e.getValue()).substring(1, Arrays.toString(e.getValue()).length()-1) + "\n")
+				.reduce("", (a, e) -> a + e));
+		
 		calculateFor(filteredStocks, DateFactory.dateAtZero(), new Date());
 
 	}
@@ -269,7 +282,7 @@ public class VolatilityClassifier {
 
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 900, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations);
 				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());
@@ -320,7 +333,9 @@ public class VolatilityClassifier {
 
 
 	private void exportToLowMedHighVolsShareLists(String listMName, int nbRows, List<Entry<Stock, Double[]>> sorted) {
-		createOnePortfolioShareList(sorted, sorted.size()/2 - nbRows/2, sorted.size()/2 + nbRows/2, "VOLATILITY,MEDIUMVOLATILITY:" + listMName);
+		int listMiddle = sorted.size()/2;
+		int halfRange = nbRows/2;
+		createOnePortfolioShareList(sorted, listMiddle - halfRange, listMiddle + halfRange, "VOLATILITY,MEDIUMVOLATILITY:" + listMName);
 		createOnePortfolioShareList(sorted, 0, nbRows, "VOLATILITY,LOWVOLATILITY:" + listMName);
 		createOnePortfolioShareList(sorted, sorted.size() - nbRows, sorted.size(), "VOLATILITY,HIGHVOLATILITY:" + listMName);
 	}

@@ -45,7 +45,7 @@ import com.finance.pms.events.operations.Value;
 	ArithmeticOperation.class, ArithmeticUnaryOperation.class,
 	PMIndicatorOperation.class, TalibOperation.class,
 	StockOperation.class,
-	LnPeriodicOperation.class, FilterOperation.class, RecursiveOperation.class
+	LnPeriodicOperation.class, FilterOperation.class, RecursiveOperation.class, RefiterOperation.class
 	})
 public class DoubleMapOperation extends MapOperation {
 

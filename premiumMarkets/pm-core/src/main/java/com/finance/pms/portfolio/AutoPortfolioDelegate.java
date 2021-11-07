@@ -73,12 +73,8 @@ public class AutoPortfolioDelegate {
 	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
 	
 	public static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
-	public static final BigDecimal DEFAULT_INITIAL_CASH;
-	public static final int DEFAULT_MAXIMUM_SIZE;
-	static {
-		DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(10));
-		DEFAULT_MAXIMUM_SIZE = DEFAULT_INITIAL_CASH.divide(DEFAULT_TRANSACTION_AMOUNT).intValue();
-	}
+	public static final int DEFAULT_MAXIMUM_SIZE = 1;
+	public static final BigDecimal DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(DEFAULT_MAXIMUM_SIZE));
 	
 	private TransactionHistory transactionHistory;
 	

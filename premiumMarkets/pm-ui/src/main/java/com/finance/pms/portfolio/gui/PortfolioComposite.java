@@ -136,7 +136,6 @@ import com.finance.pms.datasources.EventTaskQueue;
 import com.finance.pms.datasources.InvalidEventRefreshTask;
 import com.finance.pms.datasources.QuotatationRefreshException;
 import com.finance.pms.datasources.RefreshAllEventStrategyEngine;
-import com.finance.pms.datasources.RefreshChartHighlighted;
 import com.finance.pms.datasources.RefreshMonitoredStrategyEngine;
 import com.finance.pms.datasources.RefreshPortfolioStrategyEngine;
 import com.finance.pms.datasources.TaskId;
@@ -1600,18 +1599,51 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				{
 					MenuItem refreshQuotationsMenuItem = new MenuItem(portfolioShareCtxMenu, SWT.NONE);
 					refreshQuotationsMenuItem.setText("Update quotations download");
-					final EventModel<RefreshChartHighlighted, Stock> evtModelInst = EventModel.getInstance(new RefreshChartHighlighted());
-					refreshQuotationsMenuItem.addSelectionListener(new EventRefreshController(evtModelInst, this, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+					refreshQuotationsMenuItem.addSelectionListener(new SelectionListener() {
+
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
-							int selectionIndex = table.getSelectionIndex();
-							if (selectionIndex != -1) {
-								LOGGER.guiInfo("I am refreshing. Thanks for waiting ...");
-								SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
-								evtModelInst.setViewParamRoot(selectedShare.getStock());
-								evtModelInst.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
-								this.updateEventRefreshModelState(0l, TaskId.FetchQuotations);
-								super.widgetSelected(evt);
+							getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							try {
+								handleUpdateQuotation();
+							} catch (Exception e) {
+								LOGGER.error(e, e);
+							} finally {
+								getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							}
+						}
+
+						@Override
+						public void widgetDefaultSelected(SelectionEvent evt) {
+							getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+							try {
+								handleUpdateQuotation();
+							} catch (Exception e) {
+								LOGGER.error(e, e);
+							} finally {
+								getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+							}
+						}
+
+						private void handleUpdateQuotation() {
+							final int itemIdx = table.getSelectionIndex();
+							if (itemIdx != -1) {
+
+								SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
+								Stock stock = ss.getStock();
+								
+								QuotationUpdate quotationUpdate = new QuotationUpdate();
+								try {
+									quotationUpdate.getQuotes(new StockList(stock), false, true);
+								} catch (QuotationUpdateException e) {
+									UserDialog dialog = new UserDialog(getShell(), "No quotation found for " + stock.getFriendlyName(), e.toString());
+									dialog.open();
+								}
+
+								//Ui ...
+								tabUpdateTableItem(table.getSelection()[0], ss);
+								refreshChartData();
+								refreshPortfolioTotalsInfos(selectedPortfolioIdx());
 							}
 						}
 					});
@@ -1683,7 +1715,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 										QuotationUpdate quotationUpdate = new QuotationUpdate();
 										try {
-											quotationUpdate.getQuotes(new StockList(stock), true);
+											quotationUpdate.getQuotes(new StockList(stock), true, false);
 										} catch (QuotationUpdateException e) {
 											UserDialog dialog = new UserDialog(getShell(), "No quotation found for "+stock.getFriendlyName(), e.toString());
 											dialog.open();

@@ -163,6 +163,9 @@ public class TuningResDTO implements Serializable {
 	}
 
 	/**
+	 * 
+	 * flog = Math.log(Math.abs(failureWeigh)/successWeigh);
+	 * 
 	 * @param date
 	 * @return avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance
 	 */
@@ -185,7 +188,7 @@ public class TuningResDTO implements Serializable {
 					totalROC = totalROC + bullishPeriodRateOfChange;
 					if (bullishPeriodRateOfChange < 0) {
 						nbFailedBullishPeriod++;
-						failedTotalROC = failedTotalROC + bullishPeriodRateOfChange;
+						failedTotalROC = failedTotalROC + bullishPeriodRateOfChange; //failedTotalROC is negative
 					}
 					if (bullishPeriodRateOfChange > maxROC) {
 						maxROC = bullishPeriodRateOfChange;
@@ -199,10 +202,10 @@ public class TuningResDTO implements Serializable {
 		Double avgROC = totalROC / nbBullishPeriods;
 		Double failedBullishRatio = nbFailedBullishPeriod / nbBullishPeriods;
 		
-		double succcesTotalROC = totalROC - failedTotalROC;
-		double TotalSpan = succcesTotalROC - failedTotalROC;
-		Double failureWeigh = failedTotalROC / TotalSpan ;
-		Double successWeigh = succcesTotalROC / TotalSpan ;
+		double successTotalROC = totalROC - failedTotalROC;
+		double totalSpan = successTotalROC + Math.abs(failedTotalROC); //failedTotalROC is negative
+		Double failureWeigh = failedTotalROC / totalSpan;
+		Double successWeigh = successTotalROC / totalSpan;
 		
 		Double variance = 0d;
 		Iterator<PeriodRatingDTO> iterator2 = periods.iterator();
@@ -211,7 +214,7 @@ public class TuningResDTO implements Serializable {
 			if ("BULLISH".equals(currentPeriod.getTrend())) {
 				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
-					variance  = variance + (bullishPeriodRateOfChange - avgROC)*(bullishPeriodRateOfChange - avgROC);
+					variance = variance + (bullishPeriodRateOfChange - avgROC)*(bullishPeriodRateOfChange - avgROC);
 				}
 			}
 		}

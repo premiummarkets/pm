@@ -146,8 +146,6 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 
 	@Transactional(readOnly=true)
 	public SharesList loadShareList(String shareListName) {
-
-
 		String upperShareListName = shareListName.toUpperCase();
 
 		if (shareListName.equalsIgnoreCase(SharesListId.UNKNOWN.getSharesListCmdParam())) {
@@ -157,7 +155,7 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 			return unknownShareListCache;
 		}
 
-		SharesList shareList = (SharesList)this.getHibernateTemplate().get(SharesList.class, upperShareListName);
+		SharesList shareList = (SharesList) this.getHibernateTemplate().get(SharesList.class, upperShareListName);
 
 		if (shareList == null) shareList = new SharesList(upperShareListName);	
 		return shareList;
@@ -206,10 +204,10 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	@Transactional(readOnly=true)
 	public List<String> loadUserPortfolioNames() {
 		return new ArrayList<String>((Collection<? extends String>) this.getHibernateTemplate().find("select name from UserPortfolio"));
-	}	
+	}
 
 
-	public void deletePortfolioShare(PortfolioShare portfolioShare) {		
+	public void deletePortfolioShare(PortfolioShare portfolioShare) {
 		this.getHibernateTemplate().delete(portfolioShare);
 	}
 

@@ -58,6 +58,7 @@ public class MarketQuotationProviders {
 	public static final MarketQuotationProviders CURRENCY = new MarketQuotationProviders("CURRENCY", new InvestirSymbolNameResolver(), "currency");
 	public static final MarketQuotationProviders DIXHUITDIXHUIT = new MarketQuotationProviders("DIXHUITDIXHUIT", new InvestirSymbolNameResolver(), "dixHuitDixHuit");
 	public static final MarketQuotationProviders INVESTING = new MarketQuotationProviders("INVESTING", new InvestirSymbolNameResolver(), "investing");
+	public static final MarketQuotationProviders OPERATION = new MarketQuotationProviders("OPERATION", new GoogleSymbolNameResolver(), "operation");
 	
 	private static List<MarketQuotationProviders> marketQuotationProviders = new ArrayList<MarketQuotationProviders>();
 	static {
@@ -69,6 +70,7 @@ public class MarketQuotationProviders {
 		MarketQuotationProviders.addMarketQuotationProvider(CURRENCY);
 		MarketQuotationProviders.addMarketQuotationProvider(DIXHUITDIXHUIT);
 		MarketQuotationProviders.addMarketQuotationProvider(INVESTING);
+		MarketQuotationProviders.addMarketQuotationProvider(OPERATION);
 	}
 	
 	private String name;
@@ -99,7 +101,7 @@ public class MarketQuotationProviders {
 			if (marketQuotationProvider.name().equals(name)) return marketQuotationProvider;
 		}
 		//throw new IllegalArgumentException();
-		LOGGER.warn("Unknown quotation provider : "+name);
+		LOGGER.warn("Unknown quotation provider: " + name);
 		return MarketQuotationProviders.DEFAULT;
 	}
 	

@@ -63,7 +63,7 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 	}
 
 	@Override
-	public Number[] targetShareData(SlidingPortfolioShare ps,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
 		Date endDate = getEndDate(stockQuotations);

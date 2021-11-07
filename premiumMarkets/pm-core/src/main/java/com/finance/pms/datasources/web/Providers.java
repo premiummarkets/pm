@@ -126,7 +126,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	}
 	
 	public static QuotationProvider getInstance(String providerCmdName) {
-		String providerBeanName = providerCmdName+"ProviderSource";
+		String providerBeanName = providerCmdName + "ProviderSource";
 		Providers beanSingleton = (Providers) SpringContext.getSingleton().getBean(providerBeanName);
 		return (QuotationProvider) beanSingleton;
 	}

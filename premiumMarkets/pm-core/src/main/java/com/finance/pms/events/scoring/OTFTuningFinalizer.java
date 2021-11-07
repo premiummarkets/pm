@@ -337,16 +337,23 @@ public class OTFTuningFinalizer {
 	}
 
 	public class FinalRating {
-
+		
+		//Legacy
 		private Double rating;
-		private Double totPrcChgUsed;
-		private Double totFollowProfit;
 		private int nbSuccess;
 		private int nbFailure;
-		private Validity ratingValidityScore;
+		
+		//New (Flog)
 		private double flog;
-		private String cause;
 		private double failureWeightAbs;
+		
+		//Info
+		private Double totPrcChgUsed;
+		private Double totFollowProfit;
+
+		//Resulting rating
+		private Validity ratingValidityScore;
+		private String cause;
 
 		public FinalRating(Double totFollowProfit, Double totPrcChgUsed, int nbSuccess, int nbFailure) {
 			super();

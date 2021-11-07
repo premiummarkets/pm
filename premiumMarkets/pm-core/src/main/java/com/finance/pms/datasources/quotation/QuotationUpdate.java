@@ -151,13 +151,17 @@ public class QuotationUpdate {
 		sharesList.retrieveAndCompleteStockInfo(newStock, dbStockList);
 
 		try {
-			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))), true);
+			getQuotes(new StockList(new HashSet<Stock>(Arrays.asList(new Stock[]{newStock}))), true, false);
 		} catch (QuotationUpdateException e) {
 			throw e;
 		}
 
 		return newStock;
 
+	}
+	
+	public Collection<Stock> getQuotesFor(Stock... stocks) throws QuotationUpdateException {
+		return getQuotesFor(Arrays.asList(stocks));
 	}
 
 	public Collection<Stock> getQuotesFor(Collection<Stock> stocks) throws QuotationUpdateException {
@@ -215,10 +219,17 @@ public class QuotationUpdate {
 	}
 
 	public void getQuotes(StockList stockList) throws QuotationUpdateException {
-		this.getQuotes(stockList, false);
+		this.getQuotes(stockList, false, false);
 	}
 
-	public void getQuotes(StockList stockList, Boolean reset) throws QuotationUpdateException {
+	/**
+	 * Reset, when true, will prevail over force and the later will have no effect.
+	 * @param stockList
+	 * @param forceReset
+	 * @param forceUpdate
+	 * @throws QuotationUpdateException
+	 */
+	public void getQuotes(StockList stockList, Boolean forceReset, Boolean forceUpdate) throws QuotationUpdateException {
 
 		Iterator<Stock> stlIt = stockList.iterator();
 
@@ -234,7 +245,7 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 
 			LOGGER.debug("Fetching quotations for Ticker : " + stock);
-			GetQuotation command = new GetQuotation(DateFactory.getNowEndDate(), stock, reset);
+			GetQuotation command = new GetQuotation(DateFactory.getNowEndDate(), stock, forceReset, forceUpdate);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
 			}
