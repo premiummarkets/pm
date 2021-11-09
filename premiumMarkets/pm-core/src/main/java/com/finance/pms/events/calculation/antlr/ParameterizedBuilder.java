@@ -248,7 +248,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			Operation operation = getCurrentOperations().get(identifier);
 
 			List<Operation> checkInUse = checkInUse(operation, keepDisabled);
-			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
+			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
 
 			//Delete pre existing trashed
 			File formulaFile = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
@@ -259,6 +259,33 @@ public abstract class ParameterizedBuilder extends Observable {
 			getCurrentOperations().remove(identifier);
 
 			updateCaches(operation, true); //true because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
+
+		} catch (Exception e) {
+			throw new IOException(e);
+		}
+
+	}
+	
+	public void destroyFormula(String identifier) throws IOException {
+
+		try {
+
+			Operation operation = getCurrentOperations().get(identifier);
+
+			List<Operation> checkInUse = checkInUse(operation, false);
+			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
+
+			//Delete hard delete (no move to trash)
+			File formulaFileUser = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+			formulaFileUser.delete();
+			File formulaFileDis = new File(disabledUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+			formulaFileDis.delete();
+			File formulaFileTrash = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+			formulaFileTrash.delete();
+
+			getCurrentOperations().remove(identifier);
+
+			updateCaches(operation, true); //True because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
 
 		} catch (Exception e) {
 			throw new IOException(e);

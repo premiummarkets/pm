@@ -24,14 +24,14 @@ public class IOsExporterOperation extends Operation {
 	
 	
 	public IOsExporterOperation(String reference, String description, Operation... operands) {
-		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+		super(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
 	public IOsExporterOperation() {
-		this("outputExporter", "Exports all assembled series to a file. Only trailing NaN are permited.",
+		this("iosExporter", "Exports all assembled datasets to a file.",
 				new StringOperation("string", "file name path", "Path of the output", new StringValue("")),
 				new StringOperation("string", "file name prefix", "Will prefix a random file name", new StringValue("")),
-				new DoubleMapOperation("data", "inputs", "Inputs to export", null));
+				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 

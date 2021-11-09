@@ -297,33 +297,6 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oneInputAssemblerOperation">
-            <reference>oneInputAssembler</reference>
-            <description>Assembles several inputs into one input array. No NaN permited.</description>
-            <operands>
-                <operand xsi:type="stringOperation">
-                    <reference>boolean</reference>
-                    <referenceAsOperand>isExportToFile</referenceAsOperand>
-                    <description>If true, exports the result to a file.</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue>FALSE</stringValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>data</reference>
-                    <referenceAsOperand>inputs</referenceAsOperand>
-                    <description>Inputs to assemble in one</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>true</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
             <description>Subtraction of two historical data series (a,b) -&gt; a - b</description>
@@ -779,6 +752,44 @@
             <outputSelector>middle</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsAssemblerOperation">
+            <reference>iosAssembler</reference>
+            <description>Assembles several inputs into one input array. No NaN permited.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>isExportToFile</referenceAsOperand>
+                    <description>If true, exports the result to a file.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>FALSE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>allowTrailingNaN</referenceAsOperand>
+                    <description>If NaN are allowed at the end of the data set (usefull for targets)</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>FALSE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>datasets</referenceAsOperand>
+                    <description>Datasets to assemble in one</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="filterOperation">
             <reference>filter_</reference>
             <description>Filter</description>
@@ -852,44 +863,6 @@
                 <availableOutputSelector>naturalLogarithm</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>exponential</outputSelector>
-            <isVarArgs>false</isVarArgs>
-        </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsExporterOperation">
-            <reference>outputExporter</reference>
-            <description>Exports all assembled series to a file. Only tail NaN are permited.</description>
-            <operands>
-                <operand xsi:type="stringOperation">
-                    <reference>string</reference>
-                    <referenceAsOperand>file name path</referenceAsOperand>
-                    <description>Path of the output</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue></stringValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="stringOperation">
-                    <reference>string</reference>
-                    <referenceAsOperand>file name prefix</referenceAsOperand>
-                    <description>Will prefix a random file name</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue></stringValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>data</reference>
-                    <referenceAsOperand>inputs</referenceAsOperand>
-                    <description>Inputs to export</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>true</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="division">
@@ -971,6 +944,44 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsExporterOperation">
+            <reference>iosExporter</reference>
+            <description>Exports all assembled datasets to a file.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>file name path</referenceAsOperand>
+                    <description>Path of the output</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>file name prefix</referenceAsOperand>
+                    <description>Will prefix a random file name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>datasets</referenceAsOperand>
+                    <description>Datasets to export (usually a list of iosAssembler)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors/>
