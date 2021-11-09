@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 public abstract class NumericableMapValue extends MapValue<Double> implements Cloneable {
@@ -54,5 +55,8 @@ public abstract class NumericableMapValue extends MapValue<Double> implements Cl
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
+	
+	@Override
+	public abstract NumericableMapValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent);
 
 }

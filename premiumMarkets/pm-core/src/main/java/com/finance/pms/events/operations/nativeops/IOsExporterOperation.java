@@ -17,25 +17,25 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 
-public class InputExporterOperation extends Operation {
+public class IOsExporterOperation extends Operation {
 
 	private static final int FIRST_INPUT = 2;
-	private static MyLogger LOGGER = MyLogger.getLogger(InputExporterOperation.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);
 	
 	
-	public InputExporterOperation(String reference, String description, Operation ... operands) {
+	public IOsExporterOperation(String reference, String description, Operation... operands) {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
-	public InputExporterOperation() {
-		this("outputExporter", "Exports all assembled series to a file. Only tail NaN are permited.",
+	public IOsExporterOperation() {
+		this("outputExporter", "Exports all assembled series to a file. Only trailing NaN are permited.",
 				new StringOperation("string", "file name path", "Path of the output", new StringValue("")),
 				new StringOperation("string", "file name prefix", "Will prefix a random file name", new StringValue("")),
 				new DoubleMapOperation("data", "inputs", "Inputs to export", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
-	public InputExporterOperation(ArrayList<Operation> operands, String outputSelector) {
+	public IOsExporterOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
@@ -47,12 +47,12 @@ public class InputExporterOperation extends Operation {
 		String fileRootPath = ((StringValue) inputs.get(0)).getValue(targetStock);
 		String filePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
 
-		@SuppressWarnings("unchecked")
-		List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs, true);
-		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
-
 		try {
+			@SuppressWarnings("unchecked")
+			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
+			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, true);
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
 			String fileName = filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
 			series.put(filePrefix, factorisedInput);

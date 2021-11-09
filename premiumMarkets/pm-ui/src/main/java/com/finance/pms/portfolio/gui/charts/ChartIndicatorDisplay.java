@@ -69,6 +69,7 @@ import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -83,6 +84,7 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.chartUtils.BarChart;
@@ -647,6 +649,36 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 
 				});
+			}
+			{
+				Button stopCalculationsButton =  new Button(recalcGroup, SWT.PUSH);
+				stopCalculationsButton.setFont(MainGui.DEFAULTFONT);
+				stopCalculationsButton.setText("Stop Calculations");
+				RefreshableView parentView = chartTarget;
+				stopCalculationsButton.addSelectionListener(
+						new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+
+					@Override
+					public void widgetSelected(SelectionEvent evt) {
+						LOGGER.guiInfo("Stoping Calculations.");
+						SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean("selectedIndsCalculator");
+						analyzer.getFutureTracker().stream().forEach(o -> {
+							try {
+								o.interrupt();
+							} catch (Exception e) {
+								LOGGER.error(e, e);
+							}
+						});
+						analyzer.getFutureTracker().clear();
+						Set<Thread> runningThreads = Thread.getAllStackTraces().keySet();
+						runningThreads.stream()
+							.filter(t -> t.getName().contains("my-calculation-thread"))
+							.forEach(t -> t.interrupt());
+						super.widgetSelected(evt);
+					}
+
+				});
+
 			}
 		}
 		popusGroup.layout();

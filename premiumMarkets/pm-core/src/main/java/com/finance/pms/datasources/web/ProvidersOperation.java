@@ -41,11 +41,11 @@ public class ProvidersOperation extends Providers implements QuotationProvider {
 		String operationIdHint = stock.getSymbol();
 		
 		EventInfoOpsCompoOperation eventInfo = new EventInfoOpsCompoOperation(QUOTE_UPDATE, QUOTE_UPDATE);
-		TargetStockInfo targetStock = new TargetStockInfo(QUOTE_UPDATE, eventInfo, AnalysisClient.ANY_STOCK, start, end); 
 		Operation operation = parameterizedOperationBuilder.getCurrentOperations().get(operationIdHint);
 		if (operation == null) {
 			throw new OperationNotSupportedException("There is no operation defined with name: " + operationIdHint);
 		}
+		TargetStockInfo targetStock = new TargetStockInfo(QUOTE_UPDATE, eventInfo, AnalysisClient.ANY_STOCK, start, end); 
 		Value<?> output = operation.run(targetStock, eventInfo.getReference(), 0);
 		
 		if (output == null || !(output instanceof DoubleArrayMapValue)) {

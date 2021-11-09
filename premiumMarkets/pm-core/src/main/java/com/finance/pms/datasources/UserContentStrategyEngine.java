@@ -93,6 +93,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		quotationUpdate.getQuotesFor(stocks);
 	};
 
+	@Override
 	public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers,
 			X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
 

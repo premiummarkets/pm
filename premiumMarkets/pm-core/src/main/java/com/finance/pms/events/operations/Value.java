@@ -54,4 +54,6 @@ public abstract class Value<T> implements Cloneable {
 		return super.clone();
 	}
 
+	public abstract Value<T> filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent);
+
 }

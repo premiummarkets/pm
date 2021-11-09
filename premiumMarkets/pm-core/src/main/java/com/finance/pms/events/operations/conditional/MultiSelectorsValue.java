@@ -38,6 +38,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
@@ -65,6 +67,14 @@ public class MultiSelectorsValue extends DoubleMapValue {
 
 	public Set<String> getSelectors() {
 		return selectorOutputs.keySet();
+	}
+	
+	@Override
+	public MultiSelectorsValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+		super.filterToParentRequierements(targetStock, startShift, parent);
+		this.selectorOutputs = selectorOutputs.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequierements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
+		return this;
 	}
 
 	@Override

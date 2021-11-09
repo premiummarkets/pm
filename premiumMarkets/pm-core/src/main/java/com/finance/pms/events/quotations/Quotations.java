@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,9 @@ public class Quotations {
 	private static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 
 	public static enum ValidityFilter {
-		ALLVALID, SPLITFREE, CLOSE, OHLC, VOLUME, OHLCV, NONEVALID; //NONEVALID doesn't return anything. ALL returns everything? (not implemented)
+		ALLVALID, SPLITFREE, CLOSE, OHLC, VOLUME, OHLCV, NONEVALID; //NONEVALID doesn't return anything. ALLVALID could return everything but is not implemented)
+		
+		static ValidityFilter[] allActualFilters = EnumSet.<ValidityFilter>range(CLOSE, NONEVALID).toArray(new ValidityFilter[0]);
 		
 		public QuotationDataType[] toQuotationDataType() {
 			switch (this) {
@@ -95,11 +98,11 @@ public class Quotations {
 		
 		public static ValidityFilter getFilterFor(Collection<QuotationDataType> requieredStockData) {
 			ValidityFilter[] ohl = (requieredStockData.contains(QuotationDataType.OPEN) || requieredStockData.contains(QuotationDataType.HIGH) || requieredStockData.contains(QuotationDataType.LOW))?
-					new ValidityFilter[] {ValidityFilter.OHLC, ValidityFilter.OHLCV}: ValidityFilter.values();
+					new ValidityFilter[] {ValidityFilter.OHLC, ValidityFilter.OHLCV}: allActualFilters;
 			ValidityFilter[] c = (requieredStockData.contains(QuotationDataType.CLOSE))? 
-					new ValidityFilter[] {ValidityFilter.CLOSE, ValidityFilter.OHLC, ValidityFilter.OHLCV}: ValidityFilter.values();
+					new ValidityFilter[] {ValidityFilter.CLOSE, ValidityFilter.OHLC, ValidityFilter.OHLCV}: allActualFilters;
 			ValidityFilter[] v = (requieredStockData.contains(QuotationDataType.VOLUME))? 
-					new ValidityFilter[] {ValidityFilter.VOLUME, ValidityFilter.OHLCV}: ValidityFilter.values();
+					new ValidityFilter[] {ValidityFilter.VOLUME, ValidityFilter.OHLCV}: allActualFilters;
 			ValidityFilter result = Arrays.asList(ohl).stream()
 					  .distinct()
 					  .filter(Arrays.asList(c)::contains)
@@ -110,6 +113,7 @@ public class Quotations {
 			return result;
 		}
 	}
+	
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
 	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
 	

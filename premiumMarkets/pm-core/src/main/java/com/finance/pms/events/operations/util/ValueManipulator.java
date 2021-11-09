@@ -11,16 +11,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.quotations.NoQuotationsException;
 
 public class ValueManipulator {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ValueManipulator.class);
 
-	public static List<String> buildOperandReferences(List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
+	public static List<String> extractOperandReferences(List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
 		List<String> inputsOperandsRefs = new ArrayList<String>();
 		IntStream.range(0, operands.size())
 				.forEach(i -> {
@@ -32,13 +34,13 @@ public class ValueManipulator {
 						);
 					} else { //Ops refs
 						inputsOperandsRefs
-						.add(operands.get(i).getReference()+((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""));
+						.add(operands.get(i).getReference() + ((inputsOperandsRefs.contains(operands.get(i).getReference()))?Integer.toString(i):""));
 					}
 				});
 		return inputsOperandsRefs;
 	}
 
-	public static SortedMap<Date, double[]> buildOneInput(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN) {
+	public static SortedMap<Date, double[]> inputListToArray(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN) throws NoQuotationsException, NotEnoughDataException {
 		
 		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
 				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))

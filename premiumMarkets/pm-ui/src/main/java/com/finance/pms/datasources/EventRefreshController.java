@@ -236,7 +236,7 @@ public class EventRefreshController implements SelectionListener { //MouseListen
                 }
             }
 
-            //TODO you need add params for alters as well or you can't run it twice ...
+            //TODO you need add params for alerts as well or you can't run it twice ...
             if (taskIds.contains(TaskId.Alerts)) {
 
                 if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {

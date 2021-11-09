@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -87,6 +88,11 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 	@Override
 	public String getValueAsString() {
 		return numberValue.toString();
+	}
+	
+	@Override
+	public NumberValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+		return this;
 	}
 
 }

@@ -141,20 +141,22 @@ public class TargetStockInfo {
 
 	}
 
+	private String analysisName;
+	private EventInfoOpsCompoOperation eventInfoOpsCompoOperation;
 	private Stock stock;
 	private final Date startDate;
 	private final Date endDate;
-	private String analysisName;
-	private EventInfoOpsCompoOperation eventInfoOpsCompoOperation;
 
 	private List<Output> calculatedOutputsCache;
-
 	private List<Output> gatheredChartableOutputs;
 	private List<ChartedOutputGroup> chartedOutputGroups;
 
 	private Map<OutputReference, EventsAnalyser> outputAnalysers;
 
-	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
+
+	public TargetStockInfo(
+			String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate,Date endDate) 
+			throws WarningException {
 		super();
 		this.analysisName = analysisName;
 		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperationHolder;
@@ -169,6 +171,7 @@ public class TargetStockInfo {
 		this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
 		this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
 		this.outputAnalysers = new HashMap<>();
+
 	}
 
 	public Stock getStock() {
@@ -187,7 +190,7 @@ public class TargetStockInfo {
 	public String getAnalysisName() {
 		return analysisName;
 	}
-
+	
 	public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events) {
 		SortedMap<EventKey, EventValue> analyzedEvents = events;
 		for (OutputReference key : outputAnalysers.keySet()) {

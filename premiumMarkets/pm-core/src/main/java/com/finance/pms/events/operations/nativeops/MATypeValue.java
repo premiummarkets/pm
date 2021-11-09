@@ -32,6 +32,7 @@ package com.finance.pms.events.operations.nativeops;
 import javax.xml.bind.annotation.XmlElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -78,6 +79,11 @@ public class MATypeValue extends Value<MAType> implements StringableValue, Clone
 	@Override
 	public String getValueAsString() {
 		return maTypeValue.name();
+	}
+	
+	@Override
+	public MATypeValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+		return this;
 	}
 
 }

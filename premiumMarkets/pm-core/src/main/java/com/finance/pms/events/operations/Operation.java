@@ -50,7 +50,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
-import com.finance.pms.events.operations.nativeops.InputExporterOperation;
+import com.finance.pms.events.operations.nativeops.IOsExporterOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
@@ -64,15 +64,15 @@ import com.finance.pms.events.quotations.QuotationDataType;
 
 /**
  * !!Operations must be state less across calculations as reused!! 
- * Operands : resolved at runtime.
- * Parameters : preset operands already resolved.
+ * Operands: resolved at runtime.
+ * Parameters: preset operands already resolved.
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
 	Condition.class, MapOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class,
-	InputExporterOperation.class, CsvFileFilterOperation.class})
+	IOsExporterOperation.class, CsvFileFilterOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -176,8 +176,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 					Operation operand = operands.get(i);
 					Value<?> output = operand.run(targetStock, thisCallStack, thisOperandsRequiredStartShift);
+					output = output.filterToParentRequierements(targetStock, thisOperandsRequiredStartShift, this);
 					operandsOutputs.add(output);
-
 					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift);
 
 				}
@@ -615,6 +615,19 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			quotationDataTypes.addAll(operands.stream().flatMap(o -> o.getRequieredStockData().stream()).collect(Collectors.toList()));
 		}
 		return quotationDataTypes;
+	}
+	
+	public void interrupt() throws Exception {
+		operands.stream().forEach(
+				o -> {
+					if (!o.getOperands().isEmpty()) {
+						try {
+							o.interrupt();
+						} catch (Exception e) {
+							LOGGER.error(e, e);
+						}
+					}
+				});
 	}
 
 }

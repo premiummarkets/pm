@@ -63,9 +63,9 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 		super(key, ConfigThreadLocal.getAll());
 
 		this.springContext = springContext;
-		indicatorAnalysis = (AnalysisClient) springContext.getBean("indicatorAnalysis");
-		eventQueue = (InnerQueue) springContext.getBean("eventqueue");
-		jmsTemplate = (InnerJmsTemplate) springContext.getBean("jmsTemplate");
+		this.indicatorAnalysis = (AnalysisClient) springContext.getBean("indicatorAnalysis");
+		this.eventQueue = (InnerQueue) springContext.getBean("eventqueue");
+		this.jmsTemplate = (InnerJmsTemplate) springContext.getBean("jmsTemplate");
 
 		this.analysisName = analysisName;
 

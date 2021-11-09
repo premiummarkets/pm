@@ -33,9 +33,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
@@ -56,6 +60,14 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 		super(keySet, initValue);
 		additionalOutputs = new HashMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
+	}
+	
+	@Override
+	public BooleanMultiMapValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+		super.filterToParentRequierements(targetStock, startShift, parent);
+		this.additionalOutputs = additionalOutputs.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequierements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
+		return this;
 	}
 
 	@Override

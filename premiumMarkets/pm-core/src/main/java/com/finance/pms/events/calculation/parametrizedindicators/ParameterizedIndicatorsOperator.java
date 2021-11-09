@@ -48,6 +48,7 @@ import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.calculation.ErrorException;
 import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -62,6 +63,7 @@ import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.events.quotations.QuotationsFactories;
 /**
  * 
  * @author guil
@@ -76,7 +78,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	private EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder;
 
 	public ParameterizedIndicatorsOperator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
-			throws WarningException  {
+			throws WarningException {
 
 		super(observers);
 		this.eventInfoOpsCompoOperationHolder = (EventInfoOpsCompoOperation) eventInfo;
@@ -111,7 +113,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	}
 
 	@Override
-	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws WarningException {
+	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws WarningException, ErrorException {
 
 		SortedMap<EventKey, EventValue> eData = new TreeMap<>();
 
@@ -122,23 +124,38 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
-			//Finding duplicates
-			EventKey previousKey = null;
-			SortedSet<EventKey> toRemove = new TreeSet<EventKey>();
-			for (EventKey currentKey : returnedEvents.keySet()) {
+			try {
+				//Finding duplicates and invalid dates
+				Set<Date> validQuotationsDates = QuotationsFactories.getFactory()
+						.buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet();
+				EventKey previousKey = null;
+				SortedSet<EventKey> duplicates = new TreeSet<EventKey>();
+				SortedSet<EventKey> invalids = new TreeSet<EventKey>();
+				for (EventKey currentKey : returnedEvents.keySet()) {
 
-				Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
-				Date currentKeyDate = currentKey.getDate();
-
-				if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
-					toRemove.add(currentKey);
-					toRemove.add(previousKey);
+					Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
+					Date currentKeyDate = currentKey.getDate();
+					
+					if (!validQuotationsDates.contains(currentKeyDate)) {
+						invalids.add(currentKey);
+					} else {
+						if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
+							duplicates.add(currentKey);
+							duplicates.add(previousKey);
+						}
+						previousKey = currentKey;
+					}
+					
 				}
-
-				previousKey = currentKey;
+				if (!invalids.isEmpty()) {
+					throw new WarningException("Invalid event dates for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "' : " + invalids);
+				}
+				if (!duplicates.isEmpty()) {
+					throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "' : " + duplicates);
+				}
+			} catch (Exception e) {
+				throw new ErrorException(e.toString(), e);
 			}
-			if (!toRemove.isEmpty()) throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "' : " + toRemove);
-
 			eData.putAll(returnedEvents);
 
 		}

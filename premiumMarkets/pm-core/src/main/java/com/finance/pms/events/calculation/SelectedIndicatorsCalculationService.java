@@ -6,14 +6,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -24,6 +27,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ObserverMsg;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class SelectedIndicatorsCalculationService {
 
@@ -49,7 +53,14 @@ public class SelectedIndicatorsCalculationService {
 
 	}
 
+	private Set<EventInfo> futureTracker;
+
+	public Set<EventInfo> getFutureTracker() {
+		return futureTracker;
+	}
+
 	public SelectedIndicatorsCalculationService() {
+		futureTracker = new HashSet<>();
 	}
 
 	public List<SymbolEvents> calculate(
@@ -59,7 +70,11 @@ public class SelectedIndicatorsCalculationService {
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 		List<Stock> failingStocks = new ArrayList<Stock>();
 
-		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
+		ThreadFactory namedThreadFactory = 
+				  new ThreadFactoryBuilder().setNameFormat("my-calculation-thread-%d").build();
+		ExecutorService executor = Executors.newFixedThreadPool(
+				Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")), 
+				namedThreadFactory);
 		try {
 
 			Map<Stock, List<Future<SymbolEvents>>> futuresMap = new HashMap<>();
@@ -82,6 +97,8 @@ public class SelectedIndicatorsCalculationService {
 						Future<SymbolEvents> submittedRunnable = executor.submit(calculationRunnable);
 						eventInfosFutures.add(submittedRunnable);
 					}
+	
+					futureTracker.addAll(stocksEventInfos.get(stock));
 					futuresMap.put(stock, eventInfosFutures);
 
 				} catch (Exception e1) {
@@ -108,7 +125,7 @@ public class SelectedIndicatorsCalculationService {
 						stockAllSymbolEvents.addEventResultElement(symbolEvents);
 						stockAllSymbolEvents.addAllCalculationOutput(symbolEvents.getCalculationOutputs());
 					} catch (ExecutionException executionException) {
-						LOGGER.warn("Failed : events for stock " + stock.toString() + " between "+dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
+						LOGGER.warn("Failed: events for stock " + stock.toString() + " between "+dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
 						Throwable cause = executionException.getCause();
 						if (cause instanceof IncompleteDataSetException) {
 							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> {
@@ -119,10 +136,14 @@ public class SelectedIndicatorsCalculationService {
 							failingStocks.add(stock);
 						}
 					} catch (Exception e) {
-						LOGGER.error("Failed : events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), e);
+						LOGGER.error(e, e);
+						LOGGER.error("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), e);
 						isDataSetComplete = false;
 						failingStocks.add(stock);
+					} finally {
+						futureTracker.removeAll(stocksEventInfos.get(stock));
 					}
+
 				}
 
 				//Output //TODO UI?

@@ -72,5 +72,9 @@ public class OperationValue<T> extends Value<T> implements Cloneable  {
 		return null;
 	}
 
+	@Override
+	public OperationValue<T> filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+		return this;
+	}
 
 }

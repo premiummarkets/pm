@@ -49,12 +49,12 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
 
-		@SuppressWarnings("unchecked")
-		List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-		SortedMap<Date, double[]> factorisedInput = ValueManipulator.buildOneInput(targetStock, developpedInputs, false);
-		List<String> inputsOperandsRefs = ValueManipulator.buildOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
-
 		try {
+			@SuppressWarnings("unchecked")
+			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
+			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, false);
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			
 			if (isExport) {
 				LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
 				String key = UUID.randomUUID() + "_" + this.getReference();
@@ -63,11 +63,14 @@ public class OneInputAssemblerOperation extends ArrayMapOperation {
 				headersPrefixes.put(key, inputsOperandsRefs);
 				SeriesPrinter.printo(key, "tmp", headersPrefixes, series);
 			}
+			
+			return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}
+		
+		return new DoubleArrayMapValue();
 
-		return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
 	}
 
 	@Override

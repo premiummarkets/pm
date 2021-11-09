@@ -854,7 +854,7 @@
             <outputSelector>exponential</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inputExporterOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsExporterOperation">
             <reference>outputExporter</reference>
             <description>Exports all assembled series to a file. Only tail NaN are permited.</description>
             <operands>
