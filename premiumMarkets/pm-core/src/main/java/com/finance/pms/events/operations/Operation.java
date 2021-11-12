@@ -364,6 +364,38 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public String getFormulaeTrimmed() {
 		return getFormulae().replaceAll("\\s+","");
 	}
+	
+	public String toFormulaeShort() {
+		if (operands.isEmpty()) return "";
+		return operands.stream().reduce("", (r, e) -> {
+			String formulaeShort = e.toFormulaeShort();
+			return r + ((formulaeShort.isEmpty())?"":((r.isEmpty())?"":"_") + formulaeShort);
+		}, (a, b) -> a + b);
+	}
+	
+	public String toFormulae() {
+		if (operands.isEmpty()) {
+			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
+				return ((StringableValue)this.getParameter()).getValueAsString();
+			} else {
+				return this.getReference();
+			}
+		}
+		String selector = (this.getOutputSelector() != null)?":"+this.getOutputSelector():"";
+		return this.getReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
+	}
+	
+	public String toFormulaeFriendly() {
+		if (operands.isEmpty()) {
+			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
+				return ((StringableValue)this.getParameter()).getValueAsString();
+			} else {
+				return this.getReference();
+			}
+		}
+		String selector = (outputSelector != null)?":"+outputSelector:"";
+		return this.getReference() + selector + "(" + operands.stream().reduce("", (r, e) ->r + ((r.isEmpty())?"":",") + e.toFormulaeFriendly(), (a, b) -> a + b) + ")";
+	}
 
 	public void setFormulae(String formula) {
 		this.formulae = formula;

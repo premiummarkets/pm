@@ -198,7 +198,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 			} catch (Exception e) {
 				LOGGER.warn(
-						e.toString() + ","
+						e.getMessage() + ","
 						+ " cause: " + ((e.getCause() != null)?e.getCause().toString():"unknown") + ". "
 						+ "child obj : " + child + "; root obj " + child.getAncestor(0) + "; operands : " + operands + ". Can't Instantiate : " + opPackage);
 			}

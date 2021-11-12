@@ -146,5 +146,20 @@ public class StockOperation extends DoubleMapOperation implements CachableOperat
 	public Integer operationNaturalShift() {
 		return 0;
 	}
+	
+	@Override
+	public String toFormulaeShort() {
+		return getOutputSelector().substring(0,1);
+	}
+	
+	@Override
+	public String toFormulaeFriendly() {
+		String value = ((StringValue) getOperands().get(0).getParameter()).getValue(null);
+		if (value.equals("THIS")) {
+			return getOutputSelector();
+		} else {
+			return this.getReference() + ":" + getOutputSelector() + "(\"" + value + "\")";
+		}
+	}
 
 }

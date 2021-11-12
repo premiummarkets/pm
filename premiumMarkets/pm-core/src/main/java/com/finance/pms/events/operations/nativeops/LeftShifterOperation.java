@@ -36,6 +36,7 @@ import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.LeftShifter;
@@ -79,6 +80,14 @@ public class LeftShifterOperation extends PMWithDataOperation {
 	@Override
 	public int operandsRequiredStartShift() {
 		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue();
+	}
+	
+	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "ls";
+		String shift = ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
+		List<Operation> ops = getOperands().subList(1, getOperands().size());
+		return thisShortName + "_" + shift + "_" + ops.stream().reduce("", (r, e) -> r + e.toFormulaeShort(), (a, b) -> a + b);
 	}
 
 }

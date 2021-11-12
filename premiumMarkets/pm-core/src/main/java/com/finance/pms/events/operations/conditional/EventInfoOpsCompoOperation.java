@@ -266,5 +266,16 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		return clone;
 	}
 
-
+	@Override
+	public String toFormulaeShort() {
+		return getReference().substring(0,1) + getReference().chars()
+				.filter(c -> Character.isUpperCase(c))
+				.mapToObj(cu -> (char) cu)
+				.reduce("", (r, e) -> r + e, (a, b) -> a + b);
+	}
+	
+	@Override
+	public String toFormulaeFriendly() {
+		return getReference() + "()";
+	}
 }

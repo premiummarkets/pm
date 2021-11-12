@@ -39,6 +39,7 @@ import java.util.SortedMap;
 import java.util.TreeSet;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
@@ -56,6 +57,10 @@ import com.tictactec.ta.lib.RetCode;
 
 public class TalibGenericOperation extends TalibOperation {
 
+	/**
+	 * TalibGenericOperation are not state less as instantiated on the fly when parsing the ta_lib
+	 * This state is the reflection of their definition, not their values
+	 */
 	private final List<String> inConstantsNames;
 	private final List<String> inDataNames;
 	private final List<String> outDataNames;
@@ -92,7 +97,7 @@ public class TalibGenericOperation extends TalibOperation {
 	protected SortedMap<Date, Double> innerCalculation(TargetStockInfo targetStock, MInteger outBegIdx, MInteger outNBElement, @SuppressWarnings("rawtypes") List<? extends Value> inputs) throws TalibException {
 
 		int inDataNamesArgsIdx = 2;
-		int constantArgIdx = inDataNamesArgsIdx+inDataNames.size();
+		int constantArgIdx = inDataNamesArgsIdx + inDataNames.size();
 		int outEleIdx = constantArgIdx + inConstantsNames.size();
 		int outDataArgIdx = outEleIdx + 2;
 		int outSize = outDataNames.size();
@@ -241,6 +246,16 @@ public class TalibGenericOperation extends TalibOperation {
 		}
 
 		return thisOperationStartShift+1;
+	}
+	
+	@Override
+	public String toFormulaeShort() {
+		String refa24z = getReference().substring(0,1) + (getReference().length() -2 )+ getReference().substring(getReference().length() -1); 
+		String contants = getOperands().subList(0, inConstantsNames.size()).stream()
+				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
+				.reduce("", (r, e) -> r + "_" + e, (a, b) -> a + "_" + b);
+		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
+		return refa24z + contants + "_" + ops.stream().reduce("", (r, e) -> r + e.toFormulaeShort(), (a, b) -> a + b);
 	}
 
 }
