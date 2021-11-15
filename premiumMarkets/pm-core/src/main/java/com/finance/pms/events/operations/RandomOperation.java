@@ -12,6 +12,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
@@ -26,11 +27,13 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.operations.conditional.EventMapValue;
+import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 
-public class RandomOperation extends EventMapOperation {
+public class RandomOperation extends EventMapOperation implements CachableOperation {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(RandomOperation.class);
 	
@@ -51,18 +54,42 @@ public class RandomOperation extends EventMapOperation {
 						new NumberOperation("number","max","Max Period length", new NumberValue(DEFAULT_MAX)),
 						new NumberOperation("number","mean","Mean of the Period lengths", new NumberValue(DEFAULT_MEAN)),
 						new NumberOperation("number","median","Median of the Period lengths", new NumberValue(DEFAULT_MEDIAN)),
-						new NumberOperation("number","std","Stdev of the Period lengths", new NumberValue(DEFAULT_STD)));
+						new NumberOperation("number","std","Stdev of the Period lengths", new NumberValue(DEFAULT_STD)),
+						new EventMapOperation("data", "duration_constraint", "Indicators compositions Event Map list", null));
 	}
 
 	@Override
 	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Double min = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		Double max = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
+		//Bla
+//		Double min = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+//		Double max = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();
 		Double mean = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue();
-		Double median = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
+//		Double median = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
 		Double std = ((NumberValue) inputs.get(4)).getValue(targetStock).doubleValue();
+//		double gr = 10;
 		
+		//Constraint
+		SortedMap<Date, Double> constraint = ((EventMapValue) inputs.get(5)).getValue(targetStock);
+		double constraintMean = 0;
+		double constraintStdev = 0;
+		if (constraint != null && !constraint.isEmpty() && constraint.size() >= 2) {
+			List<Date> constraintDates = new ArrayList<Date>(constraint.keySet());
+			List<Integer> filter = IntStream.range(1, constraint.size())
+					.filter(i -> !constraint.get(constraintDates.get(i-1)).equals(constraint.get(constraintDates.get(i))))
+					.boxed()
+					.collect(Collectors.toList());
+			double[] periods = IntStream.range(1, filter.size())
+					.map(i -> QuotationsFactories.getFactory().nbOpenIncrementBetween(constraintDates.get(filter.get(i-1)), constraintDates.get(filter.get(i))))
+					.mapToDouble(i -> (double) i).toArray();
+			Mean meanCalc = new Mean();
+			constraintMean = meanCalc.evaluate(periods);
+			StandardDeviation deviationCalc = new StandardDeviation();
+			constraintStdev = deviationCalc.evaluate(periods);
+		}
+		
+		
+		//Init
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 			
 		Date startDate = targetStock.getStartDate(thisStartShift);
@@ -78,18 +105,30 @@ public class RandomOperation extends EventMapOperation {
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(startDate);
-		
-		
-		double gr = 10;
+
+		//Calculation
 		//DoubleStream randomDoubles = new SecureRandom().doubles(Math.log10(min)/Math.log10(gr), Math.log10(max)/Math.log10(gr));
-		DoubleStream randomDoubles = new SecureRandom().doubles(0, 1);
+		DoubleStream randomDoubles = new SecureRandom().doubles(-1, 1);
+		//TODO nextGaussian()? new SecureRandom().nextGaussian()
+		final double constraintMeanF = constraintMean;
+		final double constraintStdevF = Math.min(constraintStdev, constraintMean -1);
+		LOGGER.info("constraintMean: " + constraintMeanF + ". constraintStdev: " + constraintStdev);
 		TreeMap<EventKey, EventValue> randomEvents = randomDoubles
 			.mapToObj(random -> {
-				//x = log(1-u)/(-lambda)
-				//int duration = (int) Math.pow(gr, random);
-				int duration = (int) (Math.log(1-random)/(-1d/0.5d));
-				
-				LOGGER.info("duration: " + duration + ". From ln: " + random);
+				int duration = 0;
+				if (!Double.isNaN(constraintMeanF) && constraintMeanF != 0) {
+//					final double delta = (2*random-1);
+//					duration = (int) Math.round(constraintMeanF + delta * constraintStdevF);
+					duration = (int) (constraintStdevF*random + constraintMeanF);
+					LOGGER.info("duration (constrained): " + duration + ". From random: " + random);
+				} else {
+					//x = log(1-u)/(-lambda)
+					//int duration = (int) Math.pow(gr, random);
+					//duration = 1 + (int) -(Math.log(random)); //FIXME stdev is too low (how to generate a random series with known mean and variance?)
+					duration = (int) (std*random + mean);
+					LOGGER.info("duration: " + duration + ". From random: " + random);
+				}
+				if (duration < 1) throw new RuntimeException("Duration must be >= 1");
 				calendar.add(Calendar.DAY_OF_YEAR, duration);
 				Date eventDate = calendar.getTime();
 				calendar.setTime(eventDate);
@@ -139,6 +178,11 @@ public class RandomOperation extends EventMapOperation {
 		evaluate = stdev.evaluate(r);
 		LOGGER.info("StandardDeviation: " + evaluate);
 		
+	}
+
+	@Override
+	public Integer operationNaturalShift() {
+		return 0;
 	}
 
 }

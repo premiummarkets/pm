@@ -50,8 +50,9 @@ public class EqualConstantCondition extends CmpConstantCondition {
 		Double threshold = (Double) ops[1];
 		Double epsilonMaxError = ((Double) ops[2])/100;
 		return
-				threshold < current && Math.abs((current-threshold)/threshold) <= epsilonMaxError &&
-				current < threshold && Math.abs((threshold-current)/current) <= epsilonMaxError;
+				threshold == current ||
+				(threshold < current && Math.abs((current-threshold)/threshold) <= epsilonMaxError) ||
+				(current < threshold && Math.abs((threshold-current)/current) <= epsilonMaxError);
 	}
 
 }

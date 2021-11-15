@@ -293,6 +293,14 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
+                <operand xsi:type="eventMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>duration_constraint</referenceAsOperand>
+                    <description>Indicators compositions Event Map list</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>

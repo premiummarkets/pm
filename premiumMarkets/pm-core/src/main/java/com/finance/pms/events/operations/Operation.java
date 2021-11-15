@@ -608,6 +608,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.operands.set(i, replacementOp);
 	}
 
+	//The shift left necessary for this operation to provide output at start date.
 	public abstract int operandsRequiredStartShift();
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
