@@ -119,13 +119,13 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 				if (!Double.isNaN(constraintMeanF) && constraintMeanF != 0) {
 //					final double delta = (2*random-1);
 //					duration = (int) Math.round(constraintMeanF + delta * constraintStdevF);
-					duration = (int) (constraintStdevF*random + constraintMeanF);
+					duration = (int) Math.round((constraintStdevF*random + constraintMeanF));
 					LOGGER.info("duration (constrained): " + duration + ". From random: " + random);
 				} else {
 					//x = log(1-u)/(-lambda)
 					//int duration = (int) Math.pow(gr, random);
 					//duration = 1 + (int) -(Math.log(random)); //FIXME stdev is too low (how to generate a random series with known mean and variance?)
-					duration = (int) (std*random + mean);
+					duration = (int) Math.round((std*random + mean));
 					LOGGER.info("duration: " + duration + ". From random: " + random);
 				}
 				if (duration < 1) throw new RuntimeException("Duration must be >= 1");

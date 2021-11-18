@@ -54,7 +54,7 @@ public class IOsExporterOperation extends Operation {
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
-			String fileName = filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
+			String fileName = filePrefix + "_" + "k_training" + "_" + UUID.randomUUID(); // filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();
 			series.put(filePrefix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(filePrefix, inputsOperandsRefs);

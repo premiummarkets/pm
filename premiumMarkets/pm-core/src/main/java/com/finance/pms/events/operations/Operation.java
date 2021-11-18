@@ -266,7 +266,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.parameter = parameter;
 	}
 
-	//Must have one param per operand in the same order. Null parameter does nothing
+	//Must have one param per operand in the same order.
+	//Null parameter does nothing and leave the operand for calculation.
 	public void setOperandsParams(Value<?>... parameters) {
 		for (int i = 0; i < operands.size(); i++) {
 			Value<?> parameter = parameters[i];
@@ -608,8 +609,21 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.operands.set(i, replacementOp);
 	}
 
-	//The shift left necessary for this operation to provide output at start date.
+	/**
+	 * The shift left necessary for this operation to provide output at start date.
+	 */
 	public abstract int operandsRequiredStartShift();
+	
+	/**
+	 * This gives how far the leafs operands will have to shift
+	 */
+	public int operandsRequiredStartShiftRecursive() {
+		if (operands.isEmpty()) return 0;
+		return operands.stream().reduce(0, (r, e) -> {
+			int thisOperandsShift = e.operandsRequiredStartShift();
+			return r + thisOperandsShift + e.operandsRequiredStartShiftRecursive();
+		}, (a, b) -> a + b);
+	}
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
 	//This can be overridden by making this operation itself not idempotent
