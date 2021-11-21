@@ -33,12 +33,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.conditional.EventMapValue;
+import com.finance.pms.events.operations.nativeops.AnyValueListValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
 @XmlRootElement
-@XmlSeeAlso({NumberValue.class, NumericableMapValue.class, EventMapValue.class, StringValue.class})
+@XmlSeeAlso({NumberValue.class, NumericableMapValue.class, EventMapValue.class, StringValue.class, AnyValueListValue.class})
 public abstract class Value<T> implements Cloneable {
 
 	public Value() {

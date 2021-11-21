@@ -463,6 +463,13 @@
             <outputSelector>close</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listOperation">
+            <reference>list of things</reference>
+            <description>List of things.</description>
+            <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inverseOperation">
             <reference>inverse</reference>
             <description>Unary Product inverse. Divide a constant by the input.</description>

@@ -17,7 +17,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 
-public class IOsExporterOperation extends Operation {
+public class IOsExporterOperation extends StringerOperation {
 
 	private static final int FIRST_INPUT = 2;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);

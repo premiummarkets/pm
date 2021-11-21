@@ -15,7 +15,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-public class CsvFileFilterOperation extends Operation {
+public class CsvFileFilterOperation extends StringerOperation {
 	
 	private static Logger LOGGER = Logger.getLogger(CsvFileFilterOperation.class);
 

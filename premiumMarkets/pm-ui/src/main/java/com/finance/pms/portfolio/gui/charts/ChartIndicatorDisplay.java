@@ -670,11 +670,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 							}
 						});
 						Set<Thread> runningThreads = Thread.getAllStackTraces().keySet();
-						runningThreads.stream()
-							.filter(t -> t.getName().contains("my-calculation-thread"))
-							.forEach(t -> t.interrupt());
-						boolean allInterrupted = runningThreads.stream()
-								.allMatch(t -> t.getName().contains("my-calculation-thread") && t.isInterrupted());
+						List<Thread> filter = runningThreads.stream()
+								.filter(t -> t.getName().contains("my-calculation-thread"))
+								.collect(Collectors.toList());
+						filter.stream().forEach(t -> t.interrupt());
+						boolean allInterrupted = filter.stream().allMatch(t -> t.isInterrupted());
 						if (allInterrupted) analyzer.getFutureTracker().clear();
 						super.widgetSelected(evt);
 					}

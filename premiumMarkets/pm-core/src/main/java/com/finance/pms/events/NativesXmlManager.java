@@ -48,6 +48,7 @@ import com.finance.pms.events.operations.nativeops.IOsExporterOperation;
 import com.finance.pms.events.operations.nativeops.IndicatorStatsOperation;
 import com.finance.pms.events.operations.nativeops.InverseOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
+import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.MathOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
@@ -81,7 +82,7 @@ public class NativesXmlManager {
 
 	public NativesXmlManager(String xmlfile) {
 		super();
-		this.xmlfile = System.getProperty("installdir")+File.separator+xmlfile+".xml";
+		this.xmlfile = System.getProperty("installdir") + File.separator + xmlfile + ".xml";
 	}
 
 	public NativeOperations initNativeOperations () {
@@ -106,6 +107,9 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(unaryProduct);
 		UnaryDivision unaryDivision = new UnaryDivision();
 		nativeOperations.addOperation(unaryDivision);
+		
+		ListOperation listOperation = new ListOperation();
+		nativeOperations.addOperation(listOperation);
 
 		//Stock
 		StockOperation stockOperation = new StockOperation();

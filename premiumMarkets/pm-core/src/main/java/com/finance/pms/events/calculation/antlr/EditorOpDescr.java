@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
@@ -45,7 +46,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 	public enum ParamType {
 
 		//TODO MAType could just be a String as well, no need for a particular case here
-		NUMBER(NumberOperation.class, "Number"), DATA (MapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String");
+		NUMBER(NumberOperation.class, "Number"), DATA (MapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String"), LIST (ListOperation.class, "ListOperation");
 
 		Class<? extends Operation> operandClass;
 		String typeDescr;
@@ -74,6 +75,8 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 				return MATYPE;
 			} else if (tokenName.equals("String")) {
 				return STRING;
+			} else if (tokenName.equals("ListOperation")) {
+				return LIST;
 			}
 			else {
 				for (String stockOutput : EditorLexerDelegate.HISTORICALDATA_TOKENS) {

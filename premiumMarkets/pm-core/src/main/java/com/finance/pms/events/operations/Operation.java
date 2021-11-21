@@ -49,8 +49,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
-import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
-import com.finance.pms.events.operations.nativeops.IOsExporterOperation;
+import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
@@ -58,6 +57,7 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.StringerOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.events.quotations.QuotationDataType;
@@ -69,10 +69,9 @@ import com.finance.pms.events.quotations.QuotationDataType;
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
-	Condition.class, MapOperation.class,
+	Condition.class, MapOperation.class, StringerOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
-	TargetStockInfoOperation.class,
-	IOsExporterOperation.class, CsvFileFilterOperation.class})
+	TargetStockInfoOperation.class, ListOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -176,9 +175,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 					Operation operand = operands.get(i);
 					Value<?> output = operand.run(targetStock, thisCallStack, thisOperandsRequiredStartShift);
+					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift);
 					output = output.filterToParentRequierements(targetStock, thisOperandsRequiredStartShift, this);
 					operandsOutputs.add(output);
-					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift);
 
 				}
 
@@ -533,7 +532,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		String operandsSynoptic = "";
 		String sep = "";
 		for (Operation operand : operands) {
-			operandsSynoptic = operandsSynoptic + sep+ operand.synoptic();
+			operandsSynoptic = operandsSynoptic + sep + operand.synoptic();
 			sep = ", ";
 		}
 		String outputSelectorSynoptic = "";
@@ -545,8 +544,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		String referenceSyno = ParameterizedOperationBuilder.readableCamelCase(((this.referenceAsOperand != null)?this.referenceAsOperand:this.reference));
 		String defaultSyno = (defaultValue == null)?"":" (defaults to "+((StringableValue) defaultValue).getValueAsString()+")";
-		String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":"\nOutput selectors : "+outputSelectorSynoptic;
-		String paramsSyno = (operandsSynoptic.isEmpty())?"":"\nOperands : "+operandsSynoptic;
+		String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":"\nOutput selectors : " + outputSelectorSynoptic;
+		String paramsSyno = (operandsSynoptic.isEmpty())?"":"\nOperands : " + operandsSynoptic;
 		return referenceSyno + defaultSyno + outSelectorSyno + paramsSyno;
 
 	}

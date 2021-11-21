@@ -165,11 +165,11 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	private Operation instanciateOperation(CommonTree child, ArrayList<Operation> operands, String outputSelector) throws Exception {
 
 		//If there is a pre parameterised operation, we use it
-		Operation nativeOperations = fetchNativeOperation(child.getText());
-		if (nativeOperations != null) {
-			LOGGER.debug("Cloning pre parameterised native op : "+nativeOperations);
+		Operation nativeOperation = fetchNativeOperation(child.getText());
+		if (nativeOperation != null) {
+			LOGGER.debug("Cloning pre parameterised native op : " + nativeOperation);
 
-			Operation clone = (Operation) nativeOperations.clone();
+			Operation clone = (Operation) nativeOperation.clone();
 			clone.setOperands(operands);
 			clone.setOutputSelector(outputSelector);
 			return clone;
@@ -179,7 +179,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 		//No native. If there is a user operation, we use it
 		if (userOperation != null) {
-			LOGGER.debug("Using user op : "+userOperation);
+			LOGGER.debug("Using user op : " + userOperation);
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
 			return userOperation;
 		}
@@ -206,7 +206,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		}
 
 		//All above as failed : snd pass marker (for user defined operations)
-		LOGGER.debug(this.operationName+ " is missing reference : "+child +"; Parent object "+child.getAncestor(0)+ "; operands : "+operands+". Could not instanciate. Will be parked for now.");
+		LOGGER.debug(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
 		missingReference = child.getText();
 		threadSuspended = true;
 		synchronized(this) {

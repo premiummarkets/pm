@@ -39,7 +39,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
-public class StringValue extends Value<String> implements StringableValue, Cloneable  {
+public class StringValue extends Value<String> implements StringableValue, Cloneable {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(StringValue.class);
 	

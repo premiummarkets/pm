@@ -9,6 +9,7 @@ tokens {
   Number;
   MAType;
   String;
+  ListOperation;
   StockOperation;
   OperationOutput;
 }
@@ -124,8 +125,9 @@ userop :
 
 params : param (',' param)* -> param+ ;
 param : NumberToken ->  ^(Number NumberToken) | NaNNumber -> ^(Number NumberToken["NaN"]) | MATypeToken -> ^(MAType MATypeToken) | StringToken -> ^(String StringToken) | operand;
-operand : stockhistory -> stockhistory | expression ;
+operand : stockhistory -> stockhistory | listOParams | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""]));
+listOParams : '[]' -> ^(ListOperation) | '[' param (',' param)* ']' -> ^(ListOperation param+);
 
 HistoricalData
      : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low' | 'volume')

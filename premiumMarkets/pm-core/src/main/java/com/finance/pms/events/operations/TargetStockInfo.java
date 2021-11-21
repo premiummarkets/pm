@@ -59,6 +59,7 @@ import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.operations.nativeops.StockOperation;
 
 public class TargetStockInfo {
 
@@ -207,12 +208,15 @@ public class TargetStockInfo {
 		//XXX All operation will be checked although we know only numericable outputs and outputs for cachable are stored?/
 		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation, outputSelector)));
 		if (indexOf == -1 || (parentRequiredStartShift > calculatedOutputsCache.get(indexOf).getStartShift())) {
+			if (indexOf != -1) calculatedOutputsCache.remove(indexOf);
 			return null;
 		}
 		return calculatedOutputsCache.get(indexOf).outputData;
 	}
 
 	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int oprationRequiredStartShift) {
+		
+		if (operation instanceof StockOperation) return; //We don't cache stock as this is managed in the Quotations classes.
 
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), oprationRequiredStartShift);
 		if (alreadyCalculated != null) {
@@ -383,7 +387,12 @@ public class TargetStockInfo {
 	public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {
 		return outputAnalysers;
 	}
-
+	/**
+	 * 
+	 * @param operation
+	 * @param callStack
+	 * @param operandsOutputs Only used here to resolve NumberValues(like threshold) and Values type (is NumericableMapValue). The content should not be used otherwise
+	 */
 	public void populateChartedOutputGroups(Operation operation, String callStack, List<Value<?>> operandsOutputs) {
 
 		Boolean displayByDefault = callStack.contains("bullishCondition") || callStack.contains("bearishCondition");
