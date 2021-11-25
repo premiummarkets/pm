@@ -436,7 +436,7 @@ public class EventsResources {
 		Set<String> eventListNamesSet = disctinctNames(eventListNames);
 
 		//Result building
-		SymbolEvents retVal =  new SymbolEvents(stock, EventState.STATE_TERMINATED);
+		SymbolEvents retVal = new SymbolEvents(stock, EventState.STATE_TERMINATED);
 		if (isEventCached) {
 
 			//Updating soft cache (if not present for eventlistName, stock and eventDefinition)
@@ -452,7 +452,7 @@ public class EventsResources {
 
 				EventsForAnalisysNameCacheHolder eventsForEventListName = EVENTS_CACHE.get(eventListName);
 				if (eventsForEventListName == null) {
-					LOGGER.info("No events cached for " + eventListName+ " and "+stock + " from "+startDate+" to "+endDate);
+					LOGGER.info("No events cached for " + eventListName + " and " +stock + " from " + startDate + " to " + endDate);
 				} else {
 					try {
 						retVal = readDateRangeSubSoftCachedEvents(stock, startDate, endDate, eventsForEventListName, eventListName, eventDefinitions);
@@ -543,7 +543,7 @@ public class EventsResources {
 		EventCacheEntry endSupEvent = bigestCacheEntry(endDate);
 
 		EventCacheEntryList eventsForStockAndName = new EventCacheEntryList(new EventCacheEntryComparator());
-		//FIXME too slow ... Cache should be stored in date order and cummulated using sub lists
+		//FIXME too slow ... Cache should be stored in date order and accumulated using sub lists
 		eventsForStockAndName.addAll(eventDefinitions.stream().flatMap(ei -> eventsForName.readEventsFromStockCache(stock, ei).stream()).collect(Collectors.toSet()));
 		if (eventsForStockAndName != null && !eventsForStockAndName.isEmpty()) {
 			try {
