@@ -305,7 +305,8 @@ public class ChartMain extends Chart {
 
 				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDateForChart();
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
-
+				
+				//Domain
 				xAxis = new DateAxis();
 				xAxis.setAutoRange(true);
 				xAxis.setTimeline(tradingTimeLine());
@@ -313,7 +314,7 @@ public class ChartMain extends Chart {
 				xAxis.setMinorTickMarksVisible(true);
 				if (jFreeTimePeriod.equals(JFreeChartTimePeriod.DAY)) xAxis.setDateFormatOverride(new SimpleDateFormat("dd MMM yy"));
 
-				///	Y axis
+				///Stock upper chart Y axis
 				//Line Y axis
 				mainYAxis = new NumberAxis();
 				mainYAxis.setAutoRange(true);
@@ -321,7 +322,7 @@ public class ChartMain extends Chart {
 				mainYAxis.setTickLabelFont(mainYAxis.getTickLabelFont().deriveFont(7f));
 				mainYAxis.setLabelFont(mainYAxis.getLabelFont().deriveFont(10f));
 
-				//Indicator Y axis (indicator is not showing at init)
+				//Indicators lower chart Y axis (indicators is not showing at init)
 				//indicYAxis = initYAxis();
 
 				/// Plots
@@ -656,8 +657,8 @@ public class ChartMain extends Chart {
 					resetVerticalLines(plotArea);
 					ValueAxis rangeAxis = indicPlot.getRangeAxis();
 					if (rangeAxis != null) {
-						rangeAxis.setAutoRange(true);
-						rangeAxis.setAutoRangeMinimumSize(Double.MIN_VALUE);
+						//rangeAxis.setAutoRange(true);
+						//rangeAxis.setAutoRangeMinimumSize(Double.MIN_VALUE);
 					}
 
 				} catch (Exception e) {

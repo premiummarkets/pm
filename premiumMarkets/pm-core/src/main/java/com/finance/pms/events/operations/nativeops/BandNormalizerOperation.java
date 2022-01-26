@@ -51,8 +51,8 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	public BandNormalizerOperation() {
 		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
 				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
-				new StringOperation("boolean","keepZero","Keep distance ratio of min and max to zero as the original", new StringValue("FALSE")),
-				new NumberOperation("integer", "trimFactor", "Stdev trim factor. Will only work for oscillators", new NumberValue(Double.NaN)),
+				new NumberOperation("actual center","actualCenter","Keep distance ratio of min and max to the data relative specified center (NaN accepted).", new NumberValue(Double.NaN)),
+				new NumberOperation("integer", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
@@ -66,9 +66,9 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
-		int lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
-		int upperThreshold = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
-		Boolean keepZero = Boolean.valueOf(((StringValue)inputs.get(2)).getValue(targetStock));
+		double lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
+		double upperThreshold = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
+		double actualCenter = ((NumberValue)inputs.get(2)).getValue(targetStock).doubleValue();
 		Double trimFactor = ((NumberValue)inputs.get(3)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
 
@@ -82,13 +82,13 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 				trimmed = trimmer.sTrimmed(data);
 			}
 			
-			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmed.firstKey(), trimmed.lastKey(), lowerThreshold, upperThreshold, keepZero);
+			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmed.firstKey(), trimmed.lastKey(), lowerThreshold, upperThreshold, actualCenter);
 			SortedMap<Date, Double> normalized = normalizer.normalised(trimmed);
 			
 			ret.getValue(targetStock).putAll(normalized);
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
 		}
 		return ret;
 	}

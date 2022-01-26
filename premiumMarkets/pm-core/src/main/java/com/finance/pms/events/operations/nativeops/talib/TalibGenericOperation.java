@@ -232,6 +232,11 @@ public class TalibGenericOperation extends TalibOperation {
 
 		throw new TalibException("Ooops", new Exception());
 	}
+	
+	@Override
+	public Boolean isIdemPotent() {
+		return false;
+	}
 
 	@Override
 	public int operandsRequiredStartShift() {

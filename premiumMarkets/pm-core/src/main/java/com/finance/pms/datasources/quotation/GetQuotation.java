@@ -106,6 +106,12 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 			Boolean updateGranted = null;
 			Date updateStart = null;
 
+			LastUpdateStampChecker lastUpdateChecker = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
+			
+			synchronized (lastUpdateChecker) {
+				updateGranted = lastUpdateChecker.isUpdateGranted(stock.getSymbol(), stock.getLastQuote());
+			}
+			
 			try {
 
 				Calendar startDayMidNight = Calendar.getInstance();
@@ -113,36 +119,26 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 				startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
 				updateStart = startDayMidNight.getTime();
 
-				if (dateFin.before(updateStart)) {//Update not needed
-					LOGGER.info("Quotation for " + stock.getFriendlyName() + " are up to date to the " + new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
-				} else {//Check last quote update
-					LastUpdateStampChecker lastUpdateChecker = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
-					synchronized (lastUpdateChecker) {
-						updateGranted = lastUpdateChecker.isUpdateGranted(stock.getSymbol());
-					}
-					if (forceReset || forceUpdate || updateGranted) { //Update granted for today
+				if (forceReset || forceUpdate || updateGranted) { //Update granted for today
 
-						LOGGER.guiInfo(	"Updating quotation for " + stock.getFriendlyName() +
-								" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 
-								" to " + new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
+					LOGGER.guiInfo(	"Updating quotation for " + stock.getFriendlyName() +
+							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 
+							" to " + new SimpleDateFormat("yyyy/MM/dd").format(dateFin));
 
-						Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, updateStart, dateFin);
-						ret.isSuccessfulUpdate = true;
-						
-						LOGGER.guiInfo(
-								"Done quotations for " + stock.getFriendlyName() +
-								" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 
-								" to " + new SimpleDateFormat("yyyy/MM/dd").format(dateFin) +
-								" STATUS : Success " + ret.isSuccessfulUpdate);
+					Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, updateStart, dateFin);
+					ret.isSuccessfulUpdate = true;
+					
+					LOGGER.guiInfo(
+							"Done quotations for " + stock.getFriendlyName() +
+							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 
+							" to " + new SimpleDateFormat("yyyy/MM/dd").format(dateFin) +
+							" STATUS : Success " + ret.isSuccessfulUpdate);
 
-					} else {//No Update : already done today
+				} else {//No Update : already done today
 
-						ret.isSuccessfulUpdate = null;
-						LOGGER.info(
-								"Ungranted quotation update for " + stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin + ": "
-								+ "nothing to do as last update was on the " + lastUpdateChecker.getLastUpDateStampRecord(stock.getSymbol()));
+					ret.isSuccessfulUpdate = null;
+					LOGGER.info("Ungranted quotation update for " + stock.getFriendlyName()+" from the " + updateStart + " to " + dateFin );
 
-					}
 				}
 
 			} catch (Exception e) {
@@ -161,24 +157,21 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 
 			}
 
-			Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
+			Date lastQuoteExUsers = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
 
-			if (lastQuote.after(dateAtZero)) {//existing data (could be user)
-				if (lastQuoteBeforeUpdate.equals(dateAtZero) && (ret.isSuccessfulUpdate == null || !ret.isSuccessfulUpdate)) {//but from web was 10700101 and no update was made
-					ret.hasPreviousQuotations = false;
-				} else {//and update was successful
-					ret.hasPreviousQuotations = true;
-				}
-			} else {
+			if (lastQuoteExUsers.after(dateAtZero)) {//Existing data (not including user's)
+				ret.hasPreviousQuotations = true;
+			} else {//and update was successful
 				ret.hasPreviousQuotations = false;
 			}
 
-			if (ret.isSuccessfulUpdate != null && ret.isSuccessfulUpdate && (lastQuote.after(lastQuoteBeforeUpdate) || lastQuote.equals(lastQuoteBeforeUpdate))) {
+			if (ret.isSuccessfulUpdate != null && ret.isSuccessfulUpdate && (lastQuoteExUsers.after(lastQuoteBeforeUpdate))) {
 				ret.hasNewQuotations = true;
 			} else {
 				ret.hasNewQuotations = false;
 			}
 
+			Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
 			stock.setLastQuote(lastQuote);
 			updateLastQuoteDateForShareInDB(lastQuote);
 
@@ -188,6 +181,9 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 							+ "New data " + ret.hasNewQuotations + ", Has previous data " + ret.hasPreviousQuotations + 
 							" (ex. User Entries with overshadowing " + stock.isOverrideUserQuotes() + ")");
 
+			if (ret.hasNewQuotations) {
+				lastUpdateChecker.resetFatalThreshold(stock.getSymbol());
+			}
 			if (forceReset) {
 				Quotations.removeCachedStockKey(stock);
 			} else {

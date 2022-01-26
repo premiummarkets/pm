@@ -39,6 +39,22 @@ public class ValueManipulator {
 				});
 		return inputsOperandsRefs;
 	}
+	
+	public static List<String> extractOperandFormulaeShort(List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
+		List<String> inputsOperandsRefs = new ArrayList<String>();
+		IntStream.range(0, operands.size())
+				.forEach(i -> {
+					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
+						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
+							.forEach(cRef -> inputsOperandsRefs.add(cRef + ((inputsOperandsRefs.contains(cRef))?Integer.toString(i):"")));
+					} else { 
+						String fShort = operands.get(i).toFormulaeShort();
+						inputsOperandsRefs.add(fShort + ((inputsOperandsRefs.contains(fShort))?Integer.toString(i):""));
+					}
+				});
+		return inputsOperandsRefs;
+	}
+
 
 	public static SortedMap<Date, double[]> inputListToArray(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN) throws NoQuotationsException, NotEnoughDataException {
 		

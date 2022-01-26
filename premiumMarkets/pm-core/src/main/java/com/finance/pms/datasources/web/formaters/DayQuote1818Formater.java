@@ -108,7 +108,7 @@ public class DayQuote1818Formater extends LineFormater {
 			case 5 :
 				Matcher fitVolume = volumePattern.matcher(line);
 				if (fitVolume.find()) {
-				    LOGGER.debug("volume : "+line+" at cpt : "+cpt);
+				    LOGGER.debug("volume : " + line + " at cpt : " + cpt);
 					LinkedList<Comparable<?>> mainQuery = new LinkedList<Comparable<?>>();
 					Calendar calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(date.atTime(0, 0).toEpochSecond(ZoneOffset.UTC)*1000);
@@ -124,7 +124,7 @@ public class DayQuote1818Formater extends LineFormater {
 				break;
 			}
 		} catch (Exception e) {
-		    LOGGER.debug(line+" at cpt : "+cpt);
+		    LOGGER.debug(line + " at cpt : " + cpt);
 			cpt = 0;
 			e.printStackTrace();
 		}

@@ -184,6 +184,8 @@ public class TuningResDTO implements Serializable {
 			if ("BULLISH".equals(currentPeriod.getTrend())) {//We can't use Enums in a DTO
 				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
+					System.out.println(String.format("roc: %s at %s", bullishPeriodRateOfChange, currentPeriod.getTo()));
+					System.out.println(String.format("totalROC: %s", totalROC));
 					nbBullishPeriods++;
 					totalROC = totalROC + bullishPeriodRateOfChange;
 					if (bullishPeriodRateOfChange < 0) {
@@ -199,11 +201,15 @@ public class TuningResDTO implements Serializable {
 				};
 			}
 		}
+		System.out.println(String.format("totalROC: %s", totalROC));
 		Double avgROC = totalROC / nbBullishPeriods;
 		Double failedBullishRatio = nbFailedBullishPeriod / nbBullishPeriods;
 		
 		double successTotalROC = totalROC - failedTotalROC;
 		double totalSpan = successTotalROC + Math.abs(failedTotalROC); //failedTotalROC is negative
+		System.out.println(String.format("Total span: %s", totalSpan));
+		System.out.println(String.format("failedTotalROC: %s", failedTotalROC));
+		System.out.println(String.format("successTotalROC: %s", successTotalROC));
 		Double failureWeigh = failedTotalROC / totalSpan;
 		Double successWeigh = successTotalROC / totalSpan;
 		

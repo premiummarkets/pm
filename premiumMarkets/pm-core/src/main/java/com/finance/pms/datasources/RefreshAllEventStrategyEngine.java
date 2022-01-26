@@ -223,9 +223,9 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	public int[] otherViewParamPositionsFor(TaskId taskId) {
 		switch (taskId) {
 		case Analysis:
-		case Clean :
+		case Clean:
 			return new int[]{0};
-		default :
+		default:
 			return new int[]{};
 		}
 	}

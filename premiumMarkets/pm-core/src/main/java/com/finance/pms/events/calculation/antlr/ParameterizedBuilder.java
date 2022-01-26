@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -444,26 +445,28 @@ public abstract class ParameterizedBuilder extends Observable {
 	protected abstract List<Operation> updateCaches(Operation operation, Boolean isNewOp);
 
 	protected void moveToTrash(String identifier) {
-		Boolean moved = move(identifier, userOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
-		if (!moved) move(identifier, disabledUserOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath());
+		Boolean moved = move(identifier, userOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath(), true);
+		if (!moved) move(identifier, disabledUserOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath(), true);
 	}
 
 	protected void moveToDisabled(String identifier) {
-		move(identifier, userOperationsDir.getAbsolutePath(), disabledUserOperationsDir.getAbsolutePath());
+		move(identifier, userOperationsDir.getAbsolutePath(), disabledUserOperationsDir.getAbsolutePath(), false);
 	}
 
 	private void moveToEnabled(String identifier) {
-		move(identifier, disabledUserOperationsDir.getAbsolutePath(), userOperationsDir.getAbsolutePath());
+		move(identifier, disabledUserOperationsDir.getAbsolutePath(), userOperationsDir.getAbsolutePath(), false);
 	}
 
-	private Boolean move(String identifier, String from, String to) {
-		File origFile = new File(from + File.separator + identifier+ ".txt");
-		File destFile = new File(to + File.separator + identifier+ ".txt");
-		return origFile.renameTo(destFile);
+	private Boolean move(String identifier, String from, String to, boolean tamper) {
+		File origFile = new File(from + File.separator + identifier + ".txt");
+		File destFile = new File(to + File.separator + identifier + ".txt");
+		boolean isRenamedTo = origFile.renameTo(destFile);
+		if (isRenamedTo && tamper) destFile.setLastModified(new Date().getTime());
+		return isRenamedTo;
 	}
 
 	private void saveUserOperation(String identifier, String formula) throws IOException {
-		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier + ".txt");
 		BufferedWriter outputStream = new BufferedWriter(new FileWriter(formulaFile));
 		outputStream.write(formula);
 		outputStream.close();

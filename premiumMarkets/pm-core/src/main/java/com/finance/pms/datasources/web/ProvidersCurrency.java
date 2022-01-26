@@ -65,7 +65,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 		
 		
 		if (!currencyStock.getCategory().equals(StockCategories.CURRENCY_RATE)) {
-			throw new RuntimeException("Error : This should be used to retrieve currency historical only, not : "+currencyStock.toString());
+			throw new RuntimeException("Error: This should be used to retrieve currency historical only, not: "+currencyStock.toString());
 		}
 		
 		//Fetch rates

@@ -68,6 +68,7 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
             LOGGER.debug("",e);
         }
 
+        //https://query1.finance.yahoo.com/v7/finance/download/CNDX.L?period1=1284508800&period2=1642723200&interval=1d&events=history&includeAdjustedClose=true
         //Sat, 20 Jan 2018 21:07:49 GMT
         //Tue, 20 Feb 2018 21:07:49 GMT
         //String url = "https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516482469&period2=1519160869&interval=1d&events=history"+"&crumb="+crumb;
@@ -75,7 +76,7 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
         //              https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516490318&period2=1519168718&interval=1d&events=history&crumb=9Gm6dOkKT.K
         String url = "https://query1.finance.yahoo.com/v7/finance/download/" + symbol + "?"+
                 "period1="+startDate+"&period2="+endDate +
-                "&interval=1d&events=history"+
+                "&interval=1d&events=history&includeAdjustedClose=true"+
                 "&crumb="+crumb;
 
         LOGGER.debug(url);

@@ -52,10 +52,10 @@ public class Normalizer<T> {
 	protected final Date end;
 	private final double maxNorm;
 	private final double minNorm;
-	private final boolean keepDistanceToZero;
+	private final double actualCenter;
 
 
-	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, boolean keepDistanceToZero) {
+	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, double actualCenter) {
 
 		this.genType = genType;
 
@@ -69,11 +69,11 @@ public class Normalizer<T> {
 		this.minNorm = minNorm;
 		this.maxNorm = maxNorm;
 
-		this.keepDistanceToZero = keepDistanceToZero;
+		this.actualCenter = actualCenter;
 	}
 
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm) {
-		this(genType, start, end, minNorm, maxNorm, false);
+		this(genType, start, end, minNorm, maxNorm, Double.NaN);
 	}
 
 
@@ -85,11 +85,19 @@ public class Normalizer<T> {
 		double[] calculatedMinMax = calculateMinMax(subD);
 		double min = calculatedMinMax[0];
 		double max = calculatedMinMax[1];
+		
+		double delta = (maxNorm - minNorm) / (max - min);
+		double normedPivot = minNorm;
+		double actualPivot = min;
+		if (!Double.isNaN(actualCenter)) {
+			normedPivot = (maxNorm - minNorm)/2 + minNorm;
+			actualPivot = actualCenter;
+		}
 
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
-			double destValueAti = ((value-min)/(max-min)) * (maxNorm - minNorm) + minNorm;
-			ret.put(date,  tOf(destValueAti));
+			double destValueAti = delta * (value - actualPivot) + normedPivot ;
+			ret.put(date, tOf(destValueAti));
 		}
 
 		return ret;
@@ -107,15 +115,15 @@ public class Normalizer<T> {
 			if (value <= min) min = value;
 		}
 
-		//Keep a gap to the requested norm for the smallest of abs(min) and abs(max)
-		//This can avoid having the norm stuck to zero if 0 is requested
-		if (keepDistanceToZero) {
-			double biggestAbs = Math.max(Math.abs(max), Math.abs(min));
-			max = (max > 0)? biggestAbs: 0;
-			min = (min < 0)? -biggestAbs : 0;
+		//Keep centre of the data
+		//This is to keep the variation from the centre with an identical balance
+		if (!Double.isNaN(actualCenter)) {
+			double biggestAbs = Math.max(Math.abs(max - actualCenter), Math.abs(actualCenter - min));
+			max = (max > actualCenter)? biggestAbs + actualCenter: actualCenter;
+			min = (min < actualCenter)? actualCenter - biggestAbs : actualCenter;
 		}
 
-		return new double[] {min,max};
+		return new double[] {min, max};
 	}
 
 	//	public double getNormalizedZero() {

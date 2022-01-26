@@ -50,6 +50,11 @@ public class DailyQuotation extends Stock {
 		this.quoteDate = (Date) mainQuery.getFirst();
 		this.currency = currency;
 	}
+	
+	//Date,O,L,H,C,V
+	public Comparable<?> getClose() {
+		return mainQuery.get(4);
+	}
 
 	@Override
 	public Query toDataBase() {
@@ -63,7 +68,7 @@ public class DailyQuotation extends Stock {
 	
 	@Override
 	public String toString() {
-		return super.toString()+ "; Quotation date :"+quoteDate+"; "+mainQuery;
+		return super.toString() + "; Quotation date :" + quoteDate + "; " + mainQuery;
 	}
 	
 	public Date getQuoteDate() {

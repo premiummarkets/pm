@@ -98,10 +98,10 @@ public class Trimmer {
 			Date periodStart = currentDateCal.getTime();
 			Collection<double[]> periodValues = data.subMap(periodStart, date).values();
 			double periodStdev = stdev.evaluate(periodValues);
-			double preriodMean = mean.evaluate(periodValues);
+			double periodMean = mean.evaluate(periodValues);
 			
-			double periodMax = preriodMean + trimFactor*periodStdev;
-			double periodMin = preriodMean - trimFactor*periodStdev;
+			double periodMax = periodMean + trimFactor*periodStdev;
+			double periodMin = periodMean - trimFactor*periodStdev;
 
 			double[] ds = data.get(date);
 			if (ds[0] > periodMax) {

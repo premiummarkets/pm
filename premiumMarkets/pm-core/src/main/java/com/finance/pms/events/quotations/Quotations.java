@@ -743,10 +743,10 @@ public class Quotations {
 
 	private String buildFilterNameKey(ValidityFilter cacheFilter, List<ValidityFilter> otherCacheFilters) {
 		SortedSet<ValidityFilter> filterNameSet = new TreeSet<Quotations.ValidityFilter>();
-		if (cacheFilter == null) throw new NotImplementedException("Filters can't be null : "+cacheFilter+", "+otherCacheFilters);
+		if (cacheFilter == null) throw new NotImplementedException("Filters can't be null : " + cacheFilter + ", " + otherCacheFilters);
 		filterNameSet.add(cacheFilter);
 		for (ValidityFilter filter : otherCacheFilters) {
-			if (filter == null) throw new NotImplementedException("Filters can't be null : "+cacheFilter+", "+otherCacheFilters);
+			if (filter == null) throw new NotImplementedException("Filters can't be null : " + cacheFilter + ", " + otherCacheFilters);
 			filterNameSet.add(filter);
 		}
 		String filterName = "";

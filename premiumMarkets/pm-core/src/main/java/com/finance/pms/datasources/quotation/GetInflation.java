@@ -50,7 +50,7 @@ public class GetInflation {
 		}
 	}
 
-	public BigDecimal inflationRateWithinDateRange(Date firstDate, Date secondDate) throws NotEnoughDataException, NoQuotationsException {
+	public BigDecimal inflationRateWithinDateRange(Date firstDate, Date secondDate) throws NotEnoughDataException {
 
 		if (inflationQs == null) init();
 

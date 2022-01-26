@@ -33,12 +33,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
@@ -83,13 +86,21 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 //		st.setIsin("FR0000044612");
 //		MarketValuation market = new MarketValuation(Market.PARIS);
 //		st.setMarketValuation(market);
-		st.setSymbol("ISF.L");
-		st.setIsin("IE0005042456");
-		MarketValuation market = new MarketValuation(Market.UNKNOWN);
-		st.setMarketValuation(market);
+//		st.setSymbol("ISF.L");
+//		st.setSymbol("UST.PA");
+//		st.setIsin("IE0005042456");
+//		st.setIsin("LU1829221024");
+//		st = DataSource.getInstance().loadStockBySymbol("Inflation");
+		st.setName("Inflation");
+		st.setSymbol("Inflation");
+		st.setIsin("Inflation");
+//		MarketValuation market = new MarketValuation(Market.UNKNOWN);
+//		st.setMarketValuation(market);
 		
 //		formater = new DayQuoteYahooFormater(null, st, st.getMarketValuation().getCurrency().toString());
-		formater = new DayQuoteInvestingFormater(null, st);
+//		formater = new DayQuoteInvestingFormater(null, st);
+//		formater = new DayQuote1818Formater(null, st);
+		formater = new DayQuoteInflationFormater(null, st,Currency.NAN.name(), new SimpleDateFormat("YYYY/MM/DD").parse("2021/12/01"));
 		
 		
 	}
@@ -110,7 +121,9 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 	        
 	        try {
 	 
-	        	f =  new FileInputStream((new File("/home/guil/Developpement/tmp/GOOG.csv")));
+//	        	f =  new FileInputStream((new File("/home/guil/Developpement/tmp/GOOG.csv")));
+//	        	f =  new FileInputStream((new File("/home/guil/tmp/BP1818.html")));
+	        	f =  new FileInputStream((new File("/home/guil/tmp/Historical Consumer Price Index (CPI).html")));
 	            dis = new BufferedReader(new InputStreamReader(f));
 	            int cpt = 0;
 		        for(; ((line = dis.readLine()) != null) && continu;)
@@ -139,7 +152,7 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 	        }
 	        
 	        queries.addAll(qL);
-
+	        System.out.println(queries);
 			for (Validatable v: queries ) {
 				System.out.println(v.toDataBase());
 			}

@@ -9,7 +9,7 @@ public class RangeNormalizer<T> extends Normalizer<T> {
     private Date upperRange;
 
     public RangeNormalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, Date lowerRange, Date upperRange) {
-        super(genType, start, end, minNorm, maxNorm, false);
+        super(genType, start, end, minNorm, maxNorm, Double.NaN);
         this.lowerRange = lowerRange;
         this.upperRange = upperRange;
         if (lowerRange.before(start) || upperRange.after(end)) throw new RuntimeException("Dates out of range!");

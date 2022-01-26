@@ -510,12 +510,12 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
-                <operand xsi:type="stringOperation">
-                    <reference>boolean</reference>
-                    <referenceAsOperand>keepZero</referenceAsOperand>
-                    <description>Keep distance ratio of min and max to zero as the original</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue>FALSE</stringValue>
+                <operand xsi:type="numberOperation">
+                    <reference>actual center</reference>
+                    <referenceAsOperand>actualCenter</referenceAsOperand>
+                    <description>Keep distance ratio of min and max to the data relative specified center (NaN accepted).</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -524,7 +524,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>integer</reference>
                     <referenceAsOperand>trimFactor</referenceAsOperand>
-                    <description>Stdev trim factor. Will only work for oscillators</description>
+                    <description>Stdev trim factor. Will only work for oscillators (NaN accepted).</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>

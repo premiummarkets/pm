@@ -51,7 +51,7 @@ public class IOsExporterOperation extends StringerOperation {
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
 			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, true);
-			List<String> inputsOperandsRefs = ValueManipulator.extractOperandReferences(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
 			String fileName = filePrefix + "_" + "k_training" + "_" + UUID.randomUUID(); // filePrefix + "_" + this.getReference() + "_" + UUID.randomUUID();

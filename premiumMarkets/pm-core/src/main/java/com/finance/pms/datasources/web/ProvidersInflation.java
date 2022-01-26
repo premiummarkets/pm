@@ -29,12 +29,15 @@
  */
 package com.finance.pms.datasources.web;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
 
@@ -42,12 +45,20 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.quotation.GetInflation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuoteInflationFormater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.InflationUpdateObserver;
 
 public class ProvidersInflation extends Providers implements QuotationProvider {
@@ -85,37 +96,101 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				throw new RuntimeException(message);
 			}
 
-			long twoMonthAndHalf = (long) DateFactory.DAYINMILLI*31*2 + DateFactory.DAYINMILLI*15;
+			long twoMonthAndHalf = (long) (DateFactory.DAYINMILLI*31.0*1.5); //(long) DateFactory.DAYINMILLI*31*2 + DateFactory.DAYINMILLI*15;
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
-			boolean isLastLessThan2AndHalfMonthOld = stock.getLastQuote().getTime() + twoMonthAndHalf >= end.getTime();
+			Date lastWebDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
+			
+			Quotations lastQuotations = 
+					QuotationsFactories.getFactory().getQuotationsInstance(stock, start, end, false, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
+			List<QuotationUnit> usersDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
+					.filter(qu -> ORIGIN.USER.equals(qu.getOrigin()))
+					.collect(Collectors.toList());
+			List<QuotationUnit> webDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
+					.filter(qu -> ORIGIN.WEB.equals(qu.getOrigin()))
+					.collect(Collectors.toList()); 
+			BigDecimal lastClose = webDbQ.get(webDbQ.size()-1).getCloseRaw();
+			Date lastDate = webDbQ.get(webDbQ.size()-1).getDate();
+			
+			boolean isLastLessThan2AndHalfMonthOld = lastWebDate.getTime() + twoMonthAndHalf >= end.getTime();
 			if (isLastLessThan2AndHalfMonthOld) {//Inflation can be updated monthly only
+				lastQuoteInterpolation(stock, lastClose, lastDate, end, usersDbQ);
 				throw new HttpException(
-						"Inflation data can be updated once in a month only.\nYou requested an update for the month preceding " +
-						sdf.format(end) + "\n and the last update was in the month following " + sdf.format(stock.getLastQuote()));
+					"Inflation data can only be updated once in " + twoMonthAndHalf/(31.0*DateFactory.DAYINMILLI) + " months.\n" +
+					"You already updated up to " + sdf.format(lastWebDate)
+				);
 			}
 
 			MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
 
 			TreeSet<Validatable> queries = initValidatableSet();
-
 			LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
 			List<Validatable> urlResults = this.httpSource.readURL(dsf);
-			for (Validatable validatable : urlResults) {
-				if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
-					queries.add(validatable);
+			
+			if (!urlResults.isEmpty()) {
+			
+				for (Validatable validatable : urlResults) {
+					if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
+						queries.add(validatable);
+					}
 				}
+
+				//Update with new Web quotations
+				LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " : " + queries.size());
+				ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
+				tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
+				DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+				
+				List<Validatable> urlResultsSorted = urlResults.stream().sorted((i1, i2) -> ((DailyQuotation)i2).compareTo(i1)).collect(Collectors.toList());
+				DailyQuotation lastWebQuotation = (DailyQuotation) urlResultsSorted.get(0);
+				lastClose = (BigDecimal) lastWebQuotation.getClose();
+				lastDate = lastWebQuotation.getQuoteDate();
+				
 			}
 
-			LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " : " + queries.size());
-			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
-			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			lastQuoteInterpolation(stock, lastClose, lastDate, end, usersDbQ);
 
+		} catch (NoQuotationsException e) {
+			LOGGER.error(e);
 		} finally {
 			this.setChanged();
 			this.notifyObservers(end);
 		}
 
+	}
+
+	private void lastQuoteInterpolation(Stock stock, BigDecimal lastClose, Date lastDate, Date end, List<QuotationUnit> usersQ) {
+		try {
+			GetInflation inflationInterpoler = GetInflation.geInstance();
+
+			BigDecimal inflationRateWithinDateRange = inflationInterpoler.inflationRateWithinDateRange(lastDate, end);
+			int a = QuotationsFactories.getFactory().nbOpenIncrementBetween(lastDate, end);
+			Double endClose = lastClose.doubleValue() + ((double) a) * inflationRateWithinDateRange.doubleValue();
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(end);
+			calendar.set(Calendar.HOUR_OF_DAY, 0);
+			calendar.set(Calendar.MINUTE, 0);
+			calendar.set(Calendar.SECOND, 0);
+			calendar.set(Calendar.MILLISECOND, 0);
+			QuotationUnit quotationUnit = 
+				new QuotationUnit(
+					stock, stock.getMarketValuation().getCurrency(),
+					calendar.getTime(),
+					BigDecimal.ZERO,
+					BigDecimal.ZERO,
+					BigDecimal.ZERO,
+					new BigDecimal(endClose),
+					Long.valueOf(0),
+					ORIGIN.USER, BigDecimal.ONE);
+			
+			//Clean up interpolations between start and end
+			DataSource.getInstance().getShareDAO().deleteQuotationUnits(usersQ); 
+			
+			//Insert new interpolation
+			DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnit(quotationUnit);
+			
+		} catch (NotEnoughDataException e) {
+			LOGGER.warn("Can't interpolate remaining inflation. " + e);
+		}
 	}
 
 	@Override

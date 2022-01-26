@@ -310,7 +310,7 @@ public class SymbolEvents implements Serializable {
 		}
 	}
 
-	public void addEventResultElement(SortedMap<EventKey,EventValue> evl,  EventInfo eventDefinition) {
+	public void addEventResultElement(SortedMap<EventKey,EventValue> evl, EventInfo eventDefinition) {
 		this.weightData = null;
 		this.eventDefList.add(eventDefinition.getEventDefinitionRef());
 		this.dataResultMap.putAll(evl);

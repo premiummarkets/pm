@@ -76,7 +76,7 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
 		if (spanningShift == 0) spanningShift = 1;
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
+		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 
 		BooleanMapValue outputs = new  BooleanMapValue();

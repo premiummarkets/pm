@@ -103,7 +103,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
 
 		if (spanningShift == 0) spanningShift = 1;
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
+		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false);
 		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 
 		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());

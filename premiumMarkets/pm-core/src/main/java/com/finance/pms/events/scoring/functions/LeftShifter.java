@@ -40,17 +40,23 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.events.quotations.QuotationsFactories;
-
+/**
+ * 
+ * @author guil
+ * Although the chart will show discrepancies (because of weekend gaps being shifted through the week) the left shit is correct in terms of data points.
+ * see 
+ * ee19d8ce-650a-4f8b-b0c4-46a51d0c3655_IBM_k_training_0b6df74a-eeb0-47b7-a8b7-de1a9ec71f66.csv from 
+ * fileOperation(iosExporter("autoPortfolioLogs",targetStockInfo("symbol"),iosAssembler("FALSE","FALSE",ogHouseTrendSMA(),ogHouseTrendUnNorm(),ogHouseTrendUnNormNLFix())),1,0)
+ * @param <T>
+ */
 public class LeftShifter<T> {
 	
 	private int nbDaysAhead;
-	private Boolean fixSameDayOTW;
 	private Boolean noDataLoss;
 	
-	public LeftShifter(int nbDaysAhead, Boolean fixSameDayOTW, Boolean noDataLoss) {
+	public LeftShifter(int nbDaysAhead, Boolean noDataLoss) {
 		super();
 		this.nbDaysAhead = nbDaysAhead;
-		this.fixSameDayOTW = fixSameDayOTW;
 		this.noDataLoss = noDataLoss;
 	}
 
@@ -58,20 +64,18 @@ public class LeftShifter<T> {
 
 		SortedMap<Date, T> shiftedOuptput = new TreeMap<Date, T>();
 
-		int fixedNbDaysAhead = fixSameDayOTW(data);
-
 		List<Date> keyList = new ArrayList<Date>(data.keySet());
-		int j0 = (fixedNbDaysAhead >= 0)? fixedNbDaysAhead:0;
-		int jLast =  (fixedNbDaysAhead >= 0)? keyList.size(): keyList.size()+fixedNbDaysAhead;
+		int j0 = (nbDaysAhead >= 0)? nbDaysAhead:0;
+		int jLast =  (nbDaysAhead >= 0)? keyList.size(): keyList.size()+nbDaysAhead;
 		for (int j = j0; j < jLast; j++) {
-			shiftedOuptput.put(keyList.get(j-fixedNbDaysAhead), data.get(keyList.get(j)));
+			shiftedOuptput.put(keyList.get(j-nbDaysAhead), data.get(keyList.get(j)));
 		}
 
 		if (noDataLoss) {
 			int nbMissingDays = data.size() - shiftedOuptput.size();
 			Calendar calendar = Calendar.getInstance();
 
-			if (fixedNbDaysAhead > 0) {
+			if (nbDaysAhead > 0) {
 				calendar.setTime(shiftedOuptput.firstKey());
 				for (int i = 1; i <= nbMissingDays; i++) {
 					QuotationsFactories.getFactory().incrementDate(calendar, -1);
@@ -87,24 +91,6 @@ public class LeftShifter<T> {
 		}
 		return shiftedOuptput;
 
-	}
-
-	private int fixSameDayOTW(SortedMap<Date, T> data) {
-		int fixedNbDaysAhead = nbDaysAhead;
-		if (fixSameDayOTW) {
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(data.firstKey());
-			int dataDayOTW = calendar.get(Calendar.DAY_OF_WEEK);
-			QuotationsFactories.getFactory().incrementDate(calendar, -nbDaysAhead);
-			int shiftDayOTW = calendar.get(Calendar.DAY_OF_WEEK);
-			while (shiftDayOTW != dataDayOTW) {
-				fixedNbDaysAhead++;
-				calendar.setTime(data.firstKey());
-				QuotationsFactories.getFactory().incrementDate(calendar, -fixedNbDaysAhead);
-				shiftDayOTW = calendar.get(Calendar.DAY_OF_WEEK);
-			}
-		}
-		return fixedNbDaysAhead;
 	}
 
 }

@@ -223,7 +223,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
 
-		String originConstraint = (ignoreUserEntries)?"AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
+		String originConstraint = (ignoreUserEntries)? "AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 
 		String endConstraint = testEndConstraint();
 

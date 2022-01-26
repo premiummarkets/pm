@@ -106,7 +106,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 		fullKeySet.addAll(secondOp.keySet());
 
 		if (spanningShift == 0) spanningShift = 1;
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false, false);
+		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false);
 		SortedMap<Date, Double> rightShiftedFirstOp = rightShifter.shift(firstOp);
 		SortedMap<Date, Double> rightShiftedSecondOp = rightShifter.shift(secondOp);
 

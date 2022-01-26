@@ -119,6 +119,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 		return retour;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		return new HttpGet(url.getUrl());

@@ -214,14 +214,18 @@ public class TargetStockInfo {
 		return calculatedOutputsCache.get(indexOf).outputData;
 	}
 
-	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int oprationRequiredStartShift) {
+	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int operationRequiredStartShift) {
 		
-		if (operation instanceof StockOperation) return; //We don't cache stock as this is managed in the Quotations classes.
+		Boolean isCachable = true;
+		if (operation instanceof StockOperation) { //We don't cache stock as this is managed in the Quotations classes. 
+			//The rational is that we can't distinguish StockOperation validity filters outputs 
+			isCachable = false;
+		}
 
-		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), oprationRequiredStartShift);
+		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), operationRequiredStartShift);
 		if (alreadyCalculated != null) {
 			if (getIndexOfChartableOutput(operation, outputDiscriminator.orElse(operation.getOutputSelector())) == -1) {
-				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, oprationRequiredStartShift));
+				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, operationRequiredStartShift));
 			}
 			return;
 		}
@@ -234,22 +238,24 @@ public class TargetStockInfo {
 						operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("): //encogPlus:xxxxx(... => encogPlus:selector(...
 						operation.toFullString() + ":" + selector; //Anonymous operation
 				//constant = null as the selector output as to be a NumericableMapValue and hence can't be a constant.
-				OutputReference outputReference = 
-						new OutputReference(operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference(), operation.toFullString());
-				this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), oprationRequiredStartShift));
+				OutputReference outputReference = new OutputReference(
+						operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference(), operation.toFullString());
+				if (isCachable) this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), operationRequiredStartShift));
 			}
 			//Only make available for chart the specific selector
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
-			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, oprationRequiredStartShift));
+			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, operationRequiredStartShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
-			((DoubleArrayMapValue) outputValue).getColumnsReferences().stream().forEach(ref -> {
-				Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), ((DoubleArrayMapValue) outputValue).getAdditionalOutputs().get(ref), oprationRequiredStartShift);
-				this.calculatedOutputsCache.add(outputHolder);
-				this.gatheredChartableOutputs.add(outputHolder);
-			});
+			Output outputHolder = new Output(
+					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
+					outputValue, operationRequiredStartShift);
+			if (isCachable) this.calculatedOutputsCache.add(outputHolder);
+			this.gatheredChartableOutputs.add(outputHolder);
 		} else {
-			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, oprationRequiredStartShift);
-			this.calculatedOutputsCache.add(outputHolder);
+			Output outputHolder = new Output(
+					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
+					outputValue, operationRequiredStartShift);
+			if (isCachable) this.calculatedOutputsCache.add(outputHolder);
 			this.gatheredChartableOutputs.add(outputHolder);
 		}
 
@@ -276,7 +282,7 @@ public class TargetStockInfo {
 			return chartedDesrc.getContainer();
 
 		} else {
-			throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: "+operation.getClass()+" for "+operation);
+			throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: " + operation.getClass() + " for " + operation);
 		}
 	}
 
@@ -315,7 +321,7 @@ public class TargetStockInfo {
 			}
 
 		} else {
-			throw new RuntimeException("Output not found for "+operation);
+			throw new RuntimeException("Output not found for " + operation);
 		}
 	}
 

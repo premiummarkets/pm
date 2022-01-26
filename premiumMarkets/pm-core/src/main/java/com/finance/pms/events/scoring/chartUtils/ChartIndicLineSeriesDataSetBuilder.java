@@ -69,6 +69,16 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			}
 
 			int eventDefFirstRendererIdx = 0;
+			
+//			double groupMaxY = -Double.MAX_VALUE;
+//			double groupMinY = Double.MAX_VALUE;
+//			Integer[] thresholdsIdxs = eventsSeries.keySet().stream().map(ced ->
+//				IntStream.range(0, ced.getEventDefDescriptor().getGroupsCount())
+//					.mapToObj(idx -> ced.getEventDefDescriptor().getThresholdsIdx(idx))
+//					.flatMap(thresholds -> Arrays.stream(thresholds))
+//					.toArray(Integer[]::new)
+//				).flatMap(thresholds -> Arrays.stream(thresholds)).toArray(Integer[]::new);
+			
 			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {//Iterate EventDef
 
 				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
@@ -88,13 +98,14 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							//renderer.setBaseItemLabelsVisible(true, false);
 							indicPlot.setRenderer(rendererIdx, renderer);
 						}
+						
+						double groupMaxY = -Double.MAX_VALUE;
+						double groupMinY = Double.MAX_VALUE;
 
 						//Build data set adding data series and tool tips for each output of the group
 						TimeSeriesCollection dataSet = new TimeSeriesCollection();
 						Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
 						int seriesIdx = 0;
-						double groupMaxY = -Double.MAX_VALUE;
-						double groupMinY = Double.MAX_VALUE;
 						for (int k = 0; k < outputIndexes.length; k++) {//Iterate outputs series
 
 							int outputIdx = outputIndexes[k];
@@ -120,7 +131,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 												timeSeries.add(item, false);
 											}
 										} catch (Exception e) {
-											LOGGER.error("This output index " + outputIdx + ", for '" + domain + "' does not have output data in " + chartedEvtDef.getEventDefinitionRef());
+											LOGGER.warn("This output index " + outputIdx + ", for '" + domain + "' does not have output data in " + chartedEvtDef.getEventDefinitionRef() + " at " + date + ": " + e.toString());
 										}
 									}
 								}
@@ -178,9 +189,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 							ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
 							if (rangeAxis == null) {
-								double thresholdCenter = groupCenter(eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx, groupMinY, groupMaxY);
-								rangeAxis = initYAxis(thresholdCenter, groupMinY, groupMaxY);
-
+								double[] thresholdCenterNMinNMax = groupCenter(groupMinY, groupMaxY, eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
+								rangeAxis = initYAxis(thresholdCenterNMinNMax[0], thresholdCenterNMinNMax[1], thresholdCenterNMinNMax[2]);
 								if (eventDefNbOfRenderesCreatedIdx == 0) {
 									indicPlot.addRangeMarker(rendererIdx, new ValueMarker(0), Layer.FOREGROUND, false);
 									indicPlot.setRangeGridlinesVisible(true);
@@ -232,7 +242,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 	}
 
-	private double groupCenter(SortedMap<Date, double[]> serie, EventDefDescriptor eventDefDescriptor, int groupIdx, double groupYMin, double groupYMax) {
+	private double[] groupCenter(double groupYMin, double groupYMax, SortedMap<Date, double[]> serie, EventDefDescriptor eventDefDescriptor, int groupIdx) {
 		double thresholdCenter = Double.NaN;
 		Integer[] thresholdsIdxs = eventDefDescriptor.getThresholdsIdx(groupIdx);
 		if (thresholdsIdxs.length != 0) {
@@ -243,29 +253,33 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			}
 			Mean mean = new Mean();
 			thresholdCenter = mean.evaluate(thresholdValues);
+			double maxLimit = Math.max(thresholdCenter - groupYMin, groupYMax - thresholdCenter);
+			return new double[] { thresholdCenter, thresholdCenter - maxLimit, thresholdCenter + maxLimit };
 		} else {
-//			MyApacheStats median = new MyApacheStats(new Median());
-//			thresholdCenter = median.evaluate(serie.values());
 			thresholdCenter = groupYMin + (groupYMax - groupYMin)/2;
+			return new double[] { thresholdCenter, groupYMin, groupYMax };
 		}
-		return thresholdCenter;
 	}
 
 	protected NumberAxis initYAxis(Double centerValue, double lower, double upper) {
 
 		NumberAxis indicYAxis = new NumberAxis();
 		
-		upper = upper + Math.abs(upper * .10);
-		lower = lower - Math.abs(lower * .10);
-		double upperToCenter = Math.abs(upper - centerValue);
-		double lowerTocenter = Math.abs(lower - centerValue);
-		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
-		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
+//		upper = upper + Math.abs(upper * .10);
+//		lower = lower - Math.abs(lower * .10);
+//		double upperToCenter = Math.abs(upper - centerValue);
+//		double lowerTocenter = Math.abs(lower - centerValue);
+//		double rangeFix = Math.abs(upperToCenter - lowerTocenter);
+//		if (upperToCenter < lowerTocenter) upper = upper + rangeFix; else lower = lower - rangeFix;
 		indicYAxis.setRange(new Range(lower, upper), true, true);
 		indicYAxis.setAutoRange(false);
 		indicYAxis.setAutoRangeIncludesZero(false);
-		//indicYAxis.setRangeAboutValue(centerValue, Math.max(upperToCenter,lowerTocenter)*2);
-		//indicYAxis.setFixedDimension(Math.max(upperToCenter,lowerTocenter)*2);
+//		indicYAxis.setRangeAboutValue(centerValue, Math.abs(lower)*2);
+//		indicYAxis.setFixedDimension(Math.abs(lower)*2);
+		indicYAxis.setLowerBound(lower);
+		indicYAxis.setUpperBound(upper);
+		indicYAxis.centerRange(centerValue);
+
 		indicYAxis.setTickLabelFont(indicYAxis.getTickLabelFont().deriveFont(7f));
 		indicYAxis.setLabelFont(indicYAxis.getLabelFont().deriveFont(10f));
 

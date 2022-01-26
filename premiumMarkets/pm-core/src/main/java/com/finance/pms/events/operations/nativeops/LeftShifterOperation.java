@@ -67,7 +67,7 @@ public class LeftShifterOperation extends PMWithDataOperation {
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
 
-			LeftShifter<Double> leftShifter = new LeftShifter<Double>(leftShiftSpan, false, true);
+			LeftShifter<Double> leftShifter = new LeftShifter<Double>(leftShiftSpan, true);
 			SortedMap<Date, Double> shifted = leftShifter.shift(data);
 			ret.getValue(targetStock).putAll(shifted);
 

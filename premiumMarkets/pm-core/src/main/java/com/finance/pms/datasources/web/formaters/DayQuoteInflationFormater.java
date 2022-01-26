@@ -87,12 +87,12 @@ public class DayQuoteInflationFormater extends LineFormater {
 
 		LOGGER.trace(line);
 		
-		Matcher fitYear = fullYearPattern.matcher(line);
-		if (fitYear.find()) {
-			year = Integer.valueOf(fitYear.group(1));
+		Matcher fitTableRow = fullYearPattern.matcher(line);
+		while (fitTableRow.find()) {
+			year = Integer.valueOf(fitTableRow.group(1));
 			if (year >= startDate.get(Calendar.YEAR)) {
 				for (int i = 2; i <= 13; i++) {
-					String value = fitYear.group(i);
+					String value = fitTableRow.group(i);
 					if (!"&nbsp;".equals(value)) {
 						LinkedList<Comparable<?>> mainQuery = new LinkedList<Comparable<?>>();
 						Calendar calendar = Calendar.getInstance();
@@ -104,9 +104,12 @@ public class DayQuoteInflationFormater extends LineFormater {
 						calendar.set(Calendar.SECOND, 0);
 						calendar.set(Calendar.MILLISECOND, 0);
 						mainQuery.add(calendar.getTime());
-						mainQuery.add(new BigDecimal(value));
-						mainQuery.add(new BigDecimal(value));
-						mainQuery.add(new BigDecimal(value));
+//						mainQuery.add(new BigDecimal(value));
+//						mainQuery.add(new BigDecimal(value));
+//						mainQuery.add(new BigDecimal(value));
+						mainQuery.add(BigDecimal.ZERO);
+						mainQuery.add(BigDecimal.ZERO);
+						mainQuery.add(BigDecimal.ZERO);
 						mainQuery.add(new BigDecimal(value));
 						mainQuery.add(Long.valueOf(0));
 						validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
@@ -116,11 +119,10 @@ public class DayQuoteInflationFormater extends LineFormater {
 		}
 
 		if (year != null)	{
-
-			Matcher fitEnd = endTable.matcher(line);
-			if (fitEnd.find()) {
+//			Matcher fitEnd = endTable.matcher(line);
+//			if (fitEnd.find()) {
 				return validatables;
-			}
+//			}
 		}
 
 		return null;

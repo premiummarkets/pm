@@ -38,7 +38,6 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -47,8 +46,6 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
-	
-	private static MyLogger LOGGER = MyLogger.getLogger(ClosedDayQuotationsFactory.class);
 
 	@Override
 	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
@@ -78,38 +75,37 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 
-	public  Calendar incrementDateLarge(Calendar calendar, int amount) {
+	public Calendar incrementDateLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.MONTH, noGapsAmount(amount));
 		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 
 
-	public  Calendar incrementDateExtraLarge(Calendar calendar, int amount) {
+	public Calendar incrementDateExtraLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.YEAR, noGapsAmount(amount));
 		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 
 
-	public  int largeIncrementGap(Calendar firstDate, Calendar secondDate) {
+	public int largeIncrementGap(Calendar firstDate, Calendar secondDate) {
 		return ( (secondDate.get(Calendar.MONTH) + secondDate.get(Calendar.YEAR)*12) - (firstDate.get(Calendar.MONTH) + firstDate.get(Calendar.YEAR)*12) );
 	}
 
 
-	public  Date shiftToOpeningTime(Calendar calendar) {
+	public Date shiftToOpeningTime(Calendar calendar) {
 		calendar.set(Calendar.DAY_OF_MONTH,1);
 		return calendar.getTime();
 	}
 
 
-	public  Date shiftToClosingTime(Calendar calendar) {
+	public Date shiftToClosingTime(Calendar calendar) {
 		calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 		return calendar.getTime();
 	}
 
-	private  void fillEdgeGap(Calendar calendar, double amountSign) {
-
+	private void fillEdgeGap(Calendar calendar, double amountSign) {
 		if (amountSign > 0) {
 			calendar.setTime(getValidQuotationDateAfter(calendar.getTime()));
 		} else {
@@ -119,20 +115,21 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 
 	public  Date getValidQuotationDateAfter(Date date) {
+		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
 		int day = calendar.get(Calendar.DAY_OF_WEEK);
+		
 		if (Calendar.SATURDAY != day && Calendar.SUNDAY != day) {
 			return date;
 		} 
-
+		
 		if (day == Calendar.SATURDAY) {
 			calendar.add(Calendar.DAY_OF_YEAR, 2);
-		} else 
-			if (day == Calendar.SUNDAY) {
-				calendar.add(Calendar.DAY_OF_YEAR, 1);
-			}
-
+		} else if (day == Calendar.SUNDAY) {
+			calendar.add(Calendar.DAY_OF_YEAR, 1);
+		}
+		
 		return calendar.getTime();
 	}
 
@@ -142,16 +139,16 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
 		int day = calendar.get(Calendar.DAY_OF_WEEK);
+		
 		if (Calendar.SATURDAY != day && Calendar.SUNDAY != day) {
 			return date;
 		} 
 
 		if (day == Calendar.SATURDAY) {
 			calendar.add(Calendar.DAY_OF_YEAR, -1);
-		} else 
-			if (day == Calendar.SUNDAY) {
-				calendar.add(Calendar.DAY_OF_YEAR, -2);
-			}
+		} else if (day == Calendar.SUNDAY) {
+			calendar.add(Calendar.DAY_OF_YEAR, -2);
+		}
 
 		return calendar.getTime();
 	}

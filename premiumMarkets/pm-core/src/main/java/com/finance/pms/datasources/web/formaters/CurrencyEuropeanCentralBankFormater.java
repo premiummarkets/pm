@@ -55,8 +55,8 @@ public class CurrencyEuropeanCentralBankFormater extends LineFormater {
 
 			if ( (toCurrencyPosition == -1 && !toEuros) || (fromCurrencyPosition == -1 && !fromEuros) )
 					throw new StopParseErrorException(
-							"Currency not found : "+fromCurrency+" => "+fromCurrencyPosition+
-							" and "+toCurrency+" => "+toCurrencyPosition, 
+							"Currency not found : " + fromCurrency + " => " + fromCurrencyPosition +
+							" and " + toCurrency + " => " + toCurrencyPosition, 
 							"Currency unavailable");
 		} else {
 			//daily quote

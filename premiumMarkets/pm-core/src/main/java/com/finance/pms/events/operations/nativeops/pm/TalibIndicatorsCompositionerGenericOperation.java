@@ -179,7 +179,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 
 	@Override
 	public Boolean isIdemPotent() {
-		return true;
+		return false;
 	}
 
 	@Override

@@ -39,7 +39,7 @@ public class DiffSmaSmoother extends Smoother implements SSmoother {
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixLag) {
 
-		LeftShifter<double[]> leftShifter = new LeftShifter<>(-differenciatingPeriod, false, true);
+		LeftShifter<double[]> leftShifter = new LeftShifter<>(-differenciatingPeriod, true);
 		CurvesSubtraction curvesSubtraction = new CurvesSubtraction();
 		Smoother diffSmoother = new TalibSmaSmoother(period);
         Smoother pastSmoother = new TalibSmaSmoother(period/3);
