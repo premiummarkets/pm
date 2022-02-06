@@ -96,7 +96,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				throw new RuntimeException(message);
 			}
 
-			long twoMonthAndHalf = (long) (DateFactory.DAYINMILLI*31.0*1.5); //(long) DateFactory.DAYINMILLI*31*2 + DateFactory.DAYINMILLI*15;
+			long twoMonthAndHalf = (long) (DateFactory.DAYINMILLI*31.0*2.5); //(long) DateFactory.DAYINMILLI*31*2 + DateFactory.DAYINMILLI*15;
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
 			Date lastWebDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
 			
