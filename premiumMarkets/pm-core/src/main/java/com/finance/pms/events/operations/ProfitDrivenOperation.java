@@ -62,6 +62,9 @@ public class ProfitDrivenOperation extends EventMapOperation {
 			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);;
 			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(stock, startDate, endDate, exactMapFromQuotations, bsOriginalEvents.values());
 			
+			//FIXME (review) this is cheating as we don't know the proce change before the end of the period
+			//Actually what we want is if an ending bullish period is < 0, we remove the next bearish period but only the firt adjacent one
+			//This mean we can't use tuning res which does a merge of the periods of the same type ..
 			SortedMap<EventKey, EventValue> validEvents = tuningRes.getPeriods().stream()
 				.filter(p -> p.getTrend().equals(EventType.BEARISH.name()) || (p.getTrend().equals(EventType.BULLISH.name()) && p.getPriceRateOfChange() >= minSellProfit))
 				.flatMap(vp -> Stream.of(bsOrgEvtsKeysDates.get(vp.getFrom())))
