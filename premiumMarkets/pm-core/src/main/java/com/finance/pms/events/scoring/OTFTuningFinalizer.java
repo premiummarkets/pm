@@ -145,32 +145,35 @@ public class OTFTuningFinalizer {
 
 			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
 			SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), eventDate);
-			Number closeSplitedBeforeOrAtEventDate = subMapInclusive.get(subMapInclusive.lastKey());
+			Double closeSplitedBeforeOrAtEventDate = new BigDecimal(subMapInclusive.get(subMapInclusive.lastKey()).toString()).doubleValue();
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
-				if (period == null) {//First period
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate.doubleValue(), EventType.BULLISH.name());
+				if (period == null) {//First period will be bull
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name());//Start new period.
 				}
-				else if (period.getTrend().equals(EventType.BEARISH.name())) { //& bear: sell
-					BigDecimal closestCloseForDate = new BigDecimal(closeSplitedBeforeOrAtEventDate.toString());
+				else if (period.getTrend().equals(EventType.BEARISH.name())) { //A Bear period is open and the event is bull. We close the period.
 					period.setTo(eventDate);
-					period.setPriceAtTo(closestCloseForDate.doubleValue());
+					period.setPriceAtTo(closeSplitedBeforeOrAtEventDate);
 					period.setRealised(true);
 					periods.add(period);
-					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BULLISH.name()); //Start new period.
-				} //Bull is still on, we don't close a previous bull
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
+				} 
+				else if (period.getTrend().equals(EventType.BULLISH.name())) {//A bull period is open and the event is bull. We ignore the event.
+					
+				}
 			}
 			else if (eventValue.getEventType().equals(EventType.BEARISH)) {
-				if (period == null) {//First period
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate.doubleValue(), EventType.BEARISH.name());
+				if (period == null) {//First period  will be bear
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());
 				}
-				else if (period.getTrend().equals(EventType.BULLISH.name())) { //period != null: end of bearish
-					BigDecimal closestCloseForDate = new BigDecimal(closeSplitedBeforeOrAtEventDate.toString());
+				else if (period.getTrend().equals(EventType.BULLISH.name())) { //A Bull period is open and the event is bear. We close the period.
 					period.setTo(eventDate);
 					periods.add(period);
-					period.setPriceAtTo(closestCloseForDate.doubleValue());
+					period.setPriceAtTo(closeSplitedBeforeOrAtEventDate);
 					period.setRealised(true);
-					period = new PeriodRatingDTO(eventDate, closestCloseForDate.doubleValue(), EventType.BEARISH.name());
-				} //Bear is still on, we don't close a previous bear
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());//Start new period.
+				} else if (period.getTrend().equals(EventType.BEARISH.name())) {//A bear period is open and the event is bear. We ignore the event.
+					
+				}
 			}
 		}
 
@@ -210,9 +213,7 @@ public class OTFTuningFinalizer {
 
 	}
 
-	TuningResDTO buildResOnValidPeriods(
-			List<PeriodRatingDTO> periods, SortedMap<Date, ? extends Number> qMap,
-			Stock stock, Date startDate, Date endDate) {
+	TuningResDTO buildResOnValidPeriods(List<PeriodRatingDTO> periods, SortedMap<Date, ? extends Number> qMap, Stock stock, Date startDate, Date endDate) {
 
 		String csvFile = "noOutputAvailable";
 		String chartFile = "noChartAvailable";

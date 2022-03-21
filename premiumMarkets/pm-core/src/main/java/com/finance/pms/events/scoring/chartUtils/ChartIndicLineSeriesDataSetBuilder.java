@@ -121,8 +121,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 									if (ds != null) {
 										try {
 											value = ds[outputIdx];
-											//Negative Infinity means we should ignore the entry (hence this won't break the drawn line continuity on chart).
-											//NaN means not wanted for display and should break the line continuity and it needs to be kept as such for the chart rendering... 
+											//Negative Infinity (Double.NEGATIVE_INFINITY) means we should ignore the entry (hence this won't break the drawn line continuity on chart).
+											//NaN (Double.NaN) means not wanted for display and should break the line continuity and it needs to be kept as such for the chart rendering... 
 											//Except when all is NaN, the line is not rendered.
 											if (value != null && !Double.isNaN(value.doubleValue())) allNaN = false;
 											if (value != null && !Double.isInfinite(value.doubleValue())) {

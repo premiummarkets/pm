@@ -970,6 +970,8 @@ public class MainGui extends SashForm implements RefreshableView {
 			while (!shell.isDisposed()) {
 				try {
 					if (!display.readAndDispatch()) display.sleep();
+				} catch (java.lang.IllegalArgumentException | IllegalStateException e1) {
+					//LOGGER.warn("Error in Main Gui : "+ e1.getMessage(), e1);
 				} catch (Throwable e) {
 					try {
 						LOGGER.error("Error in Main Gui : "+ e.getMessage(), e);
@@ -982,9 +984,8 @@ public class MainGui extends SashForm implements RefreshableView {
 				}
 			}
 
-		} catch (IllegalArgumentException | IllegalStateException e2) {
-
-
+		} catch (IllegalArgumentException | IllegalStateException e1) {
+			//LOGGER.warn("Error in Main Gui : "+ e1.getMessage(), e1);
 		} catch (Throwable e) {
 
 			System.out.println("Unhandled error running the ui : " + e);

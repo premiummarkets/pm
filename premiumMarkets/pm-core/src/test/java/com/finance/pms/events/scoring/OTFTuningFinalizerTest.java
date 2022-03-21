@@ -16,6 +16,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.beans.BeansException;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.datasources.db.DataSource;
@@ -49,9 +50,13 @@ public class OTFTuningFinalizerTest {
 
     @BeforeClass
     public static void oneTimeSetup() {
-        springContext = new SpringContext("/home/guil/Developpement/newEclipse/premiumMarkets/pm-forecast/db.properties");
-        springContext.loadBeans("/connexions.xml", "/swtclients.xml");
-        springContext.refresh();
+        try {
+			springContext = new SpringContext("/home/guil/Developpement/newEclipse/premiumMarkets/pm-forecast/db.properties");
+			springContext.loadBeans("/connexions.xml", "/swtclients.xml");
+			springContext.refresh();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
     }
 

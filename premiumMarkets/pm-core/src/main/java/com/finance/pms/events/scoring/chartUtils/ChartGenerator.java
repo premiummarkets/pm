@@ -76,7 +76,6 @@ public class ChartGenerator {
 
 	private String title;
 
-
 	public ChartGenerator(String title) {
 		this.title = title;
 		XYBarRenderer.setDefaultShadowsVisible(false);

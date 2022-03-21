@@ -33,6 +33,7 @@ import java.util.Date;
 
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 
@@ -72,8 +73,8 @@ public class StandardEventValue extends EventValue {
 
 	}
 
-	public StandardEventValue(StandardEventKey eventKey, String message, String eventListName) {
-		super(eventKey.getDate(), (EventDefinition)eventKey.getEventInfo(), (EventType)eventKey.getEventType(), message, eventListName);
+	public StandardEventValue(EventKey eventKey, String message, String eventListName) {
+		super(eventKey.getDate(), eventKey.getEventInfo(), eventKey.getEventType(), message, eventListName);
 	}
 
 }

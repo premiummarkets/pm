@@ -196,7 +196,19 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 
 	@Override
 	public String toString() {
-		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom+ ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
+		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom + ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
+	}
+	
+	public String toToolTip() {
+		String validitiyNote = validityTag()?"*":"";
+		Double roc = 100*(priceAtTo - priceAtFrom)/priceAtFrom;
+		String rocStr = roc.toString();
+		int endRocStr = (rocStr.length() > 4)?4:rocStr.length();
+		return validitiyNote + trend + " [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom+ ", priceAtTo=" + priceAtTo + ", roc=" + rocStr.substring(0, endRocStr) + "%]";
+	}
+
+	public boolean validityTag() {
+		return (getTrend().equals("BULLISH") &&  getPriceRateOfChange() < 0) || (getTrend().equals("BEARISH") &&  getPriceRateOfChange() > 0);
 	}
 
 }

@@ -88,7 +88,7 @@ public class TuningResDTO implements Serializable {
 	}
 	
 	/**
-	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStatsAt(Date)}
+	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStatsBetween(Date,Date)}
 	 */
 	public Double[] getStats() {
 		return getStatsBetween(calculationStart, calculationEnd);

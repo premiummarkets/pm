@@ -497,12 +497,8 @@ public class ChartMain extends Chart {
 											} else {
 												double compound = serieDef.getTuningRes().getFollowProfitAt(date);
 												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
-												double periodRoc = period.getPriceRateOfChange();
-												boolean selling = period.getTrend().equals(EventType.BULLISH.name()); //finishing period is bull
-												boolean buying = period.getTrend().equals(EventType.BEARISH.name()); //finishing period is bear
-												String note = ((selling && periodRoc < 0) || (buying && periodRoc > 0))?"*":"";
-												profitTip = "change " + pf.format(periodRoc) + " ( cmpnd " + pf.format(compound) + " / b&h " + pf.format(priceChange) + " ) " + note;
-												LOGGER.info(((buying)?"Buy":"Sell") + " at " + date + " : " + profitTip);
+												profitTip =  period.toToolTip() + " ( cmpnd " + pf.format(compound) + " / b&h " + pf.format(priceChange) + " ) ";
+												LOGGER.info(((period.getTrend().equals(EventType.BEARISH.name()))?"Buy":"Sell") + " at " + date + " : " + profitTip);
 											}
 										} catch (Exception e) {
 											LOGGER.warn(e,e);
@@ -514,7 +510,7 @@ public class ChartMain extends Chart {
 									"<b>" + serieDef.getEventDisplayeDef() + "</b> on the " + x + "<br>" +
 									"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
 									"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" +
-									((profitTip.isEmpty())?"":"Period&nbsp;&nbsp;&nbsp;: " + profitTip + "<br>") +
+									((profitTip.isEmpty())?"":"Ending Period&nbsp;&nbsp;&nbsp;: " + profitTip + "<br>") +
 									barSerie.get(date).getToolTip() + "<br>" +
 									"</font>" + "</html>";
 
@@ -539,10 +535,7 @@ public class ChartMain extends Chart {
 										List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
 										PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
 										if (period == null) return "";
-										double periodRoc = period.getPriceRateOfChange();
-										boolean selling = period.getTrend().equals(EventType.BULLISH.name()); //finishing period is bull
-										boolean buying = period.getTrend().equals(EventType.BEARISH.name()); //finishing period is bear
-										String note = ((selling && periodRoc < 0) || (buying && periodRoc > 0))?"*":"";
+										String note = period.validityTag()?"×":"°";
 										return note;
 									} catch (Exception e) {
 										LOGGER.warn(e,e);
