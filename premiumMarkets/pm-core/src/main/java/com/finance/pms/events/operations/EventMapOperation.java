@@ -10,7 +10,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
-@XmlSeeAlso({RandomOperation.class})
+@XmlSeeAlso({RandomOperation.class, ProfitDrivenOperation.class, ProfitWalkerOperation.class})
 public class EventMapOperation extends MapOperation {
 
 	public EventMapOperation() {

@@ -56,6 +56,11 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 @XmlRootElement
+/**
+ * 
+ * @author guil
+ * In case of conflict with two contradicting events at the same date, the getValueX will return a NONE String or 0.0 Double.
+ */
 public class EventMapValue extends NumericableMapValue implements StringableMapValue, MultiMapValue {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(EventMapValue.class);

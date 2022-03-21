@@ -305,6 +305,65 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitDrivenOperation">
+            <reference>gx_profit</reference>
+            <description>Operation filtering false positive based on the realised profit.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>minIncreaseForSell</referenceAsOperand>
+                    <description>Minimum increase (profit %) realised for the sell event to be valid</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>minDecreaseForBuy</referenceAsOperand>
+                    <description>Minimum decrease (-%) realised for the buy event to be valid</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>realiseGain</referenceAsOperand>
+                    <description>Maximum profit % above which the sell is forced</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>stopLoss</referenceAsOperand>
+                    <description>Maximum loss (ie Min neg profit) % below which the sell is forced</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="eventMapOperation">
+                    <reference>Event Series to analyse (an Indicator)</reference>
+                    <description>Event Series to analyse (an Indicator)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
             <description>Subtraction of two historical data series (a,b) -&gt; a - b</description>
@@ -463,10 +522,86 @@
             <outputSelector>close</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitWalkerOperation">
+            <reference>gx_pwalker</reference>
+            <description>Operation walking through close generating event on realised profit.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>minDecreaseForBuy</referenceAsOperand>
+                    <description>Minimum decrease (-%) realised for the buy event to be valid</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>realiseGain</referenceAsOperand>
+                    <description>Maximum profit % above which the sell is forced</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>stopLoss</referenceAsOperand>
+                    <description>Maximum loss (ie Min neg profit) % below which the sell is forced</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listOperation">
             <reference>list of things</reference>
             <description>List of things.</description>
             <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="triggerPointJoiner">
+            <reference>triggerPointJoiner</reference>
+            <description>Return the time points maps and values of a set of Series where the reference Series crosses a threshold</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>reference series</referenceAsOperand>
+                    <description>Reference series triggering data collection on thershold cross.</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>mean</referenceAsOperand>
+                    <description>Mean of the Period lengths</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>datasets</referenceAsOperand>
+                    <description>Data sets to collect joint points from.</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>

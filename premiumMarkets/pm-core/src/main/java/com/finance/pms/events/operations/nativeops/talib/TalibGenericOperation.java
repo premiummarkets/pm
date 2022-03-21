@@ -260,7 +260,8 @@ public class TalibGenericOperation extends TalibOperation {
 				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
 				.reduce("", (r, e) -> r + "_" + e, (a, b) -> a + "_" + b);
 		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
-		return refa24z + contants + "_" + ops.stream().reduce("", (r, e) -> r + e.toFormulaeShort(), (a, b) -> a + b);
+		String opsFormulaeShort = toFormulaeShort(ops);
+		return refa24z + contants + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
 }

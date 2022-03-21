@@ -49,6 +49,7 @@ import org.apache.commons.math3.stat.descriptive.summary.Sum;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
@@ -134,6 +135,13 @@ public class StatsOperation extends PMWithDataOperation {
 			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
 		}
 		return maxDateShift;
+	}
+	
+	@Override
+	public String toFormulaeShort() {
+		String thisShort = getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" + ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
 

@@ -37,6 +37,8 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.ProfitDrivenOperation;
+import com.finance.pms.events.operations.ProfitWalkerOperation;
 import com.finance.pms.events.operations.RandomOperation;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
@@ -66,6 +68,7 @@ import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
+import com.finance.pms.events.operations.nativeops.TriggerPointJoiner;
 import com.finance.pms.events.operations.nativeops.UnaryDivision;
 import com.finance.pms.events.operations.nativeops.UnaryProduct;
 import com.finance.pms.events.operations.nativeops.UnarySum;
@@ -154,10 +157,17 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(indicatorStatsOperation);
 		RefiterOperation refiterOperation = new RefiterOperation();
 		nativeOperations.addOperation(refiterOperation);
-
-		//Other
+		TriggerPointJoiner triggerPointJoiner = new TriggerPointJoiner();
+		nativeOperations.addOperation(triggerPointJoiner);
+		ProfitDrivenOperation profitDrivenOperation = new ProfitDrivenOperation();
+		nativeOperations.addOperation(profitDrivenOperation);
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
 		nativeOperations.addOperation(bandNormalizerOperation);
+		ProfitWalkerOperation profitWalkerOperation = new ProfitWalkerOperation();
+		nativeOperations.addOperation(profitWalkerOperation);
+
+		//Other
+
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
 		nativeOperations.addOperation(zeroLagEMAOperation);
 		LnPeriodicOperation lnPeriodicOperation = new LnPeriodicOperation();

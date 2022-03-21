@@ -115,7 +115,6 @@ public class IndsParserErrorReporter extends MyErrorReporter {
 
 			}
 			else {
-
 					//Log
 					msg = msg + " (unmatched exception) "+ e.getMessage();
 			}

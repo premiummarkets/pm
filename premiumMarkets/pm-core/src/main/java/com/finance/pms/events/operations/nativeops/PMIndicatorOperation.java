@@ -46,7 +46,7 @@ import com.finance.pms.talib.indicators.TalibIndicator;
 @XmlSeeAlso({
     PMAroonOperation.class, PMMACDOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, PMBollingerOperation.class,
     LeftShifterOperation.class, BandNormalizerOperation.class, ZeroLagEMAOperation.class,
-    StatsOperation.class, MathOperation.class,
+    StatsOperation.class, MathOperation.class, TriggerPointJoiner.class,
     FlipOperation.class, InverseOperation.class,
     VolatilityOperation.class, VolatilityOtherOperation.class
 })

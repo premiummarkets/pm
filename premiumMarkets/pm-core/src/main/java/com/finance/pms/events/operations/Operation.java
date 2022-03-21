@@ -366,8 +366,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	public String toFormulaeShort() {
-		if (operands.isEmpty()) return "";
-		return operands.stream().reduce("", (r, e) -> {
+		return toFormulaeShort(operands);
+	}
+
+	protected String toFormulaeShort(List<Operation> ops) {
+		if (ops.isEmpty()) return "";
+		return ops.stream().reduce("", (r, e) -> {
 			String formulaeShort = e.toFormulaeShort();
 			return r + ((formulaeShort.isEmpty())?"":((r.isEmpty())?"":"_") + formulaeShort);
 		}, (a, b) -> a + b);

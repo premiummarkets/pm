@@ -87,7 +87,8 @@ public class LeftShifterOperation extends PMWithDataOperation {
 		String thisShortName = "ls";
 		String shift = ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
-		return thisShortName + "_" + shift + "_" + ops.stream().reduce("", (r, e) -> r + e.toFormulaeShort(), (a, b) -> a + b);
+		String opsFormulaeShort = toFormulaeShort(ops);
+		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
 }

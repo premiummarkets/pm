@@ -194,7 +194,6 @@ bearish_not_bullish[CommonTree bcond] :
   )
  ;
 
-
 primary_expression :
   and_expression
   ;
