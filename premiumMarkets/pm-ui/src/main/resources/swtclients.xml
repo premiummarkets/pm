@@ -76,7 +76,7 @@
 		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
 		<property name="shareDAO" ref="shareDAO"/> -->
 	</bean>
-	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooCrumb">
+	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPython" parent="provider"  destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOO" />
 		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
@@ -118,7 +118,7 @@
 	</bean>
 
 	<!--  Others -->
-	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooCrumb"  parent="provider">
+	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPython"  parent="provider"  destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>

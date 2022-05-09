@@ -369,7 +369,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			LOGGER.info("AnalysisClient is closed.");
 
 		} catch (Exception e) {
-			System.out.println("Error closing AnalysisClient : "+e);
+			System.out.println("Error closing AnalysisClient : " + e);
 			e.printStackTrace();
 		}
 	}

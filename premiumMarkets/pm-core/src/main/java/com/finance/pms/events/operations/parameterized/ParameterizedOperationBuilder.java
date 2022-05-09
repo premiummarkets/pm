@@ -99,35 +99,6 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 		this.nativesXmlManager = nativesXmlManager;
 	}
 
-	@Override
-	public List<Operation> checkInUse(Operation operation, Boolean checkDisabled) {
-
-		Map<String, Operation> currentOperationsMap =(checkDisabled)?getCurrentOperations():getThisParserCompliantUserEnabledOperations();
-		List<Operation> values = new ArrayList<Operation>(currentOperationsMap.values());
-		values.remove(values.indexOf(operation));
-
-		List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
-		actualCheckInUse.addAll(notifyChanged(operation, (checkDisabled)?ObsMsgType.OPERATION_cRud:ObsMsgType.OPERATION_cRud_IgnoreDisabled));
-
-		if (actualCheckInUse.contains(operation)) actualCheckInUse.remove(actualCheckInUse.indexOf(operation));
-		return actualCheckInUse;
-
-	}
-
-	@Override
-	public void replaceInUse(Operation replacementOp) throws StackOverflowError {
-
-		List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
-		LOGGER.info("Operations using " + replacementOp.getReference() + " : " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
-
-		List<Operation> usingIndicators = notifyChanged(replacementOp, ObsMsgType.OPERATION_cRud);
-
-		LOGGER.info("Indicators using " + replacementOp.getReference() + " : " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
-		actualReplaceInUse(usingIndicators, replacementOp);
-
-	}
-
-
 	/**
 	 * For notifying the indicators builder and access the user indicators list.
 	 */

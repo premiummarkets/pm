@@ -30,7 +30,6 @@
 package com.finance.pms.events.quotations;
 
 import java.io.BufferedReader;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -38,7 +37,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -78,7 +76,7 @@ public class LastUpdateStampChecker {
 		
 		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
 		Date now = DateFactory.getNowEndDateCalendar().getTime(); //Today midnight date. This can also be random date in the past depending on the DateFactory.ENDDATE settings.
-		Calendar lastMarketCloseBeforeNow = lastMarketCloseTime(now); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM
+		Calendar lastMarketCloseBeforeNow = DateFactory.lastMarketCloseTime(now); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM
 		Date lastMrktCloseBeforeNowDate = lastMarketCloseBeforeNow.getTime();
 		try {
 
@@ -136,29 +134,6 @@ public class LastUpdateStampChecker {
 			lastUpdatesWrite(stampRecords);
 		}
 		return stampRecords.getLastUpDateStampRecords().get(asset);
-	}
-
-	//Now will always be after the last market close time
-	private Calendar lastMarketCloseTime(Date now) {
-		
-		Calendar calendar = Calendar.getInstance(Locale.US); //XXX This is for Yahoo
-		calendar.setTime(now);
-		
-		int toDay = calendar.get(Calendar.DAY_OF_WEEK);
-		if (Calendar.SATURDAY == toDay) {
-			calendar.add(Calendar.DAY_OF_YEAR, -1);
-		} else if (Calendar.SUNDAY == toDay) {
-			calendar.add(Calendar.DAY_OF_YEAR, -2);
-		} else if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {//Now is before 6PM, we take the previous day
-			calendar.add(Calendar.DAY_OF_YEAR, -1);
-		}
-		
-		calendar.set(Calendar.HOUR_OF_DAY, 0);
-		calendar.set(Calendar.MINUTE, 0);
-		calendar.set(Calendar.SECOND, 0);
-		calendar.set(Calendar.MILLISECOND, 0);
-		
-		return calendar;
 	}
 	
 	private synchronized LastUpDateStampRecords lastUpdatesRead() {

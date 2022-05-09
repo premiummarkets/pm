@@ -382,23 +382,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
 				return ((StringableValue)this.getParameter()).getValueAsString();
 			} else {
-				return this.getReference();
+				return this.getOperationReference();
 			}
 		}
-		String selector = (this.getOutputSelector() != null)?":"+this.getOutputSelector():"";
-		return this.getReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
-	}
-	
-	public String toFormulaeFriendly() {
-		if (operands.isEmpty()) {
-			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
-				return ((StringableValue)this.getParameter()).getValueAsString();
-			} else {
-				return this.getReference();
-			}
-		}
-		String selector = (outputSelector != null)?":"+outputSelector:"";
-		return this.getReference() + selector + "(" + operands.stream().reduce("", (r, e) ->r + ((r.isEmpty())?"":",") + e.toFormulaeFriendly(), (a, b) -> a + b) + ")";
+		String selector = (outputSelector != null)? ":" + outputSelector : "";
+		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) ->r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
 	}
 
 	public void setFormulae(String formula) {

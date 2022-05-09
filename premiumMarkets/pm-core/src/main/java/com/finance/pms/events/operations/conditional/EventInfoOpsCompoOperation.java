@@ -275,7 +275,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 	
 	@Override
-	public String toFormulaeFriendly() {
+	public String toFormulae() {
 		return getReference() + "()";
 	}
 }

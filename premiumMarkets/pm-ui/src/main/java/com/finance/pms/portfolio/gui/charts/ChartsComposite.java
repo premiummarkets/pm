@@ -165,7 +165,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 
-		this.slidingEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
+		this.slidingEndDate = maxDate();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.YEAR, -1);
 		this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
@@ -893,7 +893,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	private void endSliderUpdateConditional( Slider sliderEndDate,  Label endDateLabel,  Slider sliderStartDate, Label startDateLabel) {
+	private void endSliderUpdateConditional(Slider sliderEndDate,  Label endDateLabel,  Slider sliderStartDate, Label startDateLabel) {
 
 		synchronized (sliderEndDate) {
 			sliderSelection = true;
@@ -958,9 +958,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 	private Date maxDate() {
-		if (lastEndDate == null) {
-			lastEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
-		}
+		lastEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		return lastEndDate;
 	}
 

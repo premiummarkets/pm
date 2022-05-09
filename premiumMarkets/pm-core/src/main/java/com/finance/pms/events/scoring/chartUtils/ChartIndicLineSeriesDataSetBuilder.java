@@ -161,11 +161,11 @@ public class ChartIndicLineSeriesDataSetBuilder {
 											y = numberFormat.format(dataset.getYValue(series, item));
 											Date date = new Date((long) dataset.getXValue(series, item));
 											x = simpleDateFormat.format(date);
-											String slashedDomain = (domain.length() <= 50)?domain:domain.replaceAll(",([a-zA-z])", ",<br>&nbsp;&nbsp;$1");
+											String slashedDomain = (domain.length() <= 50)?domain:domain.replaceAll("\\), *([0-9a-zA-z])", "),<br>&nbsp;&nbsp;$1");
 											return "<html>" +
 											"<font size='2'>" +
 											"<b>" + slashedDomain + "</b> on the " + x + "<br>"
-											+ ((eventDefDescriptor.displayValues()) ? "Value : " + y : "") +
+											+ ((eventDefDescriptor.displayValues()) ? "Value: " + y : "") +
 											"</font>" +
 											"</html>";
 										} catch (Exception e) {

@@ -100,7 +100,7 @@ public class MyUrl {
 							r = r + ";" + c;
 							return r;
 						}
-						).get();
+						).orElseGet(() -> "");
 	}
 
 	@Override

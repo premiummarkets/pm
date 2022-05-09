@@ -36,6 +36,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -92,7 +93,7 @@ public class DateFactory {
 	}
 
 	private static void initEndDate() {
-		String endDateStr = MainPMScmd.getMyPrefs().get("test.endDate",null);
+		String endDateStr = MainPMScmd.getMyPrefs().get("test.endDate", null);
 		if (endDateStr != null && !endDateStr.isEmpty()) {
 			try {
 				ENDDATE = midnithDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endDateStr));
@@ -106,7 +107,8 @@ public class DateFactory {
 		if (ENDDATE != null) {
 			return new Date(ENDDATE.getTime());
 		} else {
-			return midnithDate(new Date());
+			Date midnithDate = midnithDate(new Date());
+			return midnithDate;
 		}
 	}
 	
@@ -131,6 +133,33 @@ public class DateFactory {
 		startCal.setTime(startDate);
 		QuotationsFactories.getFactory().incrementDate(startCal, startShift);
 		return startCal.getTime();
+	}
+	
+	/**
+	 * Now will always be after the last market close time
+	 * @param now
+	 * @return
+	 */
+	public static Calendar lastMarketCloseTime(Date now) {
+		
+		Calendar calendar = Calendar.getInstance(Locale.US); //XXX This is for Yahoo and other US markets //FIXME should take in account the market specific closing time for each stock
+ 		calendar.setTime(now);
+		
+		int toDay = calendar.get(Calendar.DAY_OF_WEEK);
+		if (Calendar.SATURDAY == toDay) {
+			calendar.add(Calendar.DAY_OF_YEAR, -1);
+		} else if (Calendar.SUNDAY == toDay) {
+			calendar.add(Calendar.DAY_OF_YEAR, -2);
+		} else if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {//Now is before 6PM, we take the previous day
+			calendar.add(Calendar.DAY_OF_YEAR, -1);
+		}
+		
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		
+		return calendar;
 	}
 
 

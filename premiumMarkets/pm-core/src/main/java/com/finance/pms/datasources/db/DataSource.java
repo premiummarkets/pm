@@ -1039,7 +1039,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					debug = debug + "," + query.getParameterValues().get(i);
 					this.setObject(query, pst, i);
 				}
-				LOGGER.trace("Parameters : "+debug);
+				LOGGER.trace("Parameters : " + debug);
 				pst.addBatch();
 			}
 			if (qL.size() > 0) resReq = pst.executeBatch();
@@ -1182,11 +1182,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 						qupdate.addValue(insertParams.get(3)); //Low
 						qupdate.addValue(insertParams.get(4)); //Close
 						qupdate.addValue(insertParams.get(5)); //Volume
-						qupdate.addValue(insertParams.get(6)); //Currency??
+						qupdate.addValue(insertParams.get(6)); //Currency
 
 						//where
-						qupdate.addValue(insertParams.get(7));
-						qupdate.addValue(insertParams.get(8));
+						qupdate.addValue(insertParams.get(7)); //Symbol
+						qupdate.addValue(insertParams.get(8)); //ISIN
 						qupdate.addValue(insertParams.get(0)); //Date
 
 						return qupdate;

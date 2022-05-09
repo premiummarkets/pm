@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -77,5 +78,14 @@ public class LnPeriodicOperation extends DoubleMapOperation {
 		}
 		return maxDateShift;
 	}
+	
+	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "pLn";
+		String shift = ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
+		List<Operation> ops = getOperands().subList(1, getOperands().size());
+		String opsFormulaeShort = toFormulaeShort(ops);
+		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}	
 
 }

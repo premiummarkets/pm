@@ -80,7 +80,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		getCurrentOperations().putAll(nativeOperations);
 	}
 
-	//	@PostConstruct
+	//@PostConstruct
 	public void init() {
 
 		resetUserOperations();
@@ -202,18 +202,6 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	@Override
 	public void updateEditableOperationLists() {
 		antlrParser.updateEditableOperationLists(parameterizedOperationBuilder.getNativeOperations(), parameterizedOperationBuilder.getThisParserCompliantUserEnabledOperations());
-	}
-
-	//Is called when Indicators are changed
-	@Override
-	public List<Operation> checkInUse(Operation operation, Boolean checkDisabled) {
-		//We don't check root indicator operations as they can't be reused
-		return new ArrayList<Operation>(); //FIXME this is not true any more with the iterative operation or Encog operation?
-	}
-
-	@Override
-	public void replaceInUse(Operation operation) {
-		//We don't check root indicator operations as they can't be reused
 	}
 
 	@Override

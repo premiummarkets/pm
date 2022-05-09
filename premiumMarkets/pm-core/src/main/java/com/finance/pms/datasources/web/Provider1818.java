@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
 
@@ -16,8 +17,10 @@ import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
+import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuote1818Formater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
+import com.finance.pms.events.calculation.DateFactory;
 
 public class Provider1818 extends Providers implements QuotationProvider {
 
@@ -49,9 +52,12 @@ public class Provider1818 extends Providers implements QuotationProvider {
 		} catch (InvalidAlgorithmParameterException e) {
 			return;
 		}
-
+		
+		Date lastMarketCloseDate = DateFactory.midnithDate(DateFactory.lastMarketCloseTime(end).getTime());
 		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(readPage(stock, url, start));
+		List<Validatable> ohlcList = readPage(stock, url, start);
+		List<Validatable> ohlcvValids = ohlcList.stream().filter(ohlcv -> !((DailyQuotation) ohlcv).getQuoteDate().after(lastMarketCloseDate)).collect(Collectors.toList());
+		queries.addAll(ohlcvValids);
 
 		//https://protect.wealthmanagement.natixis.com/phoenix/infosMarcheValeur/detache?page=cours&valeur=LU1829221024,25,814
 		LOGGER.guiInfo("Last quotes  for " + stock.getSymbol() +". Number of new quotations:" + queries.size() + ", request: " + url);

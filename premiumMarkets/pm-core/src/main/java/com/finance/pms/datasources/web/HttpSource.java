@@ -337,7 +337,7 @@ public abstract class HttpSource implements SourceConnector {
 						break;
 					} catch (StopParseErrorException e) {
 
-						LOGGER.warn("Stop Parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage());
+						LOGGER.warn("Stop Parsing Url " + formater.getUrl() + " : " + ((StopParseErrorException) e).getMessage());
 						LOGGER.warn("Reason : " + ((StopParseErrorException) e).getReason());
 						if (LOGGER.isTraceEnabled()) {
 							for (; ((line = dis.readLine()) != null);) {
@@ -345,7 +345,7 @@ public abstract class HttpSource implements SourceConnector {
 							}
 						}
 						throw new IOException(
-								"Stop parsing Url " + formater.getUrl() + " : "+ ((StopParseErrorException) e).getMessage()+"\n"+
+								"Stop parsing Url " + formater.getUrl() + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
 										"Reason : " + ((StopParseErrorException) e).getReason());
 
 					} catch (Exception e) {

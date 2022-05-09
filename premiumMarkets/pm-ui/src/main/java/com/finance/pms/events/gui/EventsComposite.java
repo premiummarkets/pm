@@ -1293,7 +1293,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 	@Override
 	public Date getAnalysisEndDate() {
-		return DateFactory.midnithDate(new Date());
+		return DateFactory.midnithDate(DateFactory.getNowEndDate());
 	}
 	
 

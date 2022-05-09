@@ -229,7 +229,7 @@ public class ChartMain extends Chart {
 								String variationAddInfo = "";
 								if (!stripedCloseFunction.lineToolTip().isEmpty()) {
 									y = stripedCloseFunction.formatYValue(dataset.getYValue(series, item));
-									variationAddInfo = "<br>Value : " + y + " (" + stripedCloseFunction.lineToolTip() + ")";
+									variationAddInfo = "<br>Value: " + y + " (" + stripedCloseFunction.lineToolTip() + ")";
 								}
 
 								String origin = (closeForDate.getOrigin().equals(ORIGIN.USER)) ?

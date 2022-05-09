@@ -59,7 +59,7 @@ public class DayQuoteBoursoramaFormater extends DayQuoteFormater {
 		
 		assert (tokenisedLine.countTokens() == 8 || tokenisedLine.countTokens() == 7) ;
 		if (tokenisedLine.countTokens() != 8 && tokenisedLine.countTokens() != 7) {
-		    LOGGER.warn("Invalid Page format! This is not the Page I expected! ");
+		    LOGGER.warn("Invalid Page format! This is not the Page I expected!");
     		throw new StopParseErrorException("Error Parsing Line : Line "+line,"Invalid Page format! The is not the Page I expected!");
 		} else {
 		    int i;

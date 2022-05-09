@@ -119,7 +119,7 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 				startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
 				updateStart = startDayMidNight.getTime();
 
-				if (forceReset || forceUpdate || updateGranted) { //Update granted for today
+				if (dateFin.compareTo(updateStart) >= 0 && (forceReset || forceUpdate || updateGranted)) { //Update granted for today
 
 					LOGGER.guiInfo(	"Updating quotation for " + stock.getFriendlyName() +
 							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 

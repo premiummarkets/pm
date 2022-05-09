@@ -58,15 +58,17 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
         throw new UnsupportedOperationException();
     }
 
-    public MyUrl getYahooQuoteURL(String symbol, long startDate, long endDate, String cookie, String crumb) {
+    public MyUrl getYahooQuoteURL(String symbol, long startDate, long endDate, String cookie, String crumb) throws UnsupportedEncodingException {
 
-        try {
-            symbol = URLEncoder.encode(symbol,"UTF-8");
-            crumb = URLEncoder.encode(crumb.replace("\\u002F", "/"),"UTF-8"); //The replace may not be need with Content input stream read using StandardCharsets.UTF_8 
-            System.out.println(crumb);
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.debug("",e);
-        }
+    	if (crumb != null) {
+	        try {
+	            symbol = URLEncoder.encode(symbol,"UTF-8");
+	            crumb = URLEncoder.encode(crumb.replace("\\u002F", "/"),"UTF-8"); //The replace may not be need with Content input stream read using StandardCharsets.UTF_8 
+	            System.out.println(crumb);
+	        } catch (UnsupportedEncodingException e) {
+	            LOGGER.debug("",e);
+	        }
+    	}
 
         //https://query1.finance.yahoo.com/v7/finance/download/CNDX.L?period1=1284508800&period2=1642723200&interval=1d&events=history&includeAdjustedClose=true
         //Sat, 20 Jan 2018 21:07:49 GMT
@@ -74,15 +76,16 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
         //String url = "https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516482469&period2=1519160869&interval=1d&events=history"+"&crumb="+crumb;
         //              https://query1.finance.yahoo.com/v7/finance/download/%5EAAPL?period1=1516424400&period2=1519102800&interval=1d&events=history&crumb=GEcazs7lpjM
         //              https://query1.finance.yahoo.com/v7/finance/download/AAPL?period1=1516490318&period2=1519168718&interval=1d&events=history&crumb=9Gm6dOkKT.K
-        String url = "https://query1.finance.yahoo.com/v7/finance/download/" + symbol + "?"+
-                "period1="+startDate+"&period2="+endDate +
-                "&interval=1d&events=history&includeAdjustedClose=true"+
-                "&crumb="+crumb;
+    	//	https://query1.finance.yahoo.com/v7/finance/download/URA?period1=1620330560&period2=1651866560&interval=1d&events=history&includeAdjustedClose=true
+        String url = "https://query1.finance.yahoo.com/v7/finance/download/" + URLEncoder.encode(symbol, "UTF-8") + "?"+
+                "period1=" + startDate + "&period2=" + endDate +
+                "&interval=1d&events=history&includeAdjustedClose=true" +
+                ((crumb != null)?"&crumb=" + crumb:"");
 
         LOGGER.debug(url);
 
         MyUrl myUrl = new MyUrl(url);
-        myUrl.addCookie(cookie);
+        if (cookie != null) myUrl.addCookie(cookie);
 
         return myUrl;
     }
@@ -98,7 +101,8 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
     @Override
     protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
         HttpGet httpGet = new HttpGet(url.getUrl());
-        httpGet.addHeader("Cookie", url.getCookieString());
+        String cookieString = url.getCookieString();
+		if (!cookieString.isEmpty()) httpGet.addHeader("Cookie", cookieString);
         return httpGet;
     }
 

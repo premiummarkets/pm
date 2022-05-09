@@ -148,7 +148,7 @@ public class StockOperation extends DoubleMapOperation {
 	}
 	
 	@Override
-	public String toFormulaeFriendly() {
+	public String toFormulae() {
 		String value = ((StringValue) getOperands().get(0).getParameter()).getValue(null);
 		if (value.equals("THIS")) {
 			return getOutputSelector();

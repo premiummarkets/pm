@@ -55,7 +55,7 @@ public class DayQuoteInvestingFormater extends LineFormater {
 			switch (cpt) {
 				case 0 :
 					if (fit.find()) {
-						System.out.println("Date : "+line+" at cpt : "+cpt);
+						System.out.println("Date : " + line + " at cpt : " + cpt);
 						//date = LocalDateTime.ofEpochSecond(Long.valueOf(fit.group(1)), 0, ZoneOffset.UTC).toLocalDate();
 						date = Long.valueOf(fit.group(1));
 						cpt ++;
@@ -63,14 +63,14 @@ public class DayQuoteInvestingFormater extends LineFormater {
 					break;
 				case 1 :
 					if (fit.find()) {
-						System.out.println("Close : "+line+" at cpt : "+cpt);
+						System.out.println("Close : " + line + " at cpt : " + cpt);
 						close = new BigDecimal(fit.group(1));
 						cpt ++;
 					}
 					break;
 				case 2 :
 					if (fit.find()) {
-						System.out.println("Open : "+line+" at cpt : "+cpt);
+						System.out.println("Open : " + line + " at cpt : " + cpt);
 						open = new BigDecimal(fit.group(1));
 						cpt ++;
 					}

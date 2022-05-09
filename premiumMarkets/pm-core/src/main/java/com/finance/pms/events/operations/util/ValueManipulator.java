@@ -73,17 +73,17 @@ public class ValueManipulator {
 					return ((DoubleArrayMapValue)i).getDoubleArrayValue().get(date);
 				} else {
 					return ((NumericableMapValue)i).getValue(targetStock).get(date);
-				}
+				}	
 			}).collect(Collectors.toList());
 
-			if (factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(v -> v == null)) //Heading NaN
+			if (factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v)))) //Heading NaN
 				continue;
 			
 			double[] array = valuesAtDate.stream()
 					.map(value -> valueToDoubleArray(value)) //Transforms Potential Doubles to double[]s
 					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
 					.toArray();
-			if (valuesAtDate.stream().noneMatch(v -> v == null)) { //Don't add NaN in this loop
+			if (valuesAtDate.stream().noneMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v)))) { //Don't add NaN in this loop
 				factorisedInput.put(date, array);
 			} else { //Only for trailing NaN (this is useful to create dataSet where all targets are not present).
 				trailingNaNInput.put(date, array);

@@ -211,9 +211,18 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
         try {
             CloseableHttpResponse crumbResponse = closeableHttpClient.execute(httpGet);
             Header responseCookies = crumbResponse.getFirstHeader("Set-Cookie");
-            String cookie = responseCookies.getValue().split(";")[0];
-
-            String crumb = getCrumb(crumbResponse.getEntity().getContent());
+            String crumb = null;
+//          String cookie = "GUCS=AW1N9O0Z; A1=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAYsQVFBQkJnRmlkczFqVmtJZkhnUmEmcz1BUUFBQU9YZzYyRDMmZz1ZbldCYVEHCE6BdWJY8AX6&S=AQAAAmhXpvc7kn1bVn_1bXIvatA; EuConsent=CPYi_IAPYi_IAAOACCENCNCgAAAAAAAAACiQAAAAAABhoAMAAQRKEQAYAAgiUKgAwABBEoA; GUC=AQABBgFids1jVkIfHgRa&s=AQAAAOXg62D3&g=YnWBaQ; A3=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAYsQVFBQkJnRmlkczFqVmtJZkhnUmEmcz1BUUFBQU9YZzYyRDMmZz1ZbldCYVEHCE6BdWJY8AX6&S=AQAAAmhXpvc7kn1bVn_1bXIvatA; A1S=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAYsQVFBQkJnRmlkczFqVmtJZkhnUmEmcz1BUUFBQU9YZzYyRDMmZz1ZbldCYVEHCE6BdWJY8AX6&S=AQAAAmhXpvc7kn1bVn_1bXIvatA";
+//          String cookie = "GUCS=AW1N9O0Z; A1=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs; EuConsent=CPYi_IAPYi_IAAOACCENCNCgAAAAAAAAACiQAAAAAABhoAMAAQRKEQAYAAgiUKgAwABBEoA; GUC=AQABBgFids1jVkIfHgRa; A3=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs; A1S=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs&j=GDPR; maex=%7B%22v2%22%3A%7B%7D%7D; PRF=t%3DURA";
+//            String cookie = "A1=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs; EuConsent=CPYi_IAPYi_IAAOACCENCNCgAAAAAAAAACiQAAAAAABhoAMAAQRKEQAYAAgiUKgAwABBEoA; GUC=AQABBgFids1jVkIfHgRa; A3=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs; A1S=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs&j=GDPR"; //GUCS=AW1N9O0Z; //; PRF=t%3DURA%252BGOOG; cmp=t=1651869192&j=1&u=1---&v=34; thamba=1";
+            long timeStamp = new Date().getTime();
+            try{Thread.sleep(500);}catch(InterruptedException e){System.out.println(e);}
+            String cookie = "A1=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs; EuConsent=CPYi_IAPYi_IAAOACCENCNCgAAAAAAAAACiQAAAAAABhoAMAAQRKEQAYAAgiUKgAwABBEoA; GUC=AQABBgFids1jVkIfHgRa; A3=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs; A1S=d=AQABBF-BdWICEEHm0lF8FnpvqDbJ_dvoYvUFEgABBgHNdmJWY_bPb2UBgiAAAAcIToF1YljwBfo&S=AQAAAqgK5HYImMenQE4i5lw_SRs&j=GDPR; "
+            		+ "PRF=t%3" + symbol + "; cmp=t=" + timeStamp + "&j=1&u=1---&v=34; thamba=1";
+            if (responseCookies != null) {
+	            cookie = responseCookies.getValue().split(";")[0];
+	            crumb = getCrumb(crumbResponse.getEntity().getContent());
+            }
 
             Calendar calendarStart = Calendar.getInstance();
             calendarStart.setTime(DateFactory.midnithDate(start));
@@ -230,8 +239,7 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
             ZonedDateTime zonedEnd = ZonedDateTime.of(calendarEnd.get(Calendar.YEAR), calendarEnd.get(Calendar.MONTH)+1, calendarEnd.get(Calendar.DAY_OF_MONTH),0 , 0, 0, 0, TimeZone.getTimeZone("EST").toZoneId());
 
             //Call
-            url =  ((HttpSourceYahooCrumb)this.httpSource)
-                    .getYahooQuoteURL(symbol, zonedStart.toEpochSecond(), zonedEnd.toEpochSecond(), cookie, crumb);
+            url =  ((HttpSourceYahooCrumb)this.httpSource).getYahooQuoteURL(symbol, zonedStart.toEpochSecond(), zonedEnd.toEpochSecond(), cookie, crumb);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

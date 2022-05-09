@@ -9,3 +9,5 @@
 /pmsjava.log*
 /*.png
 /build/
+**/venv
+**/.idea

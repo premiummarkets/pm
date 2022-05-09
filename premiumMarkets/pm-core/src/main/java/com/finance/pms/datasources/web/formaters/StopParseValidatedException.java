@@ -53,7 +53,7 @@ public class StopParseValidatedException extends StopParseException {
 	 * 
 	 * @author Guillaume Thoreton
 	 */
-	public StopParseValidatedException(Validatable last,String contents) {
+	public StopParseValidatedException(Validatable last, String contents) {
 		super(last);
 		validationContents = contents;
 	}

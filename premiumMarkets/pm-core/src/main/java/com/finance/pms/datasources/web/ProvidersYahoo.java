@@ -100,7 +100,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
 		} catch (SQLException e) {
 			
-			LOGGER.error("Yahoo quotations sql error trying : "+url.getUrl(), e);
+			LOGGER.error("Yahoo quotations sql error trying : " + url.getUrl(), e);
 			throw e;
 		}
 
