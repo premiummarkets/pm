@@ -861,7 +861,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				//Truncation Indicator
 				long allOutputsSize = chartTarget.getChartedEvtDefsTrends().stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();
 				if (allOutputsSize > availableOutputs.size()) {
-					calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE+" TOP only.");
+					calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE + " TOP only.");
 				} else {
 					calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE);
 				}

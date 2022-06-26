@@ -74,7 +74,7 @@ public abstract class StripedCloseFunction {
 
 		Date startDate = this.arbitraryStartDate;
 		startDate = (startDate.before(stockQuotations.getDate(0)))?stockQuotations.getDate(0):startDate;
-		LOGGER.debug("The start date is : "+startDate);
+		LOGGER.debug("The start date is : " + startDate);
 
 		return startDate;
 	}

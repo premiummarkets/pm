@@ -16,7 +16,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.beans.BeansException;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.datasources.db.DataSource;

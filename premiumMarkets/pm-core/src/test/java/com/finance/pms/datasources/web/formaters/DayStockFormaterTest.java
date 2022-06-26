@@ -39,11 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.datasources.shares.Market;
-import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 
 import junit.framework.TestCase;

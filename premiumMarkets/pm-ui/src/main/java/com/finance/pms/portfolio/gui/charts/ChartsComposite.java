@@ -167,6 +167,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.slidingEndDate = maxDate();
 		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(this.slidingEndDate);
 		calendar.add(Calendar.YEAR, -1);
 		this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
 

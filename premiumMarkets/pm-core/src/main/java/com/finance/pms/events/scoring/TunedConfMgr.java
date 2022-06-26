@@ -179,7 +179,8 @@ public class TunedConfMgr {
 		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(firstQuotationDateFromQuotations);
-		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, 200);
+		int adjustmentAmount = 0;
+		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, adjustmentAmount);
 		Date adjustedStartDate = adjustedStartCal.getTime();
 		return adjustedStartDate;
 	}
