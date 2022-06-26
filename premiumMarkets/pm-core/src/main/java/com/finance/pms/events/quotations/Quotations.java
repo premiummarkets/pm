@@ -707,7 +707,13 @@ public class Quotations {
 				) {
 				continue;
 			}
-			if ( validVolume && qj.getVolumeSplit() == 0 ) {
+			if ( validVolume && 
+					(
+						qj.getVolumeSplit() == 0 
+						|| //Unrealistic variations (*10)
+						(qjm1 != null && (qj.getVolumeSplit()/qjm1.getVolumeSplit() > 10 || qjm1.getVolumeSplit()/qj.getVolumeSplit() > 10))
+					)
+				) {
 				continue;
 			}
 

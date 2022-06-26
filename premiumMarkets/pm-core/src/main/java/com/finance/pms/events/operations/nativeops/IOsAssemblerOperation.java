@@ -32,7 +32,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	public IOsAssemblerOperation() {
-		this("iosAssembler", "Assembles several inputs into one input array. No NaN permited.",
+		this("iosAssembler", "Assembles several inputs into one inputable array.",
 				new StringOperation("boolean", "isExportToFile", "If true, exports the result to a file.", new StringValue("FALSE")),
 				new StringOperation("boolean", "allowTrailingNaN", "If NaN are allowed at the end of the data set (usefull for targets)", new StringValue("FALSE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to assemble in one", null));
