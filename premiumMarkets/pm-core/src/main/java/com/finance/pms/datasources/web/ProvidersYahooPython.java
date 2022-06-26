@@ -60,6 +60,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooPythonFormater;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
@@ -150,7 +151,10 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     	DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     	
-		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), stock.getSymbol(), dateFormat.format(start), dateFormat.format(endPlusOne));
+		String symbol = stock.getSymbol();
+		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^"+symbol;
+		
+		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(endPlusOne));
 		Process p = pb.start();
 		 
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -161,9 +165,9 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 				LOGGER.info("line: " + line);
 				validatables.addAll(dsf.formatLine(line));
 			} catch (StopParseErrorException e) {
-				LOGGER.error(e);
+				LOGGER.warn(e);
 				throw new IOException(
-						"Stop parsing response from python for " + stock.getSymbol() + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
+						"Stop parsing response from python for " + symbol + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
 								"Reason : " + ((StopParseErrorException) e).getReason());
 
 			} catch (AssertionError| Exception e) {
