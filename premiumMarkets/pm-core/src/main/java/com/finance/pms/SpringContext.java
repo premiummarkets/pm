@@ -31,10 +31,12 @@ package com.finance.pms;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
@@ -54,6 +56,9 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class SpringContext extends GenericApplicationContext {
+	
+	private static final Logger LOGGER = Logger.getLogger(SpringContext.class);
+
 
 	private static SpringContext singleton;
 
@@ -72,9 +77,25 @@ public class SpringContext extends GenericApplicationContext {
 		initPrefs(propsFile);
 		setDataSource();
 		singleton = this;
+		
+		//this.tieSystemOutAndErrToLog();
 
 		buildStampPrefs();	
 	}
+	
+    public void tieSystemOutAndErrToLog() {
+        System.setOut(createLoggingProxy(System.out));
+        System.setErr(createLoggingProxy(System.err));
+    }
+
+    public PrintStream createLoggingProxy(final PrintStream realPrintStream) {
+        return new PrintStream(realPrintStream) {
+            public void print(final String string) {
+                realPrintStream.print(string);
+                LOGGER.info(string);
+            }
+        };
+    }
 
 	private void buildStampPrefs() {
 		//BuildInPrefs
