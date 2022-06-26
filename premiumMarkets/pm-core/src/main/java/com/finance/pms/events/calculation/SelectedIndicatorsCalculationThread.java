@@ -79,16 +79,16 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			LOGGER.guiInfo("Calculating "+eventInfo.getEventReadableDef()+" for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+			LOGGER.guiInfo("Calculating " + eventInfo.getEventReadableDef()+" for stock " + stock.toString() + " between "+dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
-			LOGGER.guiInfo("Finishing "+eventInfo.getEventReadableDef()+" for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+			LOGGER.guiInfo("Finishing " + eventInfo.getEventReadableDef()+" for stock " + stock.toString() + " between "+dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			return symbolEvents;
 
 		} catch (IncompleteDataSetException e) {
-			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef(), e);
+			LOGGER.error("UnHandled error : While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and "+eventInfo.getEventDefinitionRef(), e);
+			LOGGER.error("UnHandled error : While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
 			throw new IncompleteDataSetException(stock, new HashSet<>(), null);
 		} finally {
 			this.setChanged();
@@ -187,7 +187,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				dirty = false; //Not recoverable issue
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
-				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : " + eventInfo);
 
 			} catch (Throwable e) {
 				// Recoverable??

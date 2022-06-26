@@ -244,8 +244,8 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		String opClassName = "unknown";
 		try {
 
-			valueClassName = "com.finance.pms.events.operations.nativeops."+childTxt + "Value";
-			opClassName = "com.finance.pms.events.operations.nativeops."+childTxt + "Operation";
+			valueClassName = "com.finance.pms.events.operations.nativeops." + childTxt + "Value";
+			opClassName = "com.finance.pms.events.operations.nativeops." + childTxt + "Operation";
 
 			Class<Value<?>> valueClass = (Class<Value<?>>) Class.forName(valueClassName);
 			Constructor<Value<?>> valueConstructor = valueClass.getConstructor(String.class);

@@ -31,7 +31,7 @@ public class AnyValueListValue<T extends Value<?>> extends ListValue<T> implemen
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : value " + listOfValues.toString();
+		return this.getClass().getSimpleName() + ": value " + listOfValues.toString();
 	}
 	
 	@Override

@@ -123,7 +123,7 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			exception = e;
 
 		} catch (Throwable e) {
-			LOGGER.error("Error in "+this.toString(), e);
+			LOGGER.error("Error in " + this.toString(), e);
 
 		} finally {
 			synchronized (syncObject) {

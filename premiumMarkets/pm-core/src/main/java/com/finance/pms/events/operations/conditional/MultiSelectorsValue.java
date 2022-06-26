@@ -79,10 +79,10 @@ public class MultiSelectorsValue extends DoubleMapValue {
 
 	@Override
 	public String toString() {
-		String ret = this.getClass().getSimpleName() + " with calculation selector : "+calculationSelector;
+		String ret = this.getClass().getSimpleName() + " with calculation selector : " + calculationSelector;
 		for (String selector : selectorOutputs.keySet()) {
 			SortedMap<Date, Double> selectorOutput = selectorOutputs.get(selector).getValue(null);
-			ret = ret +";" + selector + " : size is "+selectorOutput.size() + ((selectorOutput.size() > 0)?", first key "+selectorOutput.firstKey()+ ", last key "+selectorOutput.lastKey():"");
+			ret = ret + ";" + selector + " : size is " + selectorOutput.size() + ((selectorOutput.size() > 0)?", first key " + selectorOutput.firstKey() + ", last key " + selectorOutput.lastKey():"");
 		}
 		return ret;
 	}
