@@ -49,6 +49,7 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.TalibOperation;
+import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator.ConstantNameNType;
 import com.finance.pms.talib.indicators.TalibCoreService;
 import com.finance.pms.talib.indicators.TalibException;
 import com.tictactec.ta.lib.MAType;
@@ -61,13 +62,13 @@ public class TalibGenericOperation extends TalibOperation {
 	 * TalibGenericOperation are not state less as instantiated on the fly when parsing the ta_lib
 	 * This state is the reflection of their definition, not their values
 	 */
-	private final List<String> inConstantsNames;
+	private final List<ConstantNameNType> inConstantsNames;
 	private final List<String> inDataNames;
 	private final List<String> outDataNames;
 
 	private Method method;
 
-	public TalibGenericOperation(String reference, String description, Method method, List<String> inConstantsNames, List<String> inDataNames, ArrayList<String> outDataNames) {
+	public TalibGenericOperation(String reference, String description, Method method, List<ConstantNameNType> inConstantsNames, List<String> inDataNames, ArrayList<String> outDataNames) {
 		super(reference, description);
 		this.inConstantsNames = inConstantsNames;
 		this.inDataNames = inDataNames;
@@ -75,12 +76,12 @@ public class TalibGenericOperation extends TalibOperation {
 		this.method = method;
 
 		ArrayList<Operation> overridingOperands = new ArrayList<Operation>();
-		for (String inConstantName : inConstantsNames) {
-			if (inConstantName.contains("MAType")) {
-				MATypeOperation maType = new MATypeOperation("moving average type", inConstantName, inConstantName + ". One of " + EnumSet.allOf(MAType.class), null);
+		for (ConstantNameNType inConstantName : inConstantsNames) {
+			if (inConstantName.type.equals(MAType.class)) {
+				MATypeOperation maType = new MATypeOperation("moving average type", inConstantName.name, inConstantName.name + ". One of " + EnumSet.allOf(MAType.class), null);
 				overridingOperands.add(maType);
 			} else {
-				NumberOperation constant = new NumberOperation("number", inConstantName, inConstantName, null);
+				NumberOperation constant = new NumberOperation("number", inConstantName.name, inConstantName.name + ". " + inConstantName.type.getSimpleName(), null);
 				overridingOperands.add(constant);
 			}
 		}
@@ -110,8 +111,13 @@ public class TalibGenericOperation extends TalibOperation {
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Value<?> value = inputs.get(i);
 			if (value instanceof NumberValue) {
-				int intValue = ((NumberValue) value).getValue(targetStock).intValue();
-				inConstants.add(intValue);
+				if (inConstantsNames.get(i).type.equals(Double.TYPE)) {
+					Double doubleValue = ((NumberValue) value).getValue(targetStock).doubleValue();
+					inConstants.add(doubleValue);
+				} else {
+					Integer intValue = ((NumberValue) value).getValue(targetStock).intValue();
+					inConstants.add(intValue);
+				}
 				args[i + constantArgIdx] = inConstants.get(i);
 			}
 			else if (value instanceof MATypeValue) {
@@ -145,7 +151,7 @@ public class TalibGenericOperation extends TalibOperation {
 			//Grab all
 			Set<Date> fullDateKeySet = new TreeSet<Date>();
 			for (int i = 0; i < inDataNames.size(); i++) {
-				SortedMap<Date, Double> inDataMap = ((NumericableMapValue) inputs.get(inConstantsNames.size()+i)).getValue(targetStock);
+				SortedMap<Date, Double> inDataMap = ((NumericableMapValue) inputs.get(inConstantsNames.size() + i)).getValue(targetStock);
 				fullDateKeySet.addAll(inDataMap.keySet());
 				inDataMaps.add(inDataMap);
 			}

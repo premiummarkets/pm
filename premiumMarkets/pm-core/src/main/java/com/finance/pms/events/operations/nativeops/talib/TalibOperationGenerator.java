@@ -49,6 +49,17 @@ import com.tictactec.ta.lib.RetCode;
 @Service("talibOperationGenerator")
 public class TalibOperationGenerator {
 
+	class ConstantNameNType {
+		String name;
+		Class<?> type;
+		public ConstantNameNType(String name, Class<?> type) {
+			super();
+			this.name = name;
+			this.type = type;
+		}
+	}
+
+
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibOperationGenerator.class);
 
 	Map<String,String> talibDescription;
@@ -74,7 +85,7 @@ public class TalibOperationGenerator {
 				Class<?> returnType = method.getReturnType();
 				if (returnType.equals(RetCode.class)) {
 
-					List<String> inConstantsNames = new ArrayList<String>();
+					List<ConstantNameNType> inConstantsNames = new ArrayList<>();
 					List<String> inDataNames =new ArrayList<String>();
 					ArrayList<String> outDataNames = new ArrayList<String>();
 
@@ -106,7 +117,7 @@ public class TalibOperationGenerator {
 						//inConstants
 						while (paramShift < parameterTypes.length) {
 							if (parameterTypes[paramShift].equals(Integer.TYPE)  || parameterTypes[paramShift].equals(Double.TYPE) || parameterTypes[paramShift].equals(MAType.class)) {
-								inConstantsNames.add(addParam(params, paramShift, "inConstant"));
+								inConstantsNames.add(new ConstantNameNType(addParam(params, paramShift, "inConstant"), parameterTypes[paramShift]));
 							} 
 							else if (parameterTypes[paramShift].equals(MInteger.class)) {
 								//first MInteger, end inConstants
@@ -168,7 +179,7 @@ public class TalibOperationGenerator {
 		if (params != null) {
 			return params.get(paramShift);
 		} else {
-			return fallBack+paramShift;
+			return fallBack + paramShift;
 		}
 	}
 
