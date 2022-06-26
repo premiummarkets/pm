@@ -56,13 +56,13 @@ public class SeriesPrinter {
                         if (maxWidth > 1) {
                             Optional<String> header = IntStream.range(0, maxWidth)
                             		.mapToObj(i -> {
-										String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "":headersPrefixes.get(e.getKey()).get(i)+"_";
-		                            	return prefix + e.getKey() + "_" + i;
+										String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "" : headersPrefixes.get(e.getKey()).get(i) + "_";
+		                            	return  i + "_" + prefix + e.getKey();
 		                            })
-                            		.reduce((a, b) -> a + ", " + b);
+                            		.reduce((a, b) -> a + "," + b);
                             r.add(header.get());
                         } else {
-                        	String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "":headersPrefixes.get(e.getKey()).get(0)+"_";
+                        	String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "" : headersPrefixes.get(e.getKey()).get(0) + "_";
                             r.add(prefix + e.getKey());
                         }
                         seriesWidths.add(maxWidth);
@@ -70,7 +70,7 @@ public class SeriesPrinter {
                     ArrayList::addAll);
             
             String headerString = headers.toString();
-            bufferWriter.write("date, " + headerString.substring(1, headerString.length()-1));
+            bufferWriter.write("date," + headerString.substring(1, headerString.length()-1));
             bufferWriter.newLine();
 
             ArrayList<SortedMap<Date, double[]>> seriesValues = new ArrayList<>(series.values());
@@ -80,7 +80,7 @@ public class SeriesPrinter {
                 IntStream.range(0, seriesValues.size())
                 .forEach(i -> {
                     double[] ds = seriesValues.get(i).get(date);
-                    stringBuilder.append(", " + ((ds != null)?printArray(ds, seriesWidths.get(i)):printArray(new double[0], seriesWidths.get(i))));
+                    stringBuilder.append("," + ((ds != null)?printArray(ds, seriesWidths.get(i)):printArray(new double[0], seriesWidths.get(i))));
                 });
                 bufferWriter.write(stringBuilder.toString());
                 bufferWriter.newLine();
@@ -104,7 +104,7 @@ public class SeriesPrinter {
     protected static String printArray(double[] value, int seriesLength) {
         List<Double> vList = new ArrayList<>(Doubles.asList(value));
         for(int i = vList.size(); i < seriesLength; i++) vList.add(Double.NaN); //Padding
-        String valueString = vList.stream().map(e -> e.toString()).reduce((a,s) -> a + ", "+ s).get();
+        String valueString = vList.stream().map(e -> e.toString()).reduce((a,s) -> a + ","+ s).get();
         return valueString;
     }
 
