@@ -115,7 +115,8 @@ public class TalibGenericOperation extends TalibOperation {
 					Double doubleValue = ((NumberValue) value).getValue(targetStock).doubleValue();
 					inConstants.add(doubleValue);
 				} else {
-					Integer intValue = ((NumberValue) value).getValue(targetStock).intValue();
+					Number numberValue = ((NumberValue) value).getValue(targetStock);
+					Integer intValue = intRounding(numberValue);
 					inConstants.add(intValue);
 				}
 				args[i + constantArgIdx] = inConstants.get(i);
@@ -238,6 +239,10 @@ public class TalibGenericOperation extends TalibOperation {
 
 		throw new TalibException("Ooops", new Exception());
 	}
+
+	private Integer intRounding(Number numberValue) {
+		return (int) Math.round(numberValue.doubleValue());
+	}
 	
 	@Override
 	public Boolean isIdemPotent() {
@@ -262,9 +267,18 @@ public class TalibGenericOperation extends TalibOperation {
 	@Override
 	public String toFormulaeShort() {
 		String refa24z = getReference().substring(0,1) + (getReference().length() -2 )+ getReference().substring(getReference().length() -1); 
-		String contants = getOperands().subList(0, inConstantsNames.size()).stream()
-				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
-				.reduce("", (r, e) -> r + "_" + e, (a, b) -> a + "_" + b);
+//		String contants = getOperands().subList(0, inConstantsNames.size()).stream()
+//				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
+//				.reduce("", (r, e) -> r + "_" + e, (a, b) -> a + "_" + b);
+		List<Operation> subList = getOperands().subList(0, inConstantsNames.size());
+		String contants = "";
+		for (int i = 0; i < subList.size(); i++) {
+			String ele = ((StringableValue) subList.get(i).getParameter()).getValueAsString();
+			if (inConstantsNames.get(i).type.equals(Integer.TYPE)) {
+				ele = intRounding(((NumberValue)subList.get(i).getParameter()).getNumberValue()).toString();
+			}
+			contants = contants + "_" + ele;
+		}
 		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
 		String opsFormulaeShort = toFormulaeShort(ops);
 		return refa24z + contants + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);

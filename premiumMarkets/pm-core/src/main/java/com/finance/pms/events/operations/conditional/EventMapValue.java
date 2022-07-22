@@ -78,7 +78,7 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 	public EventMapValue() {
 		super();
 		eventData = new TreeMap<EventKey, EventValue>();
-		additionalOutputs = new HashMap<String, NumericableMapValue>();
+		additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 		this.isLooseCoupled = false;
 	}
@@ -86,7 +86,7 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 	public EventMapValue(SortedMap<EventKey, EventValue> eventData, Boolean isLooseCoupled) {
 		super();
 		this.eventData = eventData;
-		this.additionalOutputs = new HashMap<String, NumericableMapValue>();
+		this.additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		this.additionalOutputsTypes = new HashMap<String, Type>();
 		this.isLooseCoupled = isLooseCoupled;
 	}

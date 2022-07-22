@@ -70,7 +70,8 @@ public class OTFTuningFinalizer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(OTFTuningFinalizer.class);
 
-	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, SortedMap<EventKey, EventValue> evtDefEvents, Observer observer) throws NotEnoughDataException {
+	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, SortedMap<EventKey, EventValue> evtDefEvents, Observer observer) 
+			throws NotEnoughDataException {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
 		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
@@ -119,9 +120,8 @@ public class OTFTuningFinalizer {
 	 * Only the last period should be left unrealised.
 	 * Periods are from inclusive, to exclusive.
 	 */
-	protected List<PeriodRatingDTO> validPeriods(
-			Stock stock, Date startDate, Date endDate, SortedMap<Date, ? extends Number> qMap,
-			Collection<EventValue> generatedEvents) throws NotEnoughDataException, InvalidAlgorithmParameterException {
+	protected List<PeriodRatingDTO> validPeriods(Stock stock, Date startDate, Date endDate, SortedMap<Date, ? extends Number> qMap, Collection<EventValue> generatedEvents) 
+					throws NotEnoughDataException, InvalidAlgorithmParameterException {
 
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 
@@ -141,14 +141,15 @@ public class OTFTuningFinalizer {
 			}
 
 			//Construct period
-			if (period != null && !eventDate.after(period.getFrom())) throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents);//Check erroneous input with events on the same date
+			if (period != null && !eventDate.after(period.getFrom())) 
+				throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents); //Check erroneous input with events on the same date
 
 			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
 			SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), eventDate);
 			Double closeSplitedBeforeOrAtEventDate = new BigDecimal(subMapInclusive.get(subMapInclusive.lastKey()).toString()).doubleValue();
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				if (period == null) {//First period will be bull
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name());//Start new period.
+					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
 				}
 				else if (period.getTrend().equals(EventType.BEARISH.name())) { //A Bear period is open and the event is bull. We close the period.
 					period.setTo(eventDate);

@@ -132,7 +132,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				LOGGER.debug("Early exit : "+e);
 			}
 
-			LOGGER.debug("Exception stack :"+ exceptions);
+			LOGGER.debug("Exception stack :" + exceptions);
 
 			LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
@@ -159,7 +159,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			EditorOpDescr currentOp = null;
 
 			SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList =
-					new TreeMap<AltType, SortedMap<Integer,LinkedList<Alternative>>>(new Comparator<AltType>() {
+					new TreeMap<AltType, SortedMap<Integer, LinkedList<Alternative>>>(new Comparator<AltType>() {
 						@Override
 						public int compare(AltType o1, AltType o2) {
 							if (o1.equals(o2)) return 0;
@@ -173,12 +173,12 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				RecognitionException exception = exceptionHolder.getException();
 
 				if (exception instanceof NoViableAltException) {
-					if (exception.c != Token.EOF && !EditorOpsLexerDelegate.SYNTAX_TOKENS.contains((exception.c+"")) && exception.token == null) {
+					if (exception.c != Token.EOF && !EditorOpsLexerDelegate.SYNTAX_TOKENS.contains((exception.c + "")) && exception.token == null) {
 
 						if (startTPosition == -1) {
 							filterPosition = new int[]{exception.line, exception.charPositionInLine};
 							startTPosition = translatePositionToCaret(parsedLine, filterPosition[0], filterPosition[1]);
-							suggFilter = ""+(char)exception.c;
+							suggFilter = "" + (char)exception.c;
 						} else {
 							filterPosition = new int[]{exception.line, exception.charPositionInLine};
 							int endTPosition = translatePositionToCaret(parsedLine, filterPosition[0], filterPosition[1]);
@@ -213,19 +213,19 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 								altPrioListForTokType(priorityList, AltType.SUGGESTION, 10)
 								.add(new Alternative(
 										AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken()+"" , "Syntax suggestion", 
-										"Insert a '"+exceptionHolder.getExpectedToken()+"' to close "+exceptionHolder.getNeedsClosing().getName()+" statement.", null, position));
+										"Insert a '" + exceptionHolder.getExpectedToken() + "' to close " + exceptionHolder.getNeedsClosing().getName() + " statement.", null, position));
 								if (exceptionHolder.getNeedsClosing().undeterministicParamCount()) {
 									altPrioListForTokType(priorityList, AltType.SUGGESTION, 10)
 									.add(new Alternative(
 											AltType.SUGGESTION,TokenType.SYNTAX, ",", "Syntax suggestion", 
-											"Insert a comma to add up arguments to "+exceptionHolder.getNeedsClosing().getName(), null, position));
+											"Insert a comma to add up arguments to " + exceptionHolder.getNeedsClosing().getName(), null, position));
 								}
 							}
 						} else {//Other syntax
 							altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).
 							add(new Alternative(
 									AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken() , 
-									"Syntax suggestion", "Insert a '"+exceptionHolder.getExpectedToken()+"'", null, position));
+									"Syntax suggestion", "Insert a '" + exceptionHolder.getExpectedToken() + "'", null, position));
 						}
 					} 
 					else if (exception instanceof EarlyExitException) {
@@ -312,7 +312,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry", (exception != null)?exception.toString():" ", null, new int[]{0, 0}));
 					}
 
-					//Errors
+				//Errors
 				} else {
 					if  (exception instanceof InvalidOperationException)  {
 						Token token = ((InvalidOperationException) exception).token;
@@ -541,7 +541,11 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				foundMatch = addSuggsAsAlts(alternatives, parsedParam, highLighPosition, EditorIndsLexerDelegate.MATYPES_TOKENS, "moving average type ");
 				break;
 			case LIST:
-				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "[]", param.getParamDescription(),param.getParamSynoptic(), "[]", highLighPosition));
+				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "[]", param.getParamDescription(), param.getParamSynoptic(), "[]", highLighPosition));
+				foundMatch = true;
+				break;
+			case OPREF:
+				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "$", param.getParamDescription(), param.getParamSynoptic(), "$", highLighPosition));
 				foundMatch = true;
 				break;
 			}

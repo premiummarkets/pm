@@ -37,6 +37,10 @@ import java.util.List;
 import com.finance.pms.events.Validity;
 import com.finance.pms.events.calculation.DateFactory;
 
+/**
+ * Trend is From inclusive and To exclusive
+ * @author guil
+ */
 public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO> {
 
 	private static final long serialVersionUID = 6439016703303157679L;
@@ -82,12 +86,20 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 
 	}
 
+	/**
+	 * Trend inclusive
+	 * @return
+	 */
 	public Date getFrom() {
 		return from;
 	}
 	public void setFrom(Date from) {
 		this.from = from;
 	}
+	/**
+	 * Trend exclusive
+	 * @return
+	 */
 	public Date getTo() {
 		return to;
 	}
@@ -95,6 +107,11 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 		if (from.after(to)) throw new IllegalArgumentException("From : "+from+" must be before or equal To : "+to);
 		this.to = to;
 	}
+	
+	/**
+	 * We can't use Enum in a DTO
+	 * @return
+	 */
 	public String getTrend() {
 		return trend;
 	}

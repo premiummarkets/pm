@@ -87,7 +87,11 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 
 	@Override
 	public String getValueAsString() {
-		return numberValue.toString().replaceAll("\\.0", "");
+		//return numberValue.toString().replaceAll("\\.0", "");
+		if(numberValue == (long) numberValue.doubleValue())
+	        return String.format("%d", numberValue.longValue());
+	    else
+	        return String.format("%.2f", numberValue);
 	}
 	
 	@Override

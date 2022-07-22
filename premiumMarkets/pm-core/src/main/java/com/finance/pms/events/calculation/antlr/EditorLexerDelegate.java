@@ -60,7 +60,7 @@ public class EditorLexerDelegate {
 
 	public EditorLexerDelegate(RecognizerSharedState state, CharStream input) {
 		super();
-		this.partialTokenStatus = new PartialTokenStatus("", "", new int[]{0,0}, false,false);
+		this.partialTokenStatus = new PartialTokenStatus("", "", new int[]{0,0}, false, false);
 		this.state = state;
 		this.input = input;
 	}
@@ -90,6 +90,8 @@ public class EditorLexerDelegate {
 	}
 
 	protected boolean ahead(String token) {
+		
+		//System.out.println("token: " + token);
 
 		if (!isSamePosition()) {
 			this.partialTokenStatus = new PartialTokenStatus("", "", new int[]{state.tokenStartLine, state.tokenStartCharPositionInLine}, false, false);
@@ -98,6 +100,7 @@ public class EditorLexerDelegate {
 		String partialTok = "";
 		for(int i = 0; i < token.length(); i++) {
 			partialTok = partialTok + (char)input.LA(i+1);
+			// System.out.println("input and i: " + input + "," + i + ": "+ input.LA(i+1) + "!=" + token.charAt(i) );
 			if(input.LA(i+1) != token.charAt(i)) {
 				if (input.LA(i+1) == -1 &&  this.partialTokenStatus.getPartialToken().length() <= partialTok.length())  { 
 					//End of line reach and Lexer first attempt at this location (Apparently, the Lexer tries the long token first then drop letters from the start of the token)???
@@ -125,12 +128,12 @@ public class EditorLexerDelegate {
 		return (state.tokenStartLine == this.partialTokenStatus.getTokenStartLocation()[0] && state.tokenStartCharPositionInLine <= this.partialTokenStatus.getTokenStartLocation()[1] + this.partialTokenStatus.getPartialToken().length());
 	}
 
-	protected boolean lookAheadFor(Set<EditorOpDescr> ops) {
+	protected boolean lookAheadFor(Set<EditorOpDescr> ops, String enclosure) {
 
 		boolean foundCompleteMatch = false;
 		for(EditorOpDescr op : ops) {
-			if(ahead(op.getName())) {
-				//System.out.println("Look ahead match found for "+this.partialTokenStatus + " and " + op);
+			if(ahead(enclosure +  op.getName() + enclosure)) {
+				//System.out.println("Look ahead match found for " + this.partialTokenStatus + " and " + op + " and enclosure: " + enclosure);
 				foundCompleteMatch = foundCompleteMatch || (this.partialTokenStatus.getValid() && !this.partialTokenStatus.getIncomplete());
 			}
 		}

@@ -161,13 +161,21 @@ public class ChartIndicLineSeriesDataSetBuilder {
 											y = numberFormat.format(dataset.getYValue(series, item));
 											Date date = new Date((long) dataset.getXValue(series, item));
 											x = simpleDateFormat.format(date);
-											String slashedDomain = (domain.length() <= 50)?domain:domain.replaceAll("\\), *([0-9a-zA-z])", "),<br>&nbsp;&nbsp;$1");
-											return "<html>" +
-											"<font size='2'>" +
-											"<b>" + slashedDomain + "</b> on the " + x + "<br>"
-											+ ((eventDefDescriptor.displayValues()) ? "Value: " + y : "") +
-											"</font>" +
-											"</html>";
+											String slashedDomain = (domain.length() <= 50)? domain : domain.replaceAll("\\), *([0-9a-zA-z])", "),<br>&nbsp;&nbsp;$1");
+											String[] slashedDomainSplit = slashedDomain.split("<br>");
+//											slashedDomain = slashedDomain.substring(0, Math.min(slashedDomain.length(), 200));
+											String splitDomain = "";
+											for (int j=0; j < Math.min(10, slashedDomainSplit.length); j++) {
+												splitDomain = splitDomain + slashedDomainSplit[j].substring(0, Math.min(slashedDomainSplit[j].length(), 200)) + "<br>";
+											}
+											String tooltip =
+											"<html>"
+											+ "<font size='2'>"
+											+ "<b>" + splitDomain + "</b> on the " + x + "<br>"
+											+ "Value: " + y //+ ((eventDefDescriptor.displayValues()) ? "Value: " + y : "")
+											+ "</font>"
+											+ "</html>";
+											return tooltip;
 										} catch (Exception e) {
 											LOGGER.debug(e, e);
 										}

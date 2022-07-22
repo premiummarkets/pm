@@ -37,16 +37,19 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.MetaOperation;
 import com.finance.pms.events.operations.ProfitDrivenOperation;
 import com.finance.pms.events.operations.ProfitWalkerOperation;
 import com.finance.pms.events.operations.RandomOperation;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.BandRatioNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
 import com.finance.pms.events.operations.nativeops.IOsAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.IOsExporterOperation;
+import com.finance.pms.events.operations.nativeops.IOsLooseAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.IndicatorStatsOperation;
 import com.finance.pms.events.operations.nativeops.InverseOperation;
 import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
@@ -55,18 +58,24 @@ import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.MathOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
+import com.finance.pms.events.operations.nativeops.NumberMathOperation;
+import com.finance.pms.events.operations.nativeops.OProfitOperation;
+import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.PMAroonOperation;
 import com.finance.pms.events.operations.nativeops.PMBollingerOperation;
 import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
 import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.Product;
+import com.finance.pms.events.operations.nativeops.ProfitOperation;
 import com.finance.pms.events.operations.nativeops.RecursiveOperation;
 import com.finance.pms.events.operations.nativeops.RefiterOperation;
 import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
+import com.finance.pms.events.operations.nativeops.Ta4jOperation;
+import com.finance.pms.events.operations.nativeops.TalibAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.nativeops.TriggerPointJoiner;
 import com.finance.pms.events.operations.nativeops.UnaryDivision;
@@ -91,6 +100,9 @@ public class NativesXmlManager {
 	public NativeOperations initNativeOperations () {
 
 		NativeOperations nativeOperations = initNativeOperationInstance();
+		
+		MetaOperation metaOperation = new MetaOperation();
+		nativeOperations.addOperation(metaOperation);
 
 		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)
@@ -111,14 +123,24 @@ public class NativesXmlManager {
 		UnaryDivision unaryDivision = new UnaryDivision();
 		nativeOperations.addOperation(unaryDivision);
 		
+		NumberMathOperation numberMathOperation = new NumberMathOperation();
+		nativeOperations.addOperation(numberMathOperation);
+		
+		//Params
 		ListOperation listOperation = new ListOperation();
 		nativeOperations.addOperation(listOperation);
+		OperationReferenceOperation operationReferenceOperation = new OperationReferenceOperation();
+		nativeOperations.addOperation(operationReferenceOperation);
 
 		//Stock
 		StockOperation stockOperation = new StockOperation();
 		nativeOperations.addOperation(stockOperation);
 		TargetStockInfoOperation targetStockInfoOperation = new TargetStockInfoOperation();
 		nativeOperations.addOperation(targetStockInfoOperation);
+		OProfitOperation oProfitOperation = new OProfitOperation();
+		nativeOperations.addOperation(oProfitOperation);
+		ProfitOperation profitOperation = new ProfitOperation();
+		nativeOperations.addOperation(profitOperation);
 
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();
@@ -149,6 +171,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(filterOperation);
 		IOsAssemblerOperation oneInputAssemblerOperation = new IOsAssemblerOperation();
 		nativeOperations.addOperation(oneInputAssemblerOperation);
+		IOsLooseAssemblerOperation iosLooseAssemblerOperation = new IOsLooseAssemblerOperation();
+		nativeOperations.addOperation(iosLooseAssemblerOperation);
 		IOsExporterOperation inputExporterOperation = new IOsExporterOperation();
 		nativeOperations.addOperation(inputExporterOperation);
 		CsvFileFilterOperation csvFileFilterOperation = new CsvFileFilterOperation();
@@ -163,11 +187,14 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(profitDrivenOperation);
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
 		nativeOperations.addOperation(bandNormalizerOperation);
+		BandRatioNormalizerOperation bandNRatioNormalizerOperation = new BandRatioNormalizerOperation();
+		nativeOperations.addOperation(bandNRatioNormalizerOperation);
 		ProfitWalkerOperation profitWalkerOperation = new ProfitWalkerOperation();
 		nativeOperations.addOperation(profitWalkerOperation);
+		TalibAssemblerOperation talibAssemblerOperation = new TalibAssemblerOperation();
+		nativeOperations.addOperation(talibAssemblerOperation);
 
 		//Other
-
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
 		nativeOperations.addOperation(zeroLagEMAOperation);
 		LnPeriodicOperation lnPeriodicOperation = new LnPeriodicOperation();
@@ -178,6 +205,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(volatilityOtherOperation);
 		RandomOperation randomOperation = new RandomOperation();
 		nativeOperations.addOperation(randomOperation);
+		Ta4jOperation ta4jOperation = new Ta4jOperation();
+		nativeOperations.addOperation(ta4jOperation);
 
 		return nativeOperations;
 	}

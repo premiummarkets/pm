@@ -78,8 +78,8 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 							i -> {
 								TreeMap<Date, Double> collect = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[i], (a,b) -> a, TreeMap::new));
 								return new DoubleMapValue(collect);
-							}
-							)
+							},
+							(a,b) -> a, TreeMap::new)
 							);
 		}
 		return collectAdditionalOutputs;

@@ -52,13 +52,13 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 
 	public BooleanMultiMapValue() {
 		super();
-		additionalOutputs = new HashMap<String, NumericableMapValue>();
+		additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 	public BooleanMultiMapValue(Set<Date> keySet, boolean initValue) {
 		super(keySet, initValue);
-		additionalOutputs = new HashMap<String, NumericableMapValue>();
+		additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 	

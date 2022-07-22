@@ -82,13 +82,15 @@ public class Trimmer {
 
 	public SortedMap<Date, double[]> trimmed(SortedMap<Date, double[]> data) {
 
-		SortedMap<Date, double[]> trimedHouseTrend = new TreeMap<Date, double[]>();
 
 		Calendar startDateCal = Calendar.getInstance();
 		startDateCal.setTime(data.firstKey());
 		QuotationsFactories.getFactory().incrementDate(startDateCal, +slidingPeriod);
-		Date startDate = (startDateCal.getTime().compareTo(start) > 0)?startDateCal.getTime():start;
+		Date startDate = (startDateCal.getTime().compareTo(start) > 0)? startDateCal.getTime():start;
 		SortedMap<Date, double[]> subMap = data.subMap(startDate, end);
+		
+		SortedMap<Date, double[]> trimedHouseTrend = new TreeMap<Date, double[]>();
+		//trimedHouseTrend.putAll(data.subMap(data.firstKey(), startDate));
 		
 		for (Date date : subMap.keySet()) {
 
@@ -96,7 +98,10 @@ public class Trimmer {
 			currentDateCal.setTime(date);
 			QuotationsFactories.getFactory().incrementDate(currentDateCal, -slidingPeriod);
 			Date periodStart = currentDateCal.getTime();
-			Collection<double[]> periodValues = data.subMap(periodStart, date).values();
+			currentDateCal.setTime(date);
+			QuotationsFactories.getFactory().incrementDate(currentDateCal, -1);
+			Date periodEnd = currentDateCal.getTime();
+			Collection<double[]> periodValues = data.subMap(periodStart, periodEnd).values();
 			double periodStdev = stdev.evaluate(periodValues);
 			double periodMean = mean.evaluate(periodValues);
 			

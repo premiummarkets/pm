@@ -228,13 +228,13 @@ public abstract class ANTLRParserHelper {
 		boolean foundMatch = false;
 		for (String htoken : tokens) {
 			boolean equalsMatch = parsedText.equals(htoken);
-			if (equalsMatch) {//exact match : tally but no adding
+			if (equalsMatch) {	//exact match : taly but no adding
 				foundMatch = true;
 			} else {
 				//boolean partialMatch = parsedText.length() >=3 && htoken.contains(parsedText);
 				boolean startsWithMatch = htoken.startsWith(parsedText);
 				if ((startsWithMatch) && !equalsMatch) {//partial match : adding
-					alternatives.add(new Alternative(AltType.SUGGESTION,TokenType.DATATOKEN, htoken, descreptionPrefix + htoken, null, null, highLighPosition));
+					alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.DATATOKEN, htoken, descreptionPrefix + htoken, null, null, highLighPosition));
 					foundMatch = true;
 				}
 			} 

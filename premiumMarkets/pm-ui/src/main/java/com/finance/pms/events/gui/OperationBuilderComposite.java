@@ -585,26 +585,44 @@ public class OperationBuilderComposite extends Composite {
 
 			@Override
 			public void keyReleased(KeyEvent event) {
-				if (!popupShell.isDisposed() && popupShell.isVisible()) {
-					switch (event.keyCode) {
-					case SWT.ARROW_DOWN:
-					case SWT.ARROW_UP:
-					case SWT.CR:
-					case SWT.ESC:
-						break;
-					default:
-						LOGGER.info("buildPopupAlternatives key released popup visible");
-						buildPopupAlternatives();
-					}
-				} else {
+				if (!popupShell.isDisposed() && popupShell.isVisible()) {//Popup is visible
+//					switch (event.keyCode) {
+//					case SWT.ARROW_DOWN:
+//					case SWT.ARROW_UP:
+//					case SWT.CR:
+//					case SWT.ESC:
+//						break;
+//					default:
+//						LOGGER.info("buildPopupAlternatives key released popup visible");
+//						buildPopupAlternatives();
+//					}
+				} else { //Popup is hidden (we build the popup hidden just to validate the typing ..)
 					LOGGER.info("buildPopupAlternatives key released popup hidden");
-					if (event.keyCode != SWT.ESC)
-						buildPopupAlternatives();
+//					if (event.keyCode != SWT.ESC)
+						buildPopupAlternatives(false);
 				}
 			}
 
 			@Override
 			public void keyPressed(KeyEvent e) {
+				if (!popupShell.isDisposed() && popupShell.isVisible()) { //Popup is visible
+					switch (e.keyCode) { 
+					case SWT.ARROW_DOWN: //Popup menu actions
+					case SWT.ARROW_UP:
+					case SWT.CR:
+					case SWT.ESC:
+						break;	
+					default:	//Rebuild the popup
+						LOGGER.info("buildPopupAlternatives key released popup visible");
+						buildPopupAlternatives(true);
+					}
+				} else { //Popup is hidden
+					if ((e.stateMask & SWT.ALT) != 0) { //ALT Pressed
+						if(e.keyCode == SWT.ARROW_DOWN) { //Space Pressed
+							buildPopupAlternatives(true);
+						}
+					}
+				}
 			}
 		};
 		editorListeners.put(KeyListener.class, keyListener);
@@ -618,22 +636,26 @@ public class OperationBuilderComposite extends Composite {
 			}
 
 			@Override
-			public void mouseDown(MouseEvent e) {
-				LOGGER.info("buildPopupAlternatives mouseDown");
-				try {
-					buildPopupAlternatives();
-				} catch (Exception e1) {
-					openDialog(true, "Invalid formula.", e);
+			public void mouseDown(MouseEvent event) {
+				if (event.button == 3 && event.count == 1) {
+					LOGGER.info("buildPopupAlternatives mouseDown");
+					try {
+						buildPopupAlternatives(true);
+					} catch (Exception e1) {
+						openDialog(true, "Invalid formula.", event);
+					}
 				}
 			}
 
 			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				LOGGER.info("buildPopupAlternatives mouseDoubleClick");
-				try {
-					buildPopupAlternatives();
-				} catch (Exception e1) {
-					openDialog(true, "Invalid formula.", e);
+			public void mouseDoubleClick(MouseEvent event) {
+				if (event.button == 3 && event.count == 1) {
+					LOGGER.info("buildPopupAlternatives mouseDoubleClick");
+					try {
+						buildPopupAlternatives(true);
+					} catch (Exception e1) {
+						openDialog(true, "Invalid formula.", event);
+					}
 				}
 			}
 		};
@@ -1058,7 +1080,8 @@ public class OperationBuilderComposite extends Composite {
 
 	protected String format(String string) {
 		// TODO indent return FormulaUtils.indentOperationFormula(formula, previousCaretPosition);
-		return string.replaceAll("\n", "").replaceAll(" +", " ").replace(";", ";\n").trim();
+		//return string.replaceAll("\n", "").replaceAll(" +", " ").replace(";", ";\n").trim();
+		return string;
 	}
 
 	String getFormatedReferenceTxt() {
@@ -1221,7 +1244,7 @@ public class OperationBuilderComposite extends Composite {
 		LOGGER.info("editor caret position after apply :" + editor.getCaretOffset());
 
 		LOGGER.info("buildPopupAlternatives rerun after apply. Aka similar to new typing");
-		buildPopupAlternatives();
+		buildPopupAlternatives(true);
 	}
 
 	protected void setEditorText(String newFormula) {
@@ -1273,7 +1296,7 @@ public class OperationBuilderComposite extends Composite {
 		return firstIndexOf;
 	}
 
-	private synchronized void buildPopupAlternatives() {
+	private synchronized void buildPopupAlternatives(boolean showPopUp) {
 
 		setErrorLabel("");
 		editor.setStyleRange(null);
@@ -1303,7 +1326,7 @@ public class OperationBuilderComposite extends Composite {
 		// Build suggestion
 		if (nextToken != null && nextToken.getAlternatives().size() > 0) {
 			if (nextToken.getAlternatives().size() > 0) {
-				buildPopupAlternativesFor(nextToken);
+				buildPopupAlternativesFor(nextToken, showPopUp);
 			} else {
 				getPopupShell().setVisible(false);
 			}
@@ -1339,7 +1362,7 @@ public class OperationBuilderComposite extends Composite {
 		errorToken.setAlternatives(filteredErrorAlts);
 	}
 
-	private void buildPopupAlternativesFor(NextToken nextToken) {
+	private void buildPopupAlternativesFor(NextToken nextToken, boolean showContextPopup) {
 
 		// Process Alts
 		List<Alternative> alternatives = nextToken.getAlternatives();
@@ -1388,7 +1411,7 @@ public class OperationBuilderComposite extends Composite {
 		Rectangle eventBounds = getParent().getDisplay().map(editor, null, caretLocation);
 		Point popupSize = popupShell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, Math.min(popupSize.x, getShell().getSize().x), Math.min(200, popupSize.y) + 10);
-		getPopupShell().setVisible(true);
+		getPopupShell().setVisible(showContextPopup);
 
 		LOGGER.debug("Items : " + tokenAltsTable.getItems());
 		if (LOGGER.isDebugEnabled()) {

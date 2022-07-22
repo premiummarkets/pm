@@ -29,29 +29,41 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
-import java.util.ArrayList;
-
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
-public class OperationValue<T> extends Value<T> implements Cloneable  {
+public class OperationReferenceValue<T extends Operation> extends Value<T> implements StringableValue, Cloneable  {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(OperationValue.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(OperationReferenceValue.class);
 	
-	Operation operation;
+	T operation;
 
-	public OperationValue(Operation operation) {
+	public OperationReferenceValue(T operation) {
 		super();
 		this.operation = operation;
 	}
-
+	
 	@SuppressWarnings("unchecked")
+	public OperationReferenceValue(String operationReference) {
+		super();
+		operationReference = operationReference.replaceAll("\\$", "");
+		String[] referenceSplit = operationReference.split(":");
+		
+		ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
+		T opClone = (T) parameterizedOperationBuilder.getNativeOperations().get(referenceSplit[0]).clone();
+		if (referenceSplit.length > 1) opClone.setOutputSelector(referenceSplit[1]);
+		
+		this.operation = opClone;
+	}
+
 	@Override
 	public T getValue(TargetStockInfo targetStock) {
-		ArrayList<Value<T>> emptyInputs = new ArrayList<Value<T>>(); //parameterised operation has no input params
-		return (T) operation.calculate(targetStock, 0, emptyInputs); //XXX what is this?
+		return operation;
 	}
 
 	@Override
@@ -59,12 +71,12 @@ public class OperationValue<T> extends Value<T> implements Cloneable  {
 		return this.getClass().getSimpleName() +" : operation "+operation.toString();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object clone() {
 		try {
-			@SuppressWarnings("unchecked")
-			OperationValue<T> clone = (OperationValue<T>) super.clone();
-			clone.operation = (Operation) this.operation.clone();
+			OperationReferenceValue<T> clone = (OperationReferenceValue<T>) super.clone();
+			clone.operation = (T) this.operation.clone();
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
@@ -73,8 +85,13 @@ public class OperationValue<T> extends Value<T> implements Cloneable  {
 	}
 
 	@Override
-	public OperationValue<T> filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public OperationReferenceValue<T> filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
+	}
+
+	@Override
+	public String getValueAsString() {
+		return operation.getReference();
 	}
 
 }

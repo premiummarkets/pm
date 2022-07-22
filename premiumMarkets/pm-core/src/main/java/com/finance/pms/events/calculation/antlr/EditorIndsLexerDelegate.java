@@ -50,7 +50,7 @@ public class EditorIndsLexerDelegate extends EditorLexerDelegate implements Inds
 
 	@Override
 	public boolean runtimeOpAhead() {
-		return lookAheadFor(runtimeOps);
+		return lookAheadFor(runtimeOps, "");
 	}
 
 }

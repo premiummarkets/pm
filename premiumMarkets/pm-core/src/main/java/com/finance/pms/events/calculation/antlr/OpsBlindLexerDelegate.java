@@ -61,4 +61,9 @@ public class OpsBlindLexerDelegate implements OpsLexerDelegate {
 		return true;
 	}
 
+	@Override
+	public boolean runtimeOpRefOpAhead() {
+		return true;
+	}
+
 }

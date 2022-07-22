@@ -99,6 +99,21 @@
             <outputSelector>down</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oProfitOperation">
+            <reference>oProfit</reference>
+            <description>Calculate the profits (the O way) of series of Events from Indicators</description>
+            <operands>
+                <operand xsi:type="eventMapOperation">
+                    <reference>Event Series to analyse profit from (an Indicator)</reference>
+                    <description>Event Series to analyse profit from (an Indicator)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="flipOperation">
             <reference>flipAround</reference>
             <description>Sum inverse. Flip the input upside down around an axe.</description>
@@ -305,6 +320,33 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsLooseAssemblerOperation">
+            <reference>iosLooseAssembler</reference>
+            <description>Assembles several inputs into one inputable array.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>isExportToFile</referenceAsOperand>
+                    <description>If true, exports the result to a file.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>FALSE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>datasets</referenceAsOperand>
+                    <description>Datasets to assemble in one</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitDrivenOperation">
             <reference>gx_profit</reference>
             <description>Operation filtering false positive based on the realised profit.</description>
@@ -312,7 +354,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>minIncreaseForSell</referenceAsOperand>
-                    <description>Minimum increase (profit %) realised for the sell event to be valid</description>
+                    <description>Min increase (or max decrease if negative) for the sell event to be valid</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -323,7 +365,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>minDecreaseForBuy</referenceAsOperand>
-                    <description>Minimum decrease (-%) realised for the buy event to be valid</description>
+                    <description>Min decrease (or max increase if positive) for the buy event to be valid</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -334,7 +376,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>realiseGain</referenceAsOperand>
-                    <description>Maximum profit % above which the sell is forced</description>
+                    <description>Max profit % above which the sell is forced</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -345,7 +387,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>stopLoss</referenceAsOperand>
-                    <description>Maximum loss (ie Min neg profit) % below which the sell is forced</description>
+                    <description>Min negative profit (Maximum loss) % below which the sell is forced</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -426,6 +468,21 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitOperation">
+            <reference>profit</reference>
+            <description>Calculate the profits (the my way) of series of Events from Indicators</description>
+            <operands>
+                <operand xsi:type="eventMapOperation">
+                    <reference>Event Series to analyse profit from (an Indicator)</reference>
+                    <description>Event Series to analyse profit from (an Indicator)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors/>
@@ -558,6 +615,36 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ta4JOperation">
+            <reference>ta4jOperation</reference>
+            <description>Indicator using the Ta4j library</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>ta4jClassName</referenceAsOperand>
+                    <description>Ta4j class name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>RSIIndicator</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>indicatiorParameter</referenceAsOperand>
+                    <description>Periods and other parameters for the indicator</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>14.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors/>
@@ -735,6 +822,28 @@
             <outputSelector>stdevLnVolatility</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="numberMathOperation">
+            <reference>nMath</reference>
+            <description>Math calculus for unary numbers.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>number</referenceAsOperand>
+                    <description>Input number</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors>
+                <availableOutputSelector>sqrt</availableOutputSelector>
+            </availableOutputSelectors>
+            <outputSelector>sqrt</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmmacdOperation">
             <reference>macd_</reference>
             <description>House made MACD on close historical data</description>
@@ -838,6 +947,50 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandRatioNormalizerOperation">
+            <reference>bandRNrmlzr</reference>
+            <description>Normalise to new center and amplitude keeping the origial</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>new center</reference>
+                    <description>new center</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>amplitude</reference>
+                    <referenceAsOperand>amplitude</referenceAsOperand>
+                    <description>Amplitude</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>actual center</reference>
+                    <referenceAsOperand>actualCenter</referenceAsOperand>
+                    <description>Actual center</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Data to normalise</reference>
+                    <description>Data to normalise</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmBollingerOperation">
             <reference>bollinger_</reference>
             <description>bollinger bands</description>
@@ -904,7 +1057,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsAssemblerOperation">
             <reference>iosAssembler</reference>
-            <description>Assembles several inputs into one input array. No NaN permited.</description>
+            <description>Assembles several inputs into one inputable array.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -932,6 +1085,67 @@
                     <reference>data</reference>
                     <referenceAsOperand>datasets</referenceAsOperand>
                     <description>Datasets to assemble in one</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="operationReferenceOperation">
+            <reference>operation reference</reference>
+            <description>Operation reference name</description>
+            <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="metaOperation">
+            <reference>meta</reference>
+            <description>Takes any function formulae, as prepared, with '?' in place of numeric parameters and its numeric parameters as input.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>formulae</referenceAsOperand>
+                    <description>Prepared formulae. Ex sma(?, close)</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>sma(?, close)</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>parameter</referenceAsOperand>
+                    <description>Parameter to put in palce in the formulae</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>14.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibAssemblerOperation">
+            <reference>talibAssembler</reference>
+            <description>Assembles several periods iterations of one indicator into one inputable array.</description>
+            <operands>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>operation reference</referenceAsOperand>
+                    <description>Operation to iterate upon</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="listOperation">
+                    <reference>parameters</reference>
+                    <referenceAsOperand>parameters and parameters slices</referenceAsOperand>
+                    <description>[start, end, step] or [x, factor] or ["abc"]. Use [x, factor] to make this parameter a factor of the parameter x. Use ["abc"] for constant string parameters. </description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

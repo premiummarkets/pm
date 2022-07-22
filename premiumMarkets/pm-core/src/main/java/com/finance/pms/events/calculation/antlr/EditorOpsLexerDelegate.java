@@ -53,13 +53,18 @@ public class EditorOpsLexerDelegate extends EditorLexerDelegate implements OpsLe
 		this.runtimeUserOps = runtimeUserOps;
 
 	}
+	
+	public boolean runtimeOpRefOpAhead() {
+		//return lookAheadFor(runtimeUserOps, "$"); //FIXME
+		return true;
+	}
 
 	public boolean runtimeUserOpAhead() {
-		return lookAheadFor(runtimeUserOps);
+		return lookAheadFor(runtimeUserOps, "");
 	}
 
 	public boolean runtimeNativeOpAhead() {
-		return lookAheadFor(runtimeNativeOps);
+		return lookAheadFor(runtimeNativeOps, "");
 	}
 
 	public PartialTokenStatus getPartialTokenStatus() {

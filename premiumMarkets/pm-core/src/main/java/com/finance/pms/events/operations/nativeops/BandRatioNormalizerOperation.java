@@ -33,31 +33,29 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
-import com.finance.pms.events.scoring.functions.Normalizer;
-import com.finance.pms.events.scoring.functions.Trimmer;
 
-public class BandNormalizerOperation extends PMWithDataOperation {
+public class BandRatioNormalizerOperation extends PMWithDataOperation {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(BandNormalizerOperation.class);
-	private static final int DATAINPUTIDX = 4;
-	
-	private int slidingPeriod = 251;
+	private static MyLogger LOGGER = MyLogger.getLogger(BandRatioNormalizerOperation.class);
+	private static final int DATAINPUTIDX = 3;
 
-	public BandNormalizerOperation() {
-		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
-				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
-				new NumberOperation("actual center","actualCenter","Keep distance ratio of min and max to the data relative specified center (NaN accepted).", new NumberValue(Double.NaN)),
-				new NumberOperation("integer", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
+	public BandRatioNormalizerOperation() {
+		super("bandRNrmlzr", "Normalise to new center and amplitude keeping the origial",
+				new NumberOperation("new center"), 
+				new NumberOperation("amplitude","amplitude","Amplitude", new NumberValue(1.0)),
+				new NumberOperation("actual center","actualCenter","Actual center", new NumberValue(0.0)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
-	public BandNormalizerOperation(ArrayList<Operation> operands, String outputSelector) {
+	public BandRatioNormalizerOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
@@ -67,48 +65,33 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
-		double lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
-		double upperThreshold = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
+		double newCenter = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
+		double amplitude = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
 		double actualCenter = ((NumberValue)inputs.get(2)).getValue(targetStock).doubleValue();
-		Double trimFactor = ((NumberValue)inputs.get(3)).getValue(targetStock).doubleValue();
-
-		//Calc
-		//SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATAINPUTIDX)).getValue(targetStock);
-		//return innerCalc(targetStock, lowerThreshold, upperThreshold, actualCenter, trimFactor, data);
+		
 		@SuppressWarnings("unchecked")
 		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(DATAINPUTIDX, DATAINPUTIDX+1);
 		
-		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, lowerThreshold, upperThreshold, actualCenter, trimFactor, data);
+		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, newCenter, amplitude, actualCenter, data);
 		
 		return ValueManipulator.doubleArrayExpender(this, DATAINPUTIDX, targetStock, innerCalcFunc, numericableMapValue);
+		
 	}
 
-	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double lowerThreshold, double upperThreshold, double actualCenter, Double trimFactor, List<NumericableMapValue> data) {
-		NumericableMapValue ret = new DoubleMapValue();
+	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double newCenter, double amplitude, double actualCenter, List<NumericableMapValue> data) {
+		NumericableMapValue doubleMapValue = new DoubleMapValue();
 		try {
-			slidingPeriod=251;
-			SortedMap<Date, Double> trimmed = data.get(0).getValue(targetStock);
-			if (!Double.isNaN(trimFactor)) {
-				Trimmer trimmer = new Trimmer(slidingPeriod, trimFactor.intValue(), trimmed.firstKey(), trimmed.lastKey());
-				trimmed = trimmer.sTrimmed(trimmed);
-			}
+			//	v/actualCenter -> gives a value between [0,2] with centre 1
+			SortedMap<Date, Double> value = data.get(0).getValue(targetStock);
+			TreeMap<Date, Double> normalized = 
+					value.entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> amplitude*(e.getValue()/actualCenter) + (newCenter - amplitude), (a,b) -> a, TreeMap::new));
+			doubleMapValue.getValue(targetStock).putAll(normalized);
 			
-			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmed.firstKey(), trimmed.lastKey(), lowerThreshold, upperThreshold, actualCenter);
-			SortedMap<Date, Double> normalized = normalizer.normalised(trimmed);
-			
-			ret.getValue(targetStock).putAll(normalized);
-
 		} catch (Exception e) {
 			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
 		}
-		return ret;
-	}
-
-	@Override
-	public int operandsRequiredStartShift() {
-		double trimFactor = ((NumberValue)getOperands().get(DATAINPUTIDX-1).getParameter()).getValue(null).doubleValue();
-		if (Double.isNaN(trimFactor)) return 0;
-		return slidingPeriod;
+		return doubleMapValue;
 	}
 
 }

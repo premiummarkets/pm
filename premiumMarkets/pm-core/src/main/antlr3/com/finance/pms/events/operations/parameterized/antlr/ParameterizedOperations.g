@@ -9,6 +9,7 @@ tokens {
   Number;
   MAType;
   String;
+  OperationReference;
   ListOperation;
   StockOperation;
   OperationOutput;
@@ -112,6 +113,9 @@ tokens {
   public boolean runtimeNaNAhead() {
      return lexerDelegate.runtimeNaNAhead();
   }
+  public boolean runtimeOpRefOpAhead() {
+  	return lexerDelegate.runtimeOpRefOpAhead();
+  }
 
 }
 
@@ -121,13 +125,14 @@ expression : nativeop | userop;
 nativeop :
  opName=Nativeop ( outSelect=OutputSelector )? {outputSelectorHint($opName, $outSelect);} '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')' -> ^(Nativeop ^(OperationOutput OutputSelector)? params?);
 userop :
- opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')'  -> ^(Userop params?) ;
+ opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')' -> ^(Userop params?) ;
 
 params : param (',' param)* -> param+ ;
 param : NumberToken ->  ^(Number NumberToken) | NaNNumber -> ^(Number NumberToken["NaN"]) | MATypeToken -> ^(MAType MATypeToken) | StringToken -> ^(String StringToken) | operand;
-operand : stockhistory -> stockhistory | listOParams | expression ;
+operand : stockhistory -> stockhistory | listOParams | operationReference | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""]));
 listOParams : '[]' -> ^(ListOperation) | '[' param (',' param)* ']' -> ^(ListOperation param+);
+operationReference: OperationReferenceToken -> ^(OperationReference OperationReferenceToken);
 
 HistoricalData
      : {runtimeHistoryOpAhead()}? => ('close' | 'open' | 'high' | 'low' | 'volume')
@@ -143,6 +148,9 @@ Nativeop
      ;
 Userop 
      : {runtimeUserOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '.' | '-' | '0'..'9')+
+     ;
+OperationReferenceToken 
+     : {runtimeOpRefOpAhead()}? =>  '$' (('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '.' | '-' | '0'..'9')+ (':' ('a'..'z' | 'A'..'Z')+)? ) '$'
      ;
 NumberToken 
      : ('-')? ('0'..'9')+ ('.' ('0'..'9')+)?

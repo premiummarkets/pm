@@ -192,7 +192,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		Boolean isNewOp = false;
 		try {
 
-			LOGGER.info("Creating parser for formula "+identifier);
+			LOGGER.info("Creating parser for formula " + identifier);
 			formulaParser = new FormulaParser(this, identifier, formula, false);
 
 			LOGGER.info("Parsing for formula " + identifier);

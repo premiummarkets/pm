@@ -40,6 +40,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.util.ValueManipulator;
 
 @XmlSeeAlso({UnaryProduct.class, UnarySum.class, UnaryDivision.class})
 public abstract class ArithmeticUnaryOperation extends DoubleMapOperation {
@@ -59,15 +60,24 @@ public abstract class ArithmeticUnaryOperation extends DoubleMapOperation {
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
+		//SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
+		@SuppressWarnings("unchecked")
+		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(0, 1);
 		Double unaryOperand = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
 		
+		//NumericableMapValue outputs = innerCalc(targetStock, unaryOperand, data);
+		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, unaryOperand, data);
+		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, innerCalcFunc, numericableMapValue);
+		
+	}
+
+	private NumericableMapValue innerCalc(TargetStockInfo targetStock, Double unaryOperand, List<NumericableMapValue> data) {
 		NumericableMapValue outputs = new DoubleMapValue();
-		for (Date date : data.keySet()) {
-			Double leftOperand = data.get(date);
+		SortedMap<Date, Double> value = data.get(0).getValue(targetStock);
+		for (Date date : value.keySet()) {
+			Double leftOperand = data.get(0).getValue(targetStock).get(date);
 			outputs.getValue(targetStock).put(date, (leftOperand == null || leftOperand.isNaN())?Double.NaN:twoOperandsOp(leftOperand, unaryOperand));
 		}
-		
 		return outputs;
 	}
 	

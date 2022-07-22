@@ -45,16 +45,20 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
+import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
+import com.finance.pms.events.operations.nativeops.NumberMathOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringerOperation;
@@ -69,9 +73,9 @@ import com.finance.pms.events.quotations.QuotationDataType;
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
-	Condition.class, MapOperation.class, StringerOperation.class,
+	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
-	TargetStockInfoOperation.class, ListOperation.class})
+	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -262,6 +266,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	//Parameter for this operation (this is actually a pre evaluated value for the operand)
 	public void setParameter(Value<?> parameter) {
+		String operationReference = this.getOperationReference();
+		if (!(this instanceof LeafOperation) && operationReference != null) {
+			ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
+			Operation upStreamOperation = parameterizedOperationBuilder.getCurrentOperations().get(operationReference);
+			if (upStreamOperation == this) throw new RuntimeException("Please clone before using the setParameter");
+		}
 		this.parameter = parameter;
 	}
 

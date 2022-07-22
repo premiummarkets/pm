@@ -8,14 +8,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.SeriesPrinter;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.quotations.NoQuotationsException;
 
 public class IOsAssemblerOperation extends ArrayMapOperation {
 
@@ -51,11 +54,23 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
 		Boolean allowTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 
+		return innerCalculation(targetStock, inputs, isExport, allowTrailingNaN);
+	}
+
+	protected DoubleArrayMapValue innerCalculation(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs, Boolean isExport, Boolean allowTrailingNaN) {
+		
 		try {
+			
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, allowTrailingNaN);
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			
+			if (inputsOperandsRefs.size() != developpedInputs.size()) {
+				throw new RuntimeException("The input assembler is missing assemblees.");
+			}
+			
+			SortedMap<Date, double[]> factorisedInput = factoriseInput(targetStock, inputsOperandsRefs, developpedInputs, allowTrailingNaN);
+
 			
 			if (isExport) {
 				LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
@@ -67,12 +82,26 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 			}
 			
 			return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
+			
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}
 		
 		return new DoubleArrayMapValue();
+	}
 
+	protected SortedMap<Date, double[]> factoriseInput(
+			TargetStockInfo targetStock, 
+			List<String> inputsOperandsRefs, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN)
+			throws NoQuotationsException, NotEnoughDataException {
+		
+		IntStream.range(0, developpedInputs.size()).forEach( index -> {
+			if (developpedInputs.get(index).getDateKeys().isEmpty()) {
+				throw new RuntimeException("Yield no result: " + inputsOperandsRefs.get(index));
+			}
+		});
+		
+		return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, allowTrailingNaN);
 	}
 
 	@Override

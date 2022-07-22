@@ -3,7 +3,9 @@ package com.finance.pms.events.operations.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -17,6 +19,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.google.common.collect.Lists;
 
 public class ValueManipulator {
 	
@@ -56,7 +59,8 @@ public class ValueManipulator {
 	}
 
 
-	public static SortedMap<Date, double[]> inputListToArray(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN) throws NoQuotationsException, NotEnoughDataException {
+	public static SortedMap<Date, double[]> inputListToArray(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowAnyNaN, Boolean allowTrailingNaN) 
+					throws NoQuotationsException, NotEnoughDataException {
 		
 		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
 				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))
@@ -76,14 +80,14 @@ public class ValueManipulator {
 				}	
 			}).collect(Collectors.toList());
 
-			if (factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v)))) //Heading NaN
+			if (!allowAnyNaN && factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v)))) //Heading NaN
 				continue;
 			
 			double[] array = valuesAtDate.stream()
 					.map(value -> valueToDoubleArray(value)) //Transforms Potential Doubles to double[]s
 					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
 					.toArray();
-			if (valuesAtDate.stream().noneMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v)))) { //Don't add NaN in this loop
+			if (allowAnyNaN || valuesAtDate.stream().noneMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v))) ) { //Don't add NaN in this loop if allowHeadingNaN is false
 				factorisedInput.put(date, array);
 			} else { //Only for trailing NaN (this is useful to create dataSet where all targets are not present).
 				trailingNaNInput.put(date, array);
@@ -93,9 +97,11 @@ public class ValueManipulator {
 		
 		Boolean hasTrailing = !trailingNaNInput.isEmpty();
 		if (allowTrailingNaN) { //Adding potential trailing with NaN
-			Date factorisedLastKey = factorisedInput.lastKey();
-			factorisedInput.putAll(trailingNaNInput.tailMap(factorisedLastKey));
-			hasTrailing = !trailingNaNInput.headMap(factorisedLastKey).isEmpty();
+			if (!factorisedInput.isEmpty()) {
+				Date factorisedLastKey = factorisedInput.lastKey();
+				factorisedInput.putAll(trailingNaNInput.tailMap(factorisedLastKey));
+				hasTrailing = !trailingNaNInput.headMap(factorisedLastKey).isEmpty();
+			}
 		}
 		if (hasTrailing) {
 			LOGGER.warn("Non authorised NaN data in series: " + trailingNaNInput);
@@ -110,6 +116,67 @@ public class ValueManipulator {
 		} else if (value instanceof double[]) {
 			return (double[]) value;
 		} else throw new RuntimeException("Map value not supported for " + value + " of type " + value.getClass());
+	}
+	
+	public interface InnerCalcFunc {
+		NumericableMapValue apply(List<NumericableMapValue> data);
+	}
+	
+	public static NumericableMapValue doubleArrayExpender(Operation operation, int dataInputIdx, TargetStockInfo targetStock, InnerCalcFunc innerCalcFunc, List<NumericableMapValue> numericableMapValues) {
+		
+		List<Map<String, NumericableMapValue>> allInputs = new ArrayList<Map<String,NumericableMapValue>>();
+		
+		//There can be a mix of inputs with arrays and no arrays. We need to expend to the combination.
+		//ex is a.shape(1) b.shape(2) c.shape(5). We need to combine a*b*c to get shape 1x2x5 = 10
+		for (NumericableMapValue numericableMapValue: numericableMapValues) {
+			Map<String, NumericableMapValue> nthInputs;
+			if (numericableMapValue instanceof DoubleArrayMapValue) {
+				nthInputs = ((DoubleArrayMapValue) numericableMapValue).getAdditionalOutputs();
+			} else {
+				nthInputs = new HashMap<String, NumericableMapValue>();
+				nthInputs.put(operation.getOperands().get(dataInputIdx).getReference(), numericableMapValue);
+			}
+			allInputs.add(nthInputs);
+		}
+
+		//Combine
+		List<List<NumericableMapValue>> combinationsAcc = allInputs.get(0).values().stream().map(e -> Lists.newArrayList(e)).collect(Collectors.toList());
+		List<String> hCombinationsAcc = allInputs.get(0).keySet().stream().map(e -> e).collect(Collectors.toList());
+		for (int i = 1; i < allInputs.size(); i++) {
+			List<List<NumericableMapValue>> combinationsAccPrim = new ArrayList<List<NumericableMapValue>>();
+			List<String> hCombinationsAccPrim = new ArrayList<String>();
+			for (int j = 0; j < combinationsAcc.size(); j++) {
+				for (String nmvk:allInputs.get(i).keySet()) {
+					String hNewComb = hCombinationsAcc.get(j);
+					hNewComb = hNewComb + "_" + nmvk;
+ 					hCombinationsAccPrim.add(hNewComb);
+					
+					ArrayList<NumericableMapValue> newComb = Lists.newArrayList(combinationsAcc.get(j));
+					newComb.add(allInputs.get(i).get(nmvk));
+					combinationsAccPrim.add(newComb);
+				}
+			}
+			combinationsAcc = combinationsAccPrim;
+			hCombinationsAcc = hCombinationsAccPrim;
+		}
+
+		//Calc
+		List<NumericableMapValue> allOutputs = new ArrayList<NumericableMapValue>();
+		List<String> outputsOperandsRefs = new ArrayList<String>();
+		for (int i = 0; i < combinationsAcc.size(); i++) {
+			NumericableMapValue doubleMapValue = innerCalcFunc.apply(combinationsAcc.get(i));
+			allOutputs.add(doubleMapValue);
+			outputsOperandsRefs.add(hCombinationsAcc.get(i));
+		}
+		
+		try {
+			SortedMap<Date, double[]> factorisedOuputs = ValueManipulator.inputListToArray(targetStock, allOutputs, false, false);
+			return new DoubleArrayMapValue(factorisedOuputs, outputsOperandsRefs, 0);
+		} catch (Exception e) {
+			LOGGER.error(operation.getReference() + " : " + e, e);
+		}
+		
+		return new DoubleArrayMapValue();
 	}
 
 

@@ -39,6 +39,7 @@ import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 
 public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
@@ -46,7 +47,12 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 	public enum ParamType {
 
 		//TODO MAType could just be a String as well, no need for a particular case here
-		NUMBER(NumberOperation.class, "Number"), DATA (MapOperation.class, "Data"), MATYPE (MATypeOperation.class, "MAType"), STRING (StringOperation.class, "String"), LIST (ListOperation.class, "ListOperation");
+		NUMBER(NumberOperation.class, "Number"), 
+		DATA (MapOperation.class, "Data"), 
+		MATYPE (MATypeOperation.class, "MAType"), 
+		STRING (StringOperation.class, "String"), 
+		LIST (ListOperation.class, "ListOperation"),
+		OPREF (OperationReferenceOperation.class, "OperationReferenceOperation");
 
 		Class<? extends Operation> operandClass;
 		String typeDescr;
@@ -77,6 +83,8 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 				return STRING;
 			} else if (tokenName.equals("ListOperation")) {
 				return LIST;
+			} else if (tokenName.equals("OperationReference")) {
+				return OPREF;
 			}
 			else {
 				for (String stockOutput : EditorLexerDelegate.HISTORICALDATA_TOKENS) {

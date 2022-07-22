@@ -37,5 +37,6 @@ public interface OpsLexerDelegate {
 	public boolean runtimeOutputSelectorAhead();
 	public boolean runtimeMATypeOpAhead();
 	public boolean runtimeNaNAhead();
+	public boolean runtimeOpRefOpAhead();
 
 }

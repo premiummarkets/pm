@@ -27,14 +27,14 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 	public DoubleMapValue(SortedMap<Date, Double> map) {
 		super();
 		this.map = map;
-		additionalOutputs = new HashMap<String, NumericableMapValue>();
+		additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
 	public DoubleMapValue() {
 		super();
 		this.map = new TreeMap<Date, Double>();
-		additionalOutputs = new HashMap<String, NumericableMapValue>();
+		additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
 
@@ -59,7 +59,7 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : size is "+map.size() + ((map.size() > 0)?", first key "+map.firstKey()+ ", last key "+map.lastKey():"");
+		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
 	}
 
 	@SuppressWarnings("unchecked")

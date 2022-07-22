@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -41,6 +40,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.util.ValueManipulator;
 
 @XmlSeeAlso({Product.class, Sum.class, Division.class, Subtraction.class})
 public abstract class ArithmeticOperation extends DoubleMapOperation {
@@ -62,25 +62,34 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 
 		if (inputs.size() == 0) return new DoubleMapValue();
 		if (inputs.size() == 1) return (NumericableMapValue) inputs.get(0);
+		
 		@SuppressWarnings("unchecked")
-		List<Value<SortedMap<Date, Double>>> checkedInputs = (List<Value<SortedMap<Date, Double>>>) inputs;
+		List<NumericableMapValue> checkedInputs = (List<NumericableMapValue>) inputs;
 
+//		NumericableMapValue outputs = innerCalc(targetStock, checkedInputs, fullKeySet);
+//		return outputs;
+		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, data);
+		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, innerCalcFunc, checkedInputs);
+
+	}
+
+	private NumericableMapValue innerCalc(TargetStockInfo targetStock, List<NumericableMapValue> checkedInputs) {
+		
 		SortedSet<Date> fullKeySet = new TreeSet<Date>();
-		for (Value<SortedMap<Date, Double>> input : checkedInputs) {
+		for (NumericableMapValue input : checkedInputs) {
 			fullKeySet.addAll(input.getValue(targetStock).keySet());
 		}
-
+		
 		NumericableMapValue outputs = new DoubleMapValue();
 		for (Date date : fullKeySet) {
 			Double leftOperand = checkedInputs.get(0).getValue(targetStock).get(date);
 			for (int i=1; i < checkedInputs.size(); i++) {
-				Value<SortedMap<Date, Double>> input = checkedInputs.get(i);
+				NumericableMapValue input = checkedInputs.get(i);
 				Double rightOperand = input.getValue(targetStock).get(date);
 				leftOperand = (( (leftOperand == null || leftOperand.isNaN()) || (rightOperand == null || rightOperand.isNaN()) ))?Double.NaN:twoOperandsOp(leftOperand, rightOperand);
 			}
 			outputs.getValue(targetStock).put(date, leftOperand);
 		}
-
 		return outputs;
 	}
 
