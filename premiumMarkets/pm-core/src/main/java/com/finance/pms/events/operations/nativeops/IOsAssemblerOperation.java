@@ -65,11 +65,13 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
-			if (inputsOperandsRefs.size() != developpedInputs.size()) {
-				throw new RuntimeException("The input assembler is missing assemblees.");
-			}
-			
 			SortedMap<Date, double[]> factorisedInput = factoriseInput(targetStock, inputsOperandsRefs, developpedInputs, allowTrailingNaN);
+			
+			if (!factorisedInput.isEmpty()) {
+				if (inputsOperandsRefs.size() != factorisedInput.get(factorisedInput.firstKey()).length) {
+					throw new RuntimeException("The input assembler is missing assemblees.");
+				}
+			}
 
 			
 			if (isExport) {

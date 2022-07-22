@@ -50,7 +50,7 @@ public class IOsExporterOperation extends StringerOperation {
 		try {
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true);
+			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true);
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();

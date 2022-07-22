@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -71,23 +72,39 @@ public class ValueManipulator {
 		for (Date date : allDates) {
 
 			//Values at date can neither be Double, double[] or null. There will be one value per input at date
-			List<Object> valuesAtDate = developpedInputs.stream().map(i -> {
+			List<Object> valuesAtDate = developpedInputs.stream().map(developpedInput -> {
 				//TODO change this and use MultiMapValue features instead or merge the two concepts???
-				if (i instanceof DoubleArrayMapValue) {
-					return ((DoubleArrayMapValue)i).getDoubleArrayValue().get(date);
+				if (developpedInput instanceof DoubleArrayMapValue) {
+					double[] ds = ((DoubleArrayMapValue)developpedInput).getDoubleArrayValue().get(date);
+					if (ds == null) {
+						int inputColumnsLength = ((DoubleArrayMapValue)developpedInput).getColumnsReferences().size();
+						ds = new double[inputColumnsLength];
+						Arrays.fill(ds, Double.NaN);
+					}
+					return ds;
 				} else {
-					return ((NumericableMapValue)i).getValue(targetStock).get(date);
+					return ((NumericableMapValue)developpedInput).getValue(targetStock).get(date);
 				}	
 			}).collect(Collectors.toList());
 
-			if (!allowAnyNaN && factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v)))) //Heading NaN
+			if (!allowAnyNaN && factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(
+						v -> v == null ||
+						(v instanceof Double && Double.isNaN((double) v)) ||
+						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
+					)
+				)  //Heading NaN
 				continue;
 			
 			double[] array = valuesAtDate.stream()
 					.map(value -> valueToDoubleArray(value)) //Transforms Potential Doubles to double[]s
 					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
 					.toArray();
-			if (allowAnyNaN || valuesAtDate.stream().noneMatch(v -> v == null || (v instanceof Double && Double.isNaN((double) v))) ) { //Don't add NaN in this loop if allowHeadingNaN is false
+			if (allowAnyNaN || valuesAtDate.stream().noneMatch(
+						v -> v == null || 
+						(v instanceof Double && Double.isNaN((double) v)) ||
+						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
+					) 
+				) { //Don't add NaN in this loop if allowHeadingNaN is false
 				factorisedInput.put(date, array);
 			} else { //Only for trailing NaN (this is useful to create dataSet where all targets are not present).
 				trailingNaNInput.put(date, array);

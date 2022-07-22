@@ -45,7 +45,7 @@ public class TriggerPointJoiner extends PMWithDataOperation {
 			
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true);
+			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true);
 		
 			
 			Date previousDate = referenceDs.firstKey();
