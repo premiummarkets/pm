@@ -29,6 +29,7 @@
  */
 package com.finance.pms.events.operations;
 
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.OutputReference
 import com.finance.pms.events.operations.conditional.ChartableWithMain;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.conditional.OnSignalCondition;
 import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
@@ -148,7 +150,8 @@ public class TargetStockInfo {
 	private final Date startDate;
 	private final Date endDate;
 
-	private List<Output> calculatedOutputsCache;
+	private Map<OutputReference,SoftReference<Output>> calculatedOutputsCache;
+	
 	private List<Output> gatheredChartableOutputs;
 	private List<ChartedOutputGroup> chartedOutputGroups;
 
@@ -168,11 +171,23 @@ public class TargetStockInfo {
 		this.startDate = startDate;
 		this.endDate = endDate;
 
-		this.calculatedOutputsCache = new ArrayList<TargetStockInfo.Output>();
+		this.calculatedOutputsCache = new HashMap<OutputReference,SoftReference<Output>>();
 		this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
 		this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
 		this.outputAnalysers = new HashMap<>();
 
+	}
+	
+	private Output getCalculatedOutputsCacheFor(OutputReference outputReference) {
+		SoftReference<Output> softOutput = this.calculatedOutputsCache.get(outputReference);
+		if (softOutput != null) {
+			return softOutput.get();
+		}
+		return null;
+ 	}
+	
+	private void putCalculatedOutputsCache(Output output) {
+		this.calculatedOutputsCache.put(output.getOutputReference(), new SoftReference<TargetStockInfo.Output>(output));
 	}
 
 	public Stock getStock() {
@@ -206,15 +221,16 @@ public class TargetStockInfo {
 
 	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int parentRequiredStartShift) {
 		//XXX All operation will be checked although we know only numericable outputs and outputs for cachable are stored?/
-		int indexOf = calculatedOutputsCache.indexOf(new Output(new OutputReference(operation, outputSelector)));
-		if (indexOf == -1 || (parentRequiredStartShift > calculatedOutputsCache.get(indexOf).getStartShift())) {
-			if (indexOf != -1) calculatedOutputsCache.remove(indexOf);
+		OutputReference outputReference = new OutputReference(operation, outputSelector);
+		Output output = getCalculatedOutputsCacheFor(outputReference);
+		if (output == null || (parentRequiredStartShift > output.getStartShift())) {
+			if (output != null) calculatedOutputsCache.remove(outputReference);
 			return null;
 		}
-		return calculatedOutputsCache.get(indexOf).outputData;
+		return output.getOutputData();
 	}
 
-	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int operationRequiredStartShift) {
+	public void gatherOneOutput(Operation operation, Value<?> outputValue, Optional<String> outputDiscriminator, int operationRequiredStartShift, boolean isInChart) {
 		
 		Boolean isCachable = true;
 		if (operation instanceof StockOperation) { //We don't cache stock as this is managed in the Quotations classes. 
@@ -225,7 +241,7 @@ public class TargetStockInfo {
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), operationRequiredStartShift);
 		if (alreadyCalculated != null) {
 			if (getIndexOfChartableOutput(operation, outputDiscriminator.orElse(operation.getOutputSelector())) == -1) {
-				this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, operationRequiredStartShift));
+				if (isInChart) this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, operationRequiredStartShift));
 			}
 			return;
 		}
@@ -240,23 +256,23 @@ public class TargetStockInfo {
 				//constant = null as the selector output as to be a NumericableMapValue and hence can't be a constant.
 				OutputReference outputReference = new OutputReference(
 						operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference(), operation.toFullString());
-				if (isCachable) this.calculatedOutputsCache.add(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), operationRequiredStartShift));
+				if (isCachable) putCalculatedOutputsCache(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), operationRequiredStartShift));
 			}
 			//Only make available for chart the specific selector
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
-			this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, operationRequiredStartShift));
+			if (isInChart)  this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, operationRequiredStartShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
 			Output outputHolder = new Output(
 					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
 					outputValue, operationRequiredStartShift);
-			if (isCachable) this.calculatedOutputsCache.add(outputHolder);
-			this.gatheredChartableOutputs.add(outputHolder);
+			if (isCachable) putCalculatedOutputsCache(outputHolder);
+			if (isInChart)  this.gatheredChartableOutputs.add(outputHolder);
 		} else {
 			Output outputHolder = new Output(
 					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
 					outputValue, operationRequiredStartShift);
-			if (isCachable) this.calculatedOutputsCache.add(outputHolder);
-			this.gatheredChartableOutputs.add(outputHolder);
+			if (isCachable) putCalculatedOutputsCache(outputHolder);
+			if (isInChart) this.gatheredChartableOutputs.add(outputHolder);
 		}
 
 	}
@@ -401,7 +417,7 @@ public class TargetStockInfo {
 	 */
 	public void populateChartedOutputGroups(Operation operation, String callStack, List<Value<?>> operandsOutputs) {
 
-		Boolean displayByDefault = callStack.contains("bullishCondition") || callStack.contains("bearishCondition");
+		Boolean displayByDefault = isMainConditionStack(callStack);
 
 		ChartedOutputGroup chartedOutputGroup = null;
 		List<Operation> operands = operation.getOperands();
@@ -432,7 +448,7 @@ public class TargetStockInfo {
 
 		} else { //The operation is not a ChartableWithMain but an operand up the calculation tree. It won't be visible by default.
 			//To create the group, we will rely on the operands only the first operand being pickup as main
-			LOGGER.info("Chart adding " + operation.shortOutputReference() + " as NOT ChartableWithMain.");
+			//LOGGER.info("Chart adding " + operation.shortOutputReference() + " as NOT ChartableWithMain.");
 			for(int i = 0; i < operands.size(); i++) {
 				Value<?> ov = operandsOutputs.get(i);
 				Operation operand = operands.get(i);
@@ -441,7 +457,7 @@ public class TargetStockInfo {
 						chartedOutputGroup = setMain(operand, Optional.empty(), false);
 						LOGGER.info("Chart adding main " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 					} else {
-						LOGGER.debug("Chart adding other operand " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
+						LOGGER.info("Chart adding other operand " + operand.shortOutputReference() + " Operand of " + operation.shortOutputReference() + ". Group Id " + chartedOutputGroup.getThisGroupMainOutputDescription().groupId());
 						//FIXME it seems we use outputSelector and operand Reference indiscriminately: this doesn't seem to work if the operand also have an outputSelector. There should be two different attributes.
 						Map<String, Type> additionalOutputsTypes = new HashMap<>();
 						additionalOutputsTypes.put(operand.getOutputSelector(), Type.MULTI);
@@ -450,7 +466,6 @@ public class TargetStockInfo {
 					}
 				}
 			}
-
 		}
 
 		//MutliMapValues additional processing
@@ -460,7 +475,7 @@ public class TargetStockInfo {
 		for(int i = 0; i < operands.size(); i++) {
 			Value<?> ov = operandsOutputs.get(i);
 			Operation operand = operands.get(i);
-			if (ov instanceof MultiMapValue) {
+			if (operand instanceof MultiValuesOutput && ov instanceof MultiMapValue) {
 				Map<String, Type> multiMapValueOutputTypes = ((MultiMapValue) ov).getAdditionalOutputsTypes();
 				if (!multiMapValueOutputTypes.isEmpty()) { //Operand with effective MultiValueMap output.
 					if (operand.getFormulae() != null) { //User defined operand. Itself being a NumericableMapValue, as all user defined operations are, the operand also has a main output and hence can be set as main of the group
@@ -482,6 +497,14 @@ public class TargetStockInfo {
 			}
 		}
 
+	}
+
+	public boolean isMainConditionStack(String callStack) {
+		return callStack.contains("bullishCondition") || callStack.contains("bearishCondition");
+	}
+	
+	public boolean isAlsoDiplayStack(String callStack) {
+		return callStack.contains("alsoDisplay");
 	}
 
 	private Integer getIndexOfMainChartableOutput() {

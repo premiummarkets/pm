@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.finance.pms.events.Validity;
-import com.finance.pms.events.calculation.DateFactory;
 
 /**
  * Trend is From inclusive and To exclusive
@@ -127,7 +126,7 @@ public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO
 	}
 
 	public Long getPeriodLenght() {
-		long OneDayMilliSeconds = DateFactory.DAYINMILLI;
+		long OneDayMilliSeconds = 1000*60*60*24; //DateFactory.DAYINMILLI; DateFactory does not compile in GWT
 		return  (to.getTime() - from.getTime())/OneDayMilliSeconds;
 	}
 

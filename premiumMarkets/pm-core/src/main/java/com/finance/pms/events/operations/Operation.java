@@ -81,8 +81,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
 
 	private String formulae;
-
+	
+	//User defined reference
 	private String reference;
+	
 	private String description;
 
 	@XmlElementWrapper(name = "operands")
@@ -158,10 +160,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift) {
 
 		String thisCallStack = parentCallStack + "=>" + this.shortOutputReference();
+		int stackDepth = thisCallStack.split("=>").length;
+		int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
+		boolean isInChart = thisCallStack.split("=>").length <= maxDepth;
 		int thisOperandsRequiredStartShift = parentRequiredStartShift + operandsRequiredStartShift();
 		LOGGER.debug("Calculating:" + this.shortOutputReference() +
-				"\n\tCall stack : " + thisCallStack +
-				"\n\tOperands Required Start shift: " + thisOperandsRequiredStartShift + " with additional required from parent " + parentRequiredStartShift);
+				"\n\tCall stack (of depth "+ stackDepth + "): " + thisCallStack +
+				"\n\tOperands Required Start shift: " + thisOperandsRequiredStartShift + ". With additional shift required from parent: " + parentRequiredStartShift);
 
 		Value<?> alreadyCalculated = null;
 		try {
@@ -179,13 +184,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 					Operation operand = operands.get(i);
 					Value<?> output = operand.run(targetStock, thisCallStack, thisOperandsRequiredStartShift);
-					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift);
+					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift, isInChart);
 					output = output.filterToParentRequierements(targetStock, thisOperandsRequiredStartShift, this);
 					operandsOutputs.add(output);
 
 				}
 
-				targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
+				if (isInChart) targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
 
 				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift " + parentRequiredStartShift + " and parent+this " + thisOperandsRequiredStartShift);
 				Value<?> operationOutput = calculate(targetStock, thisOperandsRequiredStartShift, operandsOutputs);
@@ -203,7 +208,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
-	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift) {
+	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart) {
 		
 		Integer storedStartShift = operandRequiredstartShift;
 		if (operand instanceof CachableOperation) {
@@ -212,21 +217,21 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		//We gather only outputs for Numericable outputs or if explicitly Cachable
 		if ( output instanceof NumericableMapValue || operand instanceof CachableOperation) {
-			targetStock.gatherOneOutput(operand, output, Optional.empty(), storedStartShift);
+			targetStock.gatherOneOutput(operand, output, Optional.empty(), storedStartShift, isInChart);
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
-			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, storedStartShift);
+			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, storedStartShift, isInChart);
 		}
 
 	}
 
-	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput, int startShift) {
+	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput, int startShift, boolean isInChart) {
 
 		//add to gathered
 		Map<String, NumericableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
-			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShift);
+			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShift, isInChart);
 		}
 
 	}
@@ -507,7 +512,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * Name given to this operation as a parameter of higher order operation.
+	 * Name given to this operation as an operand of its upstream operation.
 	 */
 	public String getReferenceAsOperand() {
 		return referenceAsOperand;
@@ -594,7 +599,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * Upstream calculated operation name
+	 * Upstream calculated root operation name
 	 */
 	public String getOperationReference() {
 		return operationReference;
@@ -602,8 +607,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	@Override
 	public String toString() {
-		return "Operation [ reference=" + reference + ", formula=" + ((formulae != null)?formulae.replaceAll("\n", " "):"null") + ", description=" + description + ", referenceAsOperand=" + referenceAsOperand+ 
-				", operationReference=" + operationReference + ", availableOutputSelectors=" + availableOutputSelectors + ", outputSelector="+ outputSelector + ", disabled=" + disabled + "]";
+		return "Operation [ reference=" + reference + ", formula=" + ((formulae != null)?formulae.replaceAll("\n", " "):"null") + 
+				", description=" + description + ", referenceAsOperand=" + referenceAsOperand + ", operationReference=" + operationReference + 
+				", availableOutputSelectors=" + availableOutputSelectors + ", outputSelector="+ outputSelector + ", disabled=" + disabled + "]";
 	}
 
 	public void replaceOperand(int i, Operation replacementOp) {
