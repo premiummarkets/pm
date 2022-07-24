@@ -35,7 +35,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-public class TuningResDTO implements Serializable {
+import com.google.gwt.user.client.rpc.IsSerializable;
+
+public class TuningResDTO implements Serializable, IsSerializable {
 
 	private static final long serialVersionUID = 6537421829385394184L;
 

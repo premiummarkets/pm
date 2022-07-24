@@ -242,7 +242,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 		for (EventInfo eventInfo : allEventInfos()) {
 			if (eventInfo.getEventDefinitionRef().equals(eventInfoReference)) return eventInfo;
 		}
-		String message = "Can't find EventInfo for "+eventInfoReference+ ". It may have been deleted or not in this config (db.properties and user calculators).";
+		String message = "Can't find EventInfo for " + eventInfoReference + ". It may have been deleted and was not in this config (inc. EventDefinition, db.properties or user parameterized indicators).";
 		LOGGER.warn(message);
 		throw new NoSuchFieldException(message);
 	}

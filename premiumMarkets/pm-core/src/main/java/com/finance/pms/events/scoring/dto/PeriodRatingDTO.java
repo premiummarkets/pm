@@ -35,12 +35,13 @@ import java.util.Date;
 import java.util.List;
 
 import com.finance.pms.events.Validity;
+import com.google.gwt.user.client.rpc.IsSerializable;
 
 /**
  * Trend is From inclusive and To exclusive
  * @author guil
  */
-public class PeriodRatingDTO implements Serializable, Comparable<PeriodRatingDTO> {
+public class PeriodRatingDTO implements Serializable, IsSerializable,Comparable<PeriodRatingDTO> {
 
 	private static final long serialVersionUID = 6439016703303157679L;
 

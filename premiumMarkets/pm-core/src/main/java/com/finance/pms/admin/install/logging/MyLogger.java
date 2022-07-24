@@ -639,7 +639,7 @@ public class MyLogger {
 
 				} catch (Throwable mex) {
 					mex.printStackTrace();
-					delegateLogger.error("Failed to process error \""+errorStr+"\", cause \""+mex+"\".\n" +
+					delegateLogger.error("Failed to process error \"" + errorStr + "\", cause \"" + mex + "\".\n" +
 							"Errors can be forwarded to development team by email.\n" +
 							"To enable this feature, you must setup your email parameters in the Settings menu and restart.\n" +
 							"Thanks.\n\n");

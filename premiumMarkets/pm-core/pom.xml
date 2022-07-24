@@ -207,6 +207,16 @@
 				</exclusion>  -->	
 			</exclusions>
 		</dependency>
+		    <dependency>
+	        <groupId>org.hibernate</groupId>
+	        <artifactId>hibernate-validator</artifactId>
+	        <version>5.0.1.Final</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.hibernate</groupId>
+	        <artifactId>hibernate-validator-annotation-processor</artifactId>
+	        <version>5.0.1.Final</version>
+	    </dependency>
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
@@ -358,6 +368,12 @@
 		  <artifactId>ta4j</artifactId>
 		  <version>0.9</version>
 		</dependency>
+		<dependency>
+	      <groupId>com.google.gwt</groupId>
+	      <artifactId>gwt-user</artifactId>
+	      <version>2.10.0</version>
+	      <scope>provided</scope>
+	    </dependency>
 	</dependencies>
 	<build>
 		<resources>
