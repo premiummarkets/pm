@@ -15,7 +15,7 @@ import com.finance.pms.events.operations.Value;
 public class OperationReferenceOperation extends Operation implements LeafOperation {
 	
 	public OperationReferenceOperation() {
-		super("operation reference", "Operation reference name");
+		super("operationReference", "Operation reference name");
 	}
 	
 	public OperationReferenceOperation(String reference) {
@@ -29,6 +29,11 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	@Override
 	public OperationReferenceValue<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return (OperationReferenceValue<?>) inputs.get(0).getValue(targetStock);
+	}
+	
+	@Override
+	public String toFormulae() {
+		return "$" + ((StringableValue) getParameter()).getValueAsString() + "$";
 	}
 
 	@Override

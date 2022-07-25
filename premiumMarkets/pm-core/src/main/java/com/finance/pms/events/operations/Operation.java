@@ -395,7 +395,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public String toFormulae() {
 		if (operands.isEmpty()) {
 			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
-				return ((StringableValue)this.getParameter()).getValueAsString();
+				return ((StringableValue) this.getParameter()).getValueAsString();
 			} else {
 				return this.getOperationReference();
 			}

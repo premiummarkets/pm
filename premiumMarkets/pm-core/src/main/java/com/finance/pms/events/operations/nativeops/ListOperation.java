@@ -17,7 +17,7 @@ import com.finance.pms.events.operations.Value;
 public class ListOperation extends Operation {
 	
 	public ListOperation() {
-		super("list of things","List of things.");
+		super("listOfThings","List of things.");
 	}
 	
 	public ListOperation(String reference, String description) {
@@ -45,6 +45,12 @@ public class ListOperation extends Operation {
 	@Override
 	public AnyValueListValue<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new AnyValueListValue<>(inputs);
+	}
+
+
+	@Override
+	public String toFormulae() {
+		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + "]";
 	}
 
 	@Override

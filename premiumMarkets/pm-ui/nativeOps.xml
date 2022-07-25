@@ -68,6 +68,13 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listOperation">
+            <reference>listOfThings</reference>
+            <description>List of things.</description>
+            <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="sum">
             <reference>sum_</reference>
             <description>Summation of n historical data series</description>
@@ -650,13 +657,6 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listOperation">
-            <reference>list of things</reference>
-            <description>List of things.</description>
-            <operands/>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="triggerPointJoiner">
             <reference>triggerPointJoiner</reference>
             <description>Return the time points maps and values of a set of Series where the reference Series crosses a threshold</description>
@@ -1093,13 +1093,6 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="operationReferenceOperation">
-            <reference>operation reference</reference>
-            <description>Operation reference name</description>
-            <operands/>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="metaOperation">
             <reference>meta</reference>
             <description>Takes any function formulae, as prepared, with '?' in place of numeric parameters and its numeric parameters as input.</description>
@@ -1248,6 +1241,13 @@
                     <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="operationReferenceOperation">
+            <reference>operationReference</reference>
+            <description>Operation reference name</description>
+            <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
