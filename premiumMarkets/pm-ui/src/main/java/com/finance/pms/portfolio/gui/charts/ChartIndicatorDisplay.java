@@ -370,6 +370,17 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						}
 
 					}
+					
+//					//Generate png test
+//					try {
+//						Map<EventInfo, SortedMap<Date, double[]>> eventsOutputs = 
+//								chartTarget.getChartedEvtDefsTrends().stream().collect(Collectors.toMap(e -> e, e -> chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, e)));
+//						EventInfo mainEventInfo = chartTarget.getChartedEvtDefsTrends().stream().findAny().get();
+//						ChartImageBuilder chartImageBuilder = new ChartImageBuilder(selectedShare, IndicatorCalculationServiceMain.UI_ANALYSIS, mainEventInfo, tuningRessCache, eventsOutputs);
+//						chartImageBuilder.build();
+//					} catch (Exception e) {
+//						LOGGER.warn(e);
+//					}
 
 					Runnable runnable = new Runnable() {
 						public void run() {

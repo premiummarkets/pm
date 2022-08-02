@@ -74,7 +74,7 @@ public class OTFTuningFinalizer {
 			throws NotEnoughDataException {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
-		String noResMsg = "No estimate is available for "+stock.getName()+" between "+dateFormat.format(startDate)+ " and "+ dateFormat.format(endDate)+" with "+evtDef+".\n";
+		String noResMsg = "No estimate is available for " + stock.getName() + " between " + dateFormat.format(startDate) + " and "+ dateFormat.format(endDate) + " with " + evtDef + ".\n";
 		try {
 
 			//Grab calculated events and make sure they are ordered by date
@@ -183,7 +183,7 @@ public class OTFTuningFinalizer {
 			
 			//QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
 			Date qUnitDateBeforeOrAtEndDate =  null;
-			if (endDate.compareTo(qMap.firstKey()) >= 0) { //End date is withing the map
+			if (endDate.compareTo(qMap.firstKey()) >= 0) { //End date is within the available quotations map start
 				SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), endDate);
 				qUnitDateBeforeOrAtEndDate = subMapInclusive.lastKey();
 			} else {

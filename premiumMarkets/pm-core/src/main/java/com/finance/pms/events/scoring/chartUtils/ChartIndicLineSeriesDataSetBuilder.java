@@ -131,7 +131,9 @@ public class ChartIndicLineSeriesDataSetBuilder {
 												timeSeries.add(item, false);
 											}
 										} catch (Exception e) {
-											LOGGER.warn("This output index " + outputIdx + ", for '" + domain + "' does not have output data in " + chartedEvtDef.getEventDefinitionRef() + " at " + date + ": " + e.toString());
+											LOGGER.warn(
+													"This output index " + outputIdx + ", for '" + domain + "' does not have output data in " + chartedEvtDef.getEventDefinitionRef() + 
+													" at " + date + ": " + e.toString());
 										}
 									}
 								}

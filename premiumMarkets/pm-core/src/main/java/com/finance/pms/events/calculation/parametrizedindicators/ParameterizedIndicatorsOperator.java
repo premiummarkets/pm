@@ -126,8 +126,9 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 			try {
 				//Finding duplicates and invalid dates
-				Set<Date> validQuotationsDates = QuotationsFactories.getFactory()
-						.buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet();
+				List<Date> validQuotationsDates =new ArrayList<>(
+						QuotationsFactories.getFactory()
+						.buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet());
 				EventKey previousKey = null;
 				SortedSet<EventKey> duplicates = new TreeSet<EventKey>();
 				SortedSet<EventKey> invalids = new TreeSet<EventKey>();
@@ -136,7 +137,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 					Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
 					Date currentKeyDate = currentKey.getDate();
 					
-					if (!validQuotationsDates.contains(currentKeyDate)) {
+					if (currentKeyDate.compareTo(validQuotationsDates.get(0)) >= 0 && !validQuotationsDates.contains(currentKeyDate)) {
 						invalids.add(currentKey);
 					} else {
 						if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {

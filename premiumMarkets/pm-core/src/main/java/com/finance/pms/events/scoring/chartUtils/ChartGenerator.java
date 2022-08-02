@@ -37,12 +37,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -64,6 +66,7 @@ import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.HorizontalAlignment;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.VerticalAlignment;
@@ -83,16 +86,17 @@ public class ChartGenerator {
 	}
 
 	public void generateChartPNGFor(
-			OutputStream out, EventInfo chartedEvtDef, SortedMap<Date,double[]> lineSeries, 
-			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries) throws IOException {
-
+			OutputStream out, EventInfo chartedEvtDef, Map<EventInfo, SortedMap<Date, double[]>> lineSeries, 
+			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, 
+			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries) throws IOException {
+		
 		JFreeChart generatedChart = this.generateChart(chartedEvtDef, lineSeries, barPredSeries, barRefSeries);
 		this.exportPNG(out, generatedChart);
 
 	}
 
 	private JFreeChart generateChart(
-			EventInfo chartedEvtDef, SortedMap<Date,double[]> lineSeries,
+			EventInfo chartedEvtDef, Map<EventInfo, SortedMap<Date, double[]>> eventsLinesSeries,
 			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries) {
 
 		DateAxis hAxis = new DateAxis("Time line");
@@ -108,27 +112,32 @@ public class ChartGenerator {
 		plot.setRangeGridlinesVisible(false);
 		plot.setDomainGridlinesVisible(true);
 
-		//Line rendering
-		Map<EventInfo, SortedMap<Date, double[]>> eventsSeries = new HashMap<>();
-		eventsSeries.put(chartedEvtDef, lineSeries);
-		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, eventsSeries);
+		//Line rendering for all groups
+		//We expect two EventInfos : predictions and targets with Predictions the first and target the second.
+		//The first EventInfo (predictions) has two groups of outputs: predictions and close
+		//The second EventInfo (targets) has the targets outputs and potentially additional lines.
+		//We display only the predictions EventInfo lines.
+		//eventsLinesSeries.keySet().stream().forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(true))); //Setting all output to displayed
+		eventsLinesSeries.keySet().retainAll(Arrays.asList(chartedEvtDef));
+		eventsLinesSeries.keySet().stream().forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(true)));
+		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, eventsLinesSeries);
 		dataSetBuilder.build();
 		int linesGroupsCount = plot.getDatasetCount(); //one DataSet and one Renderer per group
 
-		//Bar rendering
-		int predBarsGrp = linesGroupsCount +1;
+		//Adding Bar rendering for predictions and targets
+		int refBarsGrp = linesGroupsCount + 1;
+		XYBarRenderer barRefRenderer = new XYBarRenderer();
+		plot.setRenderer(refBarsGrp, barRefRenderer);
+		TimeSeriesCollection barRefDataset = buildBarDataSet(barRefSeries, barRefRenderer);
+		plot.setDataset(refBarsGrp, barRefDataset);
+		plot.mapDatasetToRangeAxis(refBarsGrp, linesGroupsCount -1);
+		
+		int predBarsGrp = linesGroupsCount;
 		XYBarRenderer barPredRenderer = new XYBarRenderer();
 		plot.setRenderer(predBarsGrp, barPredRenderer);
 		TimeSeriesCollection barPredDataset = buildBarDataSet(barPredSeries, barPredRenderer);
 		plot.setDataset(predBarsGrp, barPredDataset);
-		plot.mapDatasetToRangeAxis(predBarsGrp, 0);
-
-		int prefBarsGrp = linesGroupsCount;
-		XYBarRenderer barRefRenderer = new XYBarRenderer();
-		plot.setRenderer(prefBarsGrp, barRefRenderer);
-		TimeSeriesCollection barRefDataset = buildBarDataSet(barRefSeries, barRefRenderer);
-		plot.setDataset(prefBarsGrp, barRefDataset);
-		plot.mapDatasetToRangeAxis(prefBarsGrp, linesGroupsCount-1);
+		plot.mapDatasetToRangeAxis(predBarsGrp, linesGroupsCount -1);
 
 		//Chart
 		JFreeChart jFreeChart = new JFreeChart(plot);
@@ -149,13 +158,18 @@ public class ChartGenerator {
 			public LegendItemCollection getLegendItems() {
 				LegendItemCollection legendItemCollection = new LegendItemCollection();
 				for(int i = 0; i < linesGroupsCount; i++) {
-					for (int j = 0 ; j <  plot.getDataset(i).getSeriesCount(); j++) {
+					XYDataset dataset = plot.getDataset(i);
+					if (dataset == null) continue;
+					for (int j = 0 ; j <  dataset.getSeriesCount(); j++) {
 						Paint seriesPaint = plot.getRenderer(i).getSeriesPaint(j);
 						Comparable<?> seriesKey = plot.getDataset(i).getSeriesKey(j);
-						if (seriesKeyDuplCount.contains(seriesKey)) continue;
-						seriesKeyDuplCount.add(seriesKey);
-						legendItemCollection.add(new LegendItem(seriesKey.toString(), null,
-								null, null, new Line2D.Double(-7.0, 0.0, 7.0, 0.0), new BasicStroke(1), seriesPaint));
+						Pattern pattern = Pattern.compile("^[_0-9a-f]+:([_a-zA-Z0-9]+).* as (.*)$");
+						Matcher matcher = pattern.matcher(seriesKey.toString());
+						matcher.find();
+						String seriesKeyShort = matcher.group(1); //matcher.group(2) + ": " + matcher.group(1);
+						if (seriesKeyDuplCount.contains(matcher.group(1))) continue;
+						seriesKeyDuplCount.add(matcher.group(1));
+						legendItemCollection.add(new LegendItem(seriesKeyShort, null, null, null, new Line2D.Double(-7.0, 0.0, 7.0, 0.0), new BasicStroke(1), seriesPaint));
 					}
 				}
 				return legendItemCollection;
