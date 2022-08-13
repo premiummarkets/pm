@@ -184,9 +184,9 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 
 	@Transient
 	public long getVolumeSplit() {
-//		if (split.compareTo(BigDecimal.ONE) == 0) return getVolumeRaw();
-//		return volume*(split.longValue()/42);
-		return getVolumeRaw();
+		if (split.compareTo(BigDecimal.ONE) == 0) return getVolumeRaw();
+		return volume*(split.longValue());
+//		return getVolumeRaw();
 	}
 
 	/**

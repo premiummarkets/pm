@@ -94,8 +94,9 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);
 		adjustedStartCal.add(Calendar.DAY_OF_YEAR, -operationStartDateShift);
-		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference() + "."
-				+ " Requested start: " + startDate + ", adjusted start: " + adjustedStartCal.getTime() + " with shift: " + operationStartDateShift);
+		LOGGER.info(
+				this.eventInfoOpsCompoOperationHolder.getReference() + ". " +
+				"Requested start: " + startDate + ", adjusted start: " + adjustedStartCal.getTime() + " with shift: " + operationStartDateShift);
 
 		//Adjust end
 		Date lastQuote = stock.getLastQuote();

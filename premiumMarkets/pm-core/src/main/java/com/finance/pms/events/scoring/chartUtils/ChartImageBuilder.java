@@ -4,8 +4,11 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -18,7 +21,9 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -56,11 +61,21 @@ public class ChartImageBuilder {
     }
 
     public String build() throws NoQuotationsException, NotEnoughDataException {
+    	
+    	LOGGER.info("Building chart for: " +
+    			"outputs " + calcOutputs.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e) + ", " +
+    			"periods " + eventsPeriods.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e)  + 
+    			" with main " + eventInfo.getEventDefinitionRef());
 
         Boolean generateSmaCmpOutChart = MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatepng", true);
         if (!generateSmaCmpOutChart) return NO_CHART_AVAILABLE;
 
-        Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 100, ValidityFilter.CLOSE);
+		Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));
+		if (eventInfo instanceof EventInfoOpsCompoOperation) {
+			requieredStockDataTypes = ((EventInfoOpsCompoOperation) eventInfo).getRequieredStockData();
+		}
+        Quotations quotations = QuotationsFactories.getFactory()
+        		.getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 100, ValidityFilter.getFilterFor(requieredStockDataTypes));
         SortedMap<Date, Double> quotationMap = QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx());
 
         String chartFile;
@@ -94,8 +109,9 @@ public class ChartImageBuilder {
         ///Prediction bars       
         SortedMap<Date, Double> buySerie = new TreeMap<Date, Double>();
         SortedMap<Date, Double> sellSerie = new TreeMap<Date, Double>();
+        Date lastPredOutputKey = calcOutputs.get(eventInfo).lastKey();
         for (PeriodRatingDTO currentPeriod : eventsPeriods.get(eventInfo).getPeriods()) {
-            Date to = (calcOutputs.get(eventInfo).lastKey().compareTo(currentPeriod.getTo()) <= 0)?calcOutputs.get(eventInfo).lastKey():currentPeriod.getTo();
+			Date to = (lastPredOutputKey.compareTo(currentPeriod.getTo()) <= 0)?lastPredOutputKey:currentPeriod.getTo();
 			SortedMap<Date, Double> periodQuotationMap = MapUtils.subMapInclusive(quotationMap, currentPeriod.getFrom(), to);
             EventType periodTrend = EventType.valueOf(currentPeriod.getTrend());
             for (Date periodInnerDate : periodQuotationMap.keySet()) {
@@ -114,34 +130,42 @@ public class ChartImageBuilder {
         ///Ideal reference bars
         SortedMap<Date, Double> refBullish = new TreeMap<Date, Double>();
         SortedMap<Date, Double> refBearish = new TreeMap<Date, Double>();
-        eventsPeriods.keySet().stream().filter(e -> !e.equals(eventInfo)).findFirst().ifPresent(e -> {
-	       for (PeriodRatingDTO currentPeriod : eventsPeriods.get(e).getPeriods()) {
-	    	   Date to = (calcOutputs.get(e).lastKey().compareTo(currentPeriod.getTo()) <= 0)?calcOutputs.get(e).lastKey():currentPeriod.getTo();
-	            SortedMap<Date, Double> periodQuotationMap = MapUtils.subMapInclusive(quotationMap, currentPeriod.getFrom(), to);
-	            EventType periodTrend = EventType.valueOf(currentPeriod.getTrend());
-	            for (Date periodInnerDate : periodQuotationMap.keySet()) {
-	                Double closeForInnerDate = periodQuotationMap.get(periodInnerDate).doubleValue();
-	                if (periodTrend.equals(EventType.BULLISH)) {
-	                	refBullish.put(periodInnerDate, closeForInnerDate * REF_SERIES_FACTOR);
-	                } else if (periodTrend.equals(EventType.BEARISH)) {
-	                	refBearish.put(periodInnerDate, closeForInnerDate * REF_SERIES_FACTOR);
-	                }
-	            }
-	        }
-        });
+        eventsPeriods.keySet().stream().filter(e -> !e.equals(eventInfo)).findFirst().ifPresentOrElse(e -> {
+        	if (!calcOutputs.get(e).isEmpty()) {
+        		LOGGER.info("Using " + e.getEventDefinitionRef() + " for chart targets.");
+        		Date lastRefOutputKey = calcOutputs.get(e).lastKey();
+        		for (PeriodRatingDTO currentPeriod : eventsPeriods.get(e).getPeriods()) {
+        			Date to = (lastRefOutputKey.compareTo(currentPeriod.getTo()) <= 0)?lastRefOutputKey:currentPeriod.getTo();
+        			SortedMap<Date, Double> periodQuotationMap = MapUtils.subMapInclusive(quotationMap, currentPeriod.getFrom(), to);
+        			EventType periodTrend = EventType.valueOf(currentPeriod.getTrend());
+        			for (Date periodInnerDate : periodQuotationMap.keySet()) {
+        				Double closeForInnerDate = periodQuotationMap.get(periodInnerDate).doubleValue();
+        				if (periodTrend.equals(EventType.BULLISH)) {
+        					refBullish.put(periodInnerDate, closeForInnerDate * REF_SERIES_FACTOR);
+        				} else if (periodTrend.equals(EventType.BEARISH)) {
+        					refBearish.put(periodInnerDate, closeForInnerDate * REF_SERIES_FACTOR);
+        				}
+        			}
+        		}
+        	} else {
+        		LOGGER.warn("Empty calculation output for " + e.getEventDefinitionRef() + ". Chart is compromised with lack of target!");
+        	}
+        }, () -> LOGGER.warn(
+        		"No reference Event info found in " + eventsPeriods.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e) + ", "
+        		+ " as alternative to " + eventInfo.getEventDefinitionRef()));
         SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries = new TreeMap<DataSetBarDescr, SortedMap<Date,Double>>();
         barRefSeries.put(new DataSetBarDescr(1, "Target Bearish", red), refBearish);
         barRefSeries.put(new DataSetBarDescr(2, "Target Bullish", green), refBullish);
 
-        ///Prediction grey period
-        Date predictedPeriodStart = maxLastKey(refBearish, refBullish);
-        Date predictedPeriodEnd = maxLastKey(sellSerie, buySerie);
-        SortedMap<Date, Double> pred = new TreeMap<Date,Double>();
-        SortedMap<Date, Double> predSubMap = MapUtils.subMapInclusive(quotationMap,predictedPeriodStart, predictedPeriodEnd);
-        for (Date date : predSubMap.keySet()) {
-            pred.put(date, quotationMap.get(date) * REF_SERIES_FACTOR);
+        ///Future grey period
+        Date futurePeriodStart = maxLastKey(refBearish, refBullish);
+        Date futurePeriodEnd = maxLastKey(sellSerie, buySerie);
+        SortedMap<Date, Double> future = new TreeMap<Date,Double>();
+        SortedMap<Date, Double> futureSubMap = MapUtils.subMapInclusive(quotationMap, futurePeriodStart, futurePeriodEnd);
+        for (Date date : futureSubMap.keySet()) {
+            future.put(date, quotationMap.get(date) * REF_SERIES_FACTOR);
         }
-        barRefSeries.put(new DataSetBarDescr(3, "Future Predicted", grey), pred);
+        barRefSeries.put(new DataSetBarDescr(3, "Future Predicted", grey), future);
 
         //Chart
         FileOutputStream outputFileStream = new FileOutputStream(new File(System.getProperty("installdir") + File.separator + chartFileName));

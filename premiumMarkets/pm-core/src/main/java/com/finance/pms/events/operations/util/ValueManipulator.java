@@ -186,7 +186,7 @@ public class ValueManipulator {
 		}
 		
 		try {
-			SortedMap<Date, double[]> factorisedOuputs = ValueManipulator.inputListToArray(targetStock, allOutputs, false, false);
+			SortedMap<Date, double[]> factorisedOuputs = ValueManipulator.inputListToArray(targetStock, allOutputs, true, true);
 			return new DoubleArrayMapValue(factorisedOuputs, outputsOperandsRefs, 0);
 		} catch (Exception e) {
 			LOGGER.error(operation.getReference() + " : " + e, e);

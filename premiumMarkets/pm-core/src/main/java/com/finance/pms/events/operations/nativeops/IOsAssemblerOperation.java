@@ -62,8 +62,8 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		try {
 			
 			@SuppressWarnings("unchecked")
-			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(firstInputIdx(), inputs.size());
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(firstInputIdx(), getOperands().size()), developpedInputs);
 			
 			SortedMap<Date, double[]> factorisedInput = factoriseInput(targetStock, inputsOperandsRefs, developpedInputs, allowTrailingNaN);
 			
@@ -72,7 +72,6 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 					throw new RuntimeException("The input assembler is missing assemblees.");
 				}
 			}
-
 			
 			if (isExport) {
 				LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
@@ -90,6 +89,10 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		}
 		
 		return new DoubleArrayMapValue();
+	}
+
+	protected int firstInputIdx() {
+		return FIRST_INPUT;
 	}
 
 	protected SortedMap<Date, double[]> factoriseInput(

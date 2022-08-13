@@ -29,8 +29,8 @@ public class IOsExporterOperation extends StringerOperation {
 
 	public IOsExporterOperation() {
 		this("iosExporter", "Exports all assembled datasets to a file.",
-				new StringOperation("string", "file name path", "Path of the output", new StringValue("")),
-				new StringOperation("string", "file name prefix", "Will prefix a random file name", new StringValue("")),
+				new StringOperation("string", "export root path", "Root path of the output", new StringValue("")),
+				new StringOperation("string", "export file name prefix", "Prefix of the file name", new StringValue("")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}

@@ -977,7 +977,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			conn.setAutoCommit(autocommit);
 			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
-			LOGGER.debug("Db connection isolation : "+conn.getTransactionIsolation()+". Autocommit : "+conn.getAutoCommit());
+			LOGGER.debug("Db connection isolation : " + conn.getTransactionIsolation() + ". Autocommit : " + conn.getAutoCommit());
 			StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 			String stackString = "";
 			if (LOGGER.isDebugEnabled()) {
@@ -985,7 +985,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					stackString = stackString + "\n"+ stackTraceElement.toString();
 				}
 			}
-			LOGGER.info("Db connexion 	url : " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx")+" -  Stack trace : "+stackString);
+			LOGGER.info("Db connexion 	url : " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx") + " -  Stack trace : " + stackString);
 		} 
 
 		catch (SQLException e) {

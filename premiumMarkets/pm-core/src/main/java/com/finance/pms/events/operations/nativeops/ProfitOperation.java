@@ -19,6 +19,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
@@ -27,7 +28,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
-public class ProfitOperation extends ArrayMapOperation {
+public class ProfitOperation extends ArrayMapOperation implements MultiValuesOutput {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ProfitOperation.class);
 	
@@ -46,7 +47,8 @@ public class ProfitOperation extends ArrayMapOperation {
 	}
 
 	public ProfitOperation() {
-		this("profit", "Calculate the profits (the my way) of series of Events from Indicators", new EventMapOperation("Event Series to analyse profit from (an Indicator)"));
+		this("profit", "Calculate the profits (the my way) of series of Events from Indicators",
+		new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null)); 
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
@@ -112,6 +114,11 @@ public class ProfitOperation extends ArrayMapOperation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	}
+
+	@Override
+	public int mainInputPosition() {
+		return 0;
 	}
 
 }

@@ -159,7 +159,7 @@ public class TargetStockInfo {
 
 
 	public TargetStockInfo(
-			String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate,Date endDate) 
+			String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) 
 			throws WarningException {
 		super();
 		this.analysisName = analysisName;
@@ -167,7 +167,7 @@ public class TargetStockInfo {
 		this.stock = stock;
 
 		Date lastQuote = stock.getLastQuote();
-		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : "+stock.toString());
+		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : " + stock.toString());
 		this.startDate = startDate;
 		this.endDate = endDate;
 

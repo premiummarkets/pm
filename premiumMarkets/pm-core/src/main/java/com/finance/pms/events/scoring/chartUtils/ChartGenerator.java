@@ -37,12 +37,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +58,7 @@ import org.jfree.chart.LegendItemSource;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
+import org.jfree.chart.axis.SegmentedTimeline;
 import org.jfree.chart.block.ColumnArrangement;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -71,11 +76,14 @@ import org.jfree.ui.HorizontalAlignment;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.VerticalAlignment;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventInfo;
 
 
 
 public class ChartGenerator {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(ChartGenerator.class);
 
 	private String title;
 
@@ -104,6 +112,15 @@ public class ChartGenerator {
 		hAxis.setTickUnit(new DateTickUnit(DateTickUnitType.MONTH, 6, dateFormat));
 		hAxis.setLowerMargin(0.0f);
 		hAxis.setUpperMargin(0.0f);
+		SortedSet<Date> fullDateSet = new TreeSet<>();
+		for (SortedMap<Date, double[]> output : eventsLinesSeries.values()) {
+			fullDateSet.addAll(output.keySet());
+		}
+		boolean anyWeekends = fullDateSet.stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
+		if (!anyWeekends) {
+			SegmentedTimeline newMondayThroughFridayTimeline = SegmentedTimeline.newMondayThroughFridayTimeline();
+			hAxis.setTimeline(newMondayThroughFridayTimeline);
+		}
 
 		XYPlot plot = new XYPlot();
 		plot.setBackgroundPaint(Color.WHITE);
@@ -117,10 +134,9 @@ public class ChartGenerator {
 		//The first EventInfo (predictions) has two groups of outputs: predictions and close
 		//The second EventInfo (targets) has the targets outputs and potentially additional lines.
 		//We display only the predictions EventInfo lines.
-		//eventsLinesSeries.keySet().stream().forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(true))); //Setting all output to displayed
 		eventsLinesSeries.keySet().retainAll(Arrays.asList(chartedEvtDef));
 		eventsLinesSeries.keySet().stream().forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(true)));
-		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, eventsLinesSeries);
+		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, fullDateSet, eventsLinesSeries);
 		dataSetBuilder.build();
 		int linesGroupsCount = plot.getDatasetCount(); //one DataSet and one Renderer per group
 
@@ -163,9 +179,14 @@ public class ChartGenerator {
 					for (int j = 0 ; j <  dataset.getSeriesCount(); j++) {
 						Paint seriesPaint = plot.getRenderer(i).getSeriesPaint(j);
 						Comparable<?> seriesKey = plot.getDataset(i).getSeriesKey(j);
-						Pattern pattern = Pattern.compile("^[_0-9a-f]+:([_a-zA-Z0-9]+).* as (.*)$");
-						Matcher matcher = pattern.matcher(seriesKey.toString());
-						matcher.find();
+						String regex = "^[_0-9a-f]+:([_a-zA-Z0-9]+).* as (.*)$";
+						Pattern pattern = Pattern.compile(regex);
+						Matcher matcher = pattern.matcher(seriesKey.toString().replace('\n', ' '));
+						boolean found = matcher.find();
+						if (!found) {
+							LOGGER.error("No match found for seriesKey short name: " + seriesKey + ", while looking for: " + regex);
+							continue;
+						}
 						String seriesKeyShort = matcher.group(1); //matcher.group(2) + ": " + matcher.group(1);
 						if (seriesKeyDuplCount.contains(matcher.group(1))) continue;
 						seriesKeyDuplCount.add(matcher.group(1));

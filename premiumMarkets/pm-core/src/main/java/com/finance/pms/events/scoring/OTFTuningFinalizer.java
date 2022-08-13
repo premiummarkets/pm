@@ -37,11 +37,13 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Observer;
+import java.util.Set;
 import java.util.SortedMap;
 
 import org.springframework.stereotype.Service;
@@ -57,6 +59,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.Validity;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
@@ -72,6 +75,8 @@ public class OTFTuningFinalizer {
 
 	public TuningResDTO buildTuningRes(Date startDate, Date endDate, Stock stock, String analyseName, EventInfo evtDef, SortedMap<EventKey, EventValue> evtDefEvents, Observer observer) 
 			throws NotEnoughDataException {
+		
+		LOGGER.info("Building Tuning res for " + stock.getFriendlyName() + " and " + evtDef.info() + " and analysis " + analyseName + " between " + startDate + " and " + endDate);
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
 		String noResMsg = "No estimate is available for " + stock.getName() + " between " + dateFormat.format(startDate) + " and "+ dateFormat.format(endDate) + " with " + evtDef + ".\n";
@@ -90,9 +95,11 @@ public class OTFTuningFinalizer {
 			if (eventsValues.isEmpty()) throw new NotEnoughDataException(stock, startDate, endDate, "", new RuntimeException());
 
 			//Build res
-			LOGGER.info("Building Tuning res for " + stock.getFriendlyName() + " and " + evtDef.info() + " between " + startDate + " and " + endDate);
-			
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+			Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));
+			if (evtDef instanceof EventInfoOpsCompoOperation) {
+				requieredStockDataTypes = ((EventInfoOpsCompoOperation) evtDef).getRequieredStockData();
+			}
+			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.getFilterFor(requieredStockDataTypes));
 			SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 			LOGGER.info("Quotations map for " + stock.getFriendlyName() + " ranges from " + mapFromQuotationsClose.firstKey() + " to " + mapFromQuotationsClose.lastKey() + " while requested from " + startDate + " to " + endDate);
 			

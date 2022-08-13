@@ -10,10 +10,11 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.quotations.NoQuotationsException;
 
-public class IOsLooseAssemblerOperation extends IOsAssemblerOperation {
+public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements MultiValuesOutput {
 	
 	public IOsLooseAssemblerOperation(String reference, String description, ArrayList<Operation> operands) {
 		super(reference, description, operands);
@@ -35,6 +36,13 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation {
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
 	}
+	
+	
+
+	@Override
+	protected int firstInputIdx() {
+		return 1;
+	}
 
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
@@ -50,6 +58,9 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation {
 		return ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true);
 	}
 	
-	
+	@Override
+	public int mainInputPosition() {
+		return 1;
+	}
 
 }

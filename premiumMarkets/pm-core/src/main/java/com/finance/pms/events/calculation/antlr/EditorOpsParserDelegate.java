@@ -69,7 +69,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		EditorOpDescr currentOp = grabOpForToken(currentOpToken);
 
 		if (currentOp == null) {
-			System.out.println("I Should not be here : checking params " + paramsTree + " but no current op !!!!!??????? ");
+			//System.out.println("I Should not be here : checking params " + paramsTree + " but no current op !!!!!??????? ");
 			throw new InvalidOperationException(input, currentOpToken, paramsTree);
 		}
 
@@ -99,7 +99,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 
 		currentOp.setNbCommasParsed(commas);
 
-		System.out.println("Checking params " + params + " against " + currentOp.getSynoptic());
+		//System.out.println("Checking params " + params + " against " + currentOp.getSynoptic());
 		currentParamPos = 0;
 		for (; (currentParamPos < params.size()) && (currentParamPos < currentOp.getParams().size() || currentOp.undeterministicParamCount()); currentParamPos++) {
 
@@ -200,7 +200,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			return true;
 		}
 
-		System.out.println("I Should not be here : checking params count unatched !!!????" + params + ". Expected "+currentOp.getSynoptic());
+		//System.out.println("I Should not be here : checking params count unatched !!!????" + params + ". Expected " + currentOp.getSynoptic());
 		return false;
 
 	}

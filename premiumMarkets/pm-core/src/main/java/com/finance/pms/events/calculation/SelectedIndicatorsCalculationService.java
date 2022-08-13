@@ -125,7 +125,7 @@ public class SelectedIndicatorsCalculationService {
 						stockAllSymbolEvents.addEventResultElement(symbolEvents);
 						stockAllSymbolEvents.addAllCalculationOutput(symbolEvents.getCalculationOutputs());
 					} catch (ExecutionException executionException) {
-						LOGGER.warn("Failed: events for stock " + stock.toString() + " between "+dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
+						LOGGER.warn("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
 						Throwable cause = executionException.getCause();
 						if (cause instanceof IncompleteDataSetException) {
 							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> {
@@ -155,9 +155,9 @@ public class SelectedIndicatorsCalculationService {
 
 			try {
 				Integer nbEvents = allEvents.stream().map(se -> se.getDataResultMap().size()).reduce( 0, (r, mapSize) -> r + mapSize);
-				LOGGER.guiInfo("Storing "+nbEvents+" events for "+allEvents.size()+" stocks.");
+				LOGGER.guiInfo("Storing " + nbEvents + " events for " + allEvents.size() + " stocks.");
 				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
-				LOGGER.guiInfo("Stored "+nbEvents+" events for "+allEvents.size()+" stocks.");
+				LOGGER.guiInfo("Stored " + nbEvents + " events for " + allEvents.size() + " stocks.");
 			} catch (Exception e) { 
 				isDataSetComplete = false;
 				if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {

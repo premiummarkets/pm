@@ -51,6 +51,8 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -58,6 +60,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -69,6 +73,8 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.SegmentedTimeline;
+import org.jfree.chart.axis.Timeline;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
@@ -624,10 +630,10 @@ public class ChartMain extends Chart {
 					//Display empty message
 					CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
 
-					//Check if indic plot present
+					//Check if Indic plot present
 					@SuppressWarnings("unchecked") List<XYPlot> subplots = combinedDomainXYPlot.getSubplots();
 
-					if (subplots.size() == 1) {
+					if (subplots.size() == 1) { //Indic plot is not present: we create it
 						XYLineAndShapeRenderer indicRenderer = new XYLineAndShapeRenderer(true, false);
 						indicRenderer.setBaseItemLabelsVisible(true, false); //??
 
@@ -636,9 +642,19 @@ public class ChartMain extends Chart {
 						indicPlot.setNoDataMessage("No indicator output available. Click 'Calculations Update' or 'Calculator Settings'.\nAlso check that the selected stock and date ranges are valid.");
 						indicPlot.setDomainMinorGridlinesVisible(true);
 					}
+					
+					//Domain WE fix
+					SortedSet<Date> fullDateSet = new TreeSet<>();
+					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
+						fullDateSet.addAll(output.keySet());
+					}
+					boolean includeWeekends = fullDateSet.stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
+					DateAxis domainAxis = (DateAxis) combinedDomainXYPlot.getDomainAxis();
+					Timeline segmentedTimeline = includeWeekends?new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0):SegmentedTimeline.newMondayThroughFridayTimeline();
+					domainAxis.setTimeline(segmentedTimeline);
 
 					//Chart
-					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, eventsSeries);
+					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, fullDateSet, eventsSeries);
 					dataSetBuilder.build();
 
 					//Combine group
