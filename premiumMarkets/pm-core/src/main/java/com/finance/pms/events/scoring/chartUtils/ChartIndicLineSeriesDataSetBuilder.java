@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.jfree.chart.axis.AxisLocation;
@@ -39,11 +38,13 @@ public class ChartIndicLineSeriesDataSetBuilder {
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartIndicLineSeriesDataSetBuilder.class);
 	private XYPlot indicPlot;
 
+	private SortedSet<Date> fullDateSet;
 	private Map<EventInfo, SortedMap<Date, double[]>> eventsSeries;
 
-	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, Map<EventInfo, SortedMap<Date, double[]>> eventsSeries) {
+	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, SortedSet<Date> fullDateSet, Map<EventInfo, SortedMap<Date, double[]>> eventsSeries) {
 		super();
 		this.indicPlot = indicPlot;
+		this.fullDateSet = fullDateSet;
 		this.eventsSeries = eventsSeries;
 	}
 
@@ -62,11 +63,6 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			final NumberFormat numberFormat = new DecimalFormat("0.############");
 
 			indicPlot.clearRangeAxes();
-
-			SortedSet<Date> fullDateSet = new TreeSet<>();
-			for (SortedMap<Date, double[]> output : eventsSeries.values()) {
-				fullDateSet.addAll(output.keySet());
-			}
 
 			int eventDefFirstRendererIdx = 0;
 			
