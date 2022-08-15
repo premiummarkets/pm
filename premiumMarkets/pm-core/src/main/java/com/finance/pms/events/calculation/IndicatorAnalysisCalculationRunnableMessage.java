@@ -121,10 +121,8 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 
 		} catch (IncompleteDataSetException e) {
 			exception = e;
-
 		} catch (Throwable e) {
 			LOGGER.error("Error in " + this.toString(), e);
-
 		} finally {
 			synchronized (syncObject) {
 				syncObject.notify();

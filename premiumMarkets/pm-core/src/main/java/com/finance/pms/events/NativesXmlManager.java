@@ -48,6 +48,7 @@ import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
 import com.finance.pms.events.operations.nativeops.IOsAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.IOsDeltaExporterOperation;
 import com.finance.pms.events.operations.nativeops.IOsExporterOperation;
 import com.finance.pms.events.operations.nativeops.IOsLooseAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.IndicatorStatsOperation;
@@ -175,6 +176,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(iosLooseAssemblerOperation);
 		IOsExporterOperation inputExporterOperation = new IOsExporterOperation();
 		nativeOperations.addOperation(inputExporterOperation);
+		IOsDeltaExporterOperation inputDeltaExporterOperation = new IOsDeltaExporterOperation();
+		nativeOperations.addOperation(inputDeltaExporterOperation);
 		CsvFileFilterOperation csvFileFilterOperation = new CsvFileFilterOperation();
 		nativeOperations.addOperation(csvFileFilterOperation);
 		IndicatorStatsOperation indicatorStatsOperation = new IndicatorStatsOperation();

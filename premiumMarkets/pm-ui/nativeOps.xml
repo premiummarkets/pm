@@ -435,6 +435,33 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsDeltaExporterOperation">
+            <reference>iosDeltaExporter</reference>
+            <description>Exports all assembled datasets to a file.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>file full path</referenceAsOperand>
+                    <description>File full path of the output</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>datasets</referenceAsOperand>
+                    <description>Datasets to export (usually a list of iosAssembler)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockInfoOperation">
             <reference>targetStockInfo</reference>
             <description>Return informations about the targeted stock and dates bondaries</description>
@@ -485,7 +512,8 @@
             <description>Calculate the profits (the my way) of series of Events from Indicators</description>
             <operands>
                 <operand xsi:type="eventMapOperation">
-                    <reference>Event Series to analyse profit from (an Indicator)</reference>
+                    <reference>data</reference>
+                    <referenceAsOperand>indicatorsCompositioners</referenceAsOperand>
                     <description>Event Series to analyse profit from (an Indicator)</description>
                     <operands/>
                     <availableOutputSelectors/>
@@ -1319,8 +1347,8 @@
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>file name path</referenceAsOperand>
-                    <description>Path of the output</description>
+                    <referenceAsOperand>export root path</referenceAsOperand>
+                    <description>Root path of the output</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>
@@ -1330,8 +1358,8 @@
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>file name prefix</referenceAsOperand>
-                    <description>Will prefix a random file name</description>
+                    <referenceAsOperand>export file name prefix</referenceAsOperand>
+                    <description>Prefix of the file name</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>

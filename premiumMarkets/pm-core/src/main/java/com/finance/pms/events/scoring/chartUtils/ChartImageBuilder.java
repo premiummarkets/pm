@@ -103,7 +103,7 @@ public class ChartImageBuilder {
         Color green = new Color(204,255,153);
         Color grey = Color.lightGray;
 
-        ChartGenerator chartGenerator = new ChartGenerator("Premium Markets predictions V. target");
+        ChartGenerator chartGenerator = new ChartGenerator("Premium Markets predictions V. targets");
 
         //Bar series
         ///Prediction bars       

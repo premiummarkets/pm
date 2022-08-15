@@ -427,6 +427,7 @@ public class SpringContext extends GenericApplicationContext {
 			//Keras
 			putInPrefs("kerasweb.hostip",props);
 			putInPrefs("kerasweb.hostport",props);
+			putInPrefs("kerasweb.timeout",props);
 
 			//Q fact
 			putInPrefs("bean.quotationFactory", props);

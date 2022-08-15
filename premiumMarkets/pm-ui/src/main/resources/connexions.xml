@@ -76,6 +76,7 @@
 		<property name="dataSource" ref="dataSource1"></property>
 		<property name="annotatedClasses">
 			<list>
+				<value>com.finance.pms.users.UserDTO</value>
 				<value>com.finance.pms.datasources.shares.Stock</value>
 				<value>com.finance.pms.portfolio.PortfolioShare</value>
 				<value>com.finance.pms.portfolio.Portfolio</value>

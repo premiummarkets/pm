@@ -60,6 +60,7 @@ import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.axis.DateTickUnitType;
 import org.jfree.chart.axis.SegmentedTimeline;
 import org.jfree.chart.block.ColumnArrangement;
+import org.jfree.chart.block.FlowArrangement;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
@@ -78,6 +79,7 @@ import org.jfree.ui.VerticalAlignment;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 
 
 
@@ -133,11 +135,15 @@ public class ChartGenerator {
 		//We expect two EventInfos : predictions and targets with Predictions the first and target the second.
 		//The first EventInfo (predictions) has two groups of outputs: predictions and close
 		//The second EventInfo (targets) has the targets outputs and potentially additional lines.
-		//We display only the predictions EventInfo lines.
+		//WIP: We display only the predictions EventInfo lines or None
 		eventsLinesSeries.keySet().retainAll(Arrays.asList(chartedEvtDef));
-		eventsLinesSeries.keySet().stream().forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(true)));
+		//eventsLinesSeries.keySet().stream().forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(true)));
+		eventsLinesSeries.keySet().stream()
+				.forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(!(d.getType().equals(Type.MAIN) || d.getType().equals(Type.MULTI)))));
+		
 		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, fullDateSet, eventsLinesSeries);
 		dataSetBuilder.build();
+		
 		int linesGroupsCount = plot.getDatasetCount(); //one DataSet and one Renderer per group
 
 		//Adding Bar rendering for predictions and targets
@@ -156,18 +162,26 @@ public class ChartGenerator {
 		plot.mapDatasetToRangeAxis(predBarsGrp, linesGroupsCount -1);
 
 		//Chart
+		plot.setBackgroundPaint(Color.WHITE);
 		JFreeChart jFreeChart = new JFreeChart(plot);
 		jFreeChart.setTitle(title);
+		jFreeChart.setBackgroundPaint(Color.WHITE);
 
 		//Legend mess
 		jFreeChart.removeLegend();
 
 		///Bar chart legend
-		jFreeChart.addLegend(new LegendTitle(barPredRenderer));
-		jFreeChart.addLegend(new LegendTitle(barRefRenderer));
+		LegendTitle predLegend = new LegendTitle(barPredRenderer, new ColumnArrangement(), new FlowArrangement());
+		predLegend.setHorizontalAlignment(HorizontalAlignment.LEFT);
+		predLegend.setPosition(RectangleEdge.TOP);
+		jFreeChart.addLegend(predLegend);
+		LegendTitle targetLegend = new LegendTitle(barRefRenderer, new ColumnArrangement(), new FlowArrangement());
+		targetLegend.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+		targetLegend.setPosition(RectangleEdge.TOP);
+		jFreeChart.addLegend(targetLegend);
 
 		///Lines legend
-		LegendTitle legend = new LegendTitle(new LegendItemSource() {
+		LegendTitle lineLegend = new LegendTitle(new LegendItemSource() {
 
 			Set<Comparable<?>> seriesKeyDuplCount = new HashSet<>();
 			@Override
@@ -196,8 +210,9 @@ public class ChartGenerator {
 				return legendItemCollection;
 			}
 		}, new ColumnArrangement(HorizontalAlignment.LEFT, VerticalAlignment.TOP, 0, 0), null);
-		legend.setPosition(RectangleEdge.BOTTOM);
-		jFreeChart.addLegend(legend);
+		lineLegend.setHorizontalAlignment(HorizontalAlignment.LEFT);
+		lineLegend.setPosition(RectangleEdge.BOTTOM);
+		jFreeChart.addLegend(lineLegend);
 		//
 
 		return jFreeChart;
