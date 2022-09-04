@@ -190,7 +190,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			try {
 
 				String childText = opPackage + child.getToken().getText();
-				LOGGER.debug("Instantiating NON pre parameterise native op : "+childText);
+				LOGGER.debug("Instantiating NON pre parameterise native op : " + childText);
 
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
@@ -259,10 +259,10 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			return opInstance;
 
 		} catch (InvocationTargetException e) {
-			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName+", Const value : "+value, e);
+			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value, e);
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error("Child obj : " + child + ", Class name :" + valueClassName+", Const value : "+value, e);
+			LOGGER.error("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value, e);
 			throw e;
 		}
 	}
@@ -279,7 +279,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			holdingThread = thread;
 			thread.start();
 		} else {//We resume
-			LOGGER.debug("Synchronising on "+this+" in order to change state to "+!threadSuspended);
+			LOGGER.debug("Synchronising on " + this + " in order to change state to " + !threadSuspended);
 			synchronized (this) {
 				threadSuspended = !threadSuspended;
 				if (!threadSuspended) {

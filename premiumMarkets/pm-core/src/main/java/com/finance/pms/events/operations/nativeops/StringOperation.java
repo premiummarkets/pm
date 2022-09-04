@@ -44,7 +44,7 @@ import com.finance.pms.events.operations.Value;
 public class StringOperation extends Operation implements LeafOperation {
 	
 	public StringOperation() {
-		super("string of letters","String of letters as a parameter");
+		super("stringOfLetters","String of letters as a parameter");
 	}
 
 	public StringOperation(String reference) {

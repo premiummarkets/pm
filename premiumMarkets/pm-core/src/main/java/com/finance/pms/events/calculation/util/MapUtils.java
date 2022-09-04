@@ -56,13 +56,14 @@ public class MapUtils {
 
 	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats) {
 
-		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
+		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)period) * (1000l * 60l * 60l * 24l));
 
 		//Bypassing the potential from restrictive range
-		Date from = (map.firstKey().compareTo(startDate) > 0)? map.firstKey(): startDate;
+		Date startFrom = (map.firstKey().compareTo(startDate) > 0)? map.firstKey(): startDate;
+		Date endFrom = new Date(startFrom.getTime() + ((long)period) * (1000l * 60l * 60l * 24l));
 
 		final TreeMap<Date, Double> movingStats =
-				map.tailMap(from).keySet().stream()
+				map.tailMap(endFrom).keySet().stream()
 				.collect(Collectors.toMap(
 						endWindowK -> endWindowK,
 						endWindowK -> {

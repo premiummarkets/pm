@@ -27,7 +27,8 @@ public class CsvFileFilterOperation extends StringerOperation {
 		this("csvFilterOperation", "Loads filtered data from a csv file. Only the last match is returned.",
 			new StringOperation("string","filePath", "CSV File Path", new StringValue("autoPortfolioLogs/input.csv")),
 			new NumberOperation("number","columnIndex", "Index of the column to retrieve", new NumberValue(0.0)),
-			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("None")));
+			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("None")),
+			new StringOperation("string","default", "Default value.", new StringValue("None")));
 	}
 
 	@Override
@@ -39,6 +40,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 		}
 		int retrievedColumnIndex = ((NumberValue) inputs.get(1)).getNumberValue().intValue();
 		String filterPatternString = ((StringValue) inputs.get(2)).getValue(targetStock);
+		String defaultValue = ((StringValue) inputs.get(3)).getValue(targetStock);
 
 		List<String> matchingLines = new ArrayList<>();
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))) {
@@ -63,24 +65,27 @@ public class CsvFileFilterOperation extends StringerOperation {
 						matchingLines.add(rowSplit[retrievedColumnIndex]);
 					}
 				} catch (Exception e) {
-					LOGGER.warn("Unreadable line in " + filePath + " : " + line + ". Cause: " + e);
+					LOGGER.warn("Unreadable line in " + filePath + ": " + line); //+ ". Cause: " + e);
 				}
 				
 			}
 
 		} catch (Exception e) {
-			throw new RuntimeException("File:" + filePath, e);
+			throw new RuntimeException("File: " + filePath, e);
 		}
-		
-		if (matchingLines.size() != 1) {
-			LOGGER.warn("Dubious results retrieved (empty or multiple): " + matchingLines);
+	
+		if (matchingLines.size() > 1) {
+			LOGGER.warn("Dubious results retrieved (multiple matches): " + matchingLines + " for " + filterPatternString + " in " + filePath);
 		}
 
-		String result = "None";
+		String result = defaultValue;
 		if (!matchingLines.isEmpty()) {
-			result = matchingLines.get(matchingLines.size()-1);
-			LOGGER.info("Taking: " + result);
+			result = matchingLines.get(matchingLines.size()-1); //The last match prevails
+			LOGGER.info("Results: " + result + " for " + filterPatternString + " in " + filePath);
+		} else {
+			LOGGER.info("No results (empty matches), using default: " + result + " for " + filterPatternString + " in " + filePath);
 		}
+		
 		return new StringValue(result);
 
 	}

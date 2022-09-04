@@ -55,7 +55,11 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 		String[] referenceSplit = operationReference.split(":");
 		
 		ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
-		T opClone = (T) parameterizedOperationBuilder.getNativeOperations().get(referenceSplit[0]).clone();
+		Operation nativeOperation = parameterizedOperationBuilder.getNativeOperations().get(referenceSplit[0]);
+//		if (nativeOperation == null) { //FIXME Use with caution as it may cause infinite loop?
+//			nativeOperation = parameterizedOperationBuilder.getThisParserCompliantUserCurrentOperations().get(referenceSplit[0]);
+//		}
+		T opClone = (T) nativeOperation.clone();
 		if (referenceSplit.length > 1) opClone.setOutputSelector(referenceSplit[1]);
 		
 		this.operation = opClone;

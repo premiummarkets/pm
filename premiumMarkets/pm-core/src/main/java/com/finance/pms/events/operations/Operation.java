@@ -73,7 +73,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
-	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class,
+	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
@@ -617,7 +617,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * The shift left necessary for this operation to provide output at start date.
+	 * The start shift left required from the operands for this operation to provide output at start date.
+	 * Basically the amount of data necessary for this to yield one output.
 	 */
 	public abstract int operandsRequiredStartShift();
 	

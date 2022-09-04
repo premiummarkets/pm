@@ -105,7 +105,9 @@ public class OTFTuningFinalizer {
 			
 			TuningResDTO buildTuningRes = buildTuningRes(stock, startDate, endDate, mapFromQuotationsClose, eventsValues);
 			
-			if (buildTuningRes.getPeriods().isEmpty())LOGGER.warn(String.format("No buy/sell movement was triggered for %s, %s, %s : %s", stock, startDate, endDate, noResMsg));
+			if (buildTuningRes.getPeriods().isEmpty()) {
+				LOGGER.warn(String.format("No buy/sell movement was triggered for %s, %s, %s : %s", stock, startDate, endDate, noResMsg));
+			}
 			return buildTuningRes;
 
 
@@ -113,7 +115,7 @@ public class OTFTuningFinalizer {
 			LOGGER.warn(noResMsg, e);
 			throw new NotEnoughDataException(stock, noResMsg , e);
 		} catch (NotEnoughDataException e) {
-			LOGGER.warn(noResMsg);
+			LOGGER.warn(noResMsg, e);
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error(noResMsg, e);

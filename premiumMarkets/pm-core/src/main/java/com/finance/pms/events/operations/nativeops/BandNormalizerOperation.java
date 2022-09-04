@@ -47,10 +47,10 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	private static MyLogger LOGGER = MyLogger.getLogger(BandNormalizerOperation.class);
 	private static final int DATAINPUTIDX = 4;
 	
-	private int slidingPeriod = 251;
+	private int trimmerSlidingPeriod = 251;
 
 	public BandNormalizerOperation() {
-		super("bandNormalizer", "Normalise the data between the lower and the upper threshold",
+		super("bandNormalizer", "Normalise the data between and to the lower and the upper threshold",
 				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
 				new NumberOperation("actual center","actualCenter","Keep distance ratio of min and max to the data relative specified center (NaN accepted).", new NumberValue(Double.NaN)),
 				new NumberOperation("integer", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
@@ -86,10 +86,10 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double lowerThreshold, double upperThreshold, double actualCenter, Double trimFactor, List<NumericableMapValue> data) {
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
-			slidingPeriod=251;
+			trimmerSlidingPeriod=251;
 			SortedMap<Date, Double> trimmed = data.get(0).getValue(targetStock);
 			if (!Double.isNaN(trimFactor)) {
-				Trimmer trimmer = new Trimmer(slidingPeriod, trimFactor.intValue(), trimmed.firstKey(), trimmed.lastKey());
+				Trimmer trimmer = new Trimmer(trimmerSlidingPeriod, trimFactor.intValue(), trimmed.firstKey(), trimmed.lastKey());
 				trimmed = trimmer.sTrimmed(trimmed);
 			}
 			
@@ -108,7 +108,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	public int operandsRequiredStartShift() {
 		double trimFactor = ((NumberValue)getOperands().get(DATAINPUTIDX-1).getParameter()).getValue(null).doubleValue();
 		if (Double.isNaN(trimFactor)) return 0;
-		return slidingPeriod;
+		return trimmerSlidingPeriod;
 	}
 
 }

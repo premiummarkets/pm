@@ -278,4 +278,11 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	public String toFormulae() {
 		return getReference() + "()";
 	}
+
+	@Override
+	public Boolean isIdemPotent() {
+		return false;
+	}
+	
+	
 }

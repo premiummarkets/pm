@@ -98,7 +98,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		}
 		
 		try {
-			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, runsOutputs, true, true);
+			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, runsOutputs, false, true);
 			return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);

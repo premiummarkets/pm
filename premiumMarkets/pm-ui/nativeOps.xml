@@ -180,6 +180,17 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>default</referenceAsOperand>
+                    <description>Default value.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>None</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
@@ -450,10 +461,32 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>header suffix</referenceAsOperand>
+                    <description>Suffix of the headers</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>append</referenceAsOperand>
+                    <description>True if we append. False for overwrite</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>TRUE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
                     <referenceAsOperand>datasets</referenceAsOperand>
-                    <description>Datasets to export (usually a list of iosAssembler)</description>
+                    <description>Datasets to export (typically a list of iosAssembler)</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
@@ -567,6 +600,13 @@
                 <availableOutputSelector>logRetnAtDate</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>atDate</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="nullOperation">
+            <reference>NONE</reference>
+            <description>Null operation. Should signify no operation.</description>
+            <operands/>
+            <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryProduct">
@@ -744,7 +784,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandNormalizerOperation">
             <reference>bandNormalizer</reference>
-            <description>Normalise the data between the lower and the upper threshold</description>
+            <description>Normalise the data between and to the lower and the upper threshold</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>lower threshold</reference>
@@ -823,6 +863,7 @@
                 <availableOutputSelector>msum</availableOutputSelector>
                 <availableOutputSelector>mmin</availableOutputSelector>
                 <availableOutputSelector>mmax</availableOutputSelector>
+                <availableOutputSelector>mtanhnorm</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -977,19 +1018,34 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandRatioNormalizerOperation">
             <reference>bandRNrmlzr</reference>
-            <description>Normalise to new center and amplitude keeping the origial</description>
+            <description>Normalise to new center and amplitude keeping the original distance ratios to center</description>
             <operands>
                 <operand xsi:type="numberOperation">
-                    <reference>new center</reference>
+                    <reference>newcenter</reference>
+                    <referenceAsOperand>newCenter</referenceAsOperand>
                     <description>new center</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="numberOperation">
-                    <reference>amplitude</reference>
-                    <referenceAsOperand>amplitude</referenceAsOperand>
-                    <description>Amplitude</description>
+                    <reference>actualCenter</reference>
+                    <referenceAsOperand>actualCenter</referenceAsOperand>
+                    <description>actual center</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>distanceToNewCenter</reference>
+                    <referenceAsOperand>distanceToNewCenter</referenceAsOperand>
+                    <description>distance to new center</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>1.0</numberValue>
                     </defaultValue>
@@ -998,11 +1054,11 @@
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="numberOperation">
-                    <reference>actual center</reference>
-                    <referenceAsOperand>actualCenter</referenceAsOperand>
-                    <description>Actual center</description>
+                    <reference>distanceToActualCenter</reference>
+                    <referenceAsOperand>distanceToActualCenter</referenceAsOperand>
+                    <description>distance to actual center</description>
                     <defaultValue xsi:type="numberValue">
-                        <numberValue>0.0</numberValue>
+                        <numberValue>1.0</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -1358,8 +1414,8 @@
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>export file name prefix</referenceAsOperand>
-                    <description>Prefix of the file name</description>
+                    <referenceAsOperand>export file name prefix and hedears suffix</referenceAsOperand>
+                    <description>Prefix of the file name and headers suffix</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>

@@ -100,13 +100,16 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 			List<String> inputsOperandsRefs, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN)
 			throws NoQuotationsException, NotEnoughDataException {
 		
-		IntStream.range(0, developpedInputs.size()).forEach( index -> {
-			if (developpedInputs.get(index).getDateKeys().isEmpty()) {
-				throw new RuntimeException("Yield no result: " + inputsOperandsRefs.get(index));
-			}
-		});
-		
-		return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, allowTrailingNaN);
+		try {
+			IntStream.range(0, developpedInputs.size()).forEach( index -> {
+				if (developpedInputs.get(index).getDateKeys().isEmpty()) {
+					throw new RuntimeException("Yield no result: " + inputsOperandsRefs.get(index));
+				}
+			});
+			return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, allowTrailingNaN);
+		} catch (Exception e) {
+			throw new NotEnoughDataException(targetStock.getStock(), targetStock.getStartDate(0), targetStock.getEndDate(), e.toString(), e);
+		}
 	}
 
 	@Override

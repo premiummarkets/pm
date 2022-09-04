@@ -45,6 +45,11 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 
 
+/**
+ * 
+ * @author guil
+ * viewStateParams = {List<EventInfo/EventInfoOpsCompoOperation>, ["setDirty", ..]}
+ */
 public class RefreshChartHighlighted extends UserContentStrategyEngine<Stock> {
 
     @Override

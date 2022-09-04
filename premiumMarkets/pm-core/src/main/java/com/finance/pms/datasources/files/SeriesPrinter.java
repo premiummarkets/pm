@@ -48,17 +48,20 @@ public class SeriesPrinter {
 		return printo(fileName, subFolder, headers, series, forcedBaseFileName);
 	}
     
+
+    //Append
 	public static String appendto(String fileFullPath, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
 
-        try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPath)); BufferedWriter inputW = new BufferedWriter(new FileWriter(fileFullPath))) {
+        try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPath)); BufferedWriter inputW = new BufferedWriter(new FileWriter(fileFullPath, true))) {
         	
     		//Check headers
         	String line = inputR.readLine();
         	List<String> existingHeaders = Arrays.asList(line.split(","));
+        	List<String> existingHeaders_wo_date = existingHeaders.subList(1, existingHeaders.size());
         	List<Integer> seriesWidths = new ArrayList<>();
-            List<String> newHeaders = makeHeaders(headersPrefixes, series, seriesWidths);
-        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders.get(i).equals(newHeaders.get(i)));
-        	if (newHeaders.size() != existingHeaders.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders);
+            List<String> newHeaders = Arrays.asList(makeHeaders(headersPrefixes, series, seriesWidths).get(0).split(","));
+        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
+        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
 			
 			//Find the last date and trunk series to last date
         	String last = line;
@@ -83,14 +86,41 @@ public class SeriesPrinter {
 		}
 
 	}
+	
+	//Over Write
+    public static String printo(String exportFile, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
 
+    	Boolean printOutputs = MainPMScmd.getMyPrefs().getBoolean("print.outputs", true);
+    	if (!printOutputs) return "None";
+
+        try (FileWriter fileWriter = new FileWriter(exportFile, false); BufferedWriter bufferWriter = new BufferedWriter(fileWriter)) {
+            
+        	List<Integer> seriesWidths = new ArrayList<>();
+            List<String> headers = makeHeaders(headersPrefixes, series, seriesWidths);
+            
+            //Write headers
+            String headerString = headers.toString();
+            bufferWriter.write("date," + headerString.substring(1, headerString.length()-1));
+            bufferWriter.newLine();
+
+            appendContent(series, seriesWidths, bufferWriter);
+            
+            return exportFile;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    
+    //Generated file name
     public static String printo(String fileName, String subFolder, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series, String ...forcedBaseFileName) {
 
     	Boolean printOutputs = MainPMScmd.getMyPrefs().getBoolean("print.outputs", true);
     	if (!printOutputs) return "None";
 
         String baseFileName = (forcedBaseFileName == null || forcedBaseFileName.length != 1)?SeriesPrinter.appRunStamp.toString():forcedBaseFileName[0];
-        File exportFile = new File(System.getProperty("installdir") + File.separator + ((subFolder != null)? subFolder + File.separator:"") + baseFileName + "_" + fileName+".csv");
+        File exportFile = new File(System.getProperty("installdir") + File.separator + ((subFolder != null)? subFolder + File.separator:"") + baseFileName + "_" + fileName + ".csv");
 
         try (FileWriter fileWriter = new FileWriter(exportFile); BufferedWriter bufferWriter = new BufferedWriter(fileWriter)) {
             

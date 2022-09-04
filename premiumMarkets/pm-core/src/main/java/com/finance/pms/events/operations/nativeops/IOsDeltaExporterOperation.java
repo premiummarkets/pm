@@ -18,7 +18,7 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 
 public class IOsDeltaExporterOperation extends StringerOperation {
 	
-	private static final int FIRST_INPUT = 1;
+	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsDeltaExporterOperation.class);
 	
 	
@@ -29,7 +29,9 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	public IOsDeltaExporterOperation() {
 		this("iosDeltaExporter", "Exports all assembled datasets to a file.",
 				new StringOperation("string", "file full path", "File full path of the output", new StringValue("")),
-				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
+				new StringOperation("string", "header suffix", "Suffix of the headers", new StringValue("")),
+				new StringOperation("boolean", "append", "True if we append. False for overwrite", new StringValue("TRUE")),
+				new DoubleMapOperation("data", "datasets", "Datasets to export (typically a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
@@ -42,6 +44,8 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String fileFullPath = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String headerSuffix = ((StringValue) inputs.get(1)).getValue(targetStock);
+		Boolean append = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -50,11 +54,15 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
-			series.put(fileFullPath, factorisedInput);
+			series.put(headerSuffix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
-			headersPrefixes.put(fileFullPath, inputsOperandsRefs);
-			String filePath = SeriesPrinter.appendto(fileFullPath, headersPrefixes, series); //append
-			return new StringValue(filePath);
+			headersPrefixes.put(headerSuffix, inputsOperandsRefs);
+			if (append) {
+				SeriesPrinter.appendto(fileFullPath, headersPrefixes, series); 
+			} else {
+				SeriesPrinter.printo(fileFullPath, headersPrefixes, series);
+			}
+			return new StringValue(fileFullPath);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}

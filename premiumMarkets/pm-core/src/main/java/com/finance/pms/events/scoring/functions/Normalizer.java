@@ -119,8 +119,10 @@ public class Normalizer<T> {
 		//This is to keep the variation from the centre with an identical balance
 		if (!Double.isNaN(actualCenter)) {
 			double biggestAbs = Math.max(Math.abs(max - actualCenter), Math.abs(actualCenter - min));
-			max = (max > actualCenter)? biggestAbs + actualCenter: actualCenter;
-			min = (min < actualCenter)? actualCenter - biggestAbs : actualCenter;
+//			max = (max > actualCenter)? biggestAbs + actualCenter: actualCenter;
+//			min = (min < actualCenter)? actualCenter - biggestAbs : actualCenter;
+			max = biggestAbs + actualCenter;
+			min = actualCenter - biggestAbs;
 		}
 
 		return new double[] {min, max};

@@ -987,10 +987,10 @@ public class ChartMain extends Chart {
 
 		List<Double> chartY = new ArrayList<Double>();
 		double mainH = (indicPlot == null)? plotArea.getHeight() : plotArea.getHeight()*(double)(CHARTS_TOTAL_WEIGHT - indicPlotWeight)/(double)CHARTS_TOTAL_WEIGHT;
-		if (clickPoint.getY() < mainH) {
+		if (clickPoint.getY() < mainH) { //click within the bar chart
 			Rectangle2D.Double doubleRectanble = new Rectangle2D.Double(plotArea.getX(), plotArea.getY(), plotArea.getWidth(), mainH);
 			chartY.add(mainYAxis.java2DToValue(clickPoint.getY(), doubleRectanble, mainPlot.getRangeAxisEdge()));
-		} else {
+		} else if (indicPlot != null) { //click below the bar chart and there is an indicator plot visible.
 			Rectangle2D.Double doubleRectanble = new Rectangle2D.Double(plotArea.getX(), plotArea.getY() + mainH + 4, plotArea.getWidth(), plotArea.getHeight()*((double)(indicPlotWeight)/(double)CHARTS_TOTAL_WEIGHT));
 			int rangeAxisCount = indicPlot.getRangeAxisCount();
 			for (int i = 0; i < rangeAxisCount; i++) {
@@ -1050,7 +1050,7 @@ public class ChartMain extends Chart {
 				}
 			}
 
-		} else {
+		} else if (indicPlot != null) {
 
 			Point2D lowerClickPoint = new Point( (int) clickPoint.getX(), (int) clickPoint.getY()+1);
 			Point2D higherClickPoint = new Point( (int) clickPoint.getX(), (int) clickPoint.getY()-1);

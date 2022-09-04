@@ -1,6 +1,7 @@
 package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,13 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 								TreeMap<Date, Double> collect = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[i], (a,b) -> a, TreeMap::new));
 								return new DoubleMapValue(collect);
 							},
-							(a,b) -> a, TreeMap::new)
+							(a,b) -> a, 
+							() -> new TreeMap<String, NumericableMapValue>(new Comparator<String>() {
+								@Override
+								public int compare(String o1, String o2) {
+									return Integer.valueOf(columnsReferences.indexOf(o1)).compareTo(Integer.valueOf(columnsReferences.indexOf(o2)));
+								}
+							}))
 							);
 		}
 		return collectAdditionalOutputs;

@@ -38,6 +38,7 @@ import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.MetaOperation;
+import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.ProfitDrivenOperation;
 import com.finance.pms.events.operations.ProfitWalkerOperation;
 import com.finance.pms.events.operations.RandomOperation;
@@ -104,6 +105,8 @@ public class NativesXmlManager {
 		
 		MetaOperation metaOperation = new MetaOperation();
 		nativeOperations.addOperation(metaOperation);
+		NullOperation nullOperation = new NullOperation();
+		nativeOperations.addOperation(nullOperation);
 
 		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)

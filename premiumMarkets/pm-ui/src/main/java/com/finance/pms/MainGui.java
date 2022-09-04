@@ -1149,7 +1149,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				System.out.println("____________________Uncaught_________________________ "+e.toString());
+				System.out.println(" _______________________Uncaught_______________________ "+e.toString());
 				e.printStackTrace();
 			}
 		});

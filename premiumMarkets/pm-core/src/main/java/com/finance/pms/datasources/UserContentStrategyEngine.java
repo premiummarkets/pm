@@ -113,7 +113,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 		for (int i = 0; i < analysers.length; i++) {
 
-			LOGGER.guiInfo("Running task : Analysing from "+datedeb+" to "+datefin);
+			LOGGER.guiInfo("Running task : Analysing from " + datedeb + " to " + datefin);
 
 			SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
@@ -213,17 +213,21 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		if (viewStateParams != null && viewStateParams.length == 1) {
 			eventDefsArray = viewStateParams[0].toArray(new EventInfo[0]);
 		} else {
-			eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+			//eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
+			eventDefsArray = new EventInfo[0]; //keep empty nothing to delete
 		}
 
 		for (Stock stock : builtStockList) {
 
-			LOGGER.guiInfo("Running task : Deleting previous events and set config as dirty for " + ((Stock)stock).getFriendlyName()+
+			LOGGER.guiInfo("Running task : Deleting previous events and set config as dirty for " + ((Stock)stock).getFriendlyName() +
 					" and event definitions requested : "+
-					((viewStateParams != null && viewStateParams.length >= 1)?viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected") +
+					((viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null)?
+							viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected") +
 					". Will delete : " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
-
-			EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefsArray);
+			
+			if (eventDefsArray.length > 0) { //None selected means no delete
+				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefsArray);
+			}
 
 			for (Observer observer : engineObservers) {
 				observer.update(null, new ObserverMsg((Stock) stock, ObserverMsg.ObsKey.NONE));

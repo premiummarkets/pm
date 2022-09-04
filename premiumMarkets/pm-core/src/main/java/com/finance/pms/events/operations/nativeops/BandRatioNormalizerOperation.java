@@ -45,13 +45,14 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 public class BandRatioNormalizerOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(BandRatioNormalizerOperation.class);
-	private static final int DATAINPUTIDX = 3;
+	private static final int DATAINPUTIDX = 4;
 
 	public BandRatioNormalizerOperation() {
-		super("bandRNrmlzr", "Normalise to new center and amplitude keeping the origial",
-				new NumberOperation("new center"), 
-				new NumberOperation("amplitude","amplitude","Amplitude", new NumberValue(1.0)),
-				new NumberOperation("actual center","actualCenter","Actual center", new NumberValue(0.0)),
+		super("bandRNrmlzr", "Normalise to new center and amplitude keeping the original distance ratios to center",
+				new NumberOperation("newcenter","newCenter","new center", new NumberValue(0.0)),
+				new NumberOperation("actualCenter","actualCenter","actual center", new NumberValue(0.0)), 
+				new NumberOperation("distanceToNewCenter","distanceToNewCenter","distance to new center", new NumberValue(1.0)),
+				new NumberOperation("distanceToActualCenter","distanceToActualCenter","distance to actual center", new NumberValue(1.0)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
@@ -66,26 +67,29 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 
 		//Param check
 		double newCenter = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
-		double amplitude = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
-		double actualCenter = ((NumberValue)inputs.get(2)).getValue(targetStock).doubleValue();
+		double actualCenter = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
+		double distanceToNewCenter = ((NumberValue)inputs.get(2)).getValue(targetStock).doubleValue();
+		double distanceToActualCenter = ((NumberValue)inputs.get(3)).getValue(targetStock).doubleValue();
 		
 		@SuppressWarnings("unchecked")
 		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(DATAINPUTIDX, DATAINPUTIDX+1);
 		
-		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, newCenter, amplitude, actualCenter, data);
+		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, newCenter, actualCenter, distanceToNewCenter, distanceToActualCenter, data);
 		
 		return ValueManipulator.doubleArrayExpender(this, DATAINPUTIDX, targetStock, innerCalcFunc, numericableMapValue);
 		
 	}
 
-	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double newCenter, double amplitude, double actualCenter, List<NumericableMapValue> data) {
+	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double newCenter, double actualCenter, double distanceToNewCenter, double distanceToActualCenter, List<NumericableMapValue> data) {
 		NumericableMapValue doubleMapValue = new DoubleMapValue();
 		try {
-			//	v/actualCenter -> gives a value between [0,2] with centre 1
 			SortedMap<Date, Double> value = data.get(0).getValue(targetStock);
 			TreeMap<Date, Double> normalized = 
 					value.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> amplitude*(e.getValue()/actualCenter) + (newCenter - amplitude), (a,b) -> a, TreeMap::new));
+					.collect(Collectors.toMap(
+							e -> e.getKey(), 
+							e ->  ((e.getValue() - actualCenter)/distanceToActualCenter)* distanceToNewCenter + newCenter, 
+							(a,b) -> a, TreeMap::new));
 			doubleMapValue.getValue(targetStock).putAll(normalized);
 			
 		} catch (Exception e) {

@@ -133,7 +133,10 @@ public abstract class EventModelStrategyEngine<X> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void postCallBackForAnalysis(List<Stock> stockList, Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput, Collection<? extends Object>[] viewStateParams) {
+	public void postCallBackForAnalysis(
+			List<Stock> stockList, 
+			Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput, 
+			Collection<? extends Object>[] viewStateParams) {
 
 		if (callbackForlastAnalyseOutput != null) {
 
@@ -151,8 +154,8 @@ public abstract class EventModelStrategyEngine<X> {
 			Set<EventInfo> indicators = new HashSet<>();
 			if (viewStateParams != null && viewStateParams.length >= 1) {
 				indicators.addAll((Collection<? extends EventInfo>) viewStateParams[0]);
-			} else{
-				indicators.addAll(EventDefinition.loadMaxPassPrefsEventInfo());
+			} else {
+				//indicators.addAll(EventDefinition.loadMaxPassPrefsEventInfo()); //keep empty nothing to calculate
 			}
 
 			Boolean isAllEventsOk = true;
@@ -183,8 +186,8 @@ public abstract class EventModelStrategyEngine<X> {
 	//Neural needs the first pass indicators as in the db.props and hence these can't be individually tampered
 	//TODO In the same way parameterised is filtered, Neural could be.
 	protected void tamperEventConfig(Collection<EventInfo> viewStateParams) {
-		if (viewStateParams == null) {//A null value means all ie no filter : we don't tamper.
-			return;
+		if (viewStateParams == null) {//A null value would mean no event has been selected.
+			viewStateParams = new ArrayList<EventInfo>();
 		}
 		EventSignalConfig eventConfig = (EventSignalConfig) ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).clone();
 		eventConfig.tamperIndepAndParameterizedEventInfoList(viewStateParams);

@@ -593,7 +593,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	public void clearPreviousCalculations(Operation operation) throws InUseException {
 		List<Operation> impactedIndicators = actualCheckInUse(getCurrentOperations().values(), operation);
 		if (!impactedIndicators.isEmpty()) {
-			LOGGER.info("Operation " + operation.getReference()+" has been changed, invalidating operations : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+			LOGGER.info("Operation " + operation.getReference() + " has been changed, invalidating operations : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
 			invalidateOperations(impactedIndicators);
 			throw new InUseException(impactedIndicators);
 		}

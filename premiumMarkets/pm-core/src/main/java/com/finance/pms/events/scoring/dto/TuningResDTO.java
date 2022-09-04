@@ -129,7 +129,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 
 	public Boolean hasCvsLink() {
-		return !this.csvLink.equals("noOutputAvailable");
+		return !this.csvLink.equals("noOutputAvailable") && !this.csvLink.equals("NA");
 	}
 
 	@Override

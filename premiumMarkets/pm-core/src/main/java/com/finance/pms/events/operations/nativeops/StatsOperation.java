@@ -52,8 +52,10 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
 import com.finance.pms.events.scoring.functions.MySimpleRegression;
+import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
 @XmlRootElement
@@ -65,7 +67,7 @@ public class StatsOperation extends PMWithDataOperation {
 		super("stat", "Moving statistics",
 				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm"})));
 	}
 
 	public StatsOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -79,21 +81,12 @@ public class StatsOperation extends PMWithDataOperation {
 
 		//Param check
 		Double period = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
-		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
+		@SuppressWarnings("unchecked")
+		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(1, 2);
 
 		try {
-			//Default is identity
-			StatsFunction statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
-				@Override
-				public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
-					return values[begin+length-1];
-				}
-				@Override
-				public UnivariateStatistic copy() {
-					return this;
-				}
-			});
-
+			final StatsFunction statFunction;
+			
 			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
 			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
 				statFunction = new MyApacheStats(new Mean());
@@ -113,11 +106,47 @@ public class StatsOperation extends PMWithDataOperation {
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmax")) {
 				statFunction = new MyApacheStats(new Max());
 			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtanhnorm")) {
+				statFunction = new StatsFunction() {
+					
+					@Override
+					public double mEvaluate(SortedMap<Date, Double> subMap) {
+						Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+						SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
+						return normalized.get(normalized.lastKey());
+					}
+					
+					@Override
+					public SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap) {
+						Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+						SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
+						return normalized;
+					}
+				};
+			} else {
+				//Default is identity
+				statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
+					@Override
+					public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
+						return values[begin+length-1];
+					}
+					@Override
+					public UnivariateStatistic copy() {
+						return this;
+					}
+				});
+			}
 
 			if (period.isNaN()) {
-				return new DoubleMapValue(statFunction.evaluate(data));
+				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
+					return new DoubleMapValue(statFunction.evaluate(data.get(0).getValue(targetStock)));
+				};
+				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, innerCalcFunc, numericableMapValue);
 			} else {
-				return new DoubleMapValue(MapUtils.movingStat(data, targetStock.getStartDate(thisStartShift), period.intValue(), statFunction));
+				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
+					return new DoubleMapValue(MapUtils.movingStat(data.get(0).getValue(targetStock), targetStock.getStartDate(thisStartShift), period.intValue(), statFunction));
+				};
+				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, innerCalcFunc, numericableMapValue);
 			}
 
 		} catch (Exception e) {

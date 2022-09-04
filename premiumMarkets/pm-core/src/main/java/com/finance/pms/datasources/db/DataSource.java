@@ -715,7 +715,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	//ALTER TABLE EVENTS  ADD INDEX `EVENTS_STOCK_ANAME_DATE_DEF` (`ANALYSENAME`,`SYMBOL`,`ISIN`,`DATE`,`EVENTDEF`);
 	public Date getEdgeEventDateFor(String minMax, Stock stock, String analyseName, String eventDef) {
-		String q = new String("Select "+minMax+"(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where " +
+		String q = new String("Select " + minMax + "(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where " +
 				EVENTS.ANALYSE_NAME + " = ? AND " +
 				EVENTS.SYMBOL_FIELD + " = ? AND "+ EVENTS.ISIN_FIELD + " = ? AND "+
 				EVENTS.EVENTDEF_FIELD + " = ?");
@@ -808,7 +808,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public void cleanEventsForAnalysisName(String eventTableName, String analyseName) {
 
 		try {
-			String query = "DELETE FROM "+ eventTableName + " WHERE "+EVENTS.ANALYSE_NAME+" = ?";
+			String query = "DELETE FROM " + eventTableName + " WHERE " + EVENTS.ANALYSE_NAME + " = ?";
 			LOGGER.info(String.format(query.replaceAll("\\?", "%s"), analyseName));
 			Query iq = new Query(query);
 			iq.addValue(analyseName);

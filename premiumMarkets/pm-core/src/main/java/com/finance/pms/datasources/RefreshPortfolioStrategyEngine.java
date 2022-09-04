@@ -48,7 +48,11 @@ import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.UserPortfolio;
 
 
-
+/**
+ * 
+ * @author guil
+ * viewStateParams = {List<UserPortfolio>, ..}
+ */
 public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Collection<Stock>> {
 	
 	@Override
