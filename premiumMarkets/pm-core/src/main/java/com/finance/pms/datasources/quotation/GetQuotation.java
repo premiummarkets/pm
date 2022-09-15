@@ -80,7 +80,7 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 		config = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 
 		this.stock = stock;
-		this.dateFin = DateFactory.midnithDate(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
+		this.dateFin = DateFactory.midnithDate(dateFin); //.midnithDate(QuotationsFactories.getFactory().getValidQuotationDateBefore(dateFin));
 		this.forceReset = forceReset;
 		this.forceUpdate = forceUpdate;
 

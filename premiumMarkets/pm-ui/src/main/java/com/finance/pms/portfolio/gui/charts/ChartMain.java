@@ -104,6 +104,8 @@ import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.calculation.DateFactory;
@@ -118,7 +120,6 @@ import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartIndicLineSeriesDataSetBuilder;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
 import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
-import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
@@ -196,8 +197,9 @@ public class ChartMain extends Chart {
 			if (kthPs.getDisplayOnChart()) {
 
 				try {
-
-					final Quotations quotations = getQuotations(stripedCloseFunction, kthPs);
+					Date startDate = stripedCloseFunction.getArbitraryStartDateForCalculation();
+					Date endDate = stripedCloseFunction.getArbitraryEndDate();
+					final Quotations quotations = getQuotationsClose(kthPs.getStock(), kthPs.getTransactionCurrency(), startDate, endDate);
 					lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs);
 
 					Paint paint = java.awt.Color.BLACK;
@@ -620,7 +622,7 @@ public class ChartMain extends Chart {
 		EventQueue.invokeLater(runnable);
 	}
 
-	public void updateIndicDataSet(final Map<EventInfo, SortedMap<Date, double[]>> eventsSeries, final Rectangle2D plotArea) {
+	public void updateIndicDataSet(Stock selectedShare, Date slideStart, Date slideEnd, final Map<EventInfo, SortedMap<Date, double[]>> eventsSeries, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
 
@@ -644,16 +646,19 @@ public class ChartMain extends Chart {
 					}
 					
 					//Domain WE fix
-					SortedSet<Date> fullDateSet = new TreeSet<>();
-					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
-						fullDateSet.addAll(output.keySet());
-					}
-					boolean includeWeekends = fullDateSet.stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
+					Quotations quotations = getQuotationsClose(selectedShare, Currency.NAN, slideStart, slideEnd);
+					SortedMap<Date, double[]> quotationsMap = QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations);
+					boolean includeWeekends = quotationsMap.keySet().stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
+					LOGGER.info("Including weekends - continus quotations: " + includeWeekends);
 					DateAxis domainAxis = (DateAxis) combinedDomainXYPlot.getDomainAxis();
 					Timeline segmentedTimeline = includeWeekends?new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0):SegmentedTimeline.newMondayThroughFridayTimeline();
 					domainAxis.setTimeline(segmentedTimeline);
 
 					//Chart
+					SortedSet<Date> fullDateSet = new TreeSet<>();
+					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
+						fullDateSet.addAll(output.keySet());
+					}
 					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, fullDateSet, eventsSeries);
 					dataSetBuilder.build();
 
@@ -680,17 +685,15 @@ public class ChartMain extends Chart {
 		EventQueue.invokeLater(runnable);
 	}
 
-	private Quotations getQuotations(StripedCloseFunction stripedCloseFunction, PortfolioShare portfolioShare) throws NoQuotationsException {
-
-		Date startDate = stripedCloseFunction.getArbitraryStartDateForCalculation();
-		Date endDate = stripedCloseFunction.getArbitraryEndDate();
-		Quotations bdQuotes;
+	private Quotations getQuotationsClose(Stock stock, Currency transactCurrency, Date startDate, Date endDate) throws NoQuotationsException {
+		
 		try {
-			bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, portfolioShare.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
+			transactCurrency = (Currency.NAN.equals(transactCurrency))?stock.getMarketValuation().getCurrency():transactCurrency;
+			Quotations bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
+			return bdQuotes;
 		} catch (NoQuotationsException e) {
 			throw e;
 		}
-		return bdQuotes;
 
 	}
 

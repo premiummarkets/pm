@@ -173,7 +173,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 
-		LOGGER.info("highLight(Integer "+idx+", Stock "+selectedShare+", Boolean "+recalculationGranted+", PopupType... "+Arrays.toString(popupTypes));
+		LOGGER.info("highLight(Integer " + idx + ", Stock " + selectedShare + ", Boolean " + recalculationGranted + ", PopupType... " + Arrays.toString(popupTypes));
 
 		try {
 
@@ -480,7 +480,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				return allOutputDescr.stream().map( od -> od.toString()).reduce((r,e) -> r + "\n\t\t" + e).orElse("None");
 			}).reduce((r,e) -> r + " " + e));} catch (Exception e) {LOGGER.warn("Cannot debug this", e);};
 
-			chartTarget.getMainChartWraper().updateIndicDataSet(eventsSeries, chartTarget.getPlotChartDimensions());
+			chartTarget.getMainChartWraper().updateIndicDataSet(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(),  eventsSeries, chartTarget.getPlotChartDimensions());
 		}
 
 	}

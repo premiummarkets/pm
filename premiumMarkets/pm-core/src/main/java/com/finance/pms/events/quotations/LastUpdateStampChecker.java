@@ -87,7 +87,7 @@ public class LastUpdateStampChecker {
 			}
 			
 			if (timeStampOfLastUpdate.getFatalThreshold() >= MAXATTEMPTSFATAL) {//Dead Quote!!??
-				LOGGER.warn( asset + " seem to have no quotations any more");
+				LOGGER.warn( asset + " seems to have no quotations any more. Max failed attempt reach: " + MAXATTEMPTSFATAL);
 				return false; 
 			}
 			
@@ -140,7 +140,7 @@ public class LastUpdateStampChecker {
 		
 		LastUpDateStampRecords readStampRecords = null;
 		File updateTrakerFile = new File(JSON_DUMP_PATH);
-		if (!updateTrakerFile.isFile()) {
+		if (!updateTrakerFile.isFile() || updateTrakerFile.length() == 0) {
 			readStampRecords = new LastUpDateStampRecords();
 			lastUpdatesWrite(readStampRecords);
 		} else {
@@ -150,15 +150,16 @@ public class LastUpdateStampChecker {
 					private static final long serialVersionUID = 1L;
 				}.getType());
 			} catch (Exception e) {
+				LOGGER.error("Inconsistencies : " + readStampRecords + " in " + JSON_DUMP_PATH, e);
 				throw new RuntimeException(e);
 			} finally {
 				if (readStampRecords == null) {
-					LOGGER.warn("File present but with inconsistent values : " + readStampRecords + " in " + JSON_DUMP_PATH);
+					LOGGER.warn("File is empty or inconsistent: " + JSON_DUMP_PATH);
 					String copyPath = JSON_DUMP_PATH + "_" + new Date().getTime();
 					try {
 						Files.copy(updateTrakerFile, new File(copyPath));
 					} catch (IOException e) {
-						LOGGER.warn("Could not copy file " + JSON_DUMP_PATH + " to " + copyPath, e);
+						LOGGER.warn("Could not backup file " + JSON_DUMP_PATH + " to " + copyPath + ": " + e);
 					}
 					readStampRecords = new LastUpDateStampRecords();
 					lastUpdatesWrite(readStampRecords);

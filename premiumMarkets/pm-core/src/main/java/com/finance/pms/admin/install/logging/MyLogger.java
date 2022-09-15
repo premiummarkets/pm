@@ -136,6 +136,9 @@ public class MyLogger {
 			if (props.containsKey("mail.from")) {
 				MainPMScmd.getMyPrefs().put("mail.from", props.getProperty("mail.from"));
 			}
+			if (props.containsKey("mail.to")) {
+				MainPMScmd.getMyPrefs().put("mail.to", props.getProperty("mail.to"));
+			}
 
 			MainPMScmd.getMyPrefs().flushy();
 
@@ -148,11 +151,12 @@ public class MyLogger {
 		
 		//Get version
 		try {
+			System.out.println("loading build properties.");
 			Properties pbuild = new Properties();
 			pbuild.load(MyLogger.class.getClassLoader().getResourceAsStream("pmsbuild.properties"));
 			version = pbuild.getProperty("application.buildtime");
 		} catch (Throwable e1) {
-			System.out.println("log send failed, exception: " + e1); 
+			System.out.println("load build properties failed: " + e1); 
 			e1.printStackTrace();
 		}
 
@@ -177,7 +181,12 @@ public class MyLogger {
 				}
 
 				MyLogger.mailFrom = MainPMScmd.getMyPrefs().get("mail.from", MyLogger.mailUserName);
-
+				MyLogger.mailTo = MainPMScmd.getMyPrefs().get("mail.to", MyLogger.mailFrom);
+				
+//				<prop key="mail.transport.protocol">smtp</prop>
+//				<prop key="mail.smtp.auth">true</prop>
+//				<prop key="mail.smtp.starttls.enable">true</prop>
+//				<prop key="mail.smtp.timeout">5000</prop>
 				//Session props and email addresses
 				Properties mailSessionProps = new Properties();
 				mailSessionProps.put("mail.transport.protocol", "smtp");
@@ -185,30 +194,40 @@ public class MyLogger {
 				mailSessionProps.put("mail.smtp.timeout", "5000");
 
 				Boolean isLocal = Boolean.valueOf(MainPMScmd.getMyPrefs().get("mail.log.local", "false"));
+				System.out.println("Mail settings is local: " + isLocal);
 				if (isLocal) {
-
-					MyLogger.mailTo = MainPMScmd.getMyPrefs().get("mail.to", MyLogger.mailFrom);
-					mailSessionProps.put("mail.smtp.localhost", "localhost");
-					MyLogger.session = Session.getInstance(mailSessionProps, null);
-					//MyLogger.session.setDebug(true);
+					
+					try {
+						System.out.println("Local host connection to " + MyLogger.mailTo);
+						MyLogger.session = Session.getInstance(mailSessionProps, null);
+						//MyLogger.session.setDebug(true);
+					} catch (Exception e) {
+						System.out.println("Local host connection is invalid");
+						e.printStackTrace();
+					}
 
 				} else { //Test the smtp session sending a test message.
-
+					
 					mailSessionProps.put("mail.smtp.localhost", MainPMScmd.getMyPrefs().get("site.url", "none.com"));
 					mailSessionProps.put("mail.smtp.user", MyLogger.mailUserName);
 					mailSessionProps.put("mail.smtp.password", MyLogger.mailPassword);
 
 					mailSessionProps.put("mail.smtp.auth", "true");
 					mailSessionProps.put("mail.smtp.starttls.enable", "true");
-					mailSessionProps.put("mail.smtp.port", "587");
+					//mailSessionProps.put("mail.smtp.port", "587");
+					mailSessionProps.put("mail.smtp.port", "465");
+			        mailSessionProps.put("mail.smtp.ssl.enable", "true");
 
 					InternetAddress senderAddress;
 					try {
+						System.out.println("Testing Auth TLS connection from " + MyLogger.mailFrom);
 						senderAddress = new InternetAddress(MyLogger.mailFrom);
 					} catch (Exception e) {
+						System.out.println("Testing Auth TLS connection with from " + MyLogger.mailUserName);
 						senderAddress = new InternetAddress(MyLogger.mailUserName);
 					}
-
+					
+					System.out.println("Testing Auth TLS session params: " + mailSessionProps);
 					buildAuthSession(mailSessionProps);
 					Transport transport = MyLogger.session.getTransport("smtp");
 					MimeMessage testMsg = buildTestMessage(senderAddress);
@@ -217,13 +236,14 @@ public class MyLogger {
 						transport.sendMessage(testMsg, testMsg.getAllRecipients());
 						System.out.println("Auth TLS connection is valid");
 					} catch (Exception e) {
-						System.out.println("Auth TLS connection is Invalid : "+ e.toString());
+						System.out.println("Auth TLS connection is invalid : "+ e.toString());
 						mailSessionProps.put("mail.smtp.auth", "true");
 						mailSessionProps.put("mail.smtp.starttls.enable", "false");
 						mailSessionProps.put("mail.smtp.port", "465");
 						mailSessionProps.put("mail.smtp.socketFactory.host", MyLogger.mailHost);
 						mailSessionProps.put("mail.smtp.socketFactory.port", "465");
 						mailSessionProps.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
+						System.out.println("Testing Auth TLS session params: " + mailSessionProps);
 						buildAuthSession(mailSessionProps);
 						transport = MyLogger.session.getTransport("smtp");
 						testMsg = buildTestMessage(senderAddress);
@@ -232,19 +252,21 @@ public class MyLogger {
 							transport.sendMessage(testMsg, testMsg.getAllRecipients());
 							System.out.println("Auth SSL connection is valid");
 						} catch (Exception e1) {
-							System.out.println("Auth SSL connection is Invalid : "+ e1.toString());
+							System.out.println("Auth SSL connection is invalid : "+ e1.toString());
 							mailSessionProps.put("mail.smtp.auth", "false");
 							mailSessionProps.put("mail.smtp.starttls.enable", "false");
 							mailSessionProps.put("mail.smtp.port", "25");
+							System.out.println("Testing Auth TLS session params: " + mailSessionProps);
 							buildAuthSession(mailSessionProps);
 							transport = MyLogger.session.getTransport("smtp");
 							testMsg = buildTestMessage(senderAddress);
 							try {
+								System.out.println("Testing Non Auth session: ");
 								transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 								transport.sendMessage(testMsg, testMsg.getAllRecipients());
 								System.out.println("Non Auth SMTP connection is valid");
 							} catch (Exception e2) {
-								System.out.println("Non Auth SMTP connection is Invalid : "+ e2.toString());
+								System.out.println("Non Auth SMTP connection is invalid : "+ e2.toString());
 								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..."); 
 								if (MyLogger.mailActivationType.equals("true")) {
 									MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
@@ -280,13 +302,14 @@ public class MyLogger {
 
 	}
 
-	protected static void buildAuthSession(Properties mailSessionProps) {
+	protected static Session buildAuthSession(Properties mailSessionProps) {
 		MyLogger.session = Session.getInstance(mailSessionProps, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(MyLogger.mailUserName, MyLogger.mailPassword);
 			}
 		});
 		//MyLogger.session.setDebug(true);
+		return session;
 	}
 
 	protected static MimeMessage buildTestMessage(InternetAddress senderAddress) throws MessagingException {
@@ -549,7 +572,7 @@ public class MyLogger {
 
 		//Is active?
 		MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");
-		String errorMailSetup = "Mail Settings : log activation type : " + MyLogger.mailActivationType;
+		String errorMailSetup = "Mail Settings log activation type : " + MyLogger.mailActivationType;
 		System.out.println(errorMailSetup);
 		delegateLogger.info(errorMailSetup);
 
@@ -594,7 +617,7 @@ public class MyLogger {
 					try {
 
 						semaphore.acquire();
-						delegateLogger.info("Sending mail on error; grants : "+!errorMailHandlingsGrants+ ". isSendingEmail="+isSendingEmail+", isPopup="+isPopup+", has duplicate "+sendDuplicates);
+						delegateLogger.info("Sending mail on error; grants: " + !errorMailHandlingsGrants + ". isSendingEmail=" + isSendingEmail + ", isPopup=" + isPopup + ", has duplicate " + sendDuplicates);
 
 						if (isPopup) {
 
@@ -658,36 +681,41 @@ public class MyLogger {
 
 			private void doSend(Integer bodyHashcode, boolean isTestMail) throws IOException, MessagingException {
 
-				//Email msg
-				Transport transport = MyLogger.session.getTransport("smtp");
-				transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
+				try {
+					//Email msg
+					Transport transport = MyLogger.session.getTransport("smtp");
+					transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 
-				MimeMessage msg = new MimeMessage(MyLogger.session);
-				InternetAddress senderAddress = fromAdressResolution();
+					MimeMessage msg = new MimeMessage(MyLogger.session);
+					InternetAddress senderAddress = fromAdressResolution();
 
-				StringBuffer msgBody = createMsgBodyFirstLines(error, errorStr, 200);
-				String msgSubject = "Error detected on build version : " + version + " from user " + senderAddress;
+					StringBuffer msgBody = createMsgBodyFirstLines(error, errorStr, 200);
+					String msgSubject = "Error detected on build version : " + version + " from user " + senderAddress;
 
-				if (isTestMail) {
-					msgBody.insert(0, "This is an info test message : \n");
-					msgSubject = msgSubject.replaceFirst("Error detected", "Warning detected");
+					if (isTestMail) {
+						msgBody.insert(0, "This is an info test message : \n");
+						msgSubject = msgSubject.replaceFirst("Error detected", "Warning detected");
+					}
+
+					msg.setFrom(senderAddress);
+					msg.setSender(senderAddress);
+					Address[] rTo = {senderAddress};
+					msg.setReplyTo(rTo);
+					msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo);
+					msg.setSubject(msgSubject);
+					msg.setSentDate(new Date());
+					msg.setText(msgBody.toString());
+
+					msg.saveChanges();      // don't forget this
+
+					delegateLogger.info("Sending error mail: senderAddress=" + senderAddress.getAddress() + ", recipient=" + Arrays.toString(msg.getAllRecipients()) + ", transport=" + transport.getURLName().toString());
+					transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
+
+					transport.close();
+				} catch (Exception e) {
+					System.out.println("Could not send logging email");
+					e.printStackTrace();
 				}
-
-				msg.setFrom(senderAddress);
-				msg.setSender(senderAddress);
-				Address[] rTo = {senderAddress};
-				msg.setReplyTo(rTo);
-				msg.setRecipients(Message.RecipientType.TO, MyLogger.mailTo);
-				msg.setSubject(msgSubject);
-				msg.setSentDate(new Date());
-				msg.setText(msgBody.toString());
-
-				msg.saveChanges();      // don't forget this
-
-				delegateLogger.info("Sending error mail : senderAddress=" + senderAddress.getAddress() + ", recipient=" + Arrays.toString(msg.getAllRecipients()) + ", transport=" + transport.getURLName().toString());
-				transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
-
-				transport.close();
 			}
 
 			private InternetAddress fromAdressResolution() {

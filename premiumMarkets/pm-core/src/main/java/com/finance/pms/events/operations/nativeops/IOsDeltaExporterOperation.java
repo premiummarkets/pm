@@ -1,5 +1,6 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -27,9 +28,9 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	}
 
 	public IOsDeltaExporterOperation() {
-		this("iosDeltaExporter", "Exports all assembled datasets to a file.",
-				new StringOperation("string", "file full path", "File full path of the output", new StringValue("")),
-				new StringOperation("string", "header suffix", "Suffix of the headers", new StringValue("")),
+		this("iosDeltaExporter", "Exports all datasets to a given file path and returns the same file path.",
+				new StringOperation("string", "filePath", "Exact file path of the output. Must be consistent between runs ..", new StringValue("")),
+				new StringOperation("string", "headerSuffix", "Suffix of the headers", new StringValue("")),
 				new StringOperation("boolean", "append", "True if we append. False for overwrite", new StringValue("TRUE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (typically a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -43,9 +44,13 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		String fileFullPath = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String fileRootPath = ((StringValue) inputs.get(0)).getValue(targetStock);
 		String headerSuffix = ((StringValue) inputs.get(1)).getValue(targetStock);
 		Boolean append = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
+		
+		if (!fileRootPath.startsWith(File.separator)) {
+			fileRootPath = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator +  fileRootPath;
+		}
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -58,11 +63,13 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headerSuffix, inputsOperandsRefs);
 			if (append) {
-				SeriesPrinter.appendto(fileFullPath, headersPrefixes, series); 
+				SeriesPrinter.appendto(fileRootPath, headersPrefixes, series);
 			} else {
-				SeriesPrinter.printo(fileFullPath, headersPrefixes, series);
+				SeriesPrinter.printo(fileRootPath, headersPrefixes, series);
 			}
-			return new StringValue(fileFullPath);
+			
+			return new StringValue(fileRootPath);
+			
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}

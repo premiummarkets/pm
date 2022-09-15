@@ -29,6 +29,7 @@
  */
 package com.finance.pms.events.pounderationrules;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -68,19 +69,19 @@ public class LatestValidatedPonderationRule extends LatestEventsPonderationRule 
 		boolean isValid = false;
 		if (rating != null) {
 			isValid = rating.getRatingValidityScore().equals(Validity.SUCCESS);
+			if (isValid) {
+				//It is assumed that events are prioritised by weight: see compare/compareCal.
+				//We also assume flog < 0 to be valid with the bigger abs(flog) the better.
+				if (rating.getFlog() > 0) throw new RuntimeException("A positive flog can't be valid in " + rating);
+				float factor = Double.valueOf(Math.abs(rating.getFlog())).floatValue();
+				return super.finalWeight(symbolEvents)*factor;
+			} else {
+				LOGGER.warn("Calculation rating marked as " + rating.getRatingValidityScore() + " for " + symbolEvents.getStock() + " / " + symbolEvents + ". Rating " + rating);
+				return 0.0f;
+			}
 		} else {
 			LOGGER.warn("No validity for " + symbolEvents.getStock() + " / " + symbolEvents + ". Neural calculation may have failed.");
-		}
-
-		if (isValid) {
-			//It is assumed that events are prioritised by weight: see compare/compareCal.
-			//We also assume flog < 0 to be valid with the bigger abs(flog) the better.
-			if (rating.getFlog() > 0) throw new RuntimeException("A positive flog can't be valid in " + rating);
-			float factor = Double.valueOf(Math.abs(rating.getFlog())).floatValue();
-			return super.finalWeight(symbolEvents)*factor;
-		} else {
-			LOGGER.warn("Calculation rating marked as " + rating.getRatingValidityScore() + " for " + symbolEvents.getStock() + " / " + symbolEvents + ". Rating " + rating);
-			return 0.0f;
+			return super.finalWeight(symbolEvents); //XXX If no rating available, we assume it is valid ...
 		}
 
 	}

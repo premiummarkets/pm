@@ -420,7 +420,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 	@SuppressWarnings("unchecked")
 	private PonderationRule instanciateClass(String ponderationRuleClassName, Object... constructParam) {
 		try {
-			Class<PonderationRule> ponderationRuleClass =  (Class<PonderationRule> ) Class.forName("com.finance.pms.events.pounderationrules."+ponderationRuleClassName);
+			Class<PonderationRule> ponderationRuleClass =  (Class<PonderationRule> ) Class.forName("com.finance.pms.events.pounderationrules." + ponderationRuleClassName);
 			try {
 				//Constructor<PonderationRule> constructor = ponderationRuleClass.getConstructor(String.class);
 				Class<?>[] paramTypes = new Class<?>[constructParam.length];
@@ -432,21 +432,21 @@ public class EventSignalConfig extends Config implements Cloneable {
 				LOGGER.debug("Found constructor with param for : "+newInstance.getClass().getName());
 				return newInstance;
 			} catch (SecurityException e) {
-				LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
+				LOGGER.error("Unknown Ponderation Rule " + ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
 				return ponderationRuleClass.getDeclaredConstructor().newInstance();
 			} catch (NoSuchMethodException e) {
 				PonderationRule newInstance = ponderationRuleClass.getDeclaredConstructor().newInstance();
-				LOGGER.debug("Found constructor with NO param for : "+newInstance.getClass().getName());
+				LOGGER.debug("Found constructor with NO param for : " + newInstance.getClass().getName());
 				return newInstance;
 			} catch (IllegalArgumentException e) {
-				LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);
+				LOGGER.error("Unknown Ponderation Rule " + ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);
 				return ponderationRuleClass.getDeclaredConstructor().newInstance();
 			} catch (InvocationTargetException e) {
-				LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);
+				LOGGER.error("Unknown Ponderation Rule " + ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);
 				return ponderationRuleClass.getDeclaredConstructor().newInstance();
 			}
 		} catch (Exception e) {
-			LOGGER.error("Unknown Ponderation Rule "+ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
+			LOGGER.error("Unknown Ponderation Rule " + ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
 			return new SilentPonderationRule();
 		}
 	}

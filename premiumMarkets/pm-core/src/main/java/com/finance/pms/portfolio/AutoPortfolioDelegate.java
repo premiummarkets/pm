@@ -98,7 +98,7 @@ public class AutoPortfolioDelegate {
 
 		TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
 
-		LOGGER.debug("Checking events for AutoPortfolio : " + thisPortfolio.getName() + " and date " + currentDate);
+		LOGGER.debug("Checking events for AutoPortfolio: " + thisPortfolio.getName() + " and date " + currentDate);
 		thisCalculationHistory.addAll(this.checkSellSignals(currentDate, listEvents, sellComparator));
 		BigDecimal canBuy = canBuy(buyStrategy, currentDate);
 		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
@@ -167,24 +167,24 @@ public class AutoPortfolioDelegate {
 
 		};
 
-		LOGGER.debug("Threshold event : " + symbolEventsThreshold);
+		LOGGER.debug("Threshold event: " + symbolEventsThreshold);
 
 		SortedSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
-		LOGGER.debug("Total bullish events : " + sortedSymbolEvents);
+		LOGGER.debug("Total bullish events: " + sortedSymbolEvents);
 
-		SortedSet<SymbolEvents> sortedSymbolEventsTail = sortedSymbolEvents.headSet(symbolEventsThreshold);
-		LOGGER.debug("Filtered bullish events tail : " + sortedSymbolEventsTail);
+		SortedSet<SymbolEvents> sortedSymbolEventsTail = sortedSymbolEvents.headSet(symbolEventsThreshold); //XXX PonderationRule.compare is reversed!!
+		LOGGER.debug("Filtered bullish events tail: " + sortedSymbolEventsTail);
 
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
 			try {
-				TransactionRecord buyTrans = buyShare(buyStrategy ,symbolEvents, currentDate);
+				TransactionRecord buyTrans = buyShare(buyStrategy , symbolEvents, currentDate);
 				if (buyTrans != null) {
 					transactionHistory.add(buyTrans);
 				}
 			} catch (IgnoredEventDateException e) {
-				LOGGER.warn("Can't buy: Date of event is after buy current date. " + e);
+				LOGGER.warn("Can't buy: Date of event is equal or after buy current date. " + e);
 			} catch (NoCashAvailableException e) {
 				LOGGER.info("Can't buy: " + symbolEvents.getStock() + " in AutoPortfolio - no cash: " + thisPortfolio.getName() + " cause " + e.getMessage());
 				break;
@@ -208,7 +208,7 @@ public class AutoPortfolioDelegate {
 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
 		LOGGER.info("Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate);
-		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.after(currentDate)) {
+		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) > 0) {
 			throw new IgnoredEventDateException(
 					"Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate + ". " +
 					"Invalid event date or no event found in " + symbolEvents, new Throwable());
@@ -231,7 +231,7 @@ public class AutoPortfolioDelegate {
 			return buyTransactionRecord;
 
 		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.warn("Can't buy " + symbolEvents.getStock()+" in AutoPortfolio - no quotations: " + thisPortfolio.getName());
+			LOGGER.warn("Can't buy " + symbolEvents.getStock()+ " in AutoPortfolio - no quotations: " + thisPortfolio.getName());
 		} catch (InvalidQuantityException e) {
 			LOGGER.error("Can't buy " + symbolEvents.getStock() + " in AutoPortfolio - invalid quantity: " + thisPortfolio.getName(), e);
 		}
@@ -313,14 +313,14 @@ public class AutoPortfolioDelegate {
 				return "Event sell threshold = " + getWeight(null);
 			}
 		};
-		LOGGER.debug("Threshold event : " + symbolEventThreshold);
+		LOGGER.debug("Threshold event: " + symbolEventThreshold);
 
 		NavigableSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
-		LOGGER.trace("Total bearish events : "+sortedSymbolEvents);
+		LOGGER.trace("Total bearish events: " + sortedSymbolEvents);
 
-		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventThreshold);
-		LOGGER.debug("Filtered bearish events head : "+sortedSymbolEventsHead);
+		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventThreshold); //XXX PonderationRule.compare is reversed!!
+		LOGGER.debug("Filtered bearish events head: " + sortedSymbolEventsHead);
 
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents : sortedSymbolEventsHead.descendingSet()) {
@@ -330,7 +330,7 @@ public class AutoPortfolioDelegate {
 					transactionHistory.add(sellTransaction);
 				}
 			} catch (IgnoredEventDateException e) {
-				LOGGER.warn("Date of event is sell after current date. "+e);
+				LOGGER.warn("Date of event is sell after current date. " + e);
 			}
 		}
 
@@ -345,8 +345,8 @@ public class AutoPortfolioDelegate {
 
 		//check if already done 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
-		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.after(currentDate)) 
-			throw new IgnoredEventDateException("Last event date : "+latestEventDateAndNewBuyDate + " and current date : "+currentDate + ". Invalid event date or no event found in "+symbolEvents, new Throwable());
+		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) > 0) 
+			throw new IgnoredEventDateException("Last event date : " + latestEventDateAndNewBuyDate + " and current date : " + currentDate + ". Invalid event date or no event found in " + symbolEvents, new Throwable());
 
 		try {
 

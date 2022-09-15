@@ -52,10 +52,10 @@ public enum EventType implements Serializable {
 	private final Integer eventTypeIndex;
 	private final Character eventTypeChar;
 
-	private EventType(String arg0,Integer arg1,Character arg2) {
-		eventType=arg0;
-		eventTypeIndex=arg1;
-		eventTypeChar=arg2;
+	private EventType(String arg0, Integer arg1, Character arg2) {
+		eventType = arg0;
+		eventTypeIndex = arg1;
+		eventTypeChar = arg2;
 	}
 
 	public static EventType valueOf(Integer ordinal){

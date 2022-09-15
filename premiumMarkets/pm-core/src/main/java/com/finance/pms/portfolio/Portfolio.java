@@ -244,7 +244,7 @@ public class Portfolio extends AbstractSharesList {
 			Integer sellEvtThresh = eventConfig.getSellEventTriggerThreshold();
 			Integer buyEvtThresh = eventConfig.getBuyEventTriggerThreshold();
 			PonderationRule defaultSellPonderationRule = eventConfig.geNewtSellPonderationRule(sellEvtThresh,buyEvtThresh);
-			LOGGER.warn("No sell weighting rule for "+this.name+" the config rule will be used "+defaultSellPonderationRule);
+			LOGGER.warn("No sell weighting rule for " + this.name + " the config rule will be used " + defaultSellPonderationRule);
 			return defaultSellPonderationRule;
 		}
 		return sellPonderationRule;

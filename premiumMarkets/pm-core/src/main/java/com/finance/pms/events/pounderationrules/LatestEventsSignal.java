@@ -92,7 +92,7 @@ public class LatestEventsSignal extends Signal {
 	}
 
 	protected void incrementWeight(EventValue eventValue) {
-		if (EventDefinition.ALERTTHRESHOLD.equals(eventValue.getEventDef())&&  eventValue.getEventType().equals(EventType.BEARISH)) {
+		if (EventDefinition.ALERTTHRESHOLD.equals(eventValue.getEventDef()) && eventValue.getEventType().equals(EventType.BEARISH)) {
 			this.signalWeight = this.signalWeight + ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getSellEventTriggerThreshold();
 		} else if (EventDefinition.ALERTTHRESHOLD.equals(eventValue.getEventDef()) && eventValue.getEventType().equals(EventType.BULLISH)) {
 			this.signalWeight = this.signalWeight + ((EventSignalConfig)ConfigThreadLocal.get("eventSignal")).getBuyEventTriggerThreshold();

@@ -17,7 +17,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class RocSmoother extends Smoother {
 	
-	Integer reSeedingPeriod = 221;
+	Integer reSeedingPeriod = 254;
 
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixBias) {

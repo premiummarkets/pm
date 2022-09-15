@@ -561,7 +561,7 @@ public class EventsResources {
 
 		Date midnithDate = DateFactory.midnithDate(date);
 		EventDefinition infinite = EventDefinition.zzzINFINITE;
-		EventType none = EventType.NONE;
+		EventType biggestOrdinal = EventType.valueOf(EventType.values().length-1); //.NONE;
 		return new EventCacheEntry(new EventKey() {
 
 			private static final long serialVersionUID = 1087077818535168128L;
@@ -575,21 +575,21 @@ public class EventsResources {
 			}
 
 			public EventType getEventType() {
-				return none;
+				return biggestOrdinal;
 			}
 
 			public Date getDate() {
 				return midnithDate;
 			}
 
-		}, new EventValue(midnithDate, infinite, none, ""));
+		}, new EventValue(midnithDate, infinite, biggestOrdinal, ""));
 	}
 
 	private EventCacheEntry smallestCacheEntry(final Date date) {
 
 		Date midnithDate = DateFactory.midnithDate(date);
 		EventDefinition zero = EventDefinition.AAAZERO;
-		EventType none = EventType.NONE;
+		EventType smallestOrdinal = EventType.valueOf(0); //.NONE;
 		return new EventCacheEntry(new EventKey() {
 
 			private static final long serialVersionUID = 4155656864927650654L;
@@ -603,14 +603,14 @@ public class EventsResources {
 			}
 
 			public EventType getEventType() {
-				return none;
+				return smallestOrdinal;
 			}
 
 			public Date getDate() {
 				return midnithDate;
 			}
 
-		}, new EventValue(midnithDate, zero, none, ""));
+		}, new EventValue(midnithDate, zero, smallestOrdinal, ""));
 	}
 
 

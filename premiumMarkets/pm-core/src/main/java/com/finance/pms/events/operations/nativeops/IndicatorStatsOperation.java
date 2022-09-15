@@ -39,7 +39,7 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 				"Give the performance stats for buy and sell events input. "
 				+ "ln(failed buy weight/succesful buy weight). "
 				+ "Calculated from date range start to date and from date to date range end.",
-				new NumberOperation("number","periodRangeSpan", "Look back period ratio for accumulation, 'NaN' is the full range from start to end date.", new NumberValue(221.0)),
+				new NumberOperation("number","periodRangeSpan", "Look back period ratio for accumulation, 'NaN' is the full range from start to end date.", new NumberValue(254.0)),
 				new DoubleMapOperation("data", "quotations", "Quotations map used for the events calculations", null),
 				new EventMapOperation("data", "indicatorsCompositioners", "Indicators compositions Event Map list", null)
 		);

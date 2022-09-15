@@ -228,8 +228,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		String endConstraint = testEndConstraint();
 
 		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + 
-				" where "+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
-				" order by "+QUOTATIONS.DATE_FIELD+" desc ";
+				" where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
+				" order by " + QUOTATIONS.DATE_FIELD + " desc ";
 
 		return this.getLastFormerQuote(stock, ignoreUserEntries, q);
 	}
@@ -257,7 +257,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		String q = 
 				"select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
 						+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? "
-						+ "order by "+QUOTATIONS.DATE_FIELD+" asc ";
+						+ "order by " + QUOTATIONS.DATE_FIELD + " asc ";
 
 		return this.getLastFormerQuote(stock, false, q);
 	}

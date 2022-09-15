@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -98,30 +96,35 @@ public class ChartGenerator {
 	public void generateChartPNGFor(
 			OutputStream out, EventInfo chartedEvtDef, Map<EventInfo, SortedMap<Date, double[]>> lineSeries, 
 			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, 
-			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries) throws IOException {
+			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries, boolean includeWeekends) throws IOException {
 		
-		JFreeChart generatedChart = this.generateChart(chartedEvtDef, lineSeries, barPredSeries, barRefSeries);
+		JFreeChart generatedChart = this.generateChart(chartedEvtDef, lineSeries, barPredSeries, barRefSeries, includeWeekends);
 		this.exportPNG(out, generatedChart);
 
 	}
 
 	private JFreeChart generateChart(
 			EventInfo chartedEvtDef, Map<EventInfo, SortedMap<Date, double[]>> eventsLinesSeries,
-			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries) {
+			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries, 
+			boolean includeWeekends) {
 
 		DateAxis hAxis = new DateAxis("Time line");
 		DateFormat dateFormat = new SimpleDateFormat("dd MMM yy");
 		hAxis.setTickUnit(new DateTickUnit(DateTickUnitType.MONTH, 6, dateFormat));
 		hAxis.setLowerMargin(0.0f);
 		hAxis.setUpperMargin(0.0f);
+		
 		SortedSet<Date> fullDateSet = new TreeSet<>();
 		for (SortedMap<Date, double[]> output : eventsLinesSeries.values()) {
 			fullDateSet.addAll(output.keySet());
 		}
-		boolean anyWeekends = fullDateSet.stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
-		if (!anyWeekends) {
-			SegmentedTimeline newMondayThroughFridayTimeline = SegmentedTimeline.newMondayThroughFridayTimeline();
-			hAxis.setTimeline(newMondayThroughFridayTimeline);
+		
+		if (includeWeekends) {
+			LOGGER.info("Including weekends - continus quotations.");
+			hAxis.setTimeline(new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0));
+		} else {
+			LOGGER.info("Skiping weekends.");
+			hAxis.setTimeline(SegmentedTimeline.newMondayThroughFridayTimeline());
 		}
 
 		XYPlot plot = new XYPlot();
@@ -147,19 +150,19 @@ public class ChartGenerator {
 		int linesGroupsCount = plot.getDatasetCount(); //one DataSet and one Renderer per group
 
 		//Adding Bar rendering for predictions and targets
-		int refBarsGrp = linesGroupsCount + 1;
-		XYBarRenderer barRefRenderer = new XYBarRenderer();
-		plot.setRenderer(refBarsGrp, barRefRenderer);
-		TimeSeriesCollection barRefDataset = buildBarDataSet(barRefSeries, barRefRenderer);
-		plot.setDataset(refBarsGrp, barRefDataset);
-		plot.mapDatasetToRangeAxis(refBarsGrp, linesGroupsCount -1);
-		
-		int predBarsGrp = linesGroupsCount;
+		int predBarsGrp = linesGroupsCount + 1;
 		XYBarRenderer barPredRenderer = new XYBarRenderer();
 		plot.setRenderer(predBarsGrp, barPredRenderer);
 		TimeSeriesCollection barPredDataset = buildBarDataSet(barPredSeries, barPredRenderer);
 		plot.setDataset(predBarsGrp, barPredDataset);
 		plot.mapDatasetToRangeAxis(predBarsGrp, linesGroupsCount -1);
+		
+		int refBarsGrp = linesGroupsCount;
+		XYBarRenderer barRefRenderer = new XYBarRenderer();
+		plot.setRenderer(refBarsGrp, barRefRenderer);
+		TimeSeriesCollection barRefDataset = buildBarDataSet(barRefSeries, barRefRenderer);
+		plot.setDataset(refBarsGrp, barRefDataset);
+		plot.mapDatasetToRangeAxis(refBarsGrp, linesGroupsCount -1);
 
 		//Chart
 		plot.setBackgroundPaint(Color.WHITE);

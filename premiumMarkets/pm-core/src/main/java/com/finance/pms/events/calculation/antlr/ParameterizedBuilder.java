@@ -513,7 +513,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 				Operation parsedOp = formulaParser.getBuiltOperation();
 				if (parsedOp != null) {//Operation is complete
-					LOGGER.info(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " + parsedOp.getFormulae());
+					LOGGER.debug(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " + parsedOp.getFormulae());
 					parsedOp.setDisabled(formulaParser.isDisabled());
 					parsingQueueProvider.getCurrentOperations().put(parsedOp.getReference(), parsedOp);
 

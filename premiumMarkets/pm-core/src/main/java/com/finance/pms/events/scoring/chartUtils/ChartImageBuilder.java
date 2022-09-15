@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -34,8 +36,8 @@ public class ChartImageBuilder {
     
     private static MyLogger LOGGER = MyLogger.getLogger(ChartImageBuilder.class);
 
-    private static final double PREDICTIONS_SERIES_FACTOR = 1;
-    private static final double REF_SERIES_FACTOR = 100;
+    private static final double PREDICTIONS_SERIES_FACTOR = 100;
+    private static final double REF_SERIES_FACTOR = 1;
 
     private static final String NO_CHART_AVAILABLE = "noChartAvailable";
 
@@ -151,8 +153,8 @@ public class ChartImageBuilder {
         		LOGGER.warn("Empty calculation output for " + e.getEventDefinitionRef() + ". Chart is compromised with lack of target!");
         	}
         }, () -> LOGGER.warn(
-        		"No reference Event info found in " + eventsPeriods.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e) + ", "
-        		+ " as alternative to " + eventInfo.getEventDefinitionRef()));
+        		"No reference Event info found in " + eventsPeriods.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e) + ", " +
+        		" as alternative to " + eventInfo.getEventDefinitionRef()));
         SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries = new TreeMap<DataSetBarDescr, SortedMap<Date,Double>>();
         barRefSeries.put(new DataSetBarDescr(1, "Target Bearish", red), refBearish);
         barRefSeries.put(new DataSetBarDescr(2, "Target Bullish", green), refBullish);
@@ -168,8 +170,9 @@ public class ChartImageBuilder {
         barRefSeries.put(new DataSetBarDescr(3, "Future Predicted", grey), future);
 
         //Chart
+        boolean includeWeekends = quotationMap.keySet().stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
         FileOutputStream outputFileStream = new FileOutputStream(new File(System.getProperty("installdir") + File.separator + chartFileName));
-        chartGenerator.generateChartPNGFor(outputFileStream, eventInfo, calcOutputs, barPredSeries, barRefSeries);
+        chartGenerator.generateChartPNGFor(outputFileStream, eventInfo, calcOutputs, barPredSeries, barRefSeries, includeWeekends);
     }
 
     private Date maxLastKey(SortedMap<Date, Double> firstSerie, SortedMap<Date, Double> secondSerie) throws NotEnoughDataException {

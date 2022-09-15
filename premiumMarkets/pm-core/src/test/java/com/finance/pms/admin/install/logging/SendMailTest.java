@@ -23,7 +23,7 @@ public class SendMailTest {
 		mailSessionProps.put("mail.transport.protocol", "smtp");
 //		mailSessionProps.put("mail.smtp.user", "root");
 		mailSessionProps.put("mail.smtp.host", "localhost");
-		mailSessionProps.put("mail.smtp.starttls.enable", "true");
+		mailSessionProps.put("mail.smtp.starttls.enable", "false");
 		mailSessionProps.put("mail.debug", "true");
 		mailSessionProps.put("mail.smtp.timeout", "1000");
 		//mailSessionProps.put("mail.smtp.auth", "true");
@@ -40,7 +40,7 @@ public class SendMailTest {
 		MimeMessage msg = new MimeMessage(session);
 		InternetAddress senderAddress;
 		try {
-			senderAddress = new InternetAddress("guil@localhost.localdomain");
+			senderAddress = new InternetAddress("pm@thebeast.local");
 		} catch (Exception e) {
 			try {
 				e.printStackTrace();
@@ -72,6 +72,52 @@ public class SendMailTest {
 		transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO));
 
 		transport.close();
+	}
+	
+	//@Test
+	public void gmailTest() throws MessagingException {
+		
+		String mailHost = "smtp.gmail.com";
+		String mailUserName = "piggymarketsqueak@googlemail.com";
+		String mailPassword = "LmTqr270";
+		String mailFrom = "piggymarketsqueak@gmail.com";
+		
+		
+		Properties mailSessionProps = new Properties();
+		mailSessionProps.put("mail.transport.protocol", "smtp");
+		mailSessionProps.put("mail.smtp.host", mailHost);
+		mailSessionProps.put("mail.smtp.timeout", "5000");
+		
+		//mailSessionProps.put("mail.smtp.localhost", MainPMScmd.getMyPrefs().get("site.url", "none.com"));
+		mailSessionProps.put("mail.smtp.user", mailUserName);
+		mailSessionProps.put("mail.smtp.password", mailPassword);
+
+		mailSessionProps.put("mail.smtp.auth", "true");
+		mailSessionProps.put("mail.smtp.starttls.enable", "true");
+		//mailSessionProps.put("mail.smtp.port", "587");
+		mailSessionProps.put("mail.smtp.port", "465");
+        mailSessionProps.put("mail.smtp.ssl.enable", "true");
+        
+        InternetAddress senderAddress;
+        try {
+			System.out.println("Testing Auth TLS connection with " + mailFrom);
+			senderAddress = new InternetAddress(mailFrom);
+		} catch (Exception e) {
+			System.out.println("Testing Auth TLS connection with adding " + mailUserName);
+			senderAddress = new InternetAddress(mailUserName);
+		}
+		
+		System.out.println("Testing Auth TLS session params: " + mailSessionProps);
+		Session session = MyLogger.buildAuthSession(mailSessionProps);
+		Transport transport = session.getTransport("smtp");
+		MimeMessage testMsg = MyLogger.buildTestMessage(senderAddress);
+		try {
+			transport.connect(mailUserName, mailPassword);
+			transport.sendMessage(testMsg, testMsg.getAllRecipients());
+			System.out.println("Auth TLS connection is valid");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

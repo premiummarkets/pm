@@ -244,7 +244,7 @@ public class QuotationUpdate {
 
 			Stock stock = stlIt.next();
 
-			LOGGER.debug("Fetching quotations for Ticker : " + stock);
+			LOGGER.debug("Fetching quotations for Ticker: " + stock);
 			GetQuotation command = new GetQuotation(DateFactory.getNowEndDate(), stock, forceReset, forceUpdate);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
@@ -290,7 +290,7 @@ public class QuotationUpdate {
 				LOGGER.error(e,e);
 			}
 		}
-		LOGGER.info("Successfuly updated "+success+" stocks.");
+		LOGGER.info("Successfuly updated " + success + " stocks.");
 
 		if (!exceptions.stockNotFound.isEmpty()) {
 			throw exceptions;

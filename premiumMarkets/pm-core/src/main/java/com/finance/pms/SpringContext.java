@@ -547,12 +547,15 @@ public class SpringContext extends GenericApplicationContext {
 							operationReflectiveGenerators.toArray(new OperationReflectiveGenerator[0])
 							);
 					parameterizedIndicatorsBuilder.init();
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally {
 					PostInitMonitor.stopOptPostInit();
 				}
-				//parameterizedOperationBuilder.getCurrentOperations(false).putAll(parameterizedIndicatorsBuilder.getCurrentOperations(false));
+				
+				parameterizedOperationBuilder.updateEditableOperationLists();
+				parameterizedIndicatorsBuilder.updateEditableOperationLists();
 
 			}
 		}).start();

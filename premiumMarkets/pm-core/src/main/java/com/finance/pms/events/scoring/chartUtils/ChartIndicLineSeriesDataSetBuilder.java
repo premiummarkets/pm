@@ -229,7 +229,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						}
 
 					} catch (Exception e) {
-						LOGGER.error("Can't display group : " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx), e);
+						LOGGER.error("Can't display group: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx), e);
 					}
 
 					rendererIdx = rendererIdx + eventDefNbOfRenderesCreatedIdx; //One renderer per group
@@ -241,9 +241,9 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			} //EventDefs loop
 
 		} catch (NoSuchElementException e) {
-			LOGGER.warn("Can't refresh indicator chart : "+ e);
+			LOGGER.warn("Can't refresh indicator chart: "+ e);
 		} catch (Exception e) {
-			LOGGER.warn("Can't refresh indicator chart : "+ e, e);
+			LOGGER.warn("Can't refresh indicator chart: "+ e, e);
 		}
 
 	}

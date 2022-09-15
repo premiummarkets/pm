@@ -104,7 +104,8 @@ public abstract class HttpSource implements SourceConnector {
 			MainPMScmd.getMyPrefs().remove("mail.username");
 			MainPMScmd.getMyPrefs().remove("mail.password");
 			MainPMScmd.getMyPrefs().remove("mail.from");
-			if (props.containsKey("mail.to"))
+			MainPMScmd.getMyPrefs().remove("mail.to");
+			if (props.containsKey("mail.to") && !props.getProperty("mail.to").equals(""))
 				MainPMScmd.getMyPrefs().put("mail.to", props.getProperty("mail.to"));
 			if (props.containsKey("mail.from") && !props.getProperty("mail.from").equals(""))
 				MainPMScmd.getMyPrefs().put("mail.from", props.getProperty("mail.from"));

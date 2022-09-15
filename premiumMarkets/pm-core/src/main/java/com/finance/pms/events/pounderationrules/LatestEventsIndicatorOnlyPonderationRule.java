@@ -44,6 +44,10 @@ public class LatestEventsIndicatorOnlyPonderationRule extends LatestEventsPonder
 				((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold());
 	}
 	
+	public LatestEventsIndicatorOnlyPonderationRule(Integer sellThreshold, Integer buyThreshold) {
+		super(sellThreshold, buyThreshold);
+	}
+	
 	@Override
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
 		

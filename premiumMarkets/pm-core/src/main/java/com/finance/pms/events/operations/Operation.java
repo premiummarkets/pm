@@ -75,7 +75,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 @XmlSeeAlso({
 	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
-	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class})
+	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -236,6 +236,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
+	/**
+	 * thisStartShift : The start shift left required to the operands calculation of this operation + the added parent requirement accumulated.
+	 * Operands are already calculated at this stage. So this is assumed they already have had their calculation start shifted.
+	 * Hence, this is used for no data operations (where operands are not pre-calculated) as it accumulates all the hierarchy of parents start shifts 
+	 * unlike the operandsRequiredStartShift() method which has only this operation required start shift.
+	 */
 	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 
 	/**
@@ -321,8 +327,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}
 		} catch (NoSuchElementException e) {//Not enough operands
 			throw new IllegalArgumentException(
-					this.getReference() + " rejected " + overridingOperands.stream().map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) +
-					" are no enough operands. Expected : "+operands+", Parameterised : "+parameter);
+					this.getReference() + " rejected " + overridingOperands.stream()
+					.map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) + " are no enough operands. Expected : " + operands + ", Parameterised : " + parameter);
 		}
 		//Too many operands
 		if (overridingOperandsIt.hasNext()) {
@@ -617,8 +623,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * The start shift left required from the operands for this operation to provide output at start date.
-	 * Basically the amount of data necessary for this to yield one output.
+	 * The start shift left required to the operands calculation by this operation for this operation to provide output at start date.
+	 * Basically the amount of data necessary from the operands for this to yield at least one output at start date.
+	 * This is a number of data points (ie open days), not number of calendar days.
 	 */
 	public abstract int operandsRequiredStartShift();
 	
@@ -627,10 +634,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 */
 	public int operandsRequiredStartShiftRecursive() {
 		if (operands.isEmpty()) return 0;
-		return operands.stream().reduce(0, (r, e) -> {
-			int thisOperandsShift = e.operandsRequiredStartShift();
-			return r + thisOperandsShift + e.operandsRequiredStartShiftRecursive();
-		}, (a, b) -> a + b);
+		return operands.stream().reduce(0, (max, operand) -> {
+			int thisOperandsShift = operand.operandsRequiredStartShift();
+			return Math.max(max, thisOperandsShift + operand.operandsRequiredStartShiftRecursive());
+		}, (a, b) -> Math.max(a, b));
 	}
 
 	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.

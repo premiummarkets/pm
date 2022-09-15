@@ -43,8 +43,8 @@ public class PropertiesFileComparator {
 		Properties p1 = new Properties();
 		Properties p2 = new Properties();
 		
-		System.out.println("< "+args[0]);
-		System.out.println("> "+args[1]);
+		System.out.println("< " + args[0]);
+		System.out.println("> " + args[1]);
 	
 		try {
 			File pfile = new File(args[0]);

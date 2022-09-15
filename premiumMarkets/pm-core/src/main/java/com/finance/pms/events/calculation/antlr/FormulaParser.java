@@ -139,7 +139,19 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 						outputSelector = child.getChild(0).getText().replaceFirst(":", "");
 					} else {
 						//Value
-						builtOperation = buildLeafOperation(child);
+						while (true) {
+							try {
+								builtOperation = buildLeafOperation(child);
+								break;
+							} catch (Exception e) { //Handling the leaf operation reference case
+								if (e.getCause() instanceof MissingReferenceException) {
+									missingReference = ((MissingReferenceException) e.getCause()).getMissingReference();
+									suspend();
+								} else {
+									throw e;
+								}
+							}
+						}
 					}
 
 				} else {
@@ -159,6 +171,22 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 		return operation;
 
+	}
+
+	private void suspend() throws InterruptedException {
+		threadSuspended = true;
+		synchronized(this) {
+			while (threadSuspended) {
+				LOGGER.debug("Wait on suspended " + this);
+				wait();
+			}
+		}
+		LOGGER.debug("Wait on suspended released for " + this);
+		
+		//We give up on shutdown
+		if (shutdown) {
+			throw new InterruptedException();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -195,34 +223,22 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
 				return constructor.newInstance(operands, outputSelector);
-
+				
+			} catch (ClassNotFoundException e) {
+				LOGGER.debug(e.getMessage() + " is not native.");
 			} catch (Exception e) {
-				LOGGER.warn(
-						e.getMessage() + ","
-						+ " cause: " + ((e.getCause() != null)?e.getCause().toString():"unknown") + ". "
-						+ "child obj : " + child + "; root obj " + child.getAncestor(0) + "; operands : " + operands + ". Can't Instantiate : " + opPackage);
+				LOGGER.error(e.getMessage() + ", exception: " + e.toString() + ", cause: " + ((e.getCause() != null)?e.getCause().toString():"unknown") + ". " +
+							 "child obj: " + child + "; root obj " + child.getAncestor(0) + "; operands: " + operands + ". Can't Instantiate: " + opPackage);
 			}
 
 		}
 
 		//All above as failed : snd pass marker (for user defined operations)
-		LOGGER.debug(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
+		LOGGER.info(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
 		missingReference = child.getText();
-		threadSuspended = true;
-		synchronized(this) {
-			while (threadSuspended) {
-				LOGGER.debug("Wait on suspended "+this);
-				wait();
-			}
-		}
-		LOGGER.debug("Wait on suspended released for "+this);
-
-		//We try again at resume time
-		if (!shutdown) {
-			return instanciateOperation(child, operands, outputSelector);
-		} else {
-			throw new InterruptedException();
-		}
+		suspend();
+		
+		return instanciateOperation(child, operands, outputSelector);
 
 	}
 
@@ -259,7 +275,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			return opInstance;
 
 		} catch (InvocationTargetException e) {
-			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value, e);
+			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value + " unresolved yet, " + e);
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value, e);
@@ -283,10 +299,10 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			synchronized (this) {
 				threadSuspended = !threadSuspended;
 				if (!threadSuspended) {
-					LOGGER.debug("Notifying wait of "+this);
+					LOGGER.debug("Notifying wait of " + this);
 					notify();
 				}
-				LOGGER.debug("End of notification for "+this);
+				LOGGER.debug("End of notification for " + this);
 			}
 		}
 

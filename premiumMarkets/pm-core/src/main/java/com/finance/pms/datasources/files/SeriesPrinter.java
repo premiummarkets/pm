@@ -21,11 +21,14 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.MainPMScmd;
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.google.common.io.Files;
 import com.google.common.primitives.Doubles;
 
 public class SeriesPrinter {
 	
-
+	private static MyLogger LOGGER = MyLogger.getLogger(SeriesPrinter.class);
+	
 	public static UUID appRunStamp = UUID.randomUUID();
 	
 	
@@ -52,32 +55,50 @@ public class SeriesPrinter {
     //Append
 	public static String appendto(String fileFullPath, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
 
-        try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPath)); BufferedWriter inputW = new BufferedWriter(new FileWriter(fileFullPath, true))) {
+        try {
         	
-    		//Check headers
-        	String line = inputR.readLine();
-        	List<String> existingHeaders = Arrays.asList(line.split(","));
-        	List<String> existingHeaders_wo_date = existingHeaders.subList(1, existingHeaders.size());
+        	//Read existing and remove NaNs out of it
+        	String last = null;
         	List<Integer> seriesWidths = new ArrayList<>();
-            List<String> newHeaders = Arrays.asList(makeHeaders(headersPrefixes, series, seriesWidths).get(0).split(","));
-        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
-        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
-			
-			//Find the last date and trunk series to last date
-        	String last = line;
-			while ((line = inputR.readLine()) != null) { 
-			    last = line;
-			}
+        	try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPath)); BufferedWriter inputWTmp = new BufferedWriter(new FileWriter(fileFullPath + ".tmp"))) {
+   
+	    		//Check headers
+	        	String line = inputR.readLine();
+	        	List<String> existingHeaders = Arrays.asList(line.split(","));
+	        	List<String> existingHeaders_wo_date = existingHeaders.subList(1, existingHeaders.size());
+	            List<String> newHeaders = Arrays.asList(makeHeaders(headersPrefixes, series, seriesWidths).get(0).split(","));
+	        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
+	        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
+				
+				//Find the last date and trunk series to last date
+	        	inputWTmp.write(line); //headers
+	        	inputWTmp.newLine();
+				while ((line = inputR.readLine()) != null) {
+					if (!line.contains("NaN")) {
+						last = line;
+						inputWTmp.write(line);
+						inputWTmp.newLine();
+					}
+				}
+				
+	        }
+        	Files.move(new File(fileFullPath + ".tmp"), new File(fileFullPath));
+        	
 	    	SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 			Date lastCalculatedDate = dateFormat.parse(last.split(",")[0]);
 			Calendar lastCalculatedCal = Calendar.getInstance();
 			lastCalculatedCal.setTime(lastCalculatedDate);
 			lastCalculatedCal.add(Calendar.DAY_OF_YEAR, 1);
 			
+			series.entrySet().stream().forEach(s -> LOGGER.info("Received serie: " + s.getKey() + " from " + s.getValue().firstKey() + " to " + s.getValue().lastKey()));
+			LOGGER.info("Tailing from: " + lastCalculatedCal.getTime());
+			
 			LinkedHashMap<String, SortedMap<Date, double[]>> tailSeries = series.entrySet().stream()
 					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().tailMap(lastCalculatedCal.getTime()), (a,b) -> a, LinkedHashMap::new));
 			
-			appendContent(tailSeries, seriesWidths, inputW);
+			 try (BufferedWriter inputW = new BufferedWriter(new FileWriter(fileFullPath, true))) {
+				 appendContent(tailSeries, seriesWidths, inputW);
+			 }
 			
 			return fileFullPath;
 			
@@ -96,7 +117,14 @@ public class SeriesPrinter {
         try (FileWriter fileWriter = new FileWriter(exportFile, false); BufferedWriter bufferWriter = new BufferedWriter(fileWriter)) {
             
         	List<Integer> seriesWidths = new ArrayList<>();
-            List<String> headers = makeHeaders(headersPrefixes, series, seriesWidths);
+        	List<String> headers;
+        	if (headersPrefixes.size() == 1 && headersPrefixes.containsKey("keepHeaders")) {
+        		int maxWidth = series.get("keepHeaders").values().stream().max( (x,y) -> x.length - y.length ).orElse(new double[1]).length; //hmm??
+        		seriesWidths.add(maxWidth);
+        		headers = headersPrefixes.get("keepHeaders");
+        	} else {
+        		headers = makeHeaders(headersPrefixes, series, seriesWidths);
+        	}
             
             //Write headers
             String headerString = headers.toString();
@@ -113,7 +141,7 @@ public class SeriesPrinter {
 
     }
     
-    //Generated file name
+    //Over Write with Generated file name
     public static String printo(String fileName, String subFolder, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series, String ...forcedBaseFileName) {
 
     	Boolean printOutputs = MainPMScmd.getMyPrefs().getBoolean("print.outputs", true);

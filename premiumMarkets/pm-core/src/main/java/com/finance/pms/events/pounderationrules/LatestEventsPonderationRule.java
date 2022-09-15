@@ -62,6 +62,7 @@ public class LatestEventsPonderationRule extends PonderationRule {
 		return finalWeight;
 	}
 
+
 	@Override
 	public Boolean shallExit() {
 		return false;
@@ -69,7 +70,7 @@ public class LatestEventsPonderationRule extends PonderationRule {
 
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
-		return new LatestEventsSignal(true,true);
+		return new LatestEventsSignal(true, true);
 	}
 
 	@Override

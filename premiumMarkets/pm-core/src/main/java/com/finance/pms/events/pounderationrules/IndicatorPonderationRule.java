@@ -61,7 +61,7 @@ public class IndicatorPonderationRule extends DefaultPonderationRule {
 	
 	@Override
 	public Signal initSignal(SymbolEvents symbolEvents) {
-		return new IndicatorSignal(this.indicator,symbolEvents.getEventDefList());
+		return new IndicatorSignal(this.indicator, symbolEvents.getEventDefList());
 	}
 
 	@Override

@@ -58,12 +58,12 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 
 	private void calculateSignal(SymbolEvents events) {
 
-		SortedMap<EventKey, EventValue> sortedBackwardsEventMap = eventResultsSortedBackward(events);
+		SortedMap<EventKey, EventValue> sortedBackwardsEventMap = sortedEventsMap(events);
 		Integer isAddingUp = 0;
 
 		for (EventKey eventKey : sortedBackwardsEventMap.keySet()) {
 
-			LOGGER.trace("Processing event : "+ sortedBackwardsEventMap.get(eventKey) +" at date "+ new SimpleDateFormat("yyyy/MM/dd").format(eventKey.getDate()));
+			LOGGER.trace("Processing event: " + sortedBackwardsEventMap.get(eventKey) + " at date " + new SimpleDateFormat("yyyy/MM/dd").format(eventKey.getDate()));
 
 			if (isAddingUp != -1) {
 				isAddingUp = events.getSignal().addEvent(eventKey, sortedBackwardsEventMap.get(eventKey));
@@ -92,7 +92,8 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 		return symbolEvents.getSignal().getSignalWeight().floatValue();
 	}
 
-	private SortedMap<EventKey,EventValue> eventResultsSortedBackward(final SymbolEvents symbolEvents) {
+	//sortedBackwardsEventMap: From the newest to the oldest.
+	protected SortedMap<EventKey,EventValue> sortedEventsMap(final SymbolEvents symbolEvents) {
 
 		//Descending order sorted map
 		SortedMap<EventKey,EventValue> sortedMap = 
@@ -104,7 +105,7 @@ public abstract class PonderationRule implements Comparator<SymbolEvents>, Seria
 							return 0;
 						}
 
-						int date = o2.getDate().compareTo(o1.getDate());
+						int date = o2.getDate().compareTo(o1.getDate()); //o2 > o1 => date > 0 => compare(EventKey o1, EventKey o2) > 0 => o2 is before o1
 
 						if (date == 0) {
 							int eventDef = o2.getEventInfo().compareTo(o1.getEventInfo());

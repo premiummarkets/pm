@@ -28,9 +28,9 @@ public class IOsExporterOperation extends StringerOperation {
 	}
 
 	public IOsExporterOperation() {
-		this("iosExporter", "Exports all assembled datasets to a file.",
-				new StringOperation("string", "export root path", "Root path of the output", new StringValue("")),
-				new StringOperation("string", "export file name prefix and hedears suffix", "Prefix of the file name and headers suffix", new StringValue("")),
+		this("iosExporter", "Exports all input datasets to a file. The file name is generated: <runtime-id>_ <stock-symbol> _k_training_ <random-id> .csv",
+				new StringOperation("string", "exportFolder", "Export folder path", new StringValue("")),
+				new StringOperation("string", "headersPrefixes", "headers prefixes", new StringValue("")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -44,8 +44,10 @@ public class IOsExporterOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		String fileRootPath = ((StringValue) inputs.get(0)).getValue(targetStock);
-		String filePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
+		String exportFolder = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String headersPrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
+		
+		String fileSuffix = targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -54,11 +56,10 @@ public class IOsExporterOperation extends StringerOperation {
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
-			String fileName = filePrefix + "_" + "k_training" + "_" + UUID.randomUUID();
-			series.put(filePrefix, factorisedInput);
+			series.put(headersPrefix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
-			headersPrefixes.put(filePrefix, inputsOperandsRefs);
-			String filePath = SeriesPrinter.printo(fileName, fileRootPath, headersPrefixes, series);
+			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
+			String filePath = SeriesPrinter.printo(fileSuffix, exportFolder, headersPrefixes, series);
 			return new StringValue(filePath);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);

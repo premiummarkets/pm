@@ -38,31 +38,39 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	public TalibAssemblerOperation() {
 		this("talibAssembler", "Assembles several periods iterations of one indicator into one inputable array.",
 				new OperationReferenceOperation("operationReference", "operation reference", "Operation to iterate upon", null),
-				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step] or [x, factor] or [\"abc\"]. "
-						+ "Use [x, factor] to make this parameter a factor of the parameter x. "
-						+ "Use [\"abc\"] for constant string parameters. ", null));
+				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step] or [x, factor] or [\"abc\"] or [any]. "
+						+ "Use [x, factor] to make this parameter a factor of an other parameter indexed at x. "
+						+ "Use [\"abc\"] for constant string parameters. [any] for any other static parameter", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Operation operation = (Operation) ((OperationReferenceValue<?>) inputs.get(0)).getValue(targetStock);
+		Operation assembledOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(0)).getValue(targetStock).clone();
 		@SuppressWarnings("unchecked")
 		List<List<Value<?>>> parameters = inputs.subList(1, inputs.size()).stream().map(v -> ((AnyValueListValue<Value<?>>) v).getValue(targetStock)).collect(Collectors.toList());
 
 		SortedMap<Integer, List<Double>> slices = new TreeMap<>();
-		Operation operand = operation.getOperands().get(0);
+		ArrayList<Operation> assembledOpOperands = new ArrayList<>(assembledOperationClone.getOperands());
+		Operation operand = assembledOpOperands.get(0); //Safe init
 		for (int parametersSlicePos = 0; parametersSlicePos < parameters.size(); parametersSlicePos++) {
-			if (parametersSlicePos < operation.getOperands().size()) {
-				operand = operation.getOperands().get(parametersSlicePos);
+			if (parametersSlicePos < assembledOperationClone.getOperands().size()) {
+				operand = assembledOperationClone.getOperands().get(parametersSlicePos);
 			} 
 			if (operand instanceof NumberOperation) {
 				slices.put(parametersSlicePos, parameters.get(parametersSlicePos).stream().map(v -> ((NumberValue)v).getValue(targetStock).doubleValue()).collect(Collectors.toList()));
+			} else if (operand instanceof MapOperation) {
+				// MapOperation) {//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries
+				//FIXME could use OperationRefernces/MetaOperations??
+				//operand.setParameter(getOperands().get(parametersSlicePos +1).getOperands().get(0).run(targetStock,"squashed  => " + this.shortOutputReference(),thisStartShift));
+				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos +1).getOperands().get(0)); //We get set the initial operation as it was before up flow inputs calculation
 			} else {
 				operand.setParameter(parameters.get(parametersSlicePos).get(0));
 			}
 		}
+		assembledOperationClone.getOperands().clear();
+		assembledOperationClone.setOperands(assembledOpOperands);
 		
 		List<NumericableMapValue> runsOutputs = new ArrayList<NumericableMapValue>();
 		List<String> inputsOperandsRefs = new ArrayList<String>();
@@ -71,30 +79,34 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		Double end = pivotParamSlices.get(1);
 		Double step = pivotParamSlices.get(2);
 		int paddingSize = String.format("%d", (int) ((end-start)/(step))).length();
+		
 		for (double i = 0; i*step < (end-start); i++) {
+			String paramsStringInfo = "";
 			for(Integer operandPos: slices.keySet()) {
 				Value<?> itParameter = null;
 				if (slices.get(operandPos).size() == 3) { //actual slice
 					itParameter = new NumberValue(slices.get(operandPos).get(0) + i*slices.get(operandPos).get(2));
 				} else if (slices.get(operandPos).size() == 2) { //factor
 					int otherOperandParamPos = slices.get(operandPos).get(0).intValue();
-					if (!slices.containsKey(otherOperandParamPos)) throw new RuntimeException("Invalid parameter index for this operation: " + operation.getReference());
+					if (!slices.containsKey(otherOperandParamPos)) throw new RuntimeException("Invalid parameter index for this operation: " + assembledOperationClone.getReference());
 					Double otherOperandParamValue = slices.get(otherOperandParamPos).get(0) + i*slices.get(otherOperandParamPos).get(2);
 					Double factor = slices.get(operandPos).get(1);
 					itParameter = new NumberValue(otherOperandParamValue * factor);
 				} else if (slices.get(operandPos).size() == 1) { //single static value
 					itParameter = new NumberValue(slices.get(operandPos).get(0));
 				}
-				if (operandPos >= operation.getOperands().size()) {
-					Operation lastOperand = operation.getOperands().get(operation.getOperands().size()-1);
+				paramsStringInfo = paramsStringInfo + "," + itParameter.getValue(targetStock);
+				if (operandPos >= assembledOperationClone.getOperands().size()) {
+					Operation lastOperand = assembledOperationClone.getOperands().get(assembledOperationClone.getOperands().size()-1);
 					if (!lastOperand.getIsVarArgs()) throw new RuntimeException();
 					Operation newVarArgOperand = (Operation) lastOperand.clone();
-					operation.getOperands().add(newVarArgOperand);
+					assembledOperationClone.getOperands().add(newVarArgOperand);
 				}
-				operation.getOperands().get(operandPos).setParameter(itParameter);
+				assembledOperationClone.getOperands().get(operandPos).setParameter(itParameter);
 			}
-			runsOutputs.add((NumericableMapValue) operation.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift));
-			inputsOperandsRefs.add(String.format("%0" + paddingSize + "d", (int)i) + "_" + operation.toFormulaeShort());
+			LOGGER.info("Running: " + assembledOperationClone.getReference() + " with params " + paramsStringInfo);
+			runsOutputs.add((NumericableMapValue) assembledOperationClone.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift));
+			inputsOperandsRefs.add(String.format("%0" + paddingSize + "d", (int)i) + "_" + assembledOperationClone.toFormulaeShort());
 		}
 		
 		try {

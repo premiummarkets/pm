@@ -24,7 +24,7 @@ import com.finance.pms.events.scoring.functions.StatsFunction;
 
 public class VolatilityOperation extends PMWithDataOperation {
 
-	private static final int YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS = 250;
+	private static final int YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS = 254;
 
 	private static MyLogger LOGGER = MyLogger.getLogger(VolatilityOperation.class);
 

@@ -65,7 +65,7 @@ public class StatsOperation extends PMWithDataOperation {
 
 	public StatsOperation() {
 		super("stat", "Moving statistics",
-				new NumberOperation("number","movingPeriod","Moving period. This will be reflected in number of days (*7/5), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
+				new NumberOperation("number","movingPeriod","Moving period in data points (calendar days*5/7), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm"})));
 	}

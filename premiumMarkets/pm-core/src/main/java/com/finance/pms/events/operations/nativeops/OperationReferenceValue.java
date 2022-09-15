@@ -31,6 +31,7 @@ package com.finance.pms.events.operations.nativeops;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.antlr.MissingReferenceException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -56,10 +57,20 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 		
 		ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 		Operation nativeOperation = parameterizedOperationBuilder.getNativeOperations().get(referenceSplit[0]);
-//		if (nativeOperation == null) { //FIXME Use with caution as it may cause infinite loop?
-//			nativeOperation = parameterizedOperationBuilder.getThisParserCompliantUserCurrentOperations().get(referenceSplit[0]);
-//		}
-		T opClone = (T) nativeOperation.clone();
+		T opClone;
+		if (nativeOperation != null) {
+			opClone = (T) nativeOperation.clone();
+		} else {
+			Operation userOperation = parameterizedOperationBuilder.getUserCurrentOperations(false).get(referenceSplit[0]);
+			if (userOperation != null) {
+				opClone = (T) userOperation.clone();
+			} else {
+				String message = "Reference not resolved yet in leaf value: " + referenceSplit[0];
+				LOGGER.warn(message);
+				throw new MissingReferenceException(referenceSplit[0], message);
+			}
+		}
+		
 		if (referenceSplit.length > 1) opClone.setOutputSelector(referenceSplit[1]);
 		
 		this.operation = opClone;
@@ -72,7 +83,7 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : operation "+operation.toString();
+		return this.getClass().getSimpleName() + " : operation " + ((operation != null)?operation.toString():"unknown yet");
 	}
 	
 	@SuppressWarnings("unchecked")
