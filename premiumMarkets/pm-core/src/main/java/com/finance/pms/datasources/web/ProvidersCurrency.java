@@ -31,7 +31,6 @@ package com.finance.pms.datasources.web;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,14 +73,14 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 		String[] symbolIsinSplit = currencyStock.getSymbol().split("Per");
 		Currency referee = Currency.valueOf(symbolIsinSplit[1]);
 		Currency target = Currency.valueOf(symbolIsinSplit[0]);
-		List<Validatable> rates = filterToEndDate(end, PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end));
+		List<ValidatableDated> rates = filterToEndDate(end, PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end));
 		
 		//Store in quotations
-		TreeSet<Validatable> queries = new TreeSet<Validatable>();
+		TreeSet<ValidatableDated> queries = new TreeSet<ValidatableDated>();
 		if (rates != null && !rates.isEmpty()) {
-			for (Validatable rate : rates) {
+			for (ValidatableDated rate : rates) {
 				
-					Validatable currencyStockQuotation = new CurrencyRate((CurrencyRate) rate) {
+					ValidatableDated currencyStockQuotation = new CurrencyRate((CurrencyRate) rate) {
 						private static final long serialVersionUID = 1L;
 	
 						@Override
@@ -109,7 +108,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 			
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 			
 			//Update stock stamp
 			currencyStock.setLastQuote(((CurrencyRate) rates.get(rates.size()-1)).getDate());

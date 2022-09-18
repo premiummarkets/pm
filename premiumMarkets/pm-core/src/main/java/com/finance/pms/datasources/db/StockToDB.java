@@ -36,7 +36,7 @@ package com.finance.pms.datasources.db;
  * 
  * @author Guillaume Thoreton
  */
-public abstract class StockToDB extends Validatable {
+public abstract class StockToDB implements Validatable {
 
 
 	/**

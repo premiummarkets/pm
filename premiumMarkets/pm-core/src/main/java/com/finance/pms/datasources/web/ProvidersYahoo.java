@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
 
@@ -90,18 +91,18 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 			return;
 		}
 
-		@SuppressWarnings("unchecked")
-		List<Validatable> urlResults = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url, start));
+		List<ValidatableDated> readPage = readPage(stock, url, start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+		readPage = filterToEndDate(end, readPage);
 		
-		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(urlResults);
+		TreeSet<ValidatableDated> queries = initValidatableSet();
+		queries.addAll(readPage);
 
-		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+		LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " :" + queries.size());
 
 		try {
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 		} catch (SQLException e) {
 			
 			LOGGER.error("Yahoo quotations sql error trying : " + url.getUrl(), e);

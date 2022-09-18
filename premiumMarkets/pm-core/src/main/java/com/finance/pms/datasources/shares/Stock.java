@@ -62,7 +62,7 @@ import com.finance.pms.datasources.web.ProvidersList;
 @Entity
 @IdClass(StockId.class)
 @Table(name="SHARES")
-public class Stock extends Validatable {
+public class Stock implements Validatable {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Stock.class);
 	private static final long serialVersionUID = 2357651331343818162L;

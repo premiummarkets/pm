@@ -46,6 +46,7 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.http.Header;
 import org.apache.http.HttpException;
@@ -96,13 +97,13 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
 
         if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for "+stock.toString());
 
-        List<Validatable> readPage = null;
+        List<ValidatableDated> readPage = null;
         int retries = 0;
         Calendar cStrat = Calendar.getInstance();
         cStrat.setTime(start);
         while (readPage == null && retries < 2) {
             try {
-                readPage = readCrumedPage(stock, cStrat.getTime(), end);
+                readPage = readCrumedPage(stock, cStrat.getTime(), end).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
             } catch (InvalidAlgorithmParameterException e1) {
                 return;
             } catch (HttpException he) {
@@ -112,18 +113,18 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
             }
         }
         if (readPage == null) throw new HttpException();
-		readPage = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage);
+        readPage = filterToEndDate(end, readPage);
 
-        TreeSet<Validatable> queries = initValidatableSet();
+        TreeSet<ValidatableDated> queries = initValidatableSet();
         queries.addAll(readPage);
 
-        LOGGER.guiInfo("Getting last quotes: Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+        LOGGER.guiInfo("Getting last quotes: Number of new quotations for " + stock.getSymbol() + " :" + queries.size());
         LOGGER.debug(queries);
 
         try {
             ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
             tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-            DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+            DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
         } catch (SQLException e) {
             LOGGER.error("Yahoo quotations SQL error trying: "+stock+" between "+start+" and "+end, e);
             throw e;

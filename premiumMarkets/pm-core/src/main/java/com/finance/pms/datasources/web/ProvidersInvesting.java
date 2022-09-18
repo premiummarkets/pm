@@ -7,7 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -37,10 +36,8 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuoteInvestingFormater;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
-import com.finance.pms.events.calculation.DateFactory;
 import com.nixxcode.jvmbrotli.common.BrotliLoader;
 import com.nixxcode.jvmbrotli.dec.BrotliInputStream;
 
@@ -61,7 +58,7 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 		BrotliLoader.isBrotliAvailable();
 		
 		String symbolRoot = stock.getSymbolRoot();
-		TreeSet<Validatable> queries = new TreeSet<>();
+		TreeSet<ValidatableDated> queries = new TreeSet<>();
 		
 		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 		try (CloseableHttpClient httpClient = httpClientBuilder.build()) {
@@ -103,9 +100,8 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 					String line = "";
 					while ((line = content.readLine()) != null) {
 						//System.out.println(line);
-						@SuppressWarnings("unchecked")
-						List<Validatable> ohlcvListForLine = filterToEndDate(end, (Collection<? extends ValidatableDated>) dayQuoteInvestingFormater.formatLine(line));
-						queries.addAll(ohlcvListForLine);
+						List<ValidatableDated> readPage =  dayQuoteInvestingFormater.formatLine(line).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+						queries.addAll(filterToEndDate(end, readPage));
 					};
 				}
 				
@@ -120,7 +116,7 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 		try {
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 		} catch (SQLException e) {
 			LOGGER.error("Investing quotations sql error trying : " + stock, e);
 			throw e;

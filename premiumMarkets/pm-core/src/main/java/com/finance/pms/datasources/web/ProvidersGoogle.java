@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
 
@@ -90,16 +91,15 @@ public class ProvidersGoogle extends Providers implements MarketListProvider, Qu
 		if (isStartAfterTodaysClose(start)) return;
 		
 		url = resolveUrlFor(stock, start, end);
-		@SuppressWarnings("unchecked")
-		List<Validatable> readPage = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url, start));
+		List<ValidatableDated> readPage = readPage(stock, url, start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
 		
-		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(readPage);
+		TreeSet<ValidatableDated> queries = initValidatableSet();
+		queries.addAll(filterToEndDate(end, readPage));
 
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " :" + queries.size());
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 		
 	}
 

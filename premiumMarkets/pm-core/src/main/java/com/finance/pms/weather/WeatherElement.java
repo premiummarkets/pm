@@ -45,7 +45,7 @@ import com.finance.pms.datasources.db.ValidatableDated;
 
 @Entity
 @Table(name="WEATHER")
-public class WeatherElement extends Validatable implements ValidatableDated {
+public class WeatherElement implements ValidatableDated {
 	
 	private static final long serialVersionUID = 1073659764360998307L;
 	

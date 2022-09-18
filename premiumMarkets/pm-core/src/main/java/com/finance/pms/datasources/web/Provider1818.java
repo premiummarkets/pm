@@ -4,7 +4,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -19,7 +18,6 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuote1818Formater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 
@@ -53,12 +51,11 @@ public class Provider1818 extends Providers implements QuotationProvider {
 		} catch (InvalidAlgorithmParameterException e) {
 			return;
 		}
-
-		@SuppressWarnings("unchecked")
-		List<Validatable> ohlcList = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url, start));
 		
-		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(ohlcList);
+		List<ValidatableDated> readPage = readPage(stock, url, start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+		
+		TreeSet<ValidatableDated> queries = initValidatableSet();
+		queries.addAll(filterToEndDate(end, readPage));
 
 		//https://protect.wealthmanagement.natixis.com/phoenix/infosMarcheValeur/detache?page=cours&valeur=LU1829221024,25,814
 		LOGGER.guiInfo("Last quotes  for " + stock.getSymbol() +". Number of new quotations:" + queries.size() + ", request: " + url);
@@ -66,7 +63,7 @@ public class Provider1818 extends Providers implements QuotationProvider {
 		try {
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 		} catch (SQLException e) {
 			LOGGER.error("Yahoo quotations sql error trying : "+url.getUrl(), e);
 			throw e;

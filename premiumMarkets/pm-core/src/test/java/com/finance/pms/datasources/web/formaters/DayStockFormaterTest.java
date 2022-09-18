@@ -137,7 +137,7 @@ public class DayStockFormaterTest extends TestCase { //extends AbstractDependenc
 			        		System.out.println(++cpt);
 			        	} catch (StopParseException e) {
 			        	    System.out.println("Fin : "+((StopParseFoundException) e).getLastOne());
-			        		System.out.println(((Validatable)formater.params.get(0)).getState());
+			        		//System.out.println(((Validatable)formater.params.get(0)).getState());
 			        		//continu = false;
 			        	}
 			        	

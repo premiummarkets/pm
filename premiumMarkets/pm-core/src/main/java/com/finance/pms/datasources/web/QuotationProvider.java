@@ -39,7 +39,6 @@ import org.apache.http.HttpException;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.datasources.web.formaters.DailyQuotation;
 
 public interface QuotationProvider {
 	
@@ -51,9 +50,8 @@ public interface QuotationProvider {
 	public List<Validatable> readPage(Stock stock, MyUrl url, Date startDate) throws HttpException;
 
 
-	public default List<Validatable> filterToEndDate(Date endDate, Collection<? extends ValidatableDated> dailyQuotations) {
-		@SuppressWarnings("unchecked")
-		List<Validatable> ohlcvValids = (List<Validatable>) dailyQuotations.stream().filter(ohlcv -> !((ValidatableDated) ohlcv).getDate().after(endDate)).collect(Collectors.toList());
+	public default List<ValidatableDated> filterToEndDate(Date endDate, Collection<? extends ValidatableDated> dailyQuotations) {
+		List<ValidatableDated> ohlcvValids = dailyQuotations.stream().filter(ohlcv -> !ohlcv.getDate().after(endDate)).collect(Collectors.toList());
 		return ohlcvValids;
 	}
 	

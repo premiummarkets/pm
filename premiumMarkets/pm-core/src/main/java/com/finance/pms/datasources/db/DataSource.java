@@ -1146,7 +1146,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return executeBlock(qL, preparedQuery);
 	}
 
-	public void executeInsertOrUpdateQuotations(List<Validatable> insertQueries, List<TableLocker> tablesLocked) throws SQLException {
+	public void executeInsertOrUpdateQuotations(List<ValidatableDated> insertQueries, List<TableLocker> tablesLocked) throws SQLException {
 
 		MyDBConnection sdbcnx = this.getConnection(null);
 		Collection<Validatable> updateQueries = new ArrayList<Validatable>();

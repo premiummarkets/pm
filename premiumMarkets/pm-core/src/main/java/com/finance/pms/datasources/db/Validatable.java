@@ -37,10 +37,7 @@ import java.io.Serializable;
  * 
  * @author Guillaume Thoreton
  */
-public abstract class Validatable implements Serializable, Comparable<Validatable> {
-	
-
-	private static final long serialVersionUID = 6963504463049602627L;
+public interface Validatable extends Serializable, Comparable<Validatable> {
 	
 
 	public static final int VALID=0;
@@ -49,21 +46,12 @@ public abstract class Validatable implements Serializable, Comparable<Validatabl
 	public static final int TOUPDATEISIN =3;
 	public static final int INVALIDE=4;
 	
-	private int state;
-	
-	public Validatable() {
-		super();
-	}
 
-	public int getState() {
-		return state;
-	}
-
-	public void setState(int state) {
-		this.state = state;
+	public default void setState(int state) {
+		//Not implemented
 	}
 	
-	public abstract Query toDataBase();
+	public Query toDataBase();
 
 	@Override
 	public abstract int hashCode();

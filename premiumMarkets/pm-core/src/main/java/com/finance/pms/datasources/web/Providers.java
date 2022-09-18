@@ -49,6 +49,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
@@ -195,8 +196,8 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 		return false;
 	}
 
-	protected TreeSet<Validatable> initValidatableSet() {
-		TreeSet<Validatable> queries = new TreeSet<Validatable>() ;
+	protected TreeSet<ValidatableDated> initValidatableSet() {
+		TreeSet<ValidatableDated> queries = new TreeSet<ValidatableDated>() ;
 		return queries;
 	}
 

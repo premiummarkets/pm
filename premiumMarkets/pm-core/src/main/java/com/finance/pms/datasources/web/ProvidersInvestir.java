@@ -32,10 +32,10 @@ package com.finance.pms.datasources.web;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.http.HttpException;
@@ -47,7 +47,6 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
-import com.finance.pms.datasources.web.formaters.DailyQuotation;
 import com.finance.pms.datasources.web.formaters.DayQuoteInvestirFormater;
 
 public class ProvidersInvestir extends Providers implements QuotationProvider {
@@ -69,17 +68,17 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		//TODO scrapeLast();
 		
 		MyUrl url = resolveUrlFor(stock, start, end);
-		TreeSet<Validatable> queries = initValidatableSet();
+		TreeSet<ValidatableDated> queries = initValidatableSet();
 		
 		for (int i = 1; i <= url.getNbPages(); i++) {
-			@SuppressWarnings("unchecked")
-			List<Validatable> urlResults = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url.getUrlForPage(i), start));
-			if (urlResults.size() == 0) { 
+			List<ValidatableDated> readPage = readPage(stock, url.getUrlForPage(i), start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+			readPage = filterToEndDate(end, readPage);
+			if (readPage.size() == 0) { 
 				LOGGER.guiInfo("Getting last quotes on 'Investir' web site : out of pages loop with : "+stock.getSymbol()+" :"+queries.size());
 				break; 
 			}
-			for (Validatable validatable : urlResults) {
-				Date qDate = ((DailyQuotation) validatable).getQuoteDate();
+			for (ValidatableDated validatable : readPage) {
+				Date qDate = validatable.getDate();
 				if (qDate.after(start) || qDate.equals(start)) {
 					queries.add(validatable);
 				}
@@ -89,7 +88,7 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 	
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME, TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 
 	}
 

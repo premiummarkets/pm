@@ -52,7 +52,7 @@ import com.finance.pms.datasources.shares.Currency;
 @Entity
 @Table(name="CURRENCYRATE")
 @IdClass(CurrencyRateId.class)
-public class CurrencyRate extends Validatable implements ValidatableDated {
+public class CurrencyRate implements ValidatableDated {
 	
 	private static final long serialVersionUID = 1L;
 	

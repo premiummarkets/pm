@@ -61,7 +61,7 @@ import com.finance.pms.portfolio.PortfolioMgr;
 @Entity
 //TODO rename to SCREENING_SUPPLEMENT
 @Table(name="TREND_SUPPLEMENT")
-public class ScreeningSupplementedStock extends Validatable {
+public class ScreeningSupplementedStock implements Validatable {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ScreeningSupplementedStock.class);
 	private static final long serialVersionUID = -4962928490295672287L;

@@ -34,7 +34,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -124,15 +123,15 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 
 			MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
 
-			TreeSet<Validatable> queries = initValidatableSet();
+			TreeSet<ValidatableDated> queries = initValidatableSet();
 			LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
-			@SuppressWarnings("unchecked")
-			List<Validatable> urlResults = filterToEndDate(end, (Collection<? extends ValidatableDated>)  this.httpSource.readURL(dsf));
+			List<ValidatableDated> readPage = this.httpSource.readURL(dsf).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+			readPage = filterToEndDate(end, readPage);
 			
-			if (!urlResults.isEmpty()) {
+			if (!readPage.isEmpty()) {
 			
-				for (Validatable validatable : urlResults) {
-					if (((DailyQuotation) validatable).getQuoteDate().after(start)) {
+				for (ValidatableDated validatable : readPage) {
+					if (validatable.getDate().after(start)) {
 						queries.add(validatable);
 					}
 				}
@@ -141,9 +140,9 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " : " + queries.size());
 				ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
 				tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-				DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+				DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 				
-				List<Validatable> urlResultsSorted = urlResults.stream().sorted((i1, i2) -> ((DailyQuotation)i2).compareTo(i1)).collect(Collectors.toList());
+				List<Validatable> urlResultsSorted = readPage.stream().sorted((i1, i2) -> ((DailyQuotation)i2).compareTo(i1)).collect(Collectors.toList());
 				DailyQuotation lastWebQuotation = (DailyQuotation) urlResultsSorted.get(0);
 				lastClose = (BigDecimal) lastWebQuotation.getClose();
 				lastDate = lastWebQuotation.getQuoteDate();

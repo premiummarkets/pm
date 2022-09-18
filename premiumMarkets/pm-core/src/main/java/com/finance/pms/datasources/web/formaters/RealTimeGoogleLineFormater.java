@@ -32,10 +32,12 @@ package com.finance.pms.datasources.web.formaters;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.events.quotations.DateToMinutesOTDConverter;
@@ -118,7 +120,7 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		return false;
 	}
 
-	public class ValidatableQuotationUnit extends Validatable {
+	public class ValidatableQuotationUnit implements ValidatableDated {
 
 		private static final long serialVersionUID = 9060878063360050971L;
 
@@ -177,6 +179,12 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 
 		private RealTimeGoogleLineFormater getOuterType() {
 			return RealTimeGoogleLineFormater.this;
+		}
+
+		@Override
+		public Date getDate() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 

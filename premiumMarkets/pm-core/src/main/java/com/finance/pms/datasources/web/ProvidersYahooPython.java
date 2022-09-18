@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
 import org.python.util.PythonInterpreter;
@@ -115,16 +116,18 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 
         if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for " + stock.toString());
 
-        TreeSet<Validatable> queries = initValidatableSet();
+        List<ValidatableDated> readPage = null;
         try {
-	        @SuppressWarnings("unchecked")
-			List<Validatable> readPage = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPythonPage(stock, start, end));
-	        if (readPage == null) throw new HttpException();
-	        queries.addAll(readPage);
+        	readPage = readPythonPage(stock, start, end).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
         } catch (IOException e1) {
         	LOGGER.error(e1);
             return;
         }
+        if (readPage == null) throw new HttpException();
+        
+		readPage = filterToEndDate(end, readPage);
+		TreeSet<ValidatableDated> queries = initValidatableSet();
+        queries.addAll(readPage);
 
         LOGGER.guiInfo("Getting last quotes: Number of new quotations for " + stock.getSymbol() + ": " + queries.size());
         LOGGER.info(queries);
@@ -132,7 +135,7 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
         try {
             ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
             tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-            DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
+            DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
         } catch (SQLException e) {
             LOGGER.error("Yahoo quotations SQL error trying: " + stock + " between " + start + " and " + end, e);
             throw e;
@@ -144,8 +147,6 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     	
     	Calendar startDayMidNight = Calendar.getInstance();
 		startDayMidNight.setTime(end);
-//		startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-//		Date endPlusOne = startDayMidNight.getTime();
     	
     	DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
