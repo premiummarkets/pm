@@ -45,6 +45,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
@@ -89,8 +90,11 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 			return;
 		}
 
+		@SuppressWarnings("unchecked")
+		List<Validatable> urlResults = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url, start));
+		
 		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(readPage(stock, url, start));
+		queries.addAll(urlResults);
 
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
 

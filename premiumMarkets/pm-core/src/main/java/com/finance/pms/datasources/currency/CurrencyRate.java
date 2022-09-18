@@ -46,12 +46,13 @@ import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Currency;
 
 @Entity
 @Table(name="CURRENCYRATE")
 @IdClass(CurrencyRateId.class)
-public class CurrencyRate extends Validatable {
+public class CurrencyRate extends Validatable implements ValidatableDated {
 	
 	private static final long serialVersionUID = 1L;
 	

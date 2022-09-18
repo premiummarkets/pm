@@ -31,6 +31,7 @@ package com.finance.pms.datasources.web;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,6 +44,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
@@ -72,14 +74,14 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 		String[] symbolIsinSplit = currencyStock.getSymbol().split("Per");
 		Currency referee = Currency.valueOf(symbolIsinSplit[1]);
 		Currency target = Currency.valueOf(symbolIsinSplit[0]);
-		List<CurrencyRate> rates = PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end);
+		List<Validatable> rates = filterToEndDate(end, PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end));
 		
 		//Store in quotations
 		TreeSet<Validatable> queries = new TreeSet<Validatable>();
 		if (rates != null && !rates.isEmpty()) {
-			for (CurrencyRate rate : rates) {
+			for (Validatable rate : rates) {
 				
-					Validatable currencyStockQuotation = new CurrencyRate(rate) {
+					Validatable currencyStockQuotation = new CurrencyRate((CurrencyRate) rate) {
 						private static final long serialVersionUID = 1L;
 	
 						@Override
@@ -110,7 +112,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
 			
 			//Update stock stamp
-			currencyStock.setLastQuote(rates.get(rates.size()-1).getDate());
+			currencyStock.setLastQuote(((CurrencyRate) rates.get(rates.size()-1)).getDate());
 		}
 	}
 

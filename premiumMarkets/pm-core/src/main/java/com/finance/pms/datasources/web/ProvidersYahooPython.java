@@ -57,6 +57,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
 import com.finance.pms.datasources.shares.SharesListId;
 import com.finance.pms.datasources.shares.Stock;
@@ -114,18 +115,16 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 
         if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for " + stock.toString());
 
-        List<Validatable> readPage = null;
+        TreeSet<Validatable> queries = initValidatableSet();
         try {
-            readPage = readPythonPage(stock, start, end);
+	        @SuppressWarnings("unchecked")
+			List<Validatable> readPage = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPythonPage(stock, start, end));
+	        if (readPage == null) throw new HttpException();
+	        queries.addAll(readPage);
         } catch (IOException e1) {
         	LOGGER.error(e1);
             return;
         }
-        
-        if (readPage == null) throw new HttpException();
-
-        TreeSet<Validatable> queries = initValidatableSet();
-        queries.addAll(readPage);
 
         LOGGER.guiInfo("Getting last quotes: Number of new quotations for " + stock.getSymbol() + ": " + queries.size());
         LOGGER.info(queries);

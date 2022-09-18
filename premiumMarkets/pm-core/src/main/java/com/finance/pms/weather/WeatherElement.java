@@ -41,10 +41,11 @@ import javax.persistence.TemporalType;
 
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 
 @Entity
 @Table(name="WEATHER")
-public class WeatherElement extends Validatable {
+public class WeatherElement extends Validatable implements ValidatableDated {
 	
 	private static final long serialVersionUID = 1073659764360998307L;
 	

@@ -47,6 +47,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.GoogleSymbolNameResolver;
 import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketQuotationProviders;
@@ -89,13 +90,16 @@ public class ProvidersGoogle extends Providers implements MarketListProvider, Qu
 		if (isStartAfterTodaysClose(start)) return;
 		
 		url = resolveUrlFor(stock, start, end);
+		@SuppressWarnings("unchecked")
+		List<Validatable> readPage = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url, start));
+		
 		TreeSet<Validatable> queries = initValidatableSet();
-		queries.addAll(readPage(stock, url, start));
+		queries.addAll(readPage);
 
-		LOGGER.guiInfo("Getting last quotes : Number of new quotations for "+stock.getSymbol()+" :"+queries.size());
+		LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " :" + queries.size());
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;
 		tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
-		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries),tablet2lock);
+		DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<Validatable>(queries), tablet2lock);
 		
 	}
 

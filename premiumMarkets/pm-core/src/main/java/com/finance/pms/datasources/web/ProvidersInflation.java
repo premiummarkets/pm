@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -45,6 +46,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.quotation.GetInflation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
@@ -124,7 +126,8 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 
 			TreeSet<Validatable> queries = initValidatableSet();
 			LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
-			List<Validatable> urlResults = this.httpSource.readURL(dsf);
+			@SuppressWarnings("unchecked")
+			List<Validatable> urlResults = filterToEndDate(end, (Collection<? extends ValidatableDated>)  this.httpSource.readURL(dsf));
 			
 			if (!urlResults.isEmpty()) {
 			

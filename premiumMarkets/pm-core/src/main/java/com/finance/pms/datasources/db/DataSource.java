@@ -1205,7 +1205,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 					@Override
 					public String toString() {
-						return "["+insertParams.get(1)+","+insertParams.get(2)+","+insertParams.get(3)+","+insertParams.get(4)+","+insertParams.get(5)+","+insertParams.get(6)+","+insertParams.get(7)+","+insertParams.get(8)+","+insertParams.get(0)+"]";
+						return "[" + insertParams.get(1) + "," + insertParams.get(2) + "," + insertParams.get(3) + "," + insertParams.get(4) + "," + insertParams.get(5) + "," +
+								insertParams.get(6) + "," + insertParams.get(7) + "," + insertParams.get(8) + "," + insertParams.get(0) + "]";
 					}
 				};
 

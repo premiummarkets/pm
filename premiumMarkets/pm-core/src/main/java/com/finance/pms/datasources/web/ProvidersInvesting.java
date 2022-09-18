@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -33,6 +34,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
@@ -98,13 +100,12 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 						(responseEntity.getContentEncoding().getValue().equals("br"))?
 								new BrotliInputStream(responseEntity.getContent()):responseEntity.getContent()))) {
 					DayQuoteInvestingFormater dayQuoteInvestingFormater = new DayQuoteInvestingFormater(null, stock);
-					Date lastMarketCloseDate = end;
 					String line = "";
 					while ((line = content.readLine()) != null) {
-						System.out.println(line);
-						List<Validatable> ohlcvListForLine = dayQuoteInvestingFormater.formatLine(line);
-						List<Validatable> ohlcvValids = ohlcvListForLine.stream().filter(ohlcv -> !((DailyQuotation) ohlcv).getQuoteDate().after(lastMarketCloseDate)).collect(Collectors.toList());
-						queries.addAll(ohlcvValids);
+						//System.out.println(line);
+						@SuppressWarnings("unchecked")
+						List<Validatable> ohlcvListForLine = filterToEndDate(end, (Collection<? extends ValidatableDated>) dayQuoteInvestingFormater.formatLine(line));
+						queries.addAll(ohlcvListForLine);
 					};
 				}
 				

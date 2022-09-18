@@ -34,9 +34,10 @@ import java.util.LinkedList;
 
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 
-public class DailyQuotation extends Stock {
+public class DailyQuotation extends Stock implements ValidatableDated {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -103,6 +104,11 @@ public class DailyQuotation extends Stock {
 	@Override
 	public int compareTo(Validatable o) {
 		return quoteDate.compareTo(((DailyQuotation)o).quoteDate);
+	}
+
+	@Override
+	public Date getDate() {
+		return getQuoteDate();
 	}
 	
 }

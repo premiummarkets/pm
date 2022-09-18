@@ -32,6 +32,7 @@ package com.finance.pms.datasources.web;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -43,6 +44,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
 import com.finance.pms.datasources.db.Validatable;
+import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
@@ -70,7 +72,8 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		TreeSet<Validatable> queries = initValidatableSet();
 		
 		for (int i = 1; i <= url.getNbPages(); i++) {
-			List<Validatable> urlResults = readPage(stock, url.getUrlForPage(i), start);
+			@SuppressWarnings("unchecked")
+			List<Validatable> urlResults = filterToEndDate(end, (Collection<? extends ValidatableDated>) readPage(stock, url.getUrlForPage(i), start));
 			if (urlResults.size() == 0) { 
 				LOGGER.guiInfo("Getting last quotes on 'Investir' web site : out of pages loop with : "+stock.getSymbol()+" :"+queries.size());
 				break; 
