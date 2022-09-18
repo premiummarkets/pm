@@ -1,5 +1,6 @@
 package com.finance.pms.events.scoring.functions;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ public interface HighLowSolver {
 		if (highLowSolver == null) {
 			try {
 				Class<? extends HighLowSolver> implClass = valueOf.getTypeClass();
-				highLowSolver = implClass.newInstance();
+				highLowSolver = implClass.getDeclaredConstructor().newInstance();
 				highlowSolverCache.put(valueOf, highLowSolver);
 			} catch (Exception e) {
 				throw new RuntimeException(e);

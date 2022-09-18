@@ -53,7 +53,7 @@ public class Provider1818 extends Providers implements QuotationProvider {
 			return;
 		}
 		
-		Date lastMarketCloseDate = DateFactory.midnithDate(DateFactory.lastMarketCloseTime(end).getTime());
+		Date lastMarketCloseDate = end;
 		TreeSet<Validatable> queries = initValidatableSet();
 		List<Validatable> ohlcList = readPage(stock, url, start);
 		List<Validatable> ohlcvValids = ohlcList.stream().filter(ohlcv -> !((DailyQuotation) ohlcv).getQuoteDate().after(lastMarketCloseDate)).collect(Collectors.toList());

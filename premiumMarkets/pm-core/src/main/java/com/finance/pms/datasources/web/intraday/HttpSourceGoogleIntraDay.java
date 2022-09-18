@@ -53,6 +53,7 @@ public class HttpSourceGoogleIntraDay extends HttpSource implements SourceConnec
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		//return new GetMethod(url.getUrl());
 		//FIXME

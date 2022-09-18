@@ -47,6 +47,7 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.IndicatorsCalculationService;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.LatestEventsScreennerBuyAlertOnlyPonderationRule;
 import com.finance.pms.portfolio.AutoPortfolio;
@@ -60,12 +61,9 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated //IndicatorsCalculationService use SelectedIndicatorsCalculationService instead??
+@SuppressWarnings("unused")
 public class IndicatorCalculationServiceMain {
-	
-	public static final String COMMAND_LINE_ANALYSIS = "cmdLineAnalysis";
-	public static final String AUTOPORTFOLIO = "AutoPortfolio";
-	public static final String UI_ANALYSIS = "UiAnalysis";
-	public static final String WEB_ANALYSIS = "WebAnalysis";
 	
 	/** The LOGGER. */
 	protected static MyLogger LOGGER = MyLogger.getLogger(IndicatorCalculationServiceMain.class);
@@ -140,7 +138,7 @@ public class IndicatorCalculationServiceMain {
 			
 			////default dates (An offset will be added specific for each analyze in the analyze methods)
 			final Date datefin = new Date();
-			final Date datedeb = DataSource.getInstance().getLastEventDateForAnalysis(AUTOPORTFOLIO);
+			final Date datedeb = DataSource.getInstance().getLastEventDateForAnalysis(SelectedIndicatorsCalculationService.AUTOPORTFOLIO);
 			LOGGER.info("Events calculation date range based on last event calculated : from "+datedeb+" to "+datefin);
 
 			if (defaultCal) {//default dates and full
@@ -189,8 +187,8 @@ public class IndicatorCalculationServiceMain {
 					Integer sellEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold(); 
 					Integer buyEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
 					AutoPortfolio autoPortfolio = PortfolioMgr.getInstance().getOrCreateAutoPortfolio(
-							COMMAND_LINE_ANALYSIS,
-							new LatestEventsScreennerBuyAlertOnlyPonderationRule(COMMAND_LINE_ANALYSIS),
+							SelectedIndicatorsCalculationService.COMMAND_LINE_ANALYSIS,
+							new LatestEventsScreennerBuyAlertOnlyPonderationRule(SelectedIndicatorsCalculationService.COMMAND_LINE_ANALYSIS),
 							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold),
 							null);
 					

@@ -1311,22 +1311,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			return (Date) q.getParameterValues().get(0);
 		}
 
-		public static List<String> getInsertCols() {
-			List<String> l = new ArrayList<String>();
-			//l.add(DataSource.QUOTATIONS.SICOVAM_FIELD);
-			l.add(DataSource.QUOTATIONS.DATE_FIELD);
-			l.add(DataSource.QUOTATIONS.DAY_OPEN_FIELD);
-			l.add(DataSource.QUOTATIONS.DAY_HIGH_FIELD);
-			l.add(DataSource.QUOTATIONS.DAY_LOW_FIELD);
-			l.add(DataSource.QUOTATIONS.DAY_CLOSE_FIELD);
-			l.add(DataSource.QUOTATIONS.DAY_VOLUME_FIELD);
-			l.add(DataSource.QUOTATIONS.CURRENCY_FIELD);
-			l.add(DataSource.QUOTATIONS.SYMBOL_FIELD);
-			l.add(DataSource.QUOTATIONS.ISIN_FIELD);
-			return l;
-		}
-
-
 	}
 
 	public static class SHARES {

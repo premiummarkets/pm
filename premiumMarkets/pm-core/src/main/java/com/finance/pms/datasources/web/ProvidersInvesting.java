@@ -98,7 +98,7 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 						(responseEntity.getContentEncoding().getValue().equals("br"))?
 								new BrotliInputStream(responseEntity.getContent()):responseEntity.getContent()))) {
 					DayQuoteInvestingFormater dayQuoteInvestingFormater = new DayQuoteInvestingFormater(null, stock);
-					Date lastMarketCloseDate = DateFactory.midnithDate(DateFactory.lastMarketCloseTime(end).getTime());
+					Date lastMarketCloseDate = end;
 					String line = "";
 					while ((line = content.readLine()) != null) {
 						System.out.println(line);

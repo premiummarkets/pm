@@ -65,7 +65,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
@@ -118,7 +117,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), chartTarget.getChartedEvtDefsTrends(), IndicatorCalculationServiceMain.UI_ANALYSIS);
+			SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), chartTarget.getChartedEvtDefsTrends(), SelectedIndicatorsCalculationService.UI_ANALYSIS);
 			setChanged();
 			notifyObservers(eventsForStock);
 		}

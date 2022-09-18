@@ -58,6 +58,7 @@ import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.UserPortfolio;
 import com.finance.pms.threads.ConfigThreadLocal;
 
+@Deprecated
 public class AssVieScanner implements MyBeanFactoryAware {
 	
 	private final MyLogger LOGGER = MyLogger.getLogger(AssVieScanner.class);

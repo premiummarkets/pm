@@ -135,25 +135,10 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 		observers = new HashSet<Observer>();
 	}
 
-//	public StockList retrieveStockListFromCmdLine(List<String> listStocks, StockList stockList, String quotationsProvider) {
-//		LOGGER.info("From Command Line : ");
-//
-//		StockList cmdStockList = new StockList(new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(quotationsProvider), SymbolNameResolver.UNKNOWNEXTENSIONCLUE), listStocks);
-//		LOGGER.guiInfo("Number of stocks retrieved from command line : "+cmdStockList.size());
-//		
-//		//Merge
-//		for (Stock stock : cmdStockList) {
-//			stock.retrieveStock(stockList, this.getSharesListIdEnum().getSharesListCmdParam());
-//		}
-//		
-//		return stockList;
-//	}
 
     public abstract String getStockRefName(Stock stock);
 
     public abstract void retrieveAndCompleteStockInfo(Stock stock, StockList stockList);
-    
-//    public abstract void retrieveScreeningInfo(Collection<Stock> shareListInDB);
 
 	protected void buildLookupDeleteReq(List<Validatable> deleteS, List<Validatable> deleteL, Stock s) {
 		

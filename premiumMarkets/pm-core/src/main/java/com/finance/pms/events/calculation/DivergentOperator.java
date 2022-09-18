@@ -65,6 +65,7 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 	private HighLowSolver highLowSolver;
 
 	private Quotations quotationsCopy;
+	@SuppressWarnings("unused")
 	private double[] closeValues;
 
 	public DivergentOperator(EventInfo eventInfo, Observer ...observers) {

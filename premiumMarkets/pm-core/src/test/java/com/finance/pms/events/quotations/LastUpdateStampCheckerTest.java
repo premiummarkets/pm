@@ -33,145 +33,161 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
-import static org.powermock.api.easymock.PowerMock.replayAll;
-import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.events.calculation.DateFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(DateFactory.class)
+@PrepareForTest({DateFactory.class, QuotationsFactories.class})
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*" })
-//FIXME rewrite as LastUpdateStampChecker has been rewritten.
 public class LastUpdateStampCheckerTest {
 
-	private static final String ASSET = "BLABLAStock";
+	private String ASSET;
 	LastUpdateStampChecker checker;
 
 	@Before
 	public void setUp() {
 		checker = new LastUpdateStampChecker();
+		ASSET = "BLABLAStock" + UUID.randomUUID().toString();
+	}
+	
+	@After
+	public void tearDown() {
+		checker.resetAsset(ASSET);
 	}
 
 	@Test
-	public void testIsUpdateGranted() {
+	public void testIsUpdateGrantedContinuous() {
 
 		checker.resetAsset(ASSET);
 
-		mockStatic(DateFactory.class); // on the 2020/01/01 at 5PM US
-		Calendar todayCal = Calendar.getInstance(Locale.US);
-		todayCal.set(Calendar.HOUR_OF_DAY, 17);
-		todayCal.set(2020, 00, 01);
-		expect(DateFactory.getNowEndDateCalendar()).andReturn(todayCal).anyTimes();
-		Calendar zeroCal = Calendar.getInstance();
-		zeroCal.set(1970, 0, 1, 0, 0, 0);
-		zeroCal.set(Calendar.MILLISECOND, 0);
-		expect(DateFactory.dateAtZero()).andReturn(zeroCal.getTime()).anyTimes();
-		replayAll();
-
-		Calendar blablaStockQuoteCal = Calendar.getInstance(Locale.US); // on the 2019/12/30 at 00.00 US
-		blablaStockQuoteCal.setTime(todayCal.getTime());
-		blablaStockQuoteCal.add(Calendar.DAY_OF_YEAR, -2);
-		blablaStockQuoteCal.set(Calendar.HOUR_OF_DAY, 0);
-		blablaStockQuoteCal.set(Calendar.MINUTE, 0);
-		blablaStockQuoteCal.set(Calendar.SECOND, 0);
-		blablaStockQuoteCal.set(Calendar.MILLISECOND, 0);
+		PowerMock.mockStaticPartial(DateFactory.class, "getNowEndDateTime");
 		
-		Calendar lastMarketCal = Calendar.getInstance(Locale.US); // on the 2019/12/30 at 00.00 US
-		lastMarketCal.setTime(todayCal.getTime());
-		lastMarketCal.add(Calendar.DAY_OF_YEAR, -1);
-		lastMarketCal.set(Calendar.HOUR_OF_DAY, 0);
-		lastMarketCal.set(Calendar.MINUTE, 0);
-		lastMarketCal.set(Calendar.SECOND, 0);
-		lastMarketCal.set(Calendar.MILLISECOND, 0);
+		Calendar todayCal = Calendar.getInstance(Locale.US); // on the Wed 2020/01/01 at 12.00 US (before market close)
+		todayCal.set(Calendar.HOUR_OF_DAY, 12);
+		todayCal.set(2020, 00, 01);
+		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		
+		PowerMock.mockStatic(QuotationsFactories.class);
+		expect(QuotationsFactories.getFactory()).andReturn(new ClosedDayQuotationsFactory()).anyTimes();
+	
+		PowerMock.replayAll();
+		
+		Calendar expectedLastMarketCloseCal = Calendar.getInstance(Locale.US); // on the Tue 2019/12/31 at 00.00 US
+		expectedLastMarketCloseCal.setTime(todayCal.getTime());
+		expectedLastMarketCloseCal.add(Calendar.DAY_OF_YEAR, -1);
+		expectedLastMarketCloseCal.set(Calendar.HOUR_OF_DAY, 0);
+		expectedLastMarketCloseCal.set(Calendar.MINUTE, 0);
+		expectedLastMarketCloseCal.set(Calendar.SECOND, 0);
+		expectedLastMarketCloseCal.set(Calendar.MILLISECOND, 0);
+
+		Calendar lastStockQuoteCal = Calendar.getInstance(Locale.US); // on the Mon 2019/12/30 at 00.00 US
+		lastStockQuoteCal.setTime(todayCal.getTime());
+		lastStockQuoteCal.add(Calendar.DAY_OF_YEAR, -2);
+		lastStockQuoteCal.set(Calendar.HOUR_OF_DAY, 0);
+		lastStockQuoteCal.set(Calendar.MINUTE, 0);
+		lastStockQuoteCal.set(Calendar.SECOND, 0);
+		lastStockQuoteCal.set(Calendar.MILLISECOND, 0);
+		
 		{
-			// First attempt works (Last Market close should be 2019/12/31) as the entry is
-			// not created yet in the json
-			Boolean firstAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+			// First attempt works (Last Market close should be Tue 2019/12/31) as the entry is not created yet in the json
+			Boolean firstAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 			assertTrue(firstAttempt);
 			assertEquals(Integer.valueOf(0), checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-			assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+			assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 
 			// Quote is D-2, //last Market is D-0 => if no Quote is Not updated, we expect
 			// MAXATTEMPTS and fatalThreshold inc to 1 after this
 			// MAXATTEMPTS are granted
 			for (int i = 1; i <= LastUpdateStampChecker.MAXRETRY; i++) {
-				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 				assertEquals(Integer.valueOf(i), checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-				assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+				assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 				assertTrue(inRowAttempt);
 			}
 			assertEquals(0, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 
 			// MAXATTEMPTS + 1 without quotation won't be granted
-			Boolean secondAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+			Boolean secondAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 			assertFalse(secondAttempt);
 			assertEquals((int) LastUpdateStampChecker.MAXRETRY + 1, (int) checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-			assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+			assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 			assertEquals(1, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 		}
+		
+		PowerMock.reset(DateFactory.class);
 
-		//Next hour
-		// Quote is D-3, //last Market is D-1 => if no Quote is Not updated, we expect
+		//Today After market close
+		// Quote is D-2, //last Market is D-0 => if no Quote is Not updated, we expect
 		// again MAXATTEMPTS and fatalThreshold inc to 2 after this
 		// One hour later (New Last Market close data)
-		todayCal.add(Calendar.HOUR_OF_DAY, +1);
-		lastMarketCal.add(Calendar.DAY_OF_YEAR, +1);
+		todayCal.set(Calendar.HOUR_OF_DAY, 23);// 18 + 5 US closure time
+		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		PowerMock.replayAll();
+		
+		expectedLastMarketCloseCal.add(Calendar.DAY_OF_YEAR, +1);
 		{
 			// MAXATTEMPTS are granted
 			for (int i = 0; i <= LastUpdateStampChecker.MAXRETRY; i++) {
-				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 				assertEquals(Integer.valueOf(i), checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-				assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+				assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 				assertTrue(inRowAttempt);
 			}
 			assertEquals(1, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 
 			// MAXATTEMPTS + 1 without quotation won't be granted
-			Boolean secondAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+			Boolean secondAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 			assertFalse(secondAttempt);
 			assertEquals((int) LastUpdateStampChecker.MAXRETRY + 1, (int) checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-			assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+			assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 			assertEquals(2, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 		}
 		
-		//Next Day
-		// Quote is D-4, //last Market is D-1 => if no Quote is Not updated, we expect
+		PowerMock.reset(DateFactory.class);
+		
+		//Next Day After close
+		// Quote is D-3, //last Market is D-1 => if no Quote is Not updated, we expect
 		// again MAXATTEMPTS and fatalThreshold inc to 2 after this
 		// One hour later (New Last Market close data)
-		addOneOpenDay(todayCal, lastMarketCal);
+		addOneOpenDay(todayCal, expectedLastMarketCloseCal);
+		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		PowerMock.replayAll();
 		{
 			// MAXATTEMPTS -1 are granted
 			for (int i = 0; i < LastUpdateStampChecker.MAXRETRY; i++) {
-				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 				assertEquals(Integer.valueOf(i), checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-				assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+				assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 				assertTrue(inRowAttempt);
 			}
 			assertEquals(2, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 			
-		//Then if we inc the quote at MAXATTEMPTS
-			blablaStockQuoteCal.add(Calendar.DAY_OF_YEAR, +3);
-			Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+			//Then if we inc the quote at MAXATTEMPTS
+			lastStockQuoteCal.add(Calendar.DAY_OF_YEAR, +3);
+			Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 			assertFalse(inRowAttempt);
 			assertEquals((int) 0, (int) checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-			assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+			assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 
 			// MAXATTEMPTS + 1 without quotation won't be granted so no Attempt inc is made
-			Boolean secondAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+			Boolean secondAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 			assertFalse(secondAttempt);
 			assertEquals((int) 0, (int) checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-			assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+			assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 			//Does not move in this test has it should be reset from quotation when new are available
 			assertEquals(2, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 		}
@@ -182,21 +198,24 @@ public class LastUpdateStampCheckerTest {
 		//The quotation asset to its death
 		for (int k = 3; k <= LastUpdateStampChecker.MAXATTEMPTSFATAL; k++) {
 			System.out.println("k:" + k);
-			addOneOpenDay(todayCal, lastMarketCal);
+			PowerMock.reset(DateFactory.class);
+			addOneOpenDay(todayCal, expectedLastMarketCloseCal);
+			expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+			PowerMock.replayAll();
 			{
 				// MAXATTEMPTS are granted
 				for (int i = 0; i <= LastUpdateStampChecker.MAXRETRY; i++) {
 					System.out.println("i:" + i);
-					Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+					Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 					assertTrue(inRowAttempt);
 					assertEquals(Integer.valueOf(i), checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-					assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+					assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 				}
 				//Next one is not
-				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+				Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 				assertFalse(inRowAttempt);
 				assertEquals((int)LastUpdateStampChecker.MAXRETRY + 1, (int) checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
-				assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+				assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 				assertEquals(k, (int) checker.getLastUpdateStampRecord(ASSET).getFatalThreshold());
 			}
 		}
@@ -204,12 +223,15 @@ public class LastUpdateStampCheckerTest {
 		//After death (always false)
 		for (int k = 1; k < 10; k++) {
 			{
-				addOneOpenDay(todayCal, lastMarketCal);
+				PowerMock.reset(DateFactory.class);
+				addOneOpenDay(todayCal, expectedLastMarketCloseCal);
+				expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+				PowerMock.replayAll();
 				// MAXATTEMPTS are granted
 				for (int i = 0; i <= LastUpdateStampChecker.MAXRETRY; i++) {
-					Boolean inRowAttempt = checker.isUpdateGranted(ASSET, blablaStockQuoteCal.getTime());
+					Boolean inRowAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.CONTINUOUS);
 					assertFalse(inRowAttempt);
-					assertEquals(lastMarketCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+					assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
 					assertEquals(LastUpdateStampChecker.MAXRETRY +1, (int)checker.getLastUpdateStampRecord(ASSET).getNbAttempts()); //Will never reset from there
 					System.out.println("getNbAttempts: " + checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
 				}
@@ -219,8 +241,52 @@ public class LastUpdateStampCheckerTest {
 		}
 		
 		
-		verifyAll();
+		PowerMock.verifyAll();
 
+	}
+	
+	@Test
+	public void testIsUpdateGrantedNonStop() {
+
+		checker.resetAsset(ASSET);
+
+		PowerMock.mockStaticPartial(DateFactory.class, "getNowEndDateTime");
+		
+		Calendar todayCal = Calendar.getInstance(Locale.UK); // on the Wed 2020/01/01 at 21 UK (before market close: 5 AM the next day)
+		todayCal.set(Calendar.HOUR_OF_DAY, 21);
+		todayCal.set(2020, 00, 01);
+		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		
+		PowerMock.mockStatic(QuotationsFactories.class);
+		expect(QuotationsFactories.getFactory()).andReturn(new ClosedDayQuotationsFactory()).anyTimes();
+	
+		PowerMock.replayAll();
+		
+		Calendar expectedLastMarketCloseCal = Calendar.getInstance(Locale.UK); // on the Tue 2019/12/31 at 00.00 UK
+		expectedLastMarketCloseCal.setTime(todayCal.getTime());
+		expectedLastMarketCloseCal.add(Calendar.DAY_OF_YEAR, -1);
+		expectedLastMarketCloseCal.set(Calendar.HOUR_OF_DAY, 0);
+		expectedLastMarketCloseCal.set(Calendar.MINUTE, 0);
+		expectedLastMarketCloseCal.set(Calendar.SECOND, 0);
+		expectedLastMarketCloseCal.set(Calendar.MILLISECOND, 0);
+
+		Calendar lastStockQuoteCal = Calendar.getInstance(Locale.UK); // on the Mon 2019/12/31 at 00.00 UK
+		lastStockQuoteCal.setTime(todayCal.getTime());
+		lastStockQuoteCal.add(Calendar.DAY_OF_YEAR, -1);
+		lastStockQuoteCal.set(Calendar.HOUR_OF_DAY, 0);
+		lastStockQuoteCal.set(Calendar.MINUTE, 0);
+		lastStockQuoteCal.set(Calendar.SECOND, 0);
+		lastStockQuoteCal.set(Calendar.MILLISECOND, 0);
+		
+		{
+			// First attempt works (Last Market close should be Tue 2019/12/31) as the entry is not created yet in the json
+			Boolean firstAttempt = checker.isUpdateGranted(ASSET, lastStockQuoteCal.getTime(), DateFactory.UStoGBUTCTimeLag(), TradingMode.NON_STOP);
+			assertEquals(Integer.valueOf(0), checker.getLastUpdateStampRecord(ASSET).getNbAttempts());
+			assertEquals(expectedLastMarketCloseCal.getTime(), checker.getLastUpdateStampRecord(ASSET).getLastAttemptDate());
+			assertFalse(firstAttempt);
+		}
+		
+		
 	}
 
 	private void addOneOpenDay(Calendar todayCal, Calendar lastMarketCal) {

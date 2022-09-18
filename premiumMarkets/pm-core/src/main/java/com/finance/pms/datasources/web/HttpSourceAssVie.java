@@ -29,6 +29,7 @@
  */
 package com.finance.pms.datasources.web;
 
+@Deprecated
 public class HttpSourceAssVie extends HttpSourceEuroNext {
 
 	public HttpSourceAssVie(String pathToprops, MyBeanFactoryAware beanFactory) {

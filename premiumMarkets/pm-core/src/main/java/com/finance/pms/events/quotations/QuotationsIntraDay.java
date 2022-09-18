@@ -61,7 +61,7 @@ public abstract class QuotationsIntraDay extends Quotations {
 		if (!inOpenHours) {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(lastDate);
-			calendar.setTime(QuotationsFactories.getFactory().getValidQuotationDateBefore(calendar.getTime()));
+			calendar.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(calendar.getTime()));
 			lastDate = calendar.getTime();
 		}
 		

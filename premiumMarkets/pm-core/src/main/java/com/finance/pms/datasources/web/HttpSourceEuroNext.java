@@ -55,6 +55,7 @@ import com.finance.pms.threads.SourceConnector;
 public class HttpSourceEuroNext extends HttpSource implements SourceConnector {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceEuroNext.class);
+	@SuppressWarnings("unused")
 	private PoolSemaphore threadPool;
 
 	public HttpSourceEuroNext(String pathToprops, MyBeanFactoryAware beanFactory) {
@@ -156,6 +157,7 @@ public class HttpSourceEuroNext extends HttpSource implements SourceConnector {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 //		return new GetMethod(url.getUrl());
 		return null;

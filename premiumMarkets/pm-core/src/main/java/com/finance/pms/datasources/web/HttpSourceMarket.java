@@ -48,6 +48,7 @@ public abstract class HttpSourceMarket extends HttpSource implements SourceConne
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		return new HttpGet(url.getUrl());
 	}

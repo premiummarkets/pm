@@ -58,6 +58,7 @@ import com.finance.pms.datasources.currency.CurrencyRate;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.HttpSourceExchange;
 import com.finance.pms.datasources.web.MyBeanFactoryAware;
 import com.finance.pms.events.calculation.DateFactory;
@@ -100,7 +101,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			LastUpdateStampChecker lastUpdateChecker = QuotationsFactories.getFactory().checkLastQuotationUpdateFor();
 			Boolean isUpdateGranted = false;
 			synchronized (lastUpdateChecker) {
-				isUpdateGranted = lastUpdateChecker.isUpdateGranted(fromCurrency.toString() + " to " + toCurrency.toString(), lastCurrencyRateDate);
+				isUpdateGranted = lastUpdateChecker.isUpdateGranted(fromCurrency.toString() + " to " + toCurrency.toString(), lastCurrencyRateDate, DateFactory.UStoGBUTCTimeLag(), TradingMode.NON_STOP); //US market close, non stop trading
 			}
 			
 			if (dbRates.isEmpty() || lastCurrencyRateDate.before(today)) {
@@ -265,7 +266,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		//		Boolean theDayBeforeYesterdayWasNotBank = yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY;
 		//		
 		//		return (noCurrentData && lastUpdateWasNotYeasterday && yesterdayWasNotBank && lastUpdateWasNotTheDayBeforeYeasterday && theDayBeforeYesterdayWasNotBank);
-		Date lastOpenDayBeforeToday = QuotationsFactories.getFactory().getValidQuotationDateBefore(today);
+		Date lastOpenDayBeforeToday = QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(today);
 		Boolean isMissingOpenDays = lastCachedDate.before(lastOpenDayBeforeToday);
 
 		return isMissingOpenDays;

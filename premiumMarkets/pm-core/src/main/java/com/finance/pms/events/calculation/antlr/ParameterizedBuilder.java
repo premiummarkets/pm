@@ -49,9 +49,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
@@ -600,7 +600,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 	private void invalidateOperations(List<Operation> impactedOps) {
-		impactedOps.stream().forEach(o -> o.invalidateOperation(IndicatorCalculationServiceMain.UI_ANALYSIS, Optional.empty()));
+		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.UI_ANALYSIS, Optional.empty()));
 	}
 
 

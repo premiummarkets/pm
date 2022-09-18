@@ -74,6 +74,7 @@ public class HttpSourceInvestir extends HttpSource implements SourceConnector {
 //	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		return new HttpGet(url.getUrl());
 	}

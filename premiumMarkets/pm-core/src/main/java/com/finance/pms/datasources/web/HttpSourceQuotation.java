@@ -83,6 +83,7 @@ public abstract class HttpSourceQuotation extends HttpSource {
 		return retour;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		return new HttpGet(url.getUrl());

@@ -68,6 +68,7 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 		
 	}
 
+	@SuppressWarnings("unused")
 	private String getMarketStockListBaseURL() {
 		StringBuilder httpq = new StringBuilder("http://finance.google.com/finance?");
 		httpq.append("gl=us&hl=en&output=json&start=0&noIL=1&restype=company");
@@ -182,6 +183,7 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		// TODO Auto-generated method stub
 		return null;

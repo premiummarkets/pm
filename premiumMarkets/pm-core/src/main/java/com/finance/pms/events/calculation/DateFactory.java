@@ -36,10 +36,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Market;
+import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class DateFactory {
@@ -112,6 +113,19 @@ public class DateFactory {
 		}
 	}
 	
+	public static Date getNowEndDateTime() {
+		if (ENDDATE != null) {
+			return new Date(ENDDATE.getTime());
+		} else {
+			Calendar nowEndDateCalendar = getNowEndDateCalendar();
+			nowEndDateCalendar.set(Calendar.HOUR_OF_DAY, 18 + 5); //End std trading US 18hours (GMT) + 5hours
+			nowEndDateCalendar.set(Calendar.MINUTE, 0);
+			nowEndDateCalendar.set(Calendar.SECOND, 0);
+			nowEndDateCalendar.set(Calendar.MILLISECOND, 0);
+			return nowEndDateCalendar.getTime();
+		}
+	}
+	
 	public static void forceEndDate(Date date) {
 		ENDDATE = date;
 	}
@@ -136,31 +150,41 @@ public class DateFactory {
 	}
 	
 	/**
-	 * Now will always be after the last market close time
-	 * @param now
+	 * actualDateTime will always be after the last market close time returned
+	 * @param actualDateTime
 	 * @return
 	 */
-	public static Calendar lastMarketCloseTime(Date now) {
+	public static Date endDateFix(Date actualDateTime, int utcTimeLag, TradingMode tradingMode) {
 		
-		Calendar calendar = Calendar.getInstance(Locale.US); //XXX This is for Yahoo and other US markets //FIXME should take in account the market specific closing time for each stock
- 		calendar.setTime(now);
-		
-		int toDay = calendar.get(Calendar.DAY_OF_WEEK);
-		if (Calendar.SATURDAY == toDay) {
-			calendar.add(Calendar.DAY_OF_YEAR, -1);
-		} else if (Calendar.SUNDAY == toDay) {
-			calendar.add(Calendar.DAY_OF_YEAR, -2);
-		} else if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {//Now is before 6PM, we take the previous day
-			calendar.add(Calendar.DAY_OF_YEAR, -1);
+		Date actualDate = DateFactory.midnithDate(actualDateTime);
+		Calendar marketClosureCal = Calendar.getInstance();
+		if (tradingMode.equals(TradingMode.NON_STOP)) {
+			marketClosureCal.setTime(actualDate); //Today 1 minute before midnight
+			marketClosureCal.set(Calendar.HOUR_OF_DAY, 23 - utcTimeLag);
+			marketClosureCal.set(Calendar.MINUTE, 59);
+		} else { //skip week ends
+			marketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
+			marketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //at market closure time (inc time lag)
 		}
 		
-		calendar.set(Calendar.HOUR_OF_DAY, 0);
-		calendar.set(Calendar.MINUTE, 0);
-		calendar.set(Calendar.SECOND, 0);
-		calendar.set(Calendar.MILLISECOND, 0);
+		Date marketClosure = marketClosureCal.getTime();
 		
-		return calendar;
+		Date endDate;
+		if (actualDateTime.compareTo(marketClosure) < 0) { //Before closure
+			marketClosureCal.add(Calendar.HOUR_OF_DAY, + utcTimeLag); //Fixing the potential added/removed day to get the Locale day.
+			marketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+			Date previousMarketClosure = marketClosureCal.getTime();
+			endDate = DateFactory.midnithDate(previousMarketClosure);
+		} else { //After Closure
+			endDate = DateFactory.midnithDate(marketClosure);
+		}
+		
+		return endDate;
+		
 	}
-
+	
+	public static int UStoGBUTCTimeLag() {
+		return Market.NASDAQ.getUTCTimeLag() - Market.LSE.getUTCTimeLag();
+	}
 
 }

@@ -70,33 +70,33 @@ public class BoursoramaHttpClient {
 //		}
 //	}
 
-	private void splitCookie(String headerValue) {
-		String[] headerNVPairs = headerValue.split(";");
-		String name = null, value = null, expires = null, path = null, domain = null;
-		boolean first = true;
-		for (String nvPairString : headerNVPairs) {
-			String nvPair[] = nvPairString.split("=");
-			String n = nvPair[0].trim();
-			String v = nvPair[1].trim();
-			if (first) {
-				name = n;
-				value = v;
-				first= false;
-			} else {
-				if (n.equals("expires")) {
-					expires = v;
-				}
-				if (n.equals("path")) {
-					path = v;
-				}
-				if (n.equals("domain")) {
-					domain = v; //.replaceFirst(".","");
-				}
-			}
-		}
-		
-//		this.createSessionCookie(domain, name, value, path, expires);
-	}
+//	private void splitCookie(String headerValue) {
+//		String[] headerNVPairs = headerValue.split(";");
+//		String name = null, value = null, expires = null, path = null, domain = null;
+//		boolean first = true;
+//		for (String nvPairString : headerNVPairs) {
+//			String nvPair[] = nvPairString.split("=");
+//			String n = nvPair[0].trim();
+//			String v = nvPair[1].trim();
+//			if (first) {
+//				name = n;
+//				value = v;
+//				first= false;
+//			} else {
+//				if (n.equals("expires")) {
+//					expires = v;
+//				}
+//				if (n.equals("path")) {
+//					path = v;
+//				}
+//				if (n.equals("domain")) {
+//					domain = v; //.replaceFirst(".","");
+//				}
+//			}
+//		}
+//		
+////		this.createSessionCookie(domain, name, value, path, expires);
+//	}
 	
 //	private void addReceivedCookies(MyHttpClient httpclient, HttpMethod httpMethod, String... additionalCookies) {
 //

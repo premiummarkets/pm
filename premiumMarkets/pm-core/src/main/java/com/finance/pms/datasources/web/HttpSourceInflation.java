@@ -82,6 +82,7 @@ public class HttpSourceInflation extends HttpSource implements SourceConnector {
 
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpGet getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 		return new HttpGet(url.getUrl());
 	}

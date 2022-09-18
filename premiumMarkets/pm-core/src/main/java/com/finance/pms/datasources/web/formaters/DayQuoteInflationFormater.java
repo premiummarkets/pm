@@ -50,7 +50,7 @@ public class DayQuoteInflationFormater extends LineFormater {
 	
 	protected Currency currency; 
 
-	private Pattern endTable;
+	//private Pattern endTable;
 	private Pattern fullYearPattern;
 	
 	private Integer year;
@@ -77,7 +77,7 @@ public class DayQuoteInflationFormater extends LineFormater {
 			LOGGER.debug("", e);
 		}
 
-		endTable = Pattern.compile(DayQuoteInflationFormater.PATTERNS.getProperty("inflationrateendtable"));
+		//endTable = Pattern.compile(DayQuoteInflationFormater.PATTERNS.getProperty("inflationrateendtable"));
 		fullYearPattern = Pattern.compile(DayQuoteInflationFormater.PATTERNS.getProperty("inflationrateyearline"));
 		
 	}

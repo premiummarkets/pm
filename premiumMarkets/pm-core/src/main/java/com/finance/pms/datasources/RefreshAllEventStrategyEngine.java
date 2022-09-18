@@ -40,7 +40,6 @@ import java.util.Set;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.http.HttpException;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
@@ -127,7 +126,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 				//Calculations
 				IndicatorAnalysisCalculationRunnableMessage actionThread = 
 						new IndicatorAnalysisCalculationRunnableMessage(
-								SpringContext.getSingleton(), analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
+								SpringContext.getSingleton(), analyzer, SelectedIndicatorsCalculationService.UI_ANALYSIS, periodType, 
 								sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, 
 								engineObservers.toArray(new Observer[0]));
 				try {
@@ -149,7 +148,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		EventsResources.getInstance().crudDeleteEventsForIndicators(IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefsArray);
+		EventsResources.getInstance().crudDeleteEventsForIndicators(SelectedIndicatorsCalculationService.UI_ANALYSIS, eventDefsArray);
 
 		//Delete all
 		postCallBackForClean(true);

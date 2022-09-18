@@ -271,6 +271,7 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 	
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	protected HttpUriRequest getRequestMethod(MyUrl url) throws UnsupportedEncodingException {
 //		PostMethod  httpget = new PostMethod(url.getUrl());
 //		addRequestParams(httpget,url.getHttpParams());

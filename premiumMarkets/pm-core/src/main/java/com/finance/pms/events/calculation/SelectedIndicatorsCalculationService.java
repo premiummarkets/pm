@@ -32,6 +32,11 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 public class SelectedIndicatorsCalculationService {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(SelectedIndicatorsCalculationService.class);
+	
+	public static final String COMMAND_LINE_ANALYSIS = "cmdLineAnalysis";
+	public static final String AUTOPORTFOLIO = "AutoPortfolio";
+	public static final String WEB_ANALYSIS = "WebAnalysis";
+	public static final String UI_ANALYSIS = "UiAnalysis";
 
 	public class QuotesBounds {
 

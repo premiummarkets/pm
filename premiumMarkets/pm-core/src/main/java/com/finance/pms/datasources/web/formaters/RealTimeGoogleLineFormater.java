@@ -42,6 +42,7 @@ import com.finance.pms.events.quotations.DateToMinutesOTDConverter;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
+@SuppressWarnings("unused")
 public class RealTimeGoogleLineFormater extends LineFormater {
 
 

@@ -49,6 +49,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
+@Deprecated //Old native indicators can be now obtained using the parameterised
 public class FirstPassIndicatorCalculationThread extends IndicatorsCalculationThread {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(FirstPassIndicatorCalculationThread.class);

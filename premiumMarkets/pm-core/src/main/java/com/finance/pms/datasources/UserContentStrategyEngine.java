@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
@@ -120,7 +119,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
-					SpringContext.getSingleton(), analyzer, IndicatorCalculationServiceMain.UI_ANALYSIS, periodType, 
+					SpringContext.getSingleton(), analyzer, SelectedIndicatorsCalculationService.UI_ANALYSIS, periodType, 
 					stockList, datedeb, datefin, 
 					engineObservers.toArray(new Observer[0])); 
 
@@ -137,13 +136,13 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 								.filter(e -> e instanceof EventDefinition)
 								.map(e -> ((EventInfo) e))
 								.toArray(EventInfo[]::new);
-						TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eiArray);
+						TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, SelectedIndicatorsCalculationService.UI_ANALYSIS, eiArray);
 
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
 								.filter(e -> e instanceof  EventInfoOpsCompoOperation)
 								.forEach(e ->
-										((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(IndicatorCalculationServiceMain.UI_ANALYSIS, Optional.of(stock)));
+										((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(SelectedIndicatorsCalculationService.UI_ANALYSIS, Optional.of(stock)));
 					});
 					viewStateParams[1] = null;
 				}
@@ -226,7 +225,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					". Will delete : " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
 			
 			if (eventDefsArray.length > 0) { //None selected means no delete
-				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefsArray);
+				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, SelectedIndicatorsCalculationService.UI_ANALYSIS, eventDefsArray);
 			}
 
 			for (Observer observer : engineObservers) {

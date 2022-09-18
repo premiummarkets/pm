@@ -35,12 +35,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.events.calculation.DateFactory;
 import com.google.common.io.Files;
 import com.google.common.reflect.TypeToken;
@@ -70,19 +70,20 @@ public class LastUpdateStampChecker {
 		this.stampRecords = lastUpdatesRead();
 	}
 
-	public Boolean isUpdateGranted(String asset, Date lastQuoteDateForAsset) {
+	//FIXME in the same way as the fix in GetQuotation, calculate the end date from the actualDateTime and set it as last update date
+	//Compare the attempt time stamp with Mc (see GetQuotations) which should give which end date was attempted already.
+	public Boolean isUpdateGranted(String asset, Date lastQuoteDateForAsset, int utcTimeLag, TradingMode tradinMode) {
 		
 		LastUpDateStampRecord timeStampOfLastUpdate = getLastUpdateStampRecord(asset);
 		
 		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
-		Date now = DateFactory.getNowEndDateCalendar().getTime(); //Today midnight date. This can also be random date in the past depending on the DateFactory.ENDDATE settings.
-		Calendar lastMarketCloseBeforeNow = DateFactory.lastMarketCloseTime(now); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM
-		Date lastMrktCloseBeforeNowDate = lastMarketCloseBeforeNow.getTime();
+		Date now = DateFactory.getNowEndDateTime(); //Today actual date time. This can also be random date in the past depending on the DateFactory.ENDDATE settings.
+		Date lastMrktCloseBeforeNowDate = DateFactory.endDateFix(now, utcTimeLag, tradinMode); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM !!US!!
 		try {
 
-			if (lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) == 0) {//Already up to date
+			if (lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) >= 0) {//Already up to date
 				timeStampOfLastUpdate.resetNbAttemts();
-				LOGGER.info( asset + " is up to date");
+				LOGGER.info(asset + " is up to date. Last market close (with UTC lag " + utcTimeLag + "): " + lastMrktCloseBeforeNowDate + " <= " + "Last quote: " + lastQuoteDateForAsset);
 				return false;
 			}
 			
@@ -93,7 +94,7 @@ public class LastUpdateStampChecker {
 			
 			//Should be == as can't be < as timeStampOfLastUpdate is updated with lastMrktCloseBeforeNowDate
 			//so we always have timeStampOfLastUpdate <= lastMrktCloseBeforeNowDate
-			if ( lastMrktCloseBeforeNowDate.compareTo(timeStampOfLastUpdate.getLastAttemptDate()) == 0 ) { 
+			if (lastMrktCloseBeforeNowDate.compareTo(timeStampOfLastUpdate.getLastAttemptDate()) == 0 ) { 
 				LOGGER.info( asset + " Has Failed previous update.");
 				//Latest actual close day 6PM at Now == Last close day recorded for asset: don't update more then MAXATTEMPTS
 				//This means we already have tried update with the actual market data available
@@ -102,13 +103,13 @@ public class LastUpdateStampChecker {
 				//accumulation
 				if (timeStampOfLastUpdate.getNbAttempts() == MAXRETRY +1 && 
 						lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) < 0) {//Needs update but failed
-						timeStampOfLastUpdate.incFatalThreshold();
+						timeStampOfLastUpdate.incFatalThreshold(); //Dead
 				}
 				
 				//New attempt
 				if (timeStampOfLastUpdate.getNbAttempts() <= MAXRETRY &&
-					lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) < 0) {
-					LOGGER.info( asset + " is NOT up to date. New Potential market data. Retrying...");
+					lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) < 0) {//Needs update but failed
+					LOGGER.info( asset + " is NOT up to date and may have new market data. Retrying...");
 					return true;
 				}
 

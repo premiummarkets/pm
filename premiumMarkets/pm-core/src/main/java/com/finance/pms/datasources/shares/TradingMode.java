@@ -34,7 +34,8 @@ public enum TradingMode {
 	UNKNOWN ("Unknown"),
 	CONTINUOUS ("Continuous"),
 	DOUBLE_CALL_AUCTION("Double call auction"),
-	CALL_AUCTION ("Call auction");
+	CALL_AUCTION ("Call auction"),
+	NON_STOP("Non Stop");
 	
 	
 	String tradingModeLabel;

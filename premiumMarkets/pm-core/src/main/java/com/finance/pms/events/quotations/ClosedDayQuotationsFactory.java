@@ -107,14 +107,14 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 	private void fillEdgeGap(Calendar calendar, double amountSign) {
 		if (amountSign > 0) {
-			calendar.setTime(getValidQuotationDateAfter(calendar.getTime()));
+			calendar.setTime(getValidQuotationDateAfterOrAt(calendar.getTime()));
 		} else {
-			calendar.setTime(getValidQuotationDateBefore(calendar.getTime()));
+			calendar.setTime(getValidQuotationDateBeforeOrAt(calendar.getTime()));
 		}
 	}
 
 
-	public  Date getValidQuotationDateAfter(Date date) {
+	public  Date getValidQuotationDateAfterOrAt(Date date) {
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -134,7 +134,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 
-	public  Date getValidQuotationDateBefore(Date date) {
+	public  Date getValidQuotationDateBeforeOrAt(Date date) {
 
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -225,6 +225,20 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 					double[] value = Arrays.stream(quotationDataTypes).map(qt -> qU.getData(qt).doubleValue()).mapToDouble(d -> d).toArray();
 					result.put(qU.getDate(), value);
 				},
+				TreeMap::putAll);
+	}
+	
+	@Override
+	public SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations) throws NotEnoughDataException {
+		return quotations.getQuotationData().stream().collect(
+				TreeMap::new,
+				(result, qU) -> result.put(qU.getDate(), new double[] {
+						qU.getData(QuotationDataType.OPEN).doubleValue(),
+						qU.getData(QuotationDataType.HIGH).doubleValue(),
+						qU.getData(QuotationDataType.LOW).doubleValue(),
+						qU.getData(QuotationDataType.CLOSE).doubleValue(),
+						qU.getData(QuotationDataType.VOLUME).doubleValue()
+						}),
 				TreeMap::putAll);
 	}
 

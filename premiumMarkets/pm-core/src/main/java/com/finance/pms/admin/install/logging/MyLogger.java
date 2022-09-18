@@ -198,11 +198,11 @@ public class MyLogger {
 				if (isLocal) {
 					
 					try {
-						System.out.println("Local host connection to " + MyLogger.mailTo);
+						System.out.println("Email settings: Local host to " + MyLogger.mailTo);
 						MyLogger.session = Session.getInstance(mailSessionProps, null);
 						//MyLogger.session.setDebug(true);
 					} catch (Exception e) {
-						System.out.println("Local host connection is invalid");
+						System.out.println("Email settings: Local host connection is invalid");
 						e.printStackTrace();
 					}
 
@@ -220,54 +220,54 @@ public class MyLogger {
 
 					InternetAddress senderAddress;
 					try {
-						System.out.println("Testing Auth TLS connection from " + MyLogger.mailFrom);
+						System.out.println("Email settings: Testing Auth TLS connection from " + MyLogger.mailFrom);
 						senderAddress = new InternetAddress(MyLogger.mailFrom);
 					} catch (Exception e) {
-						System.out.println("Testing Auth TLS connection with from " + MyLogger.mailUserName);
+						System.out.println("Email settings: Testing Auth TLS connection with from " + MyLogger.mailUserName);
 						senderAddress = new InternetAddress(MyLogger.mailUserName);
 					}
 					
-					System.out.println("Testing Auth TLS session params: " + mailSessionProps);
+					System.out.println("Email settings: Testing Auth TLS session params: " + mailSessionProps);
 					buildAuthSession(mailSessionProps);
 					Transport transport = MyLogger.session.getTransport("smtp");
 					MimeMessage testMsg = buildTestMessage(senderAddress);
 					try {
 						transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 						transport.sendMessage(testMsg, testMsg.getAllRecipients());
-						System.out.println("Auth TLS connection is valid");
+						System.out.println("Email settings: Auth TLS connection is valid");
 					} catch (Exception e) {
-						System.out.println("Auth TLS connection is invalid : "+ e.toString());
+						System.out.println("Email settings: Auth TLS connection is invalid : "+ e.toString());
 						mailSessionProps.put("mail.smtp.auth", "true");
 						mailSessionProps.put("mail.smtp.starttls.enable", "false");
 						mailSessionProps.put("mail.smtp.port", "465");
 						mailSessionProps.put("mail.smtp.socketFactory.host", MyLogger.mailHost);
 						mailSessionProps.put("mail.smtp.socketFactory.port", "465");
 						mailSessionProps.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
-						System.out.println("Testing Auth TLS session params: " + mailSessionProps);
+						System.out.println("Email settings: Testing Auth TLS session params: " + mailSessionProps);
 						buildAuthSession(mailSessionProps);
 						transport = MyLogger.session.getTransport("smtp");
 						testMsg = buildTestMessage(senderAddress);
 						try {
 							transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 							transport.sendMessage(testMsg, testMsg.getAllRecipients());
-							System.out.println("Auth SSL connection is valid");
+							System.out.println("Email settings: Auth SSL connection is valid");
 						} catch (Exception e1) {
-							System.out.println("Auth SSL connection is invalid : "+ e1.toString());
+							System.out.println("Email settings: Auth SSL connection is invalid : "+ e1.toString());
 							mailSessionProps.put("mail.smtp.auth", "false");
 							mailSessionProps.put("mail.smtp.starttls.enable", "false");
 							mailSessionProps.put("mail.smtp.port", "25");
-							System.out.println("Testing Auth TLS session params: " + mailSessionProps);
+							System.out.println("Email settings: Testing Auth TLS session params: " + mailSessionProps);
 							buildAuthSession(mailSessionProps);
 							transport = MyLogger.session.getTransport("smtp");
 							testMsg = buildTestMessage(senderAddress);
 							try {
-								System.out.println("Testing Non Auth session: ");
+								System.out.println("Email settings: Testing Non Auth session: ");
 								transport.connect(MyLogger.mailUserName, MyLogger.mailPassword);
 								transport.sendMessage(testMsg, testMsg.getAllRecipients());
-								System.out.println("Non Auth SMTP connection is valid");
+								System.out.println("Email settings: Non Auth SMTP connection is valid");
 							} catch (Exception e2) {
-								System.out.println("Non Auth SMTP connection is invalid : "+ e2.toString());
-								System.out.println("Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..."); 
+								System.out.println("Email settings: Non Auth SMTP connection is invalid : "+ e2.toString());
+								System.out.println("Email settings: Could not set up error msg handling.\nThis feature will be disabled until you set up your smtp connection in Settings ..."); 
 								if (MyLogger.mailActivationType.equals("true")) {
 									MainPMScmd.getMyPrefs().put("mail.log.activated", "failed");
 									MainPMScmd.getMyPrefs().flushy();

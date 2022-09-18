@@ -145,8 +145,8 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     	
     	Calendar startDayMidNight = Calendar.getInstance();
 		startDayMidNight.setTime(end);
-		startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
-		Date endPlusOne = startDayMidNight.getTime();
+//		startDayMidNight.add(Calendar.DAY_OF_YEAR, 1);
+//		Date endPlusOne = startDayMidNight.getTime();
     	
     	DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -154,7 +154,7 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 		String symbol = stock.getSymbol();
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^"+symbol;
 		
-		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(endPlusOne));
+		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end));
 		Process p = pb.start();
 		 
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -189,7 +189,8 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
      * @throws InvalidAlgorithmParameterException
      * @throws HttpException
      */
-    private List<Validatable> readPythonPageJython(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException, HttpException {
+    @SuppressWarnings("unused")     //Test method
+	private List<Validatable> readPythonPageJython(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException, HttpException {
 
         try (PythonInterpreter python = new PythonInterpreter()) {
         	

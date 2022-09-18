@@ -45,13 +45,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
@@ -101,7 +101,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	private String buyPonderationRule = MainPMScmd.getMyPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getMyPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
-	private String configListFileName = IndicatorCalculationServiceMain.UI_ANALYSIS;
+	private String configListFileName = SelectedIndicatorsCalculationService.UI_ANALYSIS;
 
 	//Roc
 	private int rocNNeuralHouseTrendPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("rocnneural.houseTrendPeriod", "21"));

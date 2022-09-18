@@ -72,6 +72,7 @@ import com.finance.pms.threads.ObserverMsg;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated //Use 	SelectedIndicatorCalculationService instead??
 public class CommonIndicatorCalculationService extends IndicatorsCalculationService {
 
 	/** The LOGGER. */

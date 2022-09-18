@@ -47,7 +47,6 @@ import java.util.SortedMap;
 
 import org.apache.http.HttpException;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
@@ -58,6 +57,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
@@ -440,7 +440,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, SortedMap<EventKey, EventValue> evtDefEvents, Date start, Date end) {
 		try {
 
-			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, IndicatorCalculationServiceMain.UI_ANALYSIS, eventDefinition, evtDefEvents, tuningResObs);
+			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, SelectedIndicatorsCalculationService.UI_ANALYSIS, eventDefinition, evtDefEvents, tuningResObs);
 			return tuningRes;
 
 		} catch (NotEnoughDataException e) {

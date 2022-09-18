@@ -42,9 +42,9 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public interface QuotationsFactory {
 
-    public abstract Date getValidQuotationDateBefore(Date date);
+    public abstract Date getValidQuotationDateBeforeOrAt(Date date);
 
-    public abstract Date getValidQuotationDateAfter(Date date);
+    public abstract Date getValidQuotationDateAfterOrAt(Date date);
 
     public abstract Date shiftToOpeningTime(Calendar calendar);
 
@@ -114,6 +114,8 @@ public interface QuotationsFactory {
 	default SortedMap<Date, Double> buildExactSMapFromQuotationsClose(Quotations quotations, int from, int toInclusive) throws NotEnoughDataException {
 		throw new NotImplementedException("TODO");
 	}
+
+	SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations) throws NotEnoughDataException;
 
 
 

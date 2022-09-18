@@ -36,13 +36,13 @@ import java.util.List;
 import java.util.Observer;
 import java.util.Set;
 
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.SpringContext;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.AlertCalculationRunnableMessage;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.UserPortfolio;
@@ -66,7 +66,7 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 		Date endDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		
 		UserPortfolio[] userPortfolios = viewStateParams[0].toArray(new UserPortfolio[0]);
-		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), IndicatorCalculationServiceMain.UI_ANALYSIS, endDate, userPortfolios);
+		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), SelectedIndicatorsCalculationService.UI_ANALYSIS, endDate, userPortfolios);
 		alertOnThresholdAnalyser.runAlertsOnThresholdCalculation();
 		
 	}

@@ -74,7 +74,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
-import com.finance.pms.IndicatorCalculationServiceMain;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.MainPMScmd;
@@ -105,6 +104,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.pounderationrules.DataResultReversedComparator;
 import com.finance.pms.events.pounderationrules.DefaultPonderationRule;
 import com.finance.pms.events.pounderationrules.EventValuesComparator;
@@ -1065,7 +1065,7 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 		try {
 			Date filterDateStart = getFilterDate();
-			EventsResources.getInstance().updateEventsTabsByCriteriaAndDate(filterDateStart, infCrit, supCrit, action.getPonderationRule(), action.getIndicators(), IndicatorCalculationServiceMain.UI_ANALYSIS);
+			EventsResources.getInstance().updateEventsTabsByCriteriaAndDate(filterDateStart, infCrit, supCrit, action.getPonderationRule(), action.getIndicators(), SelectedIndicatorsCalculationService.UI_ANALYSIS);
 			stockFilter();
 
 		} catch (InvalidAlgorithmParameterException e) {

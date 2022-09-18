@@ -245,7 +245,7 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 
 			LOGGER.debug("Fetching quotations for Ticker: " + stock);
-			GetQuotation command = new GetQuotation(DateFactory.getNowEndDate(), stock, forceReset, forceUpdate);
+			GetQuotation command = new GetQuotation(DateFactory.getNowEndDateTime(), stock, forceReset, forceUpdate);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
 			}
