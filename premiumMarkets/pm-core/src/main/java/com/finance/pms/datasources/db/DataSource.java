@@ -985,7 +985,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					stackString = stackString + "\n"+ stackTraceElement.toString();
 				}
 			}
-			LOGGER.info("Db connexion 	url : " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx") + " -  Stack trace : " + stackString);
+			LOGGER.debug("Db connexion 	url : " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx") + " -  Stack trace : " + stackString);
 		} 
 
 		catch (SQLException e) {

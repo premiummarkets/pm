@@ -19,6 +19,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
 
+@SuppressWarnings("all") //FIXME
 public class RefiterOperation extends DoubleMapOperation implements CachableOperation {
 	
 	public RefiterOperation() {

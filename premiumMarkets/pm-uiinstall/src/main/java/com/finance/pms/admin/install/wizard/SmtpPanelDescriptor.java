@@ -49,7 +49,7 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
     
     public static final String IDENTIFIER = "SMTP_PANEL";
     SmtpPanel panel3;
-    static Properties p;
+    static Properties properties;
     File pfile;
 	private MyWizard wizard;
     
@@ -79,12 +79,12 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
     @Override
 	public void aboutToDisplayPanel() {
         setNextButtonAccordingToForm();
-		p = new Properties();
+		properties = new Properties();
 		
 		try {
 			pfile = new File(InstallFolderPanel.getInstallFolder().getAbsoluteFile() + File.separator + "db.properties");
 			FileInputStream propFileIS = new FileInputStream(pfile);
-			p.load(propFileIS);
+			properties.load(propFileIS);
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -109,13 +109,14 @@ public class SmtpPanelDescriptor extends WizardPanelDescriptor implements Action
 	public void aboutToHidePanel() {
 		super.aboutToHidePanel();
 		for (int i =0; i < panel3.jtxt.length; i++) {
-			p.put(SmtpPanel.keys[i], panel3.jtxt[i].getText());
+			properties.put(SmtpPanel.keys[i], panel3.jtxt[i].getText());
 		}
-		Object value = p.get("mail.from");
-		if (value != null) p.put("mail.to", value);
+		Object mailFromValue = properties.get("mail.from");
+		Object mailToValue = properties.get("mail.to");
+		if (mailToValue == null && mailFromValue != null) properties.put("mail.to", mailFromValue);
 		
 		try {
-			p.store(new FileOutputStream(pfile), "Added settings properties from install");
+			properties.store(new FileOutputStream(pfile), "Added settings properties from install");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

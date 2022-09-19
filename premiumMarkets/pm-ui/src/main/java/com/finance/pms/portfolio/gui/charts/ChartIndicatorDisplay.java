@@ -749,9 +749,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					try {
 						//Export
-						String filePath = System.getProperty("installdir")+File.separator+"tmp";
-						String fileName = filePath+File.separator+actionDialog.values[0]+".png";
-						if (new File(fileName).exists()) throw new InvalidParameterException("File "+fileName+" already exists!");
+						String filePath = System.getProperty("installdir") + File.separator + "tmp";
+						String fileName = filePath + File.separator + actionDialog.values[0] + ".png";
+						if (new File(fileName).exists()) throw new InvalidParameterException("File " + fileName + " already exists!");
 						chartTarget.getMainChartWraper().exportChart(fileName);
 					} catch (InvalidParameterException e) {
 						throw e;

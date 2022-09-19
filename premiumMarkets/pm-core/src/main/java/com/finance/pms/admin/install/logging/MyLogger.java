@@ -647,8 +647,8 @@ public class MyLogger {
 								}
 
 							} catch (Throwable e) {
-								delegateLogger.error("Can't open error Popup for acknowledgement.");
-								e.printStackTrace();
+								delegateLogger.error("Can't open error Popup for acknowledgement." + e);
+								//e.printStackTrace();
 							}
 
 						} else if (isSendingEmail) {

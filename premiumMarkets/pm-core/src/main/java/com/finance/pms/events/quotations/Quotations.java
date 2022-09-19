@@ -65,7 +65,7 @@ public class Quotations {
 	private static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 
 	public static enum ValidityFilter {
-		ALLVALID, SPLITFREE, CLOSE, OHLC, VOLUME, OHLCV, NONEVALID; //NONEVALID doesn't return anything. ALLVALID could return everything but is not implemented)
+		ALLVALID, SPLITFREE, CLOSE, OHLC, VOLUME, OHLCV, NONEVALID; //NONEVALID doesn't return anything. ALLVALID should return all quotes as in the db.
 		
 		static ValidityFilter[] allActualFilters = EnumSet.<ValidityFilter>range(CLOSE, NONEVALID).toArray(new ValidityFilter[0]);
 		
@@ -208,7 +208,7 @@ public class Quotations {
 		this.setUnfilteredQuotationData(requestedQuotationsData);
 
 		if (!hasQuotations()) {
-			throw new NoQuotationsException("No quotation available for "+this.stock+" within "+firstDate+" and "+lastDate+ " and filters "+cacheFilter+", "+otherCacheFilters);
+			throw new NoQuotationsException("No quotation available for " + this.stock + " within " + firstDate + " and " + lastDate +  " and filters " + cacheFilter + ", " + otherCacheFilters);
 		}
 	}
 
@@ -648,7 +648,9 @@ public class Quotations {
 	protected void setUnfilteredQuotationData(QuotationData unfilteredQuotationData) {
 		this.quotationDataFilters = new HashMap<String, QuotationData>();
 		this.quotationDataFilters.put(ValidityFilter.ALLVALID.name(), unfilteredQuotationData);
-
+		if (cacheFilter.equals(ValidityFilter.ALLVALID)) {
+			return;
+		}
 		String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
 		quotationDataFilters.put(filterName, buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters));
 	}
@@ -656,14 +658,17 @@ public class Quotations {
 
 	protected QuotationData getQuotationData() {
 
-		String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
-		QuotationData quotationData = quotationDataFilters.get(filterName);
-		if (quotationData == null) {
-			quotationData = buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters);
-			quotationDataFilters.put(filterName, quotationData);
+		if (cacheFilter.equals(ValidityFilter.ALLVALID)) {
+			return quotationDataFilters.get(ValidityFilter.ALLVALID.name());
+		} else {
+			String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
+			QuotationData quotationData = quotationDataFilters.get(filterName);
+			if (quotationData == null) {
+				quotationData = buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters);
+				quotationDataFilters.put(filterName, quotationData);
+			}
+			return quotationData;
 		}
-
-		return quotationData;
 
 	}
 

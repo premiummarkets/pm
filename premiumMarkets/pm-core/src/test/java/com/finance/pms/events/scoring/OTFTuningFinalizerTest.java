@@ -31,6 +31,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
+@SuppressWarnings("all") //FIXME
 public class OTFTuningFinalizerTest {
 
     private static SpringContext springContext;

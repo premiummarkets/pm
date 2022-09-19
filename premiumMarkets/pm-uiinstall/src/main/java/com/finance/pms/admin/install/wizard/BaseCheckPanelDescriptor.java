@@ -37,13 +37,12 @@ import com.nexes.wizard.WizardPanelDescriptor;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class BaseCheckPanelDescriptor extends WizardPanelDescriptor {
     
 
     public static final String IDENTIFIER = "DB_PANEL";
-	public static final String initDbName = "pmdb-initialdb.tar.bz2";
-    
-    BaseCheckPanel panel2;
+	BaseCheckPanel panel2;
     
     @Deprecated
     public BaseCheckPanelDescriptor() {

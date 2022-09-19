@@ -29,6 +29,7 @@
  */
 package com.finance.pms.weather;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,13 +41,14 @@ import junit.framework.TestCase;
 public class WeatherCheckerTest extends TestCase {
 	
 	WeatherChecker testObject;
+	private SpringContext springContext;
 //	private SimpleDateFormat simpleDateFormat;
 //	private Stock refStock;
 
 	@Before
 	public void setUp() throws Exception {
 		
-		SpringContext springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
+		springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
 		//springContext.setDataSource("/home/guil/Developpement/Quotes/pms/db.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
@@ -55,6 +57,13 @@ public class WeatherCheckerTest extends TestCase {
 //		refStock = AnalysisClient.REF_STOCK;
 		
 	}
+	
+	@After
+	public void tearDown() {
+		springContext.close();
+	}
+	
+	
 	
 	@Test
 	public void test() {

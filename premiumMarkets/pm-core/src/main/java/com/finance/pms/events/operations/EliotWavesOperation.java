@@ -19,6 +19,7 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
  * @author guil
  *
  */
+@SuppressWarnings("all") //TODO WIP
 public class EliotWavesOperation extends EventMapOperation {
 
 	public EliotWavesOperation(String reference, String description, Operation ... operands) {

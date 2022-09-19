@@ -80,6 +80,7 @@ import com.nexes.wizard.WizardPanelDescriptor;
 public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 
     public static final String IDENTIFIER = "PROGRESS_PANEL";
+	public static final String initDbName = "pmdb-initialdb.tar.bz2";
 
     private static int PROGRESSBAR_REALINC = 1;
     private static int PROGRESSBAR_FAKEINC = 0;
@@ -525,7 +526,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
 
             System.out.println("Will try extract or download.");
             try {
-                dbInstaller.extractDataAndSql(dbName, dbInstallUrl, BaseCheckPanelDescriptor.initDbName, installFolder, unCompressData);
+                dbInstaller.extractDataAndSql(dbName, dbInstallUrl, ProgressPanelDescriptor.initDbName, installFolder, unCompressData);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -686,7 +687,7 @@ public class ProgressPanelDescriptor extends WizardPanelDescriptor {
             }
 
             if (tnRef != null) {
-                progress = ( (new Double(tnRef) + delta) / new Double(T_REF) )*100;
+                progress = ( (Double.valueOf(tnRef) + delta) / Double.valueOf(T_REF) )*100;
             }
 
 

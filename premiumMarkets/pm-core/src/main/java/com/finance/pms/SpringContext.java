@@ -333,6 +333,7 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getMyPrefs().put("quotes.sendeventfromui", props.getProperty("quotes.sendeventfromui"));
 			if (props.containsKey("quotes.listproviderindices"))
 				MainPMScmd.getMyPrefs().put("quotes.listproviderindices", props.getProperty("quotes.listproviderindices"));
+			putInPrefs("quotes.yahooFixDumpRootPath", props);
 
 			//Events
 			putInPrefs("event.sendAnalysisEventMsg",props);
@@ -456,7 +457,6 @@ public class SpringContext extends GenericApplicationContext {
 			if (props.containsKey("trend.buythreshold"))
 				MainPMScmd.getMyPrefs().put("trend.buythreshold", props.getProperty("trend.buythreshold"));
 			putInPrefs("marketlistretrieval.trendSuppNeeded",props);
-
 			//Gnu
 			if (props.containsKey("gnurepport.dateformat"))
 				MainPMScmd.getMyPrefs().put("gnurepport.dateformat", props.getProperty("gnurepport.dateformat"));

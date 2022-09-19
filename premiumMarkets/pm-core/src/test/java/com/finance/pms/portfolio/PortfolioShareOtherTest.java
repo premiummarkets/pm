@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,11 +64,12 @@ public class PortfolioShareOtherTest extends TestCase {
 	PortfolioShare testObject;
 	private Date currentDate;
 	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yy");
+	private SpringContext springContext;
 	
 	@Before
 	public void setUp() {
 		
-		SpringContext springContext = new SpringContext(System.getProperty("installdir") + File.separator +"db.properties");
+		springContext = new SpringContext(System.getProperty("installdir") + File.separator +"db.properties");
 		//springContext.setDataSource(System.getProperty("installdir") + File.separator +"db.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
@@ -82,6 +84,11 @@ public class PortfolioShareOtherTest extends TestCase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	@After
+	public void tearDown() {
+		springContext.close();
 	}
 	
 	@Test

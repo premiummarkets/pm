@@ -101,7 +101,8 @@ public class QuotationFixerTest {
 		QuotationsFactories.getFactory().getQuotationsInstance(stocks.get(0), DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
 	}
 
-	@Test
+	//@Test
+	@Deprecated
 	public void testCheckCounterSplit() {
 		//List<Stock> loadShares = loadStocksUK();
 		//loadShares = loadShares.subList(0, 50); //Test

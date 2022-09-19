@@ -29,6 +29,7 @@
  */
 package com.finance.pms.talib.indicators;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,14 +37,16 @@ import com.finance.pms.SpringContext;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 
+@SuppressWarnings("unused")
 public class LinearRegressionTest {
 	
 	LinearRegression linearRegression;
+	private SpringContext springContext;
 	
 	@Before
 	public void setUp() throws Exception {
 		
-		SpringContext springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
+		springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
 		//springContext.setDataSource("/home/guil/Developpement/Quotes/pms/db.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
@@ -52,6 +55,11 @@ public class LinearRegressionTest {
 		Stock stock = DataSource.getInstance().loadStockBySymbol("DJI");
 		//linearRegression = new LinearRegression(stock, new SimpleDateFormat("yyyy-MM-dd").parse("1970-01-01"), new Date(), stock.getMarketValuation().getCurrency());
 		linearRegression = new LinearRegression(); //FIXME
+	}
+	
+	@After
+	public void tearDown() {
+		springContext.close();
 	}
 
 	@Test

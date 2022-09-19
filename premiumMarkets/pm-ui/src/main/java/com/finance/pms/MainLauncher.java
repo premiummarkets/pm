@@ -44,6 +44,7 @@ import com.finance.pms.events.calculation.DateFactory;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class MainLauncher {
 	
 	/** The LOGGER. */

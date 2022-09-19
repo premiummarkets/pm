@@ -31,6 +31,7 @@ package com.finance.pms.talib.indicators;
 
 import java.text.ParseException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,11 +39,19 @@ import com.finance.pms.SpringContext;
 import com.finance.pms.events.quotations.NoQuotationsException;
 
 public class SMATest {
+	private SpringContext springContext;
+
+
 	@Before
 	public void setUp() throws Exception {
 		
-		SpringContext springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
+		springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
 		springContext.standardInit(new String[]{"/home/guil/Developpement/Quotes/pms/db.properties"});
+	}
+	
+	@After
+	public void tearDown() {
+		springContext.close();
 	}
 
 	//@Test

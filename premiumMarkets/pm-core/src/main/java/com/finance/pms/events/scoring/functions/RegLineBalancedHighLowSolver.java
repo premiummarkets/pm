@@ -46,7 +46,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
  * @author Guillaume Thoreton
  *
  */
-
+@SuppressWarnings("all") //FIXME
 public class RegLineBalancedHighLowSolver implements HighLowSolver {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(RegLineBalancedHighLowSolver.class);

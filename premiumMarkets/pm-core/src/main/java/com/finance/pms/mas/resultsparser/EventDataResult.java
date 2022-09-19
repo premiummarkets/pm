@@ -33,12 +33,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.finance.pms.events.EventDefinition;
+import com.finance.pms.events.EventType;
+import com.finance.pms.events.EventValue;
 import com.finance.pms.mas.dataresults.DataResultKey;
-import com.finance.pms.mas.dataresults.DataResultValue;
 
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class EventDataResult.
  * 
@@ -75,12 +76,12 @@ public class EventDataResult implements Result {
 	}
 
 	public Object getValue() {
-		return new DataResultValue(date,eventdef, eventtype);
+		return new EventValue(date, EventDefinition.valueOf(eventdef), EventType.valueOf(eventtype),"");
 	}
 
 
 	@Override
 	public String toString() {
-		return date.toString()+" ; "+eventdef+" ; "+eventtype;
+		return date.toString() + " ; " + eventdef + " ; " + eventtype;
 	}
 }

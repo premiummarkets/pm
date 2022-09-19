@@ -61,8 +61,13 @@ import com.finance.pms.threads.ConfigThreadLocal;
  * 
  * @author Guillaume Thoreton
  */
-@Deprecated //IndicatorsCalculationService use SelectedIndicatorsCalculationService instead??
+@Deprecated
 @SuppressWarnings("unused")
+/**
+ * @deprecated UserPorfoliosUpdate instead
+ * @author guil
+ *
+ */
 public class IndicatorCalculationServiceMain {
 	
 	/** The LOGGER. */

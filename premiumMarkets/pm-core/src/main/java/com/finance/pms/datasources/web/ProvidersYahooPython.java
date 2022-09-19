@@ -42,7 +42,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -114,13 +113,17 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     @Override
     public void getQuotes(Stock stock, Date start, Date end) throws HttpException, SQLException {
 
-        if (stock.getSymbol() == null) throw new RuntimeException("Error : no Symbol for " + stock.toString());
+        if (stock.getSymbol() == null) throw new RuntimeException("Error: no Symbol for " + stock.toString());
+        
+        YahooPythonQuotationFixer yahooPythonQuotationFixer = new YahooPythonQuotationFixer(python_py, stock, end);
+        yahooPythonQuotationFixer.fixQuotations();
+        
 
         List<ValidatableDated> readPage = null;
         try {
         	readPage = readPythonPage(stock, start, end).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
         } catch (IOException e1) {
-        	LOGGER.error(e1);
+        	LOGGER.warn(e1);
             return;
         }
         if (readPage == null) throw new HttpException();
@@ -144,9 +147,6 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     }
 
     private List<Validatable> readPythonPage(Stock stock, Date start, Date end) throws IOException {
-    	
-    	Calendar startDayMidNight = Calendar.getInstance();
-		startDayMidNight.setTime(end);
     	
     	DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -177,6 +177,7 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 		
 		LOGGER.info("validatable: " + validatables.stream().map(v -> v.toDataBase()));
 		return validatables;
+		
 	}
 
 	/**

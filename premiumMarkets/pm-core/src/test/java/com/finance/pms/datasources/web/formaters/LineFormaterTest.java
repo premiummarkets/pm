@@ -77,8 +77,7 @@ public class LineFormaterTest extends TestCase {
 	@Test
 	public final void testFormatLine() {
 		
-		try {
-			BufferedReader reader = new BufferedReader(
+		try (BufferedReader reader = new BufferedReader(
 					//new FileReader("/home/guil/Developpement/Quotes/pms/tmp/ASXListedCompanies.csv"));
 					//new FileReader("/home/guil/Developpement/Quotes/pms/tmp/EQ230109.CSV"));
 					//new FileReader("/home/guil/Developpement/Quotes/pms/tmp/cp.html"));
@@ -86,7 +85,7 @@ public class LineFormaterTest extends TestCase {
 					//new  FileReader("/home/guil/tmp/ReutersFTSE.html"));
 					//new  FileReader("/home/guil/tmp/ReutersDAX.html"));
 					//new  FileReader("/home/guil/tmp/ReutersFCHI.html"));
-					new FileReader("/home/guil/tmp/Reutersdji.html"));
+					new FileReader("/home/guil/tmp/Reutersdji.html"));) {
 			String line;
 			for (;(line=reader.readLine()) != null; ) {
 				List<Validatable> stock = formater.formatLine(line);

@@ -41,6 +41,7 @@ import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.NameValuePair;
+import org.junit.After;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.datasources.db.Validatable;
@@ -55,15 +56,18 @@ import junit.framework.TestCase;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
+@SuppressWarnings("all")
 public class HttpSourceBoursoramaTestCase extends TestCase {
 
 	/** The http source. */
 	HttpSourceBoursorama httpSource;
+	private SpringContext springContext;
 
 
 	@Override
 	protected void setUp() {
-		SpringContext springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
+		springContext = new SpringContext("/home/guil/Developpement/Quotes/pms/db.properties");
 		//springContext.setDataSource("/home/guil/Developpement/Quotes/pms/db.properties");
 		springContext.loadBeans("/connexions.xml", "/swtclients.xml","/talibanalysisservices.xml");
 		springContext.refresh();
@@ -72,6 +76,12 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 		//httpSource = (HttpSourceBoursorama) boursoramaProvider.getHttpSource();
 
 	} 
+	
+	
+	@After
+	public void tearDown() {
+		springContext.close();
+	}
 	
 	public void test() {
 		assertTrue(true);

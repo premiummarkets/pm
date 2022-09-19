@@ -845,9 +845,8 @@ public class ChartMain extends Chart {
 	}
 
 	public void exportChart(String path) throws FileNotFoundException, IOException {
-
+		mainPlot.getRenderer(1).removeAnnotations();
 		ChartUtilities.writeChartAsPNG(new FileOutputStream(new File(path)), this.jFreeChart, 700, 600);
-
 	}
 
 	public void slideChart(int increment, Rectangle2D plotarea) {
