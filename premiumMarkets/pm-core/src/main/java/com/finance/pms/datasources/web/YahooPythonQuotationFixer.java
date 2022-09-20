@@ -114,7 +114,7 @@ public class YahooPythonQuotationFixer {
 			}
 			
 			LOGGER.info("Count of descrepencies in db: " + validatables.size());
-			LOGGER.info(validatables);
+			LOGGER.debug(validatables);
 			
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(validatables), new ArrayList<>());
 			

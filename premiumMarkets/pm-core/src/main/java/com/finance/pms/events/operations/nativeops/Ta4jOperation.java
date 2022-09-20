@@ -56,6 +56,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 		this.setOutputSelector(outputSelector);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
