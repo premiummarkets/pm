@@ -73,26 +73,27 @@
 	<bean id="investirProviderSource" class="com.finance.pms.datasources.web.ProvidersInvestir">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="INVESTIR" />
-		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
-		<property name="shareDAO" ref="shareDAO"/> -->
 	</bean>
 	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPython" parent="provider"  destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOO" />
-		<!-- <property name="portfolioDAO" ref="portfolioDAO"/>
-		<property name="shareDAO" ref="shareDAO"/> -->
-	</bean>
-	<bean id="yahooCrumbProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooCrumb">
-		<constructor-arg type="java.lang.String" value="${dbproperites_file}" />
-		<property name="sharesListId" value="YAHOOCRUMB" />
 	</bean>
 	<bean id="googleProviderSource" class="com.finance.pms.datasources.web.ProvidersGoogle"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
+	<bean id="dixHuitDixHuitProviderSource" class="com.finance.pms.datasources.web.Provider1818"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="DIXHUITDIXHUIT" />
+	</bean>
 	<bean id="investingProviderSource" class="com.finance.pms.datasources.web.ProvidersInvesting"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="INVESTING" />
+	</bean>
+	<bean id="operationProviderSource" class="com.finance.pms.datasources.web.ProvidersOperation"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<constructor-arg type="com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder" ref="parameterizedOperationBuilder"/>
+		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
 	
 	<!--  Share lists providers -->
@@ -166,11 +167,15 @@
 		<constructor-arg type="java.lang.String" value="nativeOps"/>
 	</bean>
 	
+	<bean id="parsingQueueProvider" class="com.finance.pms.events.calculation.antlr.ParsingQueueProvider"/>
+	
 	<bean id="parameterizedOperationBuilder" class="com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder">
+		<constructor-arg type="com.finance.pms.events.calculation.antlr.ParsingQueueProvider" ref="parsingQueueProvider"/>
 		<constructor-arg type="com.finance.pms.events.NativesXmlManager" ref="nativesXmlManager"/>
 	</bean>
 	
 	<bean id="parameterizedIndicatorsBuilder" class="com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder">
+		<constructor-arg type="com.finance.pms.events.calculation.antlr.ParsingQueueProvider" ref="parsingQueueProvider"/>
 		<constructor-arg type="com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder" ref="parameterizedOperationBuilder"/>
 	</bean>
 
