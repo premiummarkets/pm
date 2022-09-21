@@ -1339,6 +1339,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 
 		@Deprecated
+		/**
+		 * @deprecated Use spring share DAO ??
+		 * @return
+		 */
 		public static String getUPDATELASTQUOTEANDNAME() {
 			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? ," + SHARES.NAME_FIELD + " = ? "
 					+ " where " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";

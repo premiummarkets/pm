@@ -105,7 +105,7 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 		try {
 			
-			LOGGER.info("Processing signals " + getAnalysisName() + " with " + reducedEvents.size() + " events.");
+			LOGGER.info("Processing signals " + getAnalysisName() + " with " + reducedEvents.size() + " events up to " + spanEnd);
 			if (reducedEvents.isEmpty()) return;
 
 			for (String configName : getPassedThroughConfigs().keySet()) {

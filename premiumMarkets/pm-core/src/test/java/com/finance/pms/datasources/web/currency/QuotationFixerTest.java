@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;

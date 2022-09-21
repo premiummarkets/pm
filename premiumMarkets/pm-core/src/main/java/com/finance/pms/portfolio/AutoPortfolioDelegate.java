@@ -104,7 +104,7 @@ public class AutoPortfolioDelegate {
 		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
 			thisCalculationHistory.addAll(this.checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
 		} else {
-			LOGGER.info("No cash left " + canBuy + " at date " + currentDate + ", Can't buy: " + listEvents);
+			LOGGER.info("Not checking buy signals because: Cash amount left: " + canBuy + " at " + currentDate + ". Events: " + listEvents);
 		}
 		
 		thisPortfolio.notifyObservers(new ObserverMsg(null, ObserverMsg.ObsKey.PRGSMSG, "Setting Quotations data"));
@@ -132,6 +132,8 @@ public class AutoPortfolioDelegate {
 	}
 
 	private TransactionHistory checkBuySignals(BuyStrategy buyStrategy, Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
+		
+		LOGGER.info("Checking buy signals at " + currentDate + " for " + listEvents);
 
 		SymbolEvents symbolEventsThreshold = 
 				new SymbolEvents(
@@ -179,6 +181,7 @@ public class AutoPortfolioDelegate {
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
 			try {
+				LOGGER.info("Buying at " + currentDate + " with " + symbolEvents.getSymbol());
 				TransactionRecord buyTrans = buyShare(buyStrategy , symbolEvents, currentDate);
 				if (buyTrans != null) {
 					transactionHistory.add(buyTrans);
@@ -281,6 +284,8 @@ public class AutoPortfolioDelegate {
 	}
 
 	private TransactionHistory checkSellSignals(Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
+		
+		LOGGER.info("Checking sell signals at " + currentDate + " for " + listEvents);
 
 		SymbolEvents symbolEventThreshold = new SymbolEvents(
 				new Stock() {
@@ -355,7 +360,7 @@ public class AutoPortfolioDelegate {
 				PortfolioShare portfolioShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
 
 				if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
-					LOGGER.debug("Nothing to sell. No quantity remaining for this stock : " + portfolioShare + ". It'll remain as is until bought again and stays for portfolio transaction logging.");
+					LOGGER.info("Nothing to sell. No quantity remaining for this stock : " + portfolioShare + ". It'll remain as is until bought again and stays for portfolio transaction logging.");
 					return null;
 				}
 
@@ -364,14 +369,15 @@ public class AutoPortfolioDelegate {
 					LOGGER.info("Already sold with that signal or not bought yet : " + portfolioShare + " last transaction on the " + portfolioShare.getLastTransactionDate());
 					return null;
 				}
-
+				
+				LOGGER.info("Selling at " + currentDate + " with " + symbolEvents.getSymbol());
 				TransactionRecord sellTransactionRecord = sell(symbolEvents, currentDate, unitAmount, portfolioShare);
 				thisPortfolio.setChanged();
 				
 				return sellTransactionRecord;
 
 			} else {
-				LOGGER.debug("Nothing to sell, share " + symbolEvents.getSymbol() + " on event " + symbolEvents + ", is not in shareList.");
+				LOGGER.info("Nothing to sell, share " + symbolEvents.getSymbol() + " on event " + symbolEvents + ", is not in shareList.");
 			}
 
 		} catch (InvalidAlgorithmParameterException e) 	{

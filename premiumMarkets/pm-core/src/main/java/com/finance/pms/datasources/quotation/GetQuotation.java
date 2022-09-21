@@ -123,9 +123,9 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 
 				if (endDate.compareTo(updateStart) >= 0 && (forceReset || forceUpdate || updateGranted)) { //Update granted for today
 
-					LOGGER.guiInfo(	"Updating quotation for " + stock.getFriendlyName() +
-							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 
-							" to " + new SimpleDateFormat("yyyy/MM/dd").format(endDate));
+					LOGGER.guiInfo(	"Updating quotation for " + stock.getFriendlyName() + " ( " + stock.getTradingMode() + " / " + stock.getMarket().getUTCTimeLag() + " ) " +
+							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + " ( last quote +1 )" +
+							" to " + new SimpleDateFormat("yyyy/MM/dd").format(endDate) + " ( end date US Localfixed ) ");
 
 					Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, updateStart, endDate);
 					ret.isSuccessfulUpdate = true;
