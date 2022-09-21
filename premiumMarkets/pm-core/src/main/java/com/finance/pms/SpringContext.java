@@ -539,7 +539,7 @@ public class SpringContext extends GenericApplicationContext {
 						OperationReflectiveGenerator operationReflectiveGenerator = (OperationReflectiveGenerator) SpringContext.getSingleton().getBean("desiredGenericOperationReflectiveGenerator");
 						operationReflectiveGenerators.add(operationReflectiveGenerator);
 					} catch (BeansException e) {
-						System.out.println(e);
+						System.out.println(e + ": No output generator will be available.");
 					}
 
 					parameterizedOperationBuilder.init(

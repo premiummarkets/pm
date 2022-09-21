@@ -292,8 +292,7 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 
     @Override
     public SharesListId getSharesListIdEnum() {
-        // TODO Auto-generated method stub
-        return null;
+        return SharesListId.UNKNOWN;
     }
 
     @Override

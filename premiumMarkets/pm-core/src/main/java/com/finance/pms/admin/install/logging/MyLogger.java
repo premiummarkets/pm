@@ -104,7 +104,8 @@ public class MyLogger {
 			Properties props = new Properties();
 			String dbProperty = System.getProperty("dbproperties");
 			if (dbProperty == null) dbProperty = "db.properties";
-			props.load(new FileInputStream((new File(System.getProperty("installdir")+File.separator+dbProperty))));
+			File propertyFile = new File(System.getProperty("installdir") + File.separator + dbProperty);
+			props.load(new FileInputStream(propertyFile));
 
 			if (props.containsKey("mail.log.delay")) {
 				msgDelay = Long.valueOf(props.getProperty("mail.log.delay"));
@@ -115,10 +116,10 @@ public class MyLogger {
 			if (props.containsKey("mail.log.activated")) {
 				MainPMScmd.getMyPrefs().put("mail.log.activated", props.getProperty("mail.log.activated"));
 				MyLogger.mailActivationType = props.getProperty("mail.log.activated");
-				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in db.properties) : " + MyLogger.mailActivationType);
+				System.out.println("Logger activation status (in accordance with 'mail.log.activated' prop in " + propertyFile.getAbsolutePath() + ") : " + MyLogger.mailActivationType);
 			} else {
-				MyLogger.mailActivationType =  MainPMScmd.getMyPrefs().get("mail.log.activated", "false");
-				System.out.println("Logger activation status (no 'mail.log.activated' prop in db.properties) : " + MyLogger.mailActivationType);
+				MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "false");
+				System.out.println("Logger activation status (no 'mail.log.activated' prop in " + propertyFile.getAbsolutePath() + ") : " + MyLogger.mailActivationType);
 			}
 
 			if (props.containsKey("mail.log.local")) {

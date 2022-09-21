@@ -275,7 +275,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 						try {
 
 							selectedProvider = ProvidersList.getMarketListInstance(item);
-							shareListGroup.setText("Select shares in "+selectedProvider.getSharesListIdEnum().getDescription());
+							shareListGroup.setText("Select shares in " + selectedProvider.getSharesListIdEnum().getDescription());
 
 							getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 							try {

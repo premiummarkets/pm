@@ -70,6 +70,9 @@ import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 import com.finance.pms.threads.ObserverMsg;
 
+/**
+ * XXX Is this and its descendant the only valid MarketListProviders?? 
+ */
 public abstract class ProvidersList extends Providers implements MarketListProvider {
 
 	private class StockSupplementRunnable extends Observable implements Callable<ScreeningSupplementedStock>{
@@ -121,7 +124,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 	}
 
 	private static MarketListProvider getBeanClone(String baseSharesCmdName) {
-		String providerBeanName = baseSharesCmdName+"ProviderSource";
+		String providerBeanName = baseSharesCmdName + "ProviderSource";
 		Providers beanSingleton = (Providers) SpringContext.getSingleton().getBean(providerBeanName);
 		try {
 			Providers newInstance = beanSingleton.getClass().getDeclaredConstructor().newInstance();

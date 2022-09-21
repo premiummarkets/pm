@@ -71,7 +71,7 @@ public class StockListYahooIncideHtmlScrapFormater extends LineFormater {
 	@Override
 	public List<Validatable> formatLine(String line) throws StopParseException {
 		
-		LOGGER.trace(line);
+		LOGGER.info(line);
 		List<Validatable> retour = new ArrayList<Validatable>();
 		
 		try {

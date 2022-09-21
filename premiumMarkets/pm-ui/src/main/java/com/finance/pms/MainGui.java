@@ -1334,10 +1334,10 @@ public class MainGui extends SashForm implements RefreshableView {
 
 		if (hintNumber == 0) {
 
-			LOGGER.info("Mail hint triggered. App termination number "+hintNumber+".");
+			LOGGER.info("Mail hint triggered. App termination number " + hintNumber + ".");
 
 			String email = setupContactEmail();
-			String messageHead = email+"?SUBJECT=You have just been running "+MainGui.APP_NAME+" UI from http://"+siteUrl;
+			String messageHead = email + "?SUBJECT=You have just been running " + MainGui.APP_NAME + " UI from http://" + siteUrl;
 			String messageBody = "";
 			String release = "";
 
@@ -1352,16 +1352,16 @@ public class MainGui extends SashForm implements RefreshableView {
 			messageBody +=
 					"&BODY=" +
 							"Dear sir or Madam,\n\n" +
-							MainGui.APP_NAME+" is an open source and non profitable development work.\n" +
-							"It is a Work In Progress that you and others can benefit from for free.\n"+
+							MainGui.APP_NAME + " is an open source and non profitable development work.\n" +
+							"It is a Work In Progress that you and others can benefit from for free.\n" +
 							"Hence any suggestions or questions are welcome.\n\n" +
-							"Thank you for your time using "+MainGui.APP_NAME+".\n" +
-							"More Info and Automated Markets Trends Forecast engine at http://"+siteUrl+".\n\n\n"+
+							"Thank you for your time using " + MainGui.APP_NAME + ".\n" +
+							"More Info and Automated Markets Trends Forecast engine at http://" + siteUrl + ".\n\n\n" +
 							"Kind Regards,\nGheeyom.\n" +
-							"The "+release+"."+hintNumber ; 
+							"The " + release + "." + hintNumber ; 
 
 			try {
-				URI uriMailTo = new URI("mailto", messageHead+messageBody, null);
+				URI uriMailTo = new URI("mailto", messageHead + messageBody, null);
 				Program.launch(uriMailTo.toString());
 			} catch (URISyntaxException e) {
 				LOGGER.error("Can't send email : "+e.getMessage(),e);
@@ -1374,12 +1374,12 @@ public class MainGui extends SashForm implements RefreshableView {
 			MainPMScmd.getMyPrefs().flushy();
 
 		} else {
-			LOGGER.info("Mail hint already triggered. App termination number "+hintNumber+".");
+			LOGGER.info("Mail hint already triggered. App termination number " + hintNumber + ".");
 		}
 	}
 
 	protected String setupContactEmail() {
-		return "piggymarketsqueak@gmail.com";
+		return MainPMScmd.getMyPrefs().get("mail.to", "admin@premiummarkets.uk");
 	}
 
 	private void rootShellClosedRequested(ShellEvent evt) {
