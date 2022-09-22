@@ -1,2 +1,0 @@
-is bullish when aroonUp crosses up historical aroonDown spanning 25 days and aroonUp is above threshold 90 and aroonDown is below threshold 30 and aroonUp crosses up threshold 50 spanning 25 days over 0.0 days;
-is bearish when aroonDown crosses up historical aroonUp spanning 25 days and aroonDown is above threshold 90 and aroonUp is below threshold 30 and aroonDown crosses up threshold 50 spanning 25 days over 0.0 days;

@@ -1,2 +1,0 @@
-is bullish when chainkin makes a higher low spanning 60 days;
-is bearish when chainkin makes a lower high spanning 60 days;

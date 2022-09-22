@@ -1,2 +1,0 @@
-is bullish when close goes down more than 0.0% spanning 60 days and stoch14 makes a higher low spanning 60 days and stoch14 is below threshold 20 over 60 days;
-is bearish when close goes up more than 0.0% spanning 60 days and stoch14 makes a lower high spanning 60 days and stoch14 is above threshold 80 over 60 days;

@@ -1,2 +1,0 @@
-is bullish when close makes a lower low spanning 40 days;
-is bearish when close makes a higher high spanning 40 days;

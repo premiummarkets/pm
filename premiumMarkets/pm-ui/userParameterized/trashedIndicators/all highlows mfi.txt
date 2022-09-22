@@ -1,2 +1,0 @@
-is bullish when mfi14 makes a lower low spanning 20 days or mfi14 makes a higher low spanning 20 days;
-is bearish when mfi14 makes a higher high spanning 20 days or mfi14 makes a lower low spanning 20 days;

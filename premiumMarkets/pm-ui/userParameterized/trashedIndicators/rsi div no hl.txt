@@ -1,2 +1,0 @@
-is bullish when rsi14 makes a higher low spanning 40 days and close goes down more than 0.0% spanning 40 days and rsi14 is below threshold 30 over 40 days;
-is bearish when rsi14 makes a lower high spanning 40 days and close goes up more than 0.0% spanning 40 days and rsi14 is above threshold 70 over 40 days;
