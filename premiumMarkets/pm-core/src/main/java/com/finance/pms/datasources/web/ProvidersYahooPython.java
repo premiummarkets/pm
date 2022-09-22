@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 import org.apache.http.HttpException;
 import org.python.util.PythonInterpreter;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
@@ -152,26 +153,29 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     	
 		String symbol = stock.getSymbol();
-		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^"+symbol;
+		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^" + symbol;
 		
-		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end));
+		String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
+		ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end));
 		Process p = pb.start();
-		 
-		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		String line = null;
+		
 		List<Validatable> validatables = new ArrayList<Validatable>();
-		while ((line = in.readLine()) != null) {
-			try {
-				LOGGER.info("line: " + line);
-				validatables.addAll(dsf.formatLine(line));
-			} catch (StopParseErrorException e) {
-				LOGGER.warn(e);
-				throw new IOException(
-						"Stop parsing response from python for " + symbol + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
-								"Reason : " + ((StopParseErrorException) e).getReason());
-
-			} catch (AssertionError| Exception e) {
-				LOGGER.debug("Ignoring line :" + line);
+		
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));) {
+			String line = null;
+			while ((line = in.readLine()) != null) {
+				try {
+					LOGGER.info("line: " + line);
+					validatables.addAll(dsf.formatLine(line));
+				} catch (StopParseErrorException e) {
+					LOGGER.warn(e);
+					throw new IOException(
+							"Stop parsing response from python for " + symbol + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
+									"Reason : " + ((StopParseErrorException) e).getReason());
+	
+				} catch (AssertionError| Exception e) {
+					LOGGER.debug("Ignoring line :" + line);
+				}
 			}
 		}
 		

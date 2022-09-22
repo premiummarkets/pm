@@ -105,7 +105,7 @@
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="NSEINDIAINDICES" />
 	</bean>
-    <bean id="yahooIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices" parent="provider">
+    <bean id="yahooIndicesProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPythonIndices" parent="provider" destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOOINDICES" />
 	</bean>
@@ -155,7 +155,7 @@
 		<constructor-arg type="java.lang.String"  value="EURONEXT"/>
 	</bean>
 	
-	<bean id="yahooOddIndiceProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooIndices"  parent="provider">
+	<bean id="yahooOddIndiceProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPythonIndices"  parent="provider" destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOOINDEX" />
 	</bean>

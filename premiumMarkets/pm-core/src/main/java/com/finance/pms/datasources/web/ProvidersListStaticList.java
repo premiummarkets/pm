@@ -31,7 +31,6 @@ package com.finance.pms.datasources.web;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -49,8 +48,6 @@ import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.LineFormater;
-import com.finance.pms.datasources.web.formaters.StockComplementSectorYahooFormater;
-import com.finance.pms.datasources.web.formaters.StockComplementYahooFormater;
 import com.finance.pms.datasources.web.formaters.StockListStaticListFormater;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 
@@ -78,49 +75,50 @@ public class ProvidersListStaticList extends ProvidersList {
 	}
 
 	//TODO this should come in a delegate as it used in several providers eg ProvidersYahooIndices
+	//FIXME yahoo urls are not readable anymore ...
 	@Override
 	public Stock supplement(Stock stock) {
-	try {
-			
-			//isin && name
-			try {
-				try {
-					String url = this.httpSource.getStockInfoPageURL(stock.getSymbol());
-					LOGGER.debug(" Will parse url : "+url);
-					LineFormater dsf = new StockComplementYahooFormater(url, stock);
-					Stock nameIsincompletedStock = (Stock) this.httpSource.readURL(dsf).get(0);
-					stock.resetStock(nameIsincompletedStock);
-				} catch (IndexOutOfBoundsException e) {
-					LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol());
-					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
-					if (stock.getName() == null ) stock.setName(stock.getIsin());
-				} catch (HttpException e) {
-					LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e);
-					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
-					if (stock.getName() == null ) stock.setName(stock.getIsin());
-				}
-			} catch (InvalidAlgorithmParameterException e1) {
-				LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e1);
-			}
-			
-			//sector
-			try {
-				String url = this.getStockInfoPageProfilURL(stock.getSymbol());
-				LineFormater dsf = new StockComplementSectorYahooFormater(url, stock);
-				Stock completedStock = (Stock) this.httpSource.readURL(dsf).get(0);
-				stock.resetStock(completedStock);
-			} catch (IndexOutOfBoundsException e) {
-				LOGGER.warn("Can't supplement symbol with sector (StockComplementSectorYahooFormater) : "+stock.getSymbol());
-				stock.setSectorHint("unknown");
-			} catch (HttpException e) {
-				LOGGER.warn("Can't supplement symbol with sector  (StockComplementSectorYahooFormater) : "+stock.getSymbol());
-				stock.setSectorHint("unknown");
-			}
-		}catch (UnsupportedEncodingException e) {
-			LOGGER.error("Can't supplement symbol  (StockComplementSectorYahooFormater) : "+stock.getSymbol(),e);
-		}
+//	try {
+//			
+//			//isin && name
+//			try {
+//				try {
+//					String url = this.httpSource.getStockInfoPageURL(stock.getSymbol());
+//					LOGGER.debug(" Will parse url : "+url);
+//					LineFormater dsf = new StockComplementYahooFormater(url, stock);
+//					Stock nameIsincompletedStock = (Stock) this.httpSource.readURL(dsf).get(0);
+//					stock.resetStock(nameIsincompletedStock);
+//				} catch (IndexOutOfBoundsException e) {
+//					LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol());
+//					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
+//					if (stock.getName() == null ) stock.setName(stock.getIsin());
+//				} catch (HttpException e) {
+//					LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e);
+//					if (stock.getIsin() == null ) stock.setIsin(stock.getSymbol());
+//					if (stock.getName() == null ) stock.setName(stock.getIsin());
+//				}
+//			} catch (InvalidAlgorithmParameterException e1) {
+//				LOGGER.warn("Can't supplement symbol with isin or name (StockComplementYahooFormater) : "+stock.getSymbol(),e1);
+//			}
+//			
+//			//sector
+//			try {
+//				String url = this.getStockInfoPageProfilURL(stock.getSymbol());
+//				LineFormater dsf = new StockComplementSectorYahooFormater(url, stock);
+//				Stock completedStock = (Stock) this.httpSource.readURL(dsf).get(0);
+//				stock.resetStock(completedStock);
+//			} catch (IndexOutOfBoundsException e) {
+//				LOGGER.warn("Can't supplement symbol with sector (StockComplementSectorYahooFormater) : "+stock.getSymbol());
+//				stock.setSectorHint("unknown");
+//			} catch (HttpException e) {
+//				LOGGER.warn("Can't supplement symbol with sector  (StockComplementSectorYahooFormater) : "+stock.getSymbol());
+//				stock.setSectorHint("unknown");
+//			}
+//		}catch (UnsupportedEncodingException e) {
+//			LOGGER.error("Can't supplement symbol  (StockComplementSectorYahooFormater) : "+stock.getSymbol(),e);
+//		}
 		
-		LOGGER.guiInfo("Updating stock list : "+stock.getSymbol());
+//		LOGGER.guiInfo("Updating stock list : "+stock.getSymbol());
 		return stock;
 	}
 	

@@ -1,9 +1,19 @@
 #------------ Build and Install from source -------------
+
+#Install java
+
+#Install python3 (for yahoo finance data access)
+#Install phyton3 additional packages:
+pip install yfinance requests pandas
+#The path of your python3 executable can be changed after installation
+#in the db.properties file, you will be able to set your own path: quote.pythonPath=C:/../../python3.exe
+
+
 #- Build
 cd premiumMarkets
 
 #-- First time 
-#Create a place holder for the database using apache debry ij command line tool :
+#Create a place holder for the database using apache debry ij command line tool:
 ./ij
 ij>connect 'jdbc:derby:./pm-uiinstall/distrib/derby/premiummarkets;create=true';
 ij>run './pm-uiinstall/distrib/sql/all.sql';
@@ -15,4 +25,6 @@ mvn clean install  -DfailIfNoTests=false -DskipTests=true  -Dsite.url=www.premiu
 
 #- Install
 java -jar ~/.m2/repository/com/finance/pm/pm-uiinstall/0.0.1-SNAPSHOT/pm-uiinstall-0.0.1-SNAPSHOT-allinone.jar
+#Follow the instructions on screen to finish up the install
+
 

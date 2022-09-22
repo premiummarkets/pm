@@ -127,10 +127,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		String providerBeanName = baseSharesCmdName + "ProviderSource";
 		Providers beanSingleton = (Providers) SpringContext.getSingleton().getBean(providerBeanName);
 		try {
-			Providers newInstance = beanSingleton.getClass().getDeclaredConstructor().newInstance();
-			newInstance.httpSource = beanSingleton.httpSource;
-			newInstance.sharesListId = beanSingleton.sharesListId;
-			return (MarketListProvider) newInstance;
+			return (MarketListProvider) beanSingleton.clone();
 		} catch (Exception e) {
 			LOGGER.error(e);
 		}
@@ -272,8 +269,8 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		LOGGER.guiInfo("Number of stocks in the list " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + thisSharesList.getListShares().size());
 		LOGGER.guiInfo("All stocks in the database - updating " + shareListDescrTxt + " - on the " + DateFactory.getNowEndDate() + " : " + dbStocks.size());
 		LOGGER.warn(
-				"Before update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
-				", initial in "+shareListDescrTxt+" share list : " +thisSharesList.getListShares().size(), true);
+				"Before update of: " + shareListDescrTxt +", initial from web: " + listAsFromWeb.size() + ", initial in db " + dbStocks.size() + 
+				", initial in " + shareListDescrTxt + " list: " + thisSharesList.getListShares().size(), true);
 
 		//Completing and adding new from web
 		Set<ScreeningSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<ScreeningSupplementedStock>();

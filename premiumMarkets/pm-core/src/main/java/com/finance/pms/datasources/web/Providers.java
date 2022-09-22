@@ -74,7 +74,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	protected Set<Observer> observers;
 
 	//TODO mv to ProvidersList
-	protected String sharesListId;	
+	protected String sharesListId;
 	protected static final Map<String,SharesListId> shareListIds = new HashMap<>();
 		
 	static	{
@@ -225,6 +225,20 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 		if (observers != null) {
 			this.observers.addAll(observers);
 		} 
+	}
+	
+	
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		
+		try {
+			Providers newInstance = this.getClass().getDeclaredConstructor().newInstance();
+			newInstance.httpSource = this.httpSource;
+			newInstance.sharesListId = this.sharesListId;
+			return newInstance;
+		} catch (Exception e) {
+			throw new CloneNotSupportedException(e.toString());
+		}
 	}
 
 }

@@ -1,0 +1,2 @@
+is bullish when mfi14 makes a higher low spanning 40 days and mfi14 is below threshold 20 over 40 days;
+is bearish when mfi14 makes a lower high spanning 40 days and mfi14 is above threshold 80 over 40 days;

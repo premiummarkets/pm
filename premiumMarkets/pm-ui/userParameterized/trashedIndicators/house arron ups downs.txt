@@ -1,0 +1,2 @@
+is bullish when HouseAroonUp crosses up historical HouseAroonDown spanning 25 days and HouseAroonUp is above threshold 90 and HouseAroonDown is below threshold 30 and HouseAroonUp crosses up threshold 50 spanning 25 days over 0.0 days;
+is bearish when HouseAroonDown crosses up historical HouseAroonUp spanning 25 days and HouseAroonDown is above threshold 90 and HouseAroonUp is below threshold 30 and HouseAroonDown crosses up threshold 50 spanning 25 days over 0.0 days;

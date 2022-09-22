@@ -334,6 +334,7 @@ public class SpringContext extends GenericApplicationContext {
 			if (props.containsKey("quotes.listproviderindices"))
 				MainPMScmd.getMyPrefs().put("quotes.listproviderindices", props.getProperty("quotes.listproviderindices"));
 			putInPrefs("quotes.yahooFixDumpRootPath", props);
+			putInPrefs("quotes.pythonPath",props);
 
 			//Events
 			putInPrefs("event.sendAnalysisEventMsg",props);

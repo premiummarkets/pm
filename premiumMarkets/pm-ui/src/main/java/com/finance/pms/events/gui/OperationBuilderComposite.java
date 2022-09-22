@@ -326,7 +326,7 @@ public class OperationBuilderComposite extends Composite {
 			GridData labelLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
 			labelLayoutData.horizontalSpan = 3;
 			editorLabel.setLayoutData(labelLayoutData);
-			editorLabel.setText("Type in your formula");
+			editorLabel.setText("Type in your formula (Alt+DownArrow for completion)");
 			editorLabel.setFont(MainGui.DEFAULTFONT);
 			editorLabel.setBackground(MainGui.pOPUP_BG);
 
@@ -339,8 +339,8 @@ public class OperationBuilderComposite extends Composite {
 			errorLabel.setFont(MainGui.CONTENTFONT);
 			errorLabel.setForeground(getDisplay().getSystemColor(SWT.COLOR_RED));
 
-			editor = new StyledText(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 			GridData editorLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+			editor = new StyledText(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 			editorLayoutData.horizontalSpan = 3;
 			editor.setLayoutData(editorLayoutData);
 			editor.setFont(MainGui.CONTENTFONT);

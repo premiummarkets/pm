@@ -118,7 +118,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 			try {
 				try {
 					String url = this.httpSource.getStockInfoPageURL(stock.getSymbol());
-					LOGGER.debug(" Will parse url : "+url);
+					LOGGER.debug(" Will parse url : " + url);
 					LineFormater dsf = new StockComplementYahooFormater(url, stock);
 					List<Validatable> readURL = this.httpSource.readURL(dsf);
 					if (!readURL.isEmpty()) {

@@ -210,7 +210,6 @@ public class HttpSourceBoursoramaTestCase extends TestCase {
 //			connectionPost.addParameter("org", "");
 //			connectionPost.addParameter("redirect", "");
 //			connectionPost.addParameter("login", "guitoun");
-//			connectionPost.addParameter("password",  "Luig2000");
 //			connectionPost.addParameter("memo", "oui");
 //			connectionPost.addParameter("submit2", "Se connecter");
 //

@@ -11,3 +11,4 @@
 /build/
 **/venv
 **/.idea
+.pydevproject
