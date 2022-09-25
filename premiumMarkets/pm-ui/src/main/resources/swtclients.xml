@@ -74,7 +74,7 @@
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="INVESTIR" />
 	</bean>
-	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPython" parent="provider"  destroy-method="close">
+	<bean id="yahooProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPythonLocal" parent="provider"  destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="YAHOO" />
 	</bean>
@@ -119,7 +119,7 @@
 	</bean>
 
 	<!--  Others -->
-	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPython"  parent="provider"  destroy-method="close">
+	<bean id="unknownProviderSource" class="com.finance.pms.datasources.web.ProvidersYahooPythonLocal"  parent="provider"  destroy-method="close">
 		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>

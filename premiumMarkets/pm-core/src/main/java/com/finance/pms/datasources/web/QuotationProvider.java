@@ -42,7 +42,14 @@ import com.finance.pms.datasources.shares.Stock;
 
 public interface QuotationProvider {
 	
-	
+	/**
+	 * End is the inferred last quote at the time of running.
+	 * We expect [start, end] (end inclusive)
+	 * @param stock
+	 * @param start
+	 * @param end
+	 * @throws Exception
+	 */
 	public void getQuotes(Stock stock, Date start, Date end) throws Exception;
 	
 	public MyUrl resolveUrlFor(Stock stock, Date start, Date end) throws Exception;

@@ -243,7 +243,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		try {
 			return cache.get(fromCurrency).get(toCurrency);
 		} catch (Exception e) {
-			LOGGER.warn("Cant get rate for "+fromCurrency,e);
+			LOGGER.warn("Cant get rate for " + fromCurrency, e);
 			return new ArrayList<CurrencyRate>();
 		}
 

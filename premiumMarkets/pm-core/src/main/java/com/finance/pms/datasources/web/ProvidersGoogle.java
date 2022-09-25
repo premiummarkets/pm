@@ -126,7 +126,7 @@ public class ProvidersGoogle extends Providers implements MarketListProvider, Qu
 		Market market  = stock.getMarketValuation().getMarket();
 		if ("L".equals(extension)) market =  Market.LSE;
 		
-		String ticker = market.getMarketName()+":"+stock.getSymbol().replaceAll("\\."+extension, "");
+		String ticker = market.getMarketName() + ":" + stock.getSymbol().replaceAll("\\."+extension, "");
 		DateFormat df = new SimpleDateFormat("MMM");
 		
 		url = this.httpSource.getStockQuotationURL(ticker,

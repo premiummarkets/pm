@@ -33,27 +33,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermission;
-import java.security.InvalidAlgorithmParameterException;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
-import org.python.util.PythonInterpreter;
 
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
@@ -73,56 +64,28 @@ import com.finance.pms.portfolio.SharesList;
 /**
  * The MarketListProvider is implemented here solely to handle the UNKNOWN market list (stocks in no particular lists)
  */
-public class ProvidersYahooPython extends Providers implements QuotationProvider, MarketListProvider {
+public abstract class ProvidersYahooPython extends Providers implements QuotationProvider, MarketListProvider {
 
     private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahooPython.class);
-    
-    private Path python_py;
 
-    protected ProvidersYahooPython() {
+    protected ProvidersYahooPython(String pathToProps) {
         super();
-    }
-
-    public ProvidersYahooPython(String pathToProps) {
-        super();
-		try {
-			python_py = Files.createTempFile("yahooQuotes", "py");
-			try (InputStream stream = ProvidersYahooPython.class.getResourceAsStream("/yahooQuotes/main.py")) {
-				Files.copy(stream, python_py, StandardCopyOption.REPLACE_EXISTING);
-				PosixFileAttributeView view = Files.getFileAttributeView(python_py, PosixFileAttributeView.class);
-				if (view != null) {
-					Set<PosixFilePermission> perms = view.readAttributes().permissions();
-					if (perms.add(PosixFilePermission.OWNER_EXECUTE)) {
-						view.setPermissions(perms);
-					}
-				}
-			}
-		} catch (IOException e) {
-			LOGGER.error(e);
-		}
-    }
-    
-    public void close() {
-    	try {
-			Files.delete(python_py);
-		} catch (IOException e) {
-			System.out.println("Error closing ProvidersYahooPython : " + e);
-			e.printStackTrace();
-		}
     }
 
     @Override
     public void getQuotes(Stock stock, Date start, Date end) throws HttpException, SQLException {
 
         if (stock.getSymbol() == null) throw new RuntimeException("Error: no Symbol for " + stock.toString());
-        
-        YahooPythonQuotationFixer yahooPythonQuotationFixer = new YahooPythonQuotationFixer(python_py, stock, end);
-        yahooPythonQuotationFixer.fixQuotations();
-        
-
+       
         List<ValidatableDated> readPage = null;
         try {
-        	readPage = readPythonPage(stock, start, end).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+        	
+        	//Adding on day as it is [start,end[
+        	Calendar calendar = Calendar.getInstance();
+        	calendar.setTime(end);
+        	calendar.add(Calendar.DAY_OF_YEAR, 1);
+        	
+        	readPage = readPythonPage(stock, start, calendar.getTime()).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
         } catch (IOException e1) {
         	LOGGER.warn(e1);
             return;
@@ -150,18 +113,15 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
     private List<Validatable> readPythonPage(Stock stock, Date start, Date end) throws IOException {
     	
     	DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
-    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     	
 		String symbol = stock.getSymbol();
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^" + symbol;
 		
-		String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
-		ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end));
-		Process p = pb.start();
+    	InputStream processInputStream = readInput(symbol, start, end);
 		
 		List<Validatable> validatables = new ArrayList<Validatable>();
 		
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(processInputStream));) {
 			String line = null;
 			while ((line = in.readLine()) != null) {
 				try {
@@ -184,42 +144,8 @@ public class ProvidersYahooPython extends Providers implements QuotationProvider
 		
 	}
 
-	/**
-     * FIXME yfinance import error
-     * FIXME PythonInterpreter.initialize(System.getProperties(), System.getProperties(), new String[0]);
-     * @param stock
-     * @param start
-     * @param end
-     * @return
-     * @throws InvalidAlgorithmParameterException
-     * @throws HttpException
-     */
-    @SuppressWarnings("unused")     //Test method
-	private List<Validatable> readPythonPageJython(Stock stock, Date start, Date end) throws InvalidAlgorithmParameterException, HttpException {
-
-        try (PythonInterpreter python = new PythonInterpreter()) {
-        	
-        	String pythonScript = 
-        	"import yfinance as yf\n" +
-        	"\n" +
-        	"def download_quotes():\n" +
-        	    "	msft = yf.Ticker(\"MSFT\")\n" +
-        	    "	\n" +
-        	    "	# get stock info\n" +
-        	    "	print(msft.info)\n" +
-        	    "	\n" +
-        	    "	# get historical market data\n" +
-        	    "	hist = msft.history(period=\"5d\")\n" +
-        	    "	\n" +
-        	    "	print(hist.to_string())";
-
-       
-        	python.exec(pythonScript);
-
-        }
-        
-        return new ArrayList<>();
-    }
+	protected abstract InputStream readInput(String symbol, Date start, Date end) throws IOException;
+	
 
     public List<Validatable> readPage(Stock stock, MyUrl url, Date  start) throws HttpException {
     	 // TODO Auto-generated method stub
