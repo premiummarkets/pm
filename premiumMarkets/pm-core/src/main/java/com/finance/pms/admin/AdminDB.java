@@ -523,7 +523,10 @@ public class AdminDB {
 //		}
 	}
 	
-	
+	@Deprecated 
+	/**
+	 * @deprecated use Hibernate instead
+	 */
 	private static void addExtension(StockList shares, Boolean justCheck) {
 		
 		List<Validatable> lstUpdate = new ArrayList<Validatable>();
@@ -617,15 +620,9 @@ public class AdminDB {
 	}
 	
 
+	@Deprecated 
 	/**
-	 * Select market.
-	 * 
-	 * @param symbol the symbol
-	 * @param isin the isin
-	 * 
-	 * @return the string
-	 * 
-	 * @author Guillaume Thoreton
+	 * @deprecated use Hibernate instead
 	 */
 	private static String selectMarket(String symbol,String isin) {
 			final Query uQ2 = new Query(

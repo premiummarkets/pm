@@ -77,7 +77,7 @@ public class LastUpdateStampChecker {
 		LastUpDateStampRecord timeStampOfLastUpdate = getLastUpdateStampRecord(asset);
 		
 		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
-		Date now = DateFactory.getNowEndDateTime(); //Today actual date time. This can also be random date in the past depending on the DateFactory.ENDDATE settings.
+		Date now = DateFactory.getNowEndTime(); //Today actual date time. This can also be random date in the past depending on the DateFactory.ENDDATE settings.
 		Date lastMrktCloseBeforeNowDate = DateFactory.endDateFix(now, utcTimeLag, tradinMode); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM !!US!!
 		try {
 

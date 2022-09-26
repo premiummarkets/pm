@@ -79,7 +79,7 @@ public class LastUpdateStampCheckerTest {
 		Calendar todayCal = Calendar.getInstance(Locale.US); // on the Wed 2020/01/01 at 12.00 US (before market close)
 		todayCal.set(Calendar.HOUR_OF_DAY, 12);
 		todayCal.set(2020, 00, 01);
-		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		expect(DateFactory.getNowEndTime()).andReturn(todayCal.getTime()).anyTimes();
 		
 		PowerMock.mockStatic(QuotationsFactories.class);
 		expect(QuotationsFactories.getFactory()).andReturn(new ClosedDayQuotationsFactory()).anyTimes();
@@ -135,7 +135,7 @@ public class LastUpdateStampCheckerTest {
 		// again MAXATTEMPTS and fatalThreshold inc to 2 after this
 		// One hour later (New Last Market close data)
 		todayCal.set(Calendar.HOUR_OF_DAY, 23);// 18 + 5 US closure time
-		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		expect(DateFactory.getNowEndTime()).andReturn(todayCal.getTime()).anyTimes();
 		PowerMock.replayAll();
 		
 		expectedLastMarketCloseCal.add(Calendar.DAY_OF_YEAR, +1);
@@ -164,7 +164,7 @@ public class LastUpdateStampCheckerTest {
 		// again MAXATTEMPTS and fatalThreshold inc to 2 after this
 		// One hour later (New Last Market close data)
 		addOneOpenDay(todayCal, expectedLastMarketCloseCal);
-		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		expect(DateFactory.getNowEndTime()).andReturn(todayCal.getTime()).anyTimes();
 		PowerMock.replayAll();
 		{
 			// MAXATTEMPTS -1 are granted
@@ -200,7 +200,7 @@ public class LastUpdateStampCheckerTest {
 			System.out.println("k:" + k);
 			PowerMock.reset(DateFactory.class);
 			addOneOpenDay(todayCal, expectedLastMarketCloseCal);
-			expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+			expect(DateFactory.getNowEndTime()).andReturn(todayCal.getTime()).anyTimes();
 			PowerMock.replayAll();
 			{
 				// MAXATTEMPTS are granted
@@ -225,7 +225,7 @@ public class LastUpdateStampCheckerTest {
 			{
 				PowerMock.reset(DateFactory.class);
 				addOneOpenDay(todayCal, expectedLastMarketCloseCal);
-				expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+				expect(DateFactory.getNowEndTime()).andReturn(todayCal.getTime()).anyTimes();
 				PowerMock.replayAll();
 				// MAXATTEMPTS are granted
 				for (int i = 0; i <= LastUpdateStampChecker.MAXRETRY; i++) {
@@ -255,7 +255,7 @@ public class LastUpdateStampCheckerTest {
 		Calendar todayCal = Calendar.getInstance(Locale.UK); // on the Wed 2020/01/01 at 21 UK (before market close: 5 AM the next day)
 		todayCal.set(Calendar.HOUR_OF_DAY, 21);
 		todayCal.set(2020, 00, 01);
-		expect(DateFactory.getNowEndDateTime()).andReturn(todayCal.getTime()).anyTimes();
+		expect(DateFactory.getNowEndTime()).andReturn(todayCal.getTime()).anyTimes();
 		
 		PowerMock.mockStatic(QuotationsFactories.class);
 		expect(QuotationsFactories.getFactory()).andReturn(new ClosedDayQuotationsFactory()).anyTimes();

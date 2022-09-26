@@ -77,8 +77,8 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	public List<Stock> loadShares(ShareFilter shareFilter) {
 
 		DetachedCriteria criteria = DetachedCriteria.forClass(Stock.class);
-		if (shareFilter.getCategories().length > 0) {
-			criteria.add(Restrictions.in("category",shareFilter.getCategories()));
+		if (shareFilter != null && shareFilter.getCategories().length > 0) {
+			criteria.add(Restrictions.in("category", shareFilter.getCategories()));
 		}
 		if (shareFilter != null && shareFilter.getRequestConstraint() != null) {
 			criteria.add(Restrictions.sqlRestriction(shareFilter.getRequestConstraint()));
@@ -86,7 +86,6 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		criteria.add(Restrictions.conjunction());
 
 		List<Stock> list =  new ArrayList<Stock>((Collection<? extends Stock>) this.getHibernateTemplate().findByCriteria(criteria));
-
 		return list;
 	}
 

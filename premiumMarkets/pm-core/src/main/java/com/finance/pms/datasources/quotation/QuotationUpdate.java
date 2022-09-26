@@ -206,7 +206,7 @@ public class QuotationUpdate {
 		StockList stockList = new StockList();
 
 		MarketListProvider provider =  ProvidersList.getInstance(sharesListName, indices);
-		sharesListName = sharesListName+Indice.formatSet(provider.getIndices());
+		sharesListName = sharesListName + Indice.formatSet(provider.getIndices());
 		Collection<Stock> symbols = DataSource.getInstance().loadStocksList(sharesListName);
 
 		stockList.addAll(symbols);
@@ -245,7 +245,7 @@ public class QuotationUpdate {
 			Stock stock = stlIt.next();
 
 			LOGGER.debug("Fetching quotations for Ticker: " + stock);
-			GetQuotation command = new GetQuotation(DateFactory.getNowEndDateTime(), stock, forceReset, forceUpdate);
+			GetQuotation command = new GetQuotation(DateFactory.getNowEndTime(), stock, forceReset, forceUpdate);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
 			}

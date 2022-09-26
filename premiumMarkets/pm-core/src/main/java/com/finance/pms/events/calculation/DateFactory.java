@@ -113,12 +113,12 @@ public class DateFactory {
 		}
 	}
 	
-	public static Date getNowEndDateTime() {
+	public static Date getNowEndTime() {
 		if (ENDDATE != null) {
 			return new Date(ENDDATE.getTime());
 		} else {
 			Calendar nowEndDateCalendar = getNowEndDateCalendar();
-			nowEndDateCalendar.set(Calendar.HOUR_OF_DAY, 18 + 5); //End std trading US 18hours (GMT) + 5hours
+			//nowEndDateCalendar.set(Calendar.HOUR_OF_DAY, 18 + 5); //End std trading US 18hours (GMT) + 5hours
 			nowEndDateCalendar.set(Calendar.MINUTE, 0);
 			nowEndDateCalendar.set(Calendar.SECOND, 0);
 			nowEndDateCalendar.set(Calendar.MILLISECOND, 0);
@@ -164,7 +164,7 @@ public class DateFactory {
 			marketClosureCal.set(Calendar.MINUTE, 59);
 		} else { //skip week ends
 			marketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
-			marketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //at market closure time (inc time lag)
+			marketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //At market closure time (inc time lag)
 		}
 		
 		Date marketClosure = marketClosureCal.getTime();
@@ -172,7 +172,12 @@ public class DateFactory {
 		Date endDate;
 		if (actualDateTime.compareTo(marketClosure) < 0) { //Before closure
 			marketClosureCal.add(Calendar.HOUR_OF_DAY, + utcTimeLag); //Fixing the potential added/removed day to get the Locale day.
-			marketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+			if (tradingMode.equals(TradingMode.NON_STOP)) {
+				marketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+			} else {
+				marketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+				marketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(marketClosureCal.getTime())); 
+			}
 			Date previousMarketClosure = marketClosureCal.getTime();
 			endDate = DateFactory.midnithDate(previousMarketClosure);
 		} else { //After Closure

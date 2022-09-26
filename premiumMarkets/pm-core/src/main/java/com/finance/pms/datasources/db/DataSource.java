@@ -29,7 +29,6 @@
  */
 package com.finance.pms.datasources.db;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.sql.Connection;
@@ -216,6 +215,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		DataSource.getInstance().getThreadPool().releaseResource(conn);
 	}
 
+	@Deprecated 
+	/**
+	 * @deprecated use Hibernate instead
+	 */
 	public Date getLastQuotationDateFromShares(Stock stock) {
 		String query = "SELECT " + SHARES.LASTQUOTE + " FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
 		return this.getLastFormerQuote(stock, false, query);
@@ -311,7 +314,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 			@Override
 			public String getRequestConstraint(String... params) {
-				return " "+SHARES.QUOTATIONPROVIDER+" = '"+quotationProvider+"' ";
+				return " " + SHARES.QUOTATIONPROVIDER + " = '" + quotationProvider + "' ";
 			}
 		});
 		return result;
@@ -350,48 +353,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return retour;
 	}
 
-	public Stock loadStockBySymbol(String symbol) {
-		MyDBConnection scnx = this.getConnection(true);
-		String sqlQuery = new String("SELECT * FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ?");
-		Stock retour = null;
-		try {
-			ResultSet rs;
-			PreparedStatement pst;
-			pst = scnx.getConn().prepareStatement(sqlQuery);
-			//String symbollike = (symbol.contains("."))?symbol+"%":symbol+".%";
-			String symbollike = symbol;
-			pst.setString(1, symbollike);
-			rs = pst.executeQuery();
-			if (rs.next()) {
-				try {
-					retour = new Stock(rs.getString(SHARES.ISIN_FIELD).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim(), rs.getString(SHARES.NAME_FIELD).trim(), 
-							rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()), rs.getDate(SHARES.LASTQUOTE), 
-							new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),
-							new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
-							rs.getString(SHARES.SECTOR_HINT),
-							TradingMode.valueOf(rs.getString(SHARES.TRADING_MODE).trim()),
-							rs.getLong(SHARES.CAPITALISATION));
 
-				} catch (InvalidAlgorithmParameterException e) {
-					LOGGER.error("", e);
-				}
-				if (rs.next()) {
-					//throw new IOException("WARN : multiple values in DB for share : " + symbol);
-					LOGGER.warn("WARN : multiple values in DB for share : " + symbol);
-				}
-			} else {
-				throw new IOException("WARN : No value in DB for symbol : " + symbol);
+	public Stock loadStockBySymbol(String symbol) {
+		List<Stock> result = shareDAO.loadShares(new ShareFilter() {
+			@Override
+			public String getRequestConstraint(String... params) {
+				return " " + SHARES.SYMBOL_FIELD + " = '" + symbol + "' ";
 			}
-			rs.close();
-			pst.close();
-		} catch (IOException ioe) {
-			LOGGER.error("Could not load share value for :" + ioe, ioe);
-		} catch (SQLException e) {
-			LOGGER.error("SQL ERROR while loading stock. Query : " + sqlQuery, e);
-		} finally {
-			DataSource.realesePoolConnection(scnx);
+		});
+		if (result.size() == 0) {
+			LOGGER.error("Could not load share value for :" + symbol);
+			return null;
 		}
-		return retour;
+		if (result.size() > 1) {
+			LOGGER.warn("WARN : multiple values in DB for share : " + symbol);
+		}
+		return result.get(0);
 	}
 
 	@SuppressWarnings("unchecked")
