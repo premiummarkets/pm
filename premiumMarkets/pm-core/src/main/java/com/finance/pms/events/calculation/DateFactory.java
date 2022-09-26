@@ -36,10 +36,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -115,14 +115,14 @@ public class DateFactory {
 	
 	public static Date getNowEndTime() {
 		if (ENDDATE != null) {
-			return new Date(ENDDATE.getTime());
-		} else {
 			Calendar nowEndDateCalendar = getNowEndDateCalendar();
-			//nowEndDateCalendar.set(Calendar.HOUR_OF_DAY, 18 + 5); //End std trading US 18hours (GMT) + 5hours
+			nowEndDateCalendar.set(Calendar.HOUR_OF_DAY, 18 + 5); //End std trading US 18hours (GMT) + 5hours
 			nowEndDateCalendar.set(Calendar.MINUTE, 0);
 			nowEndDateCalendar.set(Calendar.SECOND, 0);
 			nowEndDateCalendar.set(Calendar.MILLISECOND, 0);
 			return nowEndDateCalendar.getTime();
+		} else {
+			return new Date();
 		}
 	}
 	
@@ -159,9 +159,13 @@ public class DateFactory {
 		Date actualDate = DateFactory.midnithDate(actualDateTime);
 		Calendar marketClosureCal = Calendar.getInstance();
 		if (tradingMode.equals(TradingMode.NON_STOP)) {
-			marketClosureCal.setTime(actualDate); //Today 1 minute before midnight
-			marketClosureCal.set(Calendar.HOUR_OF_DAY, 23 - utcTimeLag);
-			marketClosureCal.set(Calendar.MINUTE, 59);
+			marketClosureCal.setTime(actualDateTime);
+			int actualHourOfTheDay = marketClosureCal.get(Calendar.HOUR_OF_DAY);
+			marketClosureCal.set(Calendar.HOUR_OF_DAY, 0 - utcTimeLag); //Midnight UTC lag added is the closure time
+			if (actualHourOfTheDay > 0 -utcTimeLag) marketClosureCal.add(Calendar.DAY_OF_YEAR, +1); //If we are After midnight UTC lag added
+			marketClosureCal.set(Calendar.MINUTE, 0);
+			marketClosureCal.set(Calendar.SECOND, 0);
+			marketClosureCal.set(Calendar.MILLISECOND, 0);
 		} else { //skip week ends
 			marketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
 			marketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //At market closure time (inc time lag)
@@ -187,9 +191,14 @@ public class DateFactory {
 		return endDate;
 		
 	}
-	
+
 	public static int UStoGBUTCTimeLag() {
-		return Market.NASDAQ.getUTCTimeLag() - Market.LSE.getUTCTimeLag();
+//		int mill = 1000*60*60;
+//		int us = TimeZone.getTimeZone("EST").getOffset(Calendar.getInstance(TimeZone.getTimeZone("EST")).getTimeInMillis())/mill;
+//		int os = TimeZone.getDefault().getOffset(Calendar.getInstance(TimeZone.getDefault()).getTimeInMillis())/mill;
+//		int t = us - os;
+//		LOGGER.info("UStoGBUTCTimeLag: " + t + " with os: " + os + " and us: " + us);
+		return -5;
 	}
 
 }

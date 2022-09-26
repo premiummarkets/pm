@@ -31,8 +31,10 @@ package com.finance.pms.datasources.shares;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TimeZone;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 
@@ -190,7 +192,7 @@ public enum Market implements Serializable {
 
 	protected static String extStringGen(Market market, String cmdParam4Prov) throws IllegalAccessException, NoSuchFieldException {
 
-		Object objectExt = Market.class.getDeclaredField(cmdParam4Prov+"Extension").get(market);
+		Object objectExt = Market.class.getDeclaredField(cmdParam4Prov + "Extension").get(market);
 		return  objectExt.toString();
 
 	}
@@ -208,7 +210,11 @@ public enum Market implements Serializable {
 	}
 
 	public int getUTCTimeLag() {
-		return utcTimeLag;
+		int mill = 1000*60*60;
+		
+		int osUTCLag = TimeZone.getDefault().getOffset(Calendar.getInstance(TimeZone.getDefault()).getTimeInMillis())/mill;
+		LOGGER.debug("getUTCTimeLag: " + (utcTimeLag - osUTCLag));
+		return utcTimeLag - osUTCLag;
 	}
 
 

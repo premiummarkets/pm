@@ -1,5 +1,10 @@
 package com.finance.pms.events.calculation;
 
+import static org.junit.Assert.assertEquals;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.AfterClass;
@@ -10,6 +15,7 @@ import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class DateFactoryTest {
@@ -52,6 +58,108 @@ public class DateFactoryTest {
 		
 		System.out.println("End date US Localfixed:" + endDateFix);
 		
+	}
+	
+	@Test
+	public void testRolling() throws ParseException {
+		
+		Stock aapl = DataSource.getInstance().loadStockBySymbol("AAPL");
+		Stock fchi = DataSource.getInstance().loadStockBySymbol("FCHI");
+		Stock btc = DataSource.getInstance().loadStockBySymbol("BTC-USD");
+
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		Date startDate = dateFormat.parse("2022/09/19"); 
+		
+		Calendar rollingHourCal = Calendar.getInstance();
+		rollingHourCal.setTime(startDate);
+		rollingHourCal.set(Calendar.HOUR_OF_DAY, 0);
+		rollingHourCal.set(Calendar.MINUTE, 0);
+		rollingHourCal.set(Calendar.SECOND, 0);
+		rollingHourCal.set(Calendar.MILLISECOND, 0);//Monday the 19th at 00:00
+		
+		Calendar expectedCal = Calendar.getInstance();
+		
+		//aapl
+		expectedCal.setTime(startDate);
+		expectedCal.add(Calendar.DAY_OF_YEAR, -3);//Friday the 16th at 00:00
+		expectedCal.set(Calendar.HOUR_OF_DAY, 0);
+		expectedCal.set(Calendar.MINUTE, 0);
+		expectedCal.set(Calendar.SECOND, 0);
+		expectedCal.set(Calendar.MILLISECOND, 0);
+		
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 24; j++ ) {
+				if (i < 5 && j == 17 - aapl.getMarket().getUTCTimeLag()) {
+					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateAfterOrAt(expectedCal.getTime()));
+				} else {
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(expectedCal.getTime()));
+				}
+				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
+				Date applDate = DateFactory.endDateFix(rollingHourCal.getTime(), aapl.getMarket().getUTCTimeLag(), aapl.getTradingMode());
+				assertEquals("AAPL On the " + rollingHourCal.getTime(), expectedCal.getTime(), applDate);
+			}
+		}
+		
+		//fchi
+		rollingHourCal.setTime(startDate);
+		rollingHourCal.set(Calendar.HOUR_OF_DAY, 0);
+		rollingHourCal.set(Calendar.MINUTE, 0);
+		rollingHourCal.set(Calendar.SECOND, 0);
+		rollingHourCal.set(Calendar.MILLISECOND, 0);//Monday the 19th at 00:00
+		
+		expectedCal.setTime(startDate);
+		expectedCal.add(Calendar.DAY_OF_YEAR, -3);//Friday the 16th at 00:00
+		expectedCal.set(Calendar.HOUR_OF_DAY, 0);
+		expectedCal.set(Calendar.MINUTE, 0);
+		expectedCal.set(Calendar.SECOND, 0);
+		expectedCal.set(Calendar.MILLISECOND, 0);
+		
+		for (int day = 0; day < 7; day++) {
+			for (int hour = 0; hour < 24; hour++ ) {
+				if (day < 5 && hour == 17 - fchi.getMarket().getUTCTimeLag()) {
+					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateAfterOrAt(expectedCal.getTime()));
+				} else {
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(expectedCal.getTime()));
+				}
+				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
+				Date fchiDate = DateFactory.endDateFix(rollingHourCal.getTime(), fchi.getMarket().getUTCTimeLag(), fchi.getTradingMode());
+				assertEquals("FCHI On the " + rollingHourCal.getTime(), expectedCal.getTime(), fchiDate);
+			}
+		}
+		
+		//btc
+		rollingHourCal.setTime(startDate);
+		rollingHourCal.set(Calendar.HOUR_OF_DAY, 0);
+		rollingHourCal.set(Calendar.MINUTE, 0);
+		rollingHourCal.set(Calendar.SECOND, 0);
+		rollingHourCal.set(Calendar.MILLISECOND, 0);//Monday the 19th at 00:00
+		
+		expectedCal.setTime(startDate);
+		expectedCal.add(Calendar.DAY_OF_YEAR, -1);//Sunday the 18th at 00:00
+		expectedCal.set(Calendar.HOUR_OF_DAY, 0);
+		expectedCal.set(Calendar.MINUTE, 0);
+		expectedCal.set(Calendar.SECOND, 0);
+		expectedCal.set(Calendar.MILLISECOND, 0);
+		
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 24; j++ ) {
+				if (j == 0 - btc.getMarket().getUTCTimeLag()) {
+					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
+				}
+				Date btcDate = DateFactory.endDateFix(rollingHourCal.getTime(), btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
+//				System.out.println(String.format("BTC On the " + rollingHourCal.getTime() + ": expected %s, real %s ", expectedCal.getTime(), btcDate));
+				assertEquals("BTC On the " + rollingHourCal.getTime(), expectedCal.getTime(), btcDate);
+				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
+			}
+		}
+
+	}
+	
+	@Test
+	public void USTimeZonelagTest() {
+		System.out.println("Us lag: " + DateFactory.UStoGBUTCTimeLag());
 	}
 
 }
