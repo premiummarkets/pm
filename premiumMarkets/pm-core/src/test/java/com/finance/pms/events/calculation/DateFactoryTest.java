@@ -129,7 +129,8 @@ public class DateFactoryTest {
 			}
 		}
 		
-		//btc
+		//btc no lag
+		System.out.println("btc no lag");
 		rollingHourCal.setTime(startDate);
 		rollingHourCal.set(Calendar.HOUR_OF_DAY, 0);
 		rollingHourCal.set(Calendar.MINUTE, 0);
@@ -137,7 +138,7 @@ public class DateFactoryTest {
 		rollingHourCal.set(Calendar.MILLISECOND, 0);//Monday the 19th at 00:00
 		
 		expectedCal.setTime(startDate);
-		expectedCal.add(Calendar.DAY_OF_YEAR, -1);//Sunday the 18th at 00:00
+		expectedCal.add(Calendar.DAY_OF_YEAR, -2);//Saturday the 18th at 00:00
 		expectedCal.set(Calendar.HOUR_OF_DAY, 0);
 		expectedCal.set(Calendar.MINUTE, 0);
 		expectedCal.set(Calendar.SECOND, 0);
@@ -145,11 +146,40 @@ public class DateFactoryTest {
 		
 		for (int i = 0; i < 7; i++) {
 			for (int j = 0; j < 24; j++ ) {
-				if (j == 0 - btc.getMarket().getUTCTimeLag()) {
+				int utcTimeLag = 0;
+				if (j == 0 - utcTimeLag) {
 					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
 				}
-				Date btcDate = DateFactory.endDateFix(rollingHourCal.getTime(), btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
-//				System.out.println(String.format("BTC On the " + rollingHourCal.getTime() + ": expected %s, real %s ", expectedCal.getTime(), btcDate));
+				Date btcDate = DateFactory.endDateFix(rollingHourCal.getTime(), utcTimeLag, btc.getTradingMode());
+				System.out.println(String.format("BTC On the " + rollingHourCal.getTime() + ": expected %s, real %s ", expectedCal.getTime(), btcDate));
+				assertEquals("BTC On the " + rollingHourCal.getTime(), expectedCal.getTime(), btcDate);
+				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
+			}
+		}
+		
+		//btc
+		System.out.println("btc");
+		rollingHourCal.setTime(startDate);
+		rollingHourCal.set(Calendar.HOUR_OF_DAY, 0);
+		rollingHourCal.set(Calendar.MINUTE, 0);
+		rollingHourCal.set(Calendar.SECOND, 0);
+		rollingHourCal.set(Calendar.MILLISECOND, 0);//Monday the 19th at 00:00
+		
+		expectedCal.setTime(startDate);
+		expectedCal.add(Calendar.DAY_OF_YEAR, -2);//Saturday the 18th at 00:00
+		expectedCal.set(Calendar.HOUR_OF_DAY, 0);
+		expectedCal.set(Calendar.MINUTE, 0);
+		expectedCal.set(Calendar.SECOND, 0);
+		expectedCal.set(Calendar.MILLISECOND, 0);
+		
+		for (int i = 0; i < 7; i++) {
+			for (int j = 0; j < 24; j++ ) {
+				int utcTimeLag = btc.getMarket().getUTCTimeLag();
+				if (j == 0 - utcTimeLag) {
+					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
+				}
+				Date btcDate = DateFactory.endDateFix(rollingHourCal.getTime(), utcTimeLag, btc.getTradingMode());
+				System.out.println(String.format("BTC On the " + rollingHourCal.getTime() + ": expected %s, real %s ", expectedCal.getTime(), btcDate));
 				assertEquals("BTC On the " + rollingHourCal.getTime(), expectedCal.getTime(), btcDate);
 				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
 			}
@@ -160,6 +190,21 @@ public class DateFactoryTest {
 	@Test
 	public void USTimeZonelagTest() {
 		System.out.println("Us lag: " + DateFactory.UStoGBUTCTimeLag());
+	}
+	
+	@Test
+	public void tzTest() throws ParseException {
+		Stock btc = DataSource.getInstance().loadStockBySymbol("BTC-USD");
+		
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd:hhmmss");
+		Date date = dateFormat.parse("2022/09/27:061000"); 
+		
+		Date expceted = dateFormat.parse("2022/09/26:000000"); 
+		
+		Date endDateFix = DateFactory.endDateFix(date, btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
+		
+		assertEquals(expceted, endDateFix);
+		
 	}
 
 }

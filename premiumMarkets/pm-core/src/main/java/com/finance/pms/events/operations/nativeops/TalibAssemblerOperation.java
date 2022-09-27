@@ -64,7 +64,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				// MapOperation) {//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries
 				//FIXME could use OperationRefernces/MetaOperations??
 				//operand.setParameter(getOperands().get(parametersSlicePos +1).getOperands().get(0).run(targetStock,"squashed  => " + this.shortOutputReference(),thisStartShift));
-				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos +1).getOperands().get(0)); //We get set the initial operation as it was before up flow inputs calculation
+				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos +1).getOperands().get(0)); //XXX We get reset the initial operation as it was before up flow inputs calculation
 			} else {
 				operand.setParameter(parameters.get(parametersSlicePos).get(0));
 			}

@@ -36,7 +36,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -157,35 +156,34 @@ public class DateFactory {
 	public static Date endDateFix(Date actualDateTime, int utcTimeLag, TradingMode tradingMode) {
 		
 		Date actualDate = DateFactory.midnithDate(actualDateTime);
-		Calendar marketClosureCal = Calendar.getInstance();
+		Calendar dayMarketClosureCal = Calendar.getInstance();
 		if (tradingMode.equals(TradingMode.NON_STOP)) {
-			marketClosureCal.setTime(actualDateTime);
-			int actualHourOfTheDay = marketClosureCal.get(Calendar.HOUR_OF_DAY);
-			marketClosureCal.set(Calendar.HOUR_OF_DAY, 0 - utcTimeLag); //Midnight UTC lag added is the closure time
-			if (actualHourOfTheDay > 0 -utcTimeLag) marketClosureCal.add(Calendar.DAY_OF_YEAR, +1); //If we are After midnight UTC lag added
-			marketClosureCal.set(Calendar.MINUTE, 0);
-			marketClosureCal.set(Calendar.SECOND, 0);
-			marketClosureCal.set(Calendar.MILLISECOND, 0);
+			dayMarketClosureCal.setTime(actualDateTime);
+			dayMarketClosureCal.set(Calendar.HOUR_OF_DAY, 0 - utcTimeLag); //Midnight UTC lag added is the closure time
+			dayMarketClosureCal.set(Calendar.MINUTE, 0);
+			dayMarketClosureCal.set(Calendar.SECOND, 0);
+			dayMarketClosureCal.set(Calendar.MILLISECOND, 0);
 		} else { //skip week ends
-			marketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
-			marketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //At market closure time (inc time lag)
+			dayMarketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
+			dayMarketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //At market closure time (inc time lag)
 		}
 		
-		Date marketClosure = marketClosureCal.getTime();
-		
 		Date endDate;
-		if (actualDateTime.compareTo(marketClosure) < 0) { //Before closure
-			marketClosureCal.add(Calendar.HOUR_OF_DAY, + utcTimeLag); //Fixing the potential added/removed day to get the Locale day.
+		if (actualDateTime.compareTo(dayMarketClosureCal.getTime()) < 0) { //Before closure
+			dayMarketClosureCal.add(Calendar.HOUR_OF_DAY, + utcTimeLag); //Fixing the potential added/removed day to get the Locale day.
 			if (tradingMode.equals(TradingMode.NON_STOP)) {
-				marketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -2);
 			} else {
-				marketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
-				marketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(marketClosureCal.getTime())); 
+				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+				dayMarketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(dayMarketClosureCal.getTime())); 
 			}
-			Date previousMarketClosure = marketClosureCal.getTime();
+			Date previousMarketClosure = dayMarketClosureCal.getTime();
 			endDate = DateFactory.midnithDate(previousMarketClosure);
 		} else { //After Closure
-			endDate = DateFactory.midnithDate(marketClosure);
+			if (tradingMode.equals(TradingMode.NON_STOP)) {
+				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
+			}
+			endDate = DateFactory.midnithDate(dayMarketClosureCal.getTime());
 		}
 		
 		return endDate;
