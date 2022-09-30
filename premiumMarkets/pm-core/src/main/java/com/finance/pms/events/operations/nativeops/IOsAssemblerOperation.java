@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -22,7 +23,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 
 public class IOsAssemblerOperation extends ArrayMapOperation {
 
-	private static final int FIRST_INPUT = 2;
+	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsAssemblerOperation.class);
 	
 
@@ -35,7 +36,8 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	public IOsAssemblerOperation() {
-		this("iosAssembler", "Assembles several inputs into one inputable array.",
+		this("iosAssembler", "Assembles several inputs into one inputable array. Only trailing NaNs are optionnaly permitted.",
+				new StringOperation("string", "assemblerGroupName", "ios- Assembler group name", new StringValue("")),
 				new StringOperation("boolean", "isExportToFile", "If true, exports the result to a file.", new StringValue("FALSE")),
 				new StringOperation("boolean", "allowTrailingNaN", "If NaN are allowed at the end of the data set (usefull for targets)", new StringValue("FALSE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to assemble in one", null));
@@ -51,13 +53,16 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
+		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
+		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName + "_";
+		
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
 		Boolean allowTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 
-		return innerCalculation(targetStock, inputs, isExport, allowTrailingNaN);
+		return innerCalculation(targetStock, inputs, assemblerGroupName,  isExport, allowTrailingNaN);
 	}
 
-	protected DoubleArrayMapValue innerCalculation(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs, Boolean isExport, Boolean allowTrailingNaN) {
+	protected DoubleArrayMapValue innerCalculation(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs, String assemblerGroupName, Boolean isExport, Boolean allowTrailingNaN) {
 		
 		try {
 			
@@ -72,6 +77,8 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 					throw new RuntimeException("The input assembler is missing assemblees.");
 				}
 			}
+			
+			inputsOperandsRefs = inputsOperandsRefs.stream().map(ior -> assemblerGroupName + ior).collect(Collectors.toList());
 			
 			if (isExport) {
 				LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();

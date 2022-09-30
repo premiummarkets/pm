@@ -35,7 +35,7 @@ public interface InfoObject {
 
 	default public String info(int limit) {
 		String info = info();
-		return info.substring(0, Math.min(info.length(), limit));
+		return info.replace("\n", "").substring(0, Math.min(info.length(), limit));
 	}
 
 	public String toolTip();

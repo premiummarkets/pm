@@ -25,7 +25,8 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements
 	}
 
 	public IOsLooseAssemblerOperation() {
-		this("iosLooseAssembler", "Assembles several inputs into one inputable array.",
+		this("iosLooseAssembler", "Assembles several inputs into one inputable array. Allowing any NaNs.",
+				new StringOperation("string", "assemblerGroupName", "ios- Assembler group name", new StringValue("")),
 				new StringOperation("boolean", "isExportToFile", "If true, exports the result to a file.", new StringValue("FALSE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to assemble in one", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -36,18 +37,21 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
 	}
-	
-	
 
 	@Override
 	protected int firstInputIdx() {
-		return 1;
+		return 2;
 	}
 
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
-		return innerCalculation(targetStock, inputs, isExport, true);
+		
+		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
+		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName;
+		
+		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
+		
+		return innerCalculation(targetStock, inputs, assemblerGroupName, isExport, true);
 	}
 
 	@Override

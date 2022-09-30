@@ -196,10 +196,11 @@ public class SeriesPrinter {
 		            SortedMap<Date, double[]> seriesN = e.getValue();
 		            int maxWidth = seriesN.values().stream().max( (x,y) -> x.length - y.length ).orElse(new double[1]).length;
 		            if (maxWidth > 1) {
+		            	int paddingSize = String.format("%d", maxWidth).length();
 		                Optional<String> header = IntStream.range(0, maxWidth)
 		                		.mapToObj(i -> {
 									String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "" : headersPrefixes.get(e.getKey()).get(i) + "_";
-		                        	return  i + "_" + prefix + e.getKey();
+		                        	return  String.format("%0" + paddingSize + "d", (int)i) + "_" + prefix + e.getKey();
 		                        })
 		                		.reduce((a, b) -> a + "," + b);
 		                r.add(header.get());

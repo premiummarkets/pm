@@ -19,6 +19,8 @@ import com.google.common.collect.Lists;
 
 public class TalibAssemblerOperation extends ArrayMapOperation {
 	
+	private static final int PARAMS_START_IDX = 2;
+	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibAssemblerOperation.class);
 	
 	public TalibAssemblerOperation(String reference, String description, ArrayList<Operation> operands) {
@@ -37,6 +39,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 
 	public TalibAssemblerOperation() {
 		this("talibAssembler", "Assembles several periods iterations of one indicator into one inputable array.",
+				new StringOperation("string", "assemblerGroupName", "ta- Assembler group name", new StringValue("")),
 				new OperationReferenceOperation("operationReference", "operation reference", "Operation to iterate upon", null),
 				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step] or [x, factor] or [\"abc\"] or [any]. "
 						+ "Use [x, factor] to make this parameter a factor of an other parameter indexed at x. "
@@ -47,9 +50,12 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		Operation assembledOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(0)).getValue(targetStock).clone();
+		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
+		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ta-" + assemblerGroupName + "_";
+		
+		Operation assembledOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock).clone();
 		@SuppressWarnings("unchecked")
-		List<List<Value<?>>> parameters = inputs.subList(1, inputs.size()).stream().map(v -> ((AnyValueListValue<Value<?>>) v).getValue(targetStock)).collect(Collectors.toList());
+		List<List<Value<?>>> parameters = inputs.subList(PARAMS_START_IDX, inputs.size()).stream().map(v -> ((AnyValueListValue<Value<?>>) v).getValue(targetStock)).collect(Collectors.toList());
 
 		SortedMap<Integer, List<Double>> slices = new TreeMap<>();
 		ArrayList<Operation> assembledOpOperands = new ArrayList<>(assembledOperationClone.getOperands());
@@ -64,7 +70,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				// MapOperation) {//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries
 				//FIXME could use OperationRefernces/MetaOperations??
 				//operand.setParameter(getOperands().get(parametersSlicePos +1).getOperands().get(0).run(targetStock,"squashed  => " + this.shortOutputReference(),thisStartShift));
-				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos +1).getOperands().get(0)); //XXX We get reset the initial operation as it was before up flow inputs calculation
+				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos + PARAMS_START_IDX).getOperands().get(0)); //XXX We get reset the initial operation as it was before up flow inputs calculation
 			} else {
 				operand.setParameter(parameters.get(parametersSlicePos).get(0));
 			}
@@ -106,7 +112,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 			}
 			LOGGER.info("Running: " + assembledOperationClone.getReference() + " with params " + paramsStringInfo);
 			runsOutputs.add((NumericableMapValue) assembledOperationClone.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift));
-			inputsOperandsRefs.add(String.format("%0" + paddingSize + "d", (int)i) + "_" + assembledOperationClone.toFormulaeShort());
+			inputsOperandsRefs.add(assemblerGroupName + String.format("%0" + paddingSize + "d", (int)i) + "_" + assembledOperationClone.toFormulaeShort());
 		}
 		
 		try {

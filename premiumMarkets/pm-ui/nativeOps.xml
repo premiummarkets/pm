@@ -108,7 +108,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oProfitOperation">
             <reference>oProfit</reference>
-            <description>Calculate the profits (the O way) of series of Events from Indicators</description>
+            <description>Calculate the profits (the Omar way) of series of Events from Indicators</description>
             <operands>
                 <operand xsi:type="eventMapOperation">
                     <reference>Event Series to analyse profit from (an Indicator)</reference>
@@ -342,6 +342,17 @@
             <reference>iosLooseAssembler</reference>
             <description>Assembles several inputs into one inputable array.</description>
             <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>assemblerGroupName</referenceAsOperand>
+                    <description>ios- Assembler group name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
                     <referenceAsOperand>isExportToFile</referenceAsOperand>
@@ -1171,6 +1182,17 @@
             <description>Assembles several inputs into one inputable array.</description>
             <operands>
                 <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>assemblerGroupName</referenceAsOperand>
+                    <description>ios- Assembler group name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
                     <referenceAsOperand>isExportToFile</referenceAsOperand>
                     <description>If true, exports the result to a file.</description>
@@ -1238,6 +1260,17 @@
             <reference>talibAssembler</reference>
             <description>Assembles several periods iterations of one indicator into one inputable array.</description>
             <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>assemblerGroupName</referenceAsOperand>
+                    <description>ta- Assembler group name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
                     <referenceAsOperand>operation reference</referenceAsOperand>

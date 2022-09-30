@@ -75,18 +75,18 @@ public class MapCsvImportExport implements CsvImportExport<Date> {
 
             while ((line = bufferedReader.readLine()) != null) {
             	
-                String[] rowSplit = line.split(",");
-                if (headers.isEmpty()) headers.addAll(Arrays.asList(rowSplit));
+                String[] columns = line.split(",");
+                if (headers.isEmpty()) headers.addAll(Arrays.asList(columns));
                 
                 //file check
-                if (prevLength > 0 && prevLength != rowSplit.length) throw new RuntimeException("Invalid file");
+                if (prevLength > 0 && prevLength != columns.length) throw new RuntimeException("Invalid file");
                 
                 try {
-                    prevLength = rowSplit.length;
+                    prevLength = columns.length;
                     
                     //entry creation
-                    double[] array = Arrays.asList(rowSplit).subList(1,rowSplit.length).stream().mapToDouble(x -> (x.isEmpty())?Double.NaN:Double.valueOf(x)).toArray();
-                    map.put(dateFormatter.parse(rowSplit[0]), array);
+                    double[] array = Arrays.asList(columns).subList(1,columns.length).stream().mapToDouble(x -> (x.isEmpty())?Double.NaN:Double.valueOf(x)).toArray();
+                    map.put(dateFormatter.parse(columns[0]), array);
                 } catch (Exception e) {
                     LOGGER.warn("Unreadable line in " + exportFile.getAbsolutePath() + " : " + line); //+ ". Cause: " + e);
                 }

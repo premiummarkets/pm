@@ -287,8 +287,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			chartTarget.getHightlitedEventModel().setViewParamRoot(selectedShare);
 			chartTarget.getHightlitedEventModel().setViewParam(0, notUpToDateEI);
 
-			String msg = "Analysis are not up to date for "+selectedShare.getName()+", the selected time frame and the requested trends.";
-			if (minDate.after(new Date(0))) msg = msg +"\nMinimun calculation date reached for this stock : "+new SimpleDateFormat("MMM dd yyyy").format(minDate);
+			String msg = "Analysis are not up to date for " + selectedShare.getName() + ", the selected time frame and the requested trends.";
+			if (minDate.after(new Date(0))) msg = msg + "\nMinimun calculation date reached for this stock : " + new SimpleDateFormat("MMM dd yyyy").format(minDate);
 			for (EventInfo eventInfo : notUpToDateEI) {
 				if (chartTarget.getChartedEvtDefsTrends().contains(eventInfo)) {
 					msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 

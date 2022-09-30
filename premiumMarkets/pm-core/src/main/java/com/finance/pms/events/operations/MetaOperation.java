@@ -53,7 +53,7 @@ public class MetaOperation extends Operation {
 			NextToken checkNextToken = parameterizedOperationBuilder.checkNextToken(formula);
 			if (checkNextToken != null) throw new RuntimeException("Invalid formulae. " + operationNewId + ". Formula: " + formula + ". Error: " + checkNextToken);
 			Operation existingOperation = parameterizedOperationBuilder.getCurrentOperations().get(operationNewId);
-			if (existingOperation != null) throw new RuntimeException("Opereration already exists. " + operationNewId + ": " + formula);
+			if (existingOperation != null) throw new RuntimeException("Operation already exists. " + operationNewId + ": " + formula);
 			
 			LOGGER.info("Adding formulae. " + operationNewId + ": " + formula);
 			parameterizedOperationBuilder.addFormula(operationNewId, formula);
@@ -80,6 +80,24 @@ public class MetaOperation extends Operation {
 	@Override
 	public int operandsRequiredStartShift() {
 		return 0;
+	}
+
+	@Override
+	public String toFormulaeShort() {
+		
+		List<Operation> subList = getOperands().subList(1, getOperands().size()-1);
+		String parameters = "";
+		for (int i = 0; i < subList.size(); i++) {
+			Value<?> parameterValue = subList.get(i).getParameter();
+			String ele = ((StringableValue) parameterValue).getValueAsString();
+			if (parameterValue instanceof NumberValue) {
+				ele = Long.valueOf(Math.round(((NumberValue) parameterValue).getNumberValue().doubleValue())).toString();
+			}
+			parameters = parameters + "_" + ele;
+		}
+		
+		return "meta" + parameters;
+		
 	}
 
 	@Override
