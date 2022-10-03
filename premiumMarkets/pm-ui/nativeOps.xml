@@ -340,7 +340,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsLooseAssemblerOperation">
             <reference>iosLooseAssembler</reference>
-            <description>Assembles several inputs into one inputable array.</description>
+            <description>Assembles several inputs into one inputable array. Allowing any NaNs.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -461,6 +461,17 @@
             <reference>iosDeltaExporter</reference>
             <description>Exports all datasets to a given file path and returns the same file path.</description>
             <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>rouding</referenceAsOperand>
+                    <description>Rouding precision</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>filePath</referenceAsOperand>
@@ -474,8 +485,8 @@
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>headerSuffix</referenceAsOperand>
-                    <description>Suffix of the headers</description>
+                    <referenceAsOperand>headerPrefixe</referenceAsOperand>
+                    <description>Prefix of the column headers</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>
@@ -714,6 +725,17 @@
                     <reference>string</reference>
                     <referenceAsOperand>ta4jClassName</referenceAsOperand>
                     <description>Ta4j class name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>RSIIndicator</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>validityFilter</referenceAsOperand>
+                    <description>Indicator validity requirements: CLOSE, OHLC, VOLUME, OHLCV</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue>RSIIndicator</stringValue>
                     </defaultValue>
@@ -1179,7 +1201,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsAssemblerOperation">
             <reference>iosAssembler</reference>
-            <description>Assembles several inputs into one inputable array.</description>
+            <description>Assembles several inputs into one inputable array. Only trailing NaNs are optionnaly permitted.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -1461,6 +1483,17 @@
             <reference>iosExporter</reference>
             <description>Exports all input datasets to a file. The file name is generated: &lt;runtime-id&gt;_ &lt;stock-symbol&gt; _k_training_ &lt;random-id&gt; .csv</description>
             <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>rouding</referenceAsOperand>
+                    <description>Rouding precision</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>exportFolder</referenceAsOperand>
@@ -1474,8 +1507,8 @@
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>headersPrefixes</referenceAsOperand>
-                    <description>headers prefixes</description>
+                    <referenceAsOperand>headerPrefixe</referenceAsOperand>
+                    <description>Prefix of the column headers</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>

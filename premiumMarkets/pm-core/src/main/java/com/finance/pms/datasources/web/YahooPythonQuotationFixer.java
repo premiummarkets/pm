@@ -93,6 +93,7 @@ public class YahooPythonQuotationFixer {
 					if (line.isEmpty()) continue;
 					String[] split = line.split(",");
 					Date date = dateFormat.parse(split[0]);
+					//skipping 1rst and last columns
 					double[] value = Arrays.asList(split).subList(1, split.length-1).stream().mapToDouble(s -> Double.valueOf(s)).toArray();
 					webData.put(date, value);
 					

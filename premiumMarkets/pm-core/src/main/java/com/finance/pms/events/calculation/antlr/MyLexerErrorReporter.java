@@ -81,14 +81,14 @@ public class MyLexerErrorReporter extends MyErrorReporter {
 //		} finally  {
 			
 			exceptions.add(new RecognitionExceptionHolder(e, null, stack, (expectedTokenName != null)?expectedTokenName.replaceAll("'", ""):null, logMsg(e), msg));
-			log(e, stack, msg);
+			//log(e, stack, msg);
 //		}
 		
 	
 	}
 
 	protected void log(RecognitionException e, List<String> stack, String msg) {
-		LOGGER.info("Lexer error : Parsed : "+parsedLine + ", invalid char : "+(char)e.c+" at "+e.charPositionInLine+", token "+e.token+", stack : "+stack+", msg : "+msg);
+		LOGGER.info("Lexer error : Parsed: " + parsedLine + ", invalid char : " + (char)e.c + " at " + e.charPositionInLine + ", token " + e.token + ", stack : " + stack + ", msg : " + msg);
 	}
 	
 	protected String logMsg(RecognitionException e) {

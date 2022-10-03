@@ -1,5 +1,6 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -7,7 +8,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.commons.math3.util.Precision;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.SeriesPrinter;
@@ -19,7 +24,7 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 
 public class IOsExporterOperation extends StringerOperation {
 
-	private static final int FIRST_INPUT = 2;
+	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);
 	
 	
@@ -29,8 +34,9 @@ public class IOsExporterOperation extends StringerOperation {
 
 	public IOsExporterOperation() {
 		this("iosExporter", "Exports all input datasets to a file. The file name is generated: <runtime-id>_ <stock-symbol> _k_training_ <random-id> .csv",
+				new NumberOperation("number", "rouding", "Rouding precision", new NumberValue(Double.NaN)),
 				new StringOperation("string", "exportFolder", "Export folder path", new StringValue("")),
-				new StringOperation("string", "headersPrefixes", "headers prefixes", new StringValue("")),
+				new StringOperation("string", "headerPrefixe", "Prefix of the column headers", new StringValue("")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -43,9 +49,10 @@ public class IOsExporterOperation extends StringerOperation {
 
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-
-		String exportFolder = ((StringValue) inputs.get(0)).getValue(targetStock);
-		String headersPrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
+		
+		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
+		String exportFolder = ((StringValue) inputs.get(1)).getValue(targetStock);
+		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		
 		String fileSuffix = targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
 
@@ -54,6 +61,12 @@ public class IOsExporterOperation extends StringerOperation {
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
 			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true);
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			
+			if (!Double.isNaN(rounding)) {
+				factorisedInput = factorisedInput.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
+					return Arrays.stream(e.getValue()).map(d -> Precision.round(d, rounding.intValue(), BigDecimal.ROUND_HALF_EVEN)).toArray();
+				}, (a,b) -> a, TreeMap::new));
+			}
 			
 			LinkedHashMap<String, SortedMap<Date, double[]>> series = new LinkedHashMap<>();
 			series.put(headersPrefix, factorisedInput);

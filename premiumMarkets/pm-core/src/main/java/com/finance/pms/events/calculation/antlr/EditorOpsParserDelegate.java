@@ -269,7 +269,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 	public EditorOpDescr doesNeedClosing() {
 		if (needClosingOpsStack.size() > 0) {
 			EditorOpDescr ret = needClosingOpsStack.pollLast();
-			System.out.println("peek last op for closing :"+ret.getName());
+			//System.out.println("peek last op for closing :"+ret.getName());
 			return ret;
 		}
 		return null;

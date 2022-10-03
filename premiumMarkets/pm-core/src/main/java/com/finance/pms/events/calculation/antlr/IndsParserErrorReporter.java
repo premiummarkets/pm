@@ -124,7 +124,7 @@ public class IndsParserErrorReporter extends MyErrorReporter {
 			
 		} finally {
 			exceptions.add(new RecognitionExceptionHolder(e, null, stack, (expectedTokenName != null)?expectedTokenName.replaceAll("'", ""):null, logMsg(e), msg));
-			log(e, stack, msg);
+			//log(e, stack, msg);
 		}
 
 	}
@@ -137,7 +137,7 @@ public class IndsParserErrorReporter extends MyErrorReporter {
 		String lexerMatch = tokenSource.getText();
 		String parserMatch = ""+e.c;
 		String stateMatch = parser.getParserDelegate().getState().text;
-		System.out.println("Parsed : "+parsedLine+", Matched - Lexer - : "+lexerMatch+", Matched - Parser - : "+parserMatch+", Matched - State - : "+stateMatch+", stack : "+stack+", msg : "+msg);
+		System.out.println("Parsed: "+parsedLine+", Matched - Lexer - : "+lexerMatch+", Matched - Parser - : "+parserMatch+", Matched - State - : "+stateMatch+", stack : "+stack+", msg : "+msg);
 
 
 	}

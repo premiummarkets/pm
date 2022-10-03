@@ -49,10 +49,10 @@ public class ValueManipulator {
 				.forEach(i -> {
 					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
 						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
-							.forEach(cRef -> inputsOperandsRefs.add(cRef + ((inputsOperandsRefs.contains(cRef))? "n" + Integer.toString(i):"")));
+							.forEach(cRef -> inputsOperandsRefs.add(cRef + ((inputsOperandsRefs.contains(cRef))? "_N" + Integer.toString(i):"")));
 					} else {
 						String fShort = operands.get(i).toFormulaeShort();
-						inputsOperandsRefs.add(fShort + ((inputsOperandsRefs.contains(fShort))? "n" + Integer.toString(i):""));
+						inputsOperandsRefs.add(fShort + ((inputsOperandsRefs.contains(fShort))? "_N" + Integer.toString(i):""));
 					}
 				});
 		return inputsOperandsRefs;

@@ -266,7 +266,7 @@ public class TalibGenericOperation extends TalibOperation {
 	
 	@Override
 	public String toFormulaeShort() {
-		String refa24z = getReference().substring(0,1) + (getReference().length() -2 )+ getReference().substring(getReference().length() -1); 
+		String refa24z = getReference().substring(0,1) + (getReference().length() -2) + getReference().substring(getReference().length() -1); 
 //		String contants = getOperands().subList(0, inConstantsNames.size()).stream()
 //				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
 //				.reduce("", (r, e) -> r + "_" + e, (a, b) -> a + "_" + b);

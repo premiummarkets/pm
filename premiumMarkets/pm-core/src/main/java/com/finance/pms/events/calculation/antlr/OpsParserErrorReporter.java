@@ -200,7 +200,7 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 
 		} finally {
 			exceptions.add(new RecognitionExceptionHolder(e, parserDelegate.doesNeedClosing(), stack, (expectedTokenName != null)?expectedTokenName.replaceAll("'", ""):null, logMsg(e), msg));
-			log(e, stack, msg);
+			//log(e, stack, msg);
 		}
 
 	}
@@ -211,7 +211,7 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 		CommonTokenStream input = (CommonTokenStream) exceptionInput;
 		ParameterizedOperationsLexer tokenSource = (ParameterizedOperationsLexer) input.getTokenSource();
 		String matched = tokenSource.getText();
-		System.out.println("Parsed : "+parsedLine+", Matched : "+matched+", stack : "+stack+", msg : "+msg); // + ", "+ following);
+		System.out.println("Parsed: " + parsedLine + ", Matched : " + matched + ", stack : " + stack + ", msg : " + msg); // + ", "+ following);
 
 
 	}

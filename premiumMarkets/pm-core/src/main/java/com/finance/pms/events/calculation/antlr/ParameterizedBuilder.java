@@ -192,18 +192,18 @@ public abstract class ParameterizedBuilder extends Observable {
 		Boolean isNewOp = false;
 		try {
 
-			LOGGER.info("Creating parser for formula " + identifier);
+			LOGGER.debug("Creating parser for formula " + identifier);
 			formulaParser = new FormulaParser(this, identifier, formula, false);
 
-			LOGGER.info("Parsing for formula " + identifier);
+			LOGGER.debug("Parsing for formula " + identifier);
 			runParsing(formulaParser);
-			LOGGER.info("Parsing ok for formula " + identifier);
+			LOGGER.debug("Parsing ok for formula " + identifier);
 
 			Operation operation = formulaParser.getBuiltOperation();
 
 			if (operation != null) {
 
-				LOGGER.info("Saving formula operation " + identifier);
+				LOGGER.debug("Saving formula operation " + identifier);
 				saveUserOperation(identifier, formula);
 
 				Operation alreadyExists = getCurrentOperations().get(operation.getReference());
@@ -235,7 +235,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			throw new IOException(e);
 		} finally {
 			if (formulaParser != null) {
-				LOGGER.info("Shutting down the parser for " + identifier);
+				LOGGER.debug("Shutting down the parser for " + identifier);
 				formulaParser.shutdown();
 			}
 		}

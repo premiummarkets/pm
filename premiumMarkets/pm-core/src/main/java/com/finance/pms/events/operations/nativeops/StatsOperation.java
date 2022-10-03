@@ -106,7 +106,7 @@ public class StatsOperation extends PMWithDataOperation {
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmax")) {
 				statFunction = new MyApacheStats(new Max());
 			}
-			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtanhnorm")) {
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtanhnorm")) { //Sliding bandNormalizer[-1,1,0]
 				statFunction = new StatsFunction() {
 					
 					@Override

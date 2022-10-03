@@ -38,6 +38,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -159,14 +160,19 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift) {
 
-		String thisCallStack = parentCallStack + "=>" + this.shortOutputReference();
-		int stackDepth = thisCallStack.split("=>").length;
+		int thisOperandsRequiredStartShift = parentRequiredStartShift + operandsRequiredStartShift();
+		
+		int stackDepth = parentCallStack.split("=>").length  + 1;
+		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
+		String thisCallStack = 
+					parentCallStack + ": \n" + 
+					"Call Stack: " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + " with s" +  operandsRequiredStartShift() + " and d" + stackDepth;
+		
+		LOGGER.debug(thisCallStack);
+		
 		int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
 		boolean isInChart = thisCallStack.split("=>").length <= maxDepth;
-		int thisOperandsRequiredStartShift = parentRequiredStartShift + operandsRequiredStartShift();
-		LOGGER.debug("Calculating:" + this.shortOutputReference() +
-				"\n\tCall stack (of depth "+ stackDepth + "): " + thisCallStack +
-				"\n\tOperands Required Start shift: " + thisOperandsRequiredStartShift + ". With additional shift required from parent: " + parentRequiredStartShift);
+		
 
 		Value<?> alreadyCalculated = null;
 		try {
@@ -174,7 +180,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			if (parameter != null) {
 				return parameter;
 			}
-			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), parentRequiredStartShift)) != null) {
+			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOperandsRequiredStartShift)) != null) {
 				return alreadyCalculated;
 			}
 			else {
@@ -407,7 +413,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}
 		}
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
-		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) ->r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
+		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
 	}
 
 	public void setFormulae(String formula) {

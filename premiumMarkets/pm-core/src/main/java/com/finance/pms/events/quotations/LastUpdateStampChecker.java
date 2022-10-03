@@ -80,22 +80,24 @@ public class LastUpdateStampChecker {
 		Date now = DateFactory.getNowEndTime(); //Today actual date time. This can also be random date in the past depending on the DateFactory.ENDDATE settings.
 		Date lastMrktCloseBeforeNowDate = DateFactory.endDateFix(now, utcTimeLag, tradinMode); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM !!US!!
 		try {
-
+			
+			String timeStampMsg = "Last market close (with UTC lag " + utcTimeLag + "): " + lastMrktCloseBeforeNowDate + " <=? " + "Last quote: " + lastQuoteDateForAsset;
+			
 			if (lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) >= 0) {//Already up to date
 				timeStampOfLastUpdate.resetNbAttemts();
-				LOGGER.info(asset + " is up to date. Last market close (with UTC lag " + utcTimeLag + "): " + lastMrktCloseBeforeNowDate + " <= " + "Last quote: " + lastQuoteDateForAsset);
+				LOGGER.info(asset + " is up to date." + timeStampMsg);
 				return false;
 			}
 			
 			if (timeStampOfLastUpdate.getFatalThreshold() >= MAXATTEMPTSFATAL) {//Dead Quote!!??
-				LOGGER.warn(asset + " seems to have no quotations any more. Max failed attempt reach: " + MAXATTEMPTSFATAL);
+				LOGGER.warn(asset + " has no quotations new update. Max failed attempt reach: " + MAXATTEMPTSFATAL + ". " + timeStampMsg);
 				return false; 
 			}
 			
 			//Should be == as can't be < as timeStampOfLastUpdate is updated with lastMrktCloseBeforeNowDate
 			//so we always have timeStampOfLastUpdate <= lastMrktCloseBeforeNowDate
 			if (lastMrktCloseBeforeNowDate.compareTo(timeStampOfLastUpdate.getLastAttemptDate()) == 0 ) { 
-				LOGGER.info(asset + " Has Failed previous update.");
+				LOGGER.info(asset + " has Failed previous update. " + timeStampMsg);
 				//Latest actual close day 6PM at Now == Last close day recorded for asset: don't update more then MAXATTEMPTS
 				//This means we already have tried update with the actual market data available
 				timeStampOfLastUpdate.incNbAttempts();
@@ -109,16 +111,16 @@ public class LastUpdateStampChecker {
 				//New attempt
 				if (timeStampOfLastUpdate.getNbAttempts() <= MAXRETRY &&
 					lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) < 0) {//Needs update but failed
-					LOGGER.info(asset + " is NOT up to date and may have new market data. Retrying...");
+					LOGGER.info(asset + " is NOT up to date and may have new market data. Retrying... " + timeStampMsg);
 					return true;
 				}
 
-				LOGGER.info(asset + " is NOT up to date. Has Failed all update attempts for the latest market data session.");
+				LOGGER.info(asset + " is NOT up to date. Has Failed all update attempts for the latest market data session. " + timeStampMsg);
 				return false;
 				
 			} else { //Potential new market data available since last check
 				timeStampOfLastUpdate.resetNbAttemts();
-				LOGGER.info(asset + " is NOT up to date. Needs updating.");
+				LOGGER.info(asset + " is NOT up to date. Needs updating. " + timeStampMsg);
 				return true;
 			}
 			

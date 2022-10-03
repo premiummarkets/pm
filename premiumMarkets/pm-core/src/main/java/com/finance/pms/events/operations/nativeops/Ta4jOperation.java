@@ -38,6 +38,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 	public Ta4jOperation() {
 		this("ta4jOperation", "Indicator using the Ta4j library",
 				new StringOperation("string","ta4jClassName", "Ta4j class name", new StringValue("RSIIndicator")),
+				new StringOperation("string","validityFilter", "Indicator validity requirements: CLOSE, OHLC, VOLUME, OHLCV", new StringValue("CLOSE")),
 				new NumberOperation("number","indicatiorParameter", "Periods and other parameters for the indicator", new NumberValue(14.0)));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -61,7 +62,8 @@ public class Ta4jOperation extends DoubleMapOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String ta4jClassName = ((StringValue) inputs.get(0)).getValue(targetStock);
-		List<Integer> inputParameters = inputs.subList(1, inputs.size()).stream().map(v -> ((NumberValue) v).getNumberValue().intValue()).collect(Collectors.toList());
+		ValidityFilter validityFilter = ValidityFilter.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
+		List<Integer> inputParameters = inputs.subList(2, inputs.size()).stream().map(v -> ((NumberValue) v).getNumberValue().intValue()).collect(Collectors.toList());
 		
 		try {
 			
@@ -69,7 +71,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 			Date shiftedStartDate = targetStock.getStartDate(thisStartShift + inputParameters.stream().reduce(0, (a, e) -> a + e));
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
 					targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(),
-					true, targetStock.getStock().getMarketValuation().getCurrency(), 0, ValidityFilter.OHLCV);
+					true, targetStock.getStock().getMarketValuation().getCurrency(), 0, validityFilter);
 			SortedMap<Date, double[]> exactMapFromQuotations = 
 					QuotationsFactories.getFactory().buildExactMapFromQuotations(quotations, 0, quotations.size()-1, QuotationDataType.values());
 			List<Tick> ticksList = exactMapFromQuotations.entrySet().stream()
@@ -121,6 +123,17 @@ public class Ta4jOperation extends DoubleMapOperation {
 		}
 		
 		return new DoubleMapValue();
+	}
+
+	@Override
+	public String toFormulaeShort() {
+		String ta4jClass = ((StringValue) this.getOperands().get(0).getParameter()).getValue(null).replace("Indicator", "");
+		String refa24z = "ta4j" + ta4jClass.substring(0,1) + (ta4jClass.length() -2) + ta4jClass.substring(ta4jClass.length() -1); 
+		int opsSize = getOperands().size();
+		String params = (opsSize > 2)
+					?getOperands().subList(2, opsSize).stream().reduce("", (r, e) -> r + "_" + e.toFormulae(), (a, b) -> a + b)
+					:"";
+		return refa24z + params;
 	}
 	
 	

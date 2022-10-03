@@ -437,7 +437,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		List<? extends Object> retour = this.executeQuery(query, indexShift*2);
 
 		if (!retour.isEmpty()) {
-			int lastIndexShiftAvailable = Math.max(0,retour.size()- indexShift);
+			int lastIndexShiftAvailable = Math.max(0,retour.size() - indexShift);
 			retour.subList(retour.size() - lastIndexShiftAvailable, retour.size()).clear();
 			Collections.reverse(retour);
 			return (ArrayList<QuotationUnit>) retour;

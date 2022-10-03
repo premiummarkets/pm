@@ -84,7 +84,8 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {//Iterate groups
 
 					try {
-						LOGGER.info("Group description: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						LOGGER.debug("Group description: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						LOGGER.info("Group description: " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
 						Boolean groupIsDisplayed = false;
 
 						//Renderer
