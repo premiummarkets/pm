@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
@@ -82,8 +83,16 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 
 	@Override
 	public int operandsRequiredStartShift() {
-		int shift = getOperands().get(0).operandsRequiredStartShift() + getOperands().get(1).operandsRequiredStartShift();
-		return shift;
+		return IntStream.range(0, 2)
+				.map(i -> {
+					Operation numberOperand = getOperands().get(i);
+					if (numberOperand instanceof NumberOperation) {
+						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+					} else {
+						return getOperands().get(i).operandsRequiredStartShift();
+					}
+				})
+				.reduce(0, (r, e) -> r + e);
 	}
 
 

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -120,10 +121,15 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 
 	@Override //Adding shift inherent to over, for and spanning
 	public int operandsRequiredStartShift() {
-		int maxDateShift = 0;
-		for (int i = 0; i < OTHER_PARAMS; i++) { //epsilon is not part of the shift
-			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
-		}
-		return maxDateShift;
+		return IntStream.range(0, OTHER_PARAMS)
+		.map(i -> {
+			Operation numberOperand = getOperands().get(i);
+			if (numberOperand instanceof NumberOperation) {
+				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+			} else {
+				return getOperands().get(i).operandsRequiredStartShift();
+			}
+		})
+		.reduce(0, (r, e) -> r + e);
 	}
 }

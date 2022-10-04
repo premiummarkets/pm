@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.stream.IntStream;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -114,11 +115,17 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 
 	@Override
 	public int operandsRequiredStartShift() {
-		int maxDateShift = 0;
-		for (int i = 2; i < mainInputPosition(); i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
-		}
-		return maxDateShift;
+		
+		return IntStream.range(2, mainInputPosition() )
+		.map(i -> {
+			Operation numberOperand = getOperands().get(i);
+			if (numberOperand instanceof NumberOperation) {
+				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+			} else {
+				return getOperands().get(i).operandsRequiredStartShift();
+			}
+		})
+		.reduce(0, (r, e) -> r + e);
 	}
 
 }

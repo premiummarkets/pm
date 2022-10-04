@@ -10,7 +10,7 @@ import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-@XmlSeeAlso({CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class})
+@XmlSeeAlso({CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class, RandomizeStringOperation.class})
 public abstract class StringerOperation extends Operation {
 
 	public StringerOperation(String reference, String description) {

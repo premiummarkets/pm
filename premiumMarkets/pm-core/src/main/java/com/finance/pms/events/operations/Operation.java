@@ -60,6 +60,7 @@ import com.finance.pms.events.operations.nativeops.NumberMathOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
+import com.finance.pms.events.operations.nativeops.RequiredShiftWrapperOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringerOperation;
@@ -76,7 +77,8 @@ import com.finance.pms.events.quotations.QuotationDataType;
 @XmlSeeAlso({
 	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
-	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class})
+	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
+	RequiredShiftWrapperOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);

@@ -60,10 +60,8 @@ public class NumberOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	//A parameter here is actually the value of the constant as in the formulae?
 	public int operandsRequiredStartShift() {
-		//XXX should return 0 as an integer has no shift. Use the getParameter instead in the caller..
-		return (getParameter() != null )?((NumberValue) getParameter()).getValue(null).intValue():0;
+		return 0;
 	}
 
 	@Override

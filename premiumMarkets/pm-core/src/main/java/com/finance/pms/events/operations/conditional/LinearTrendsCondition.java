@@ -12,6 +12,7 @@ import java.util.NavigableSet;
 import java.util.SortedMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -23,6 +24,8 @@ import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.Line;
 
@@ -140,11 +143,17 @@ public abstract class LinearTrendsCondition extends DiscreteLinearOutputsConditi
 
 	@Override
 	public int operandsRequiredStartShift() {
-		int maxDateShift = 0;
-		for (int i = 0; i <= getLastPeriodsIndex(); i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
-		}
-		return maxDateShift;
+		
+		return IntStream.range(0, getLastPeriodsIndex() +1 )
+		.map(i -> {
+			Operation numberOperand = getOperands().get(i);
+			if (numberOperand instanceof NumberOperation) {
+				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+			} else {
+				return getOperands().get(i).operandsRequiredStartShift();
+			}
+		})
+		.reduce(0, (r, e) -> r + e);
 	}
 
 	protected abstract int getLastPeriodsIndex();

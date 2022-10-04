@@ -124,11 +124,17 @@ public class VolatilityOperation extends PMWithDataOperation {
 
 	@Override
 	public int operandsRequiredStartShift() {
-		int maxDateShift = 0;
-		for (int i = 0; i < DATA_IDX; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift() + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;
-		}
-		return maxDateShift;
+		int reducedShift = IntStream.range(0, DATA_IDX)
+				.map(i -> {
+					Operation numberOperand = getOperands().get(i);
+					if (numberOperand instanceof NumberOperation) {
+						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+					} else {
+						return getOperands().get(i).operandsRequiredStartShift();
+					}
+				})
+				.reduce(0, (r, e) -> r + e);
+		return reducedShift + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;
 	}
 
 }

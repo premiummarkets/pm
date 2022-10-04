@@ -71,8 +71,10 @@ import com.finance.pms.events.operations.nativeops.PMMACDOperation;
 import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
 import com.finance.pms.events.operations.nativeops.Product;
 import com.finance.pms.events.operations.nativeops.ProfitOperation;
+import com.finance.pms.events.operations.nativeops.RandomizeStringOperation;
 import com.finance.pms.events.operations.nativeops.RecursiveOperation;
 import com.finance.pms.events.operations.nativeops.RefiterOperation;
+import com.finance.pms.events.operations.nativeops.RequiredShiftWrapperOperation;
 import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
@@ -202,6 +204,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(profitWalkerOperation);
 		TalibAssemblerOperation talibAssemblerOperation = new TalibAssemblerOperation();
 		nativeOperations.addOperation(talibAssemblerOperation);
+		RequiredShiftWrapperOperation requiredShiftWrapperOperation = new RequiredShiftWrapperOperation();
+		nativeOperations.addOperation(requiredShiftWrapperOperation);
+		RandomizeStringOperation randomizeStringOperation = new RandomizeStringOperation();
+		nativeOperations.addOperation(randomizeStringOperation);
 
 		//Other
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();

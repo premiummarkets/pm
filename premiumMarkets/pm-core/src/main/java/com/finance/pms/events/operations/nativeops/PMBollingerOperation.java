@@ -119,7 +119,17 @@ public class PMBollingerOperation extends PMWithDataOperation {
 
 	@Override
 	public int operandsRequiredStartShift() {
-		return getOperands().get(0).operandsRequiredStartShift() + 1;
+		int reducedShift = IntStream.range(0, 1)
+				.map(i -> {
+					Operation numberOperand = getOperands().get(i);
+					if (numberOperand instanceof NumberOperation) {
+						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+					} else {
+						return getOperands().get(i).operandsRequiredStartShift();
+					}
+				})
+				.reduce(0, (r, e) -> r + e);
+		return reducedShift + 1;
 	}
 
 }

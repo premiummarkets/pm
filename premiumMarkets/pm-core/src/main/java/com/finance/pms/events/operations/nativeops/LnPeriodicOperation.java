@@ -71,12 +71,17 @@ public class LnPeriodicOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
-		int maxDateShift = 0;
-		for (int i = 0; i < 1; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
-		}
-		return maxDateShift;
+	public int operandsRequiredStartShift() {		
+		return IntStream.range(0, 1)
+				.map(i -> {
+					Operation numberOperand = getOperands().get(i);
+					if (numberOperand instanceof NumberOperation) {
+						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+					} else {
+						return getOperands().get(i).operandsRequiredStartShift();
+					}
+				})
+				.reduce(0, (r, e) -> r + e);
 	}
 	
 	@Override

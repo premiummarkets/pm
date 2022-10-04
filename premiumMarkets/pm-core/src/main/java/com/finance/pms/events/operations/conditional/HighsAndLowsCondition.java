@@ -41,6 +41,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -290,11 +291,17 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 
 	@Override
 	public int operandsRequiredStartShift() {
-		int maxDateShift = 0;
-		for (int i = 0; i < THRESHOLDS_IDX; i++) {
-			maxDateShift = maxDateShift + getOperands().get(i).operandsRequiredStartShift();
-		}
-		return maxDateShift;
+		
+		return IntStream.range(0, THRESHOLDS_IDX)
+		.map(i -> {
+			Operation numberOperand = getOperands().get(i);
+			if (numberOperand instanceof NumberOperation) {
+				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+			} else {
+				return getOperands().get(i).operandsRequiredStartShift();
+			}
+		})
+		.reduce(0, (r, e) -> r + e);
 	}
 
 }
