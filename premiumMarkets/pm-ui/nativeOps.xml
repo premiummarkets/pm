@@ -1166,6 +1166,25 @@
             <outputSelector>close</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsWebImporterOperation">
+            <reference>iosWebImporter</reference>
+            <description>Imports a file from http</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>filePath</referenceAsOperand>
+                    <description>CSV File Path</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>input.csv</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockDelegateOperation">
             <reference>targetStockDelegate</reference>
             <description>Runs the operation passed as parameter on the choosen stock instead of the current target.</description>

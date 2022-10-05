@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 
 public class TalibAssemblerOperation extends ArrayMapOperation {
 	
+	private static final int OPS_INDEX = 1;
 	private static final int PARAMS_START_IDX = 2;
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibAssemblerOperation.class);
@@ -53,7 +54,8 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ta-" + assemblerGroupName + "_";
 		
-		Operation assembledOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock).clone();
+		Operation assembledOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(OPS_INDEX)).getValue(targetStock).clone();
+		
 		@SuppressWarnings("unchecked")
 		List<List<Value<?>>> parameters = inputs.subList(PARAMS_START_IDX, inputs.size()).stream().map(v -> ((AnyValueListValue<Value<?>>) v).getValue(targetStock)).collect(Collectors.toList());
 
@@ -137,7 +139,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 
 	@Override
 	public String toFormulaeShort() {
-		String valueAsString = ((OperationReferenceValue<?>)this.getOperands().get(0).getParameter()).getValueAsString();
+		String valueAsString = ((OperationReferenceValue<?>)this.getOperands().get(OPS_INDEX).getParameter()).getValueAsString();
 		return valueAsString.substring(0, Math.min(5, valueAsString.length()));
 	}
 	

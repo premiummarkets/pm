@@ -195,7 +195,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		//If there is a pre parameterised operation, we use it
 		Operation nativeOperation = fetchNativeOperation(child.getText());
 		if (nativeOperation != null) {
-			LOGGER.debug("Cloning pre parameterised native op : " + nativeOperation);
+			LOGGER.debug("Cloning pre parameterised native op: " + nativeOperation);
 
 			Operation clone = (Operation) nativeOperation.clone();
 			clone.setOperands(operands);
@@ -207,7 +207,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 		//No native. If there is a user operation, we use it
 		if (userOperation != null) {
-			LOGGER.debug("Using user op : " + userOperation);
+			LOGGER.debug("Using user op: " + userOperation);
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
 			return userOperation;
 		}
@@ -218,11 +218,14 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			try {
 
 				String childText = opPackage + child.getToken().getText();
-				LOGGER.debug("Instantiating NON pre parameterise native op : " + childText);
+				LOGGER.debug("Instantiating NON pre parameterise native op: " + childText);
 
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
-				return constructor.newInstance(operands, outputSelector);
+				Operation newInstance = constructor.newInstance(operands, outputSelector);
+				
+				LOGGER.debug("New instance of: " + newInstance.getReference());
+				return newInstance;
 				
 			} catch (ClassNotFoundException e) {
 				LOGGER.debug(e.getMessage() + " is not native.");
@@ -234,7 +237,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		}
 
 		//All above as failed : snd pass marker (for user defined operations)
-		LOGGER.info(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
+		LOGGER.debug(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
 		missingReference = child.getText();
 		suspend();
 		
