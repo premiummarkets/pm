@@ -93,7 +93,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 		super.notifyObservers(string);
 	}
 
-	public BigDecimal withdrawCash(Date currentDate, Currency currency) throws NoCashAvailableException {
+	public BigDecimal withdrawCash(Date currentDate, BigDecimal amount, Currency currency) throws NoCashAvailableException {
 		throw new NotImplementedException();
 	}
 

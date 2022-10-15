@@ -195,8 +195,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		//If there is a pre parameterised operation, we use it
 		Operation nativeOperation = fetchNativeOperation(child.getText());
 		if (nativeOperation != null) {
-			LOGGER.debug("Cloning pre parameterised native op: " + nativeOperation);
-
+			LOGGER.info("Cloning pre parameterised native op: " + nativeOperation.getReference());
 			Operation clone = (Operation) nativeOperation.clone();
 			clone.setOperands(operands);
 			clone.setOutputSelector(outputSelector);
@@ -207,8 +206,8 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 		//No native. If there is a user operation, we use it
 		if (userOperation != null) {
-			LOGGER.debug("Using user op: " + userOperation);
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
+			LOGGER.info("Reusing user op: " + userOperation.getReference());
 			return userOperation;
 		}
 
@@ -224,13 +223,13 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
 				Operation newInstance = constructor.newInstance(operands, outputSelector);
 				
-				LOGGER.debug("New instance of: " + newInstance.getReference());
+				LOGGER.debug("Initialising instance of: " + newInstance.getReference());
 				return newInstance;
 				
 			} catch (ClassNotFoundException e) {
 				LOGGER.debug(e.getMessage() + " is not native.");
 			} catch (Exception e) {
-				LOGGER.error(e.getMessage() + ", exception: " + e.toString() + ", cause: " + ((e.getCause() != null)?e.getCause().toString():"unknown") + ". " +
+				LOGGER.error(e.getMessage() + ", exception: " + e.toString() + ", cause: " + ((e.getCause() != null)? e.getCause().toString() : "unknown") + ". " +
 							 "child obj: " + child + "; root obj " + child.getAncestor(0) + "; operands: " + operands + ". Can't Instantiate: " + opPackage);
 			}
 
@@ -278,7 +277,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			return opInstance;
 
 		} catch (InvocationTargetException e) {
-			LOGGER.warn("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value + " unresolved yet, " + e);
+			LOGGER.debug("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value + " unresolved yet, " + e);
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value, e);

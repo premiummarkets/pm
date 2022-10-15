@@ -137,7 +137,7 @@ public class ChartImageBuilder {
         		LOGGER.info("Using " + e.getEventDefinitionRef() + " for chart targets.");
         		Date lastRefOutputKey = calcOutputs.get(e).lastKey();
         		for (PeriodRatingDTO currentPeriod : eventsPeriods.get(e).getPeriods()) {
-        			Date to = (lastRefOutputKey.compareTo(currentPeriod.getTo()) <= 0)?lastRefOutputKey:currentPeriod.getTo();
+        			Date to = (lastRefOutputKey.compareTo(currentPeriod.getTo()) <= 0)? lastRefOutputKey : currentPeriod.getTo();
         			SortedMap<Date, Double> periodQuotationMap = MapUtils.subMapInclusive(quotationMap, currentPeriod.getFrom(), to);
         			EventType periodTrend = EventType.valueOf(currentPeriod.getTrend());
         			for (Date periodInnerDate : periodQuotationMap.keySet()) {

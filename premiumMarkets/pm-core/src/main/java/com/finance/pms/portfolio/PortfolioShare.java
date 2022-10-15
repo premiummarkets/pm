@@ -78,7 +78,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 /**
- * 
+ * FIXME: Unused columns : QUANTITY | BUYDATE | AVGBUYPRICE | CASHIN | CASHOUT 
  * @author Guillaume Thoreton
  */
 @Entity

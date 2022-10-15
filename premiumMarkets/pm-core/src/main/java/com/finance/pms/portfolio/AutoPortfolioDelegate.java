@@ -33,6 +33,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -72,9 +75,11 @@ public class AutoPortfolioDelegate {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
 	
-	public static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
-	public static final int DEFAULT_MAXIMUM_SIZE = 1;
-	public static final BigDecimal DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(DEFAULT_MAXIMUM_SIZE));
+	private static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
+	private static final BigDecimal MINIMUM_TRANSACTION_AMOUNT = BigDecimal.ONE;
+	private static final int DEFAULT_MAXIMUM_SIZE = 1;
+	protected static final BigDecimal DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(DEFAULT_MAXIMUM_SIZE));
+
 	
 	private TransactionHistory transactionHistory;
 	
@@ -84,8 +89,9 @@ public class AutoPortfolioDelegate {
 
 	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio, Boolean isFileLogged) {
 		this.thisPortfolio = autoPortfolio;
-		if (isFileLogged) {
-			this.log("available cash","date", "symbol", "isin", "sharename", "currency", "movement", "quantity", "price", "amount", "events", "run timestamp");
+		Path logFilePath = Path.of(URI.create("file://" + System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName() + "_Log.csv"));
+		if (isFileLogged && !Files.exists(logFilePath)) {
+			this.log("available cash", "date", "symbol", "isin", "sharename", "currency", "movement", "quantity", "price", "amount", "events", "run timestamp");
 		}
 	}
 
@@ -104,7 +110,7 @@ public class AutoPortfolioDelegate {
 		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
 			thisCalculationHistory.addAll(this.checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
 		} else {
-			LOGGER.info("Not checking buy signals because: Cash amount left: " + canBuy + " at " + currentDate + ". Events: " + listEvents);
+			LOGGER.info("Not checking buy signals because: Cash amount left: " + canBuy + " at " + currentDate + ". Buy strategy: " + buyStrategy + ", Events: " + listEvents);
 		}
 		
 		thisPortfolio.notifyObservers(new ObserverMsg(null, ObserverMsg.ObsKey.PRGSMSG, "Setting Quotations data"));
@@ -114,21 +120,32 @@ public class AutoPortfolioDelegate {
 	}
 
 	protected BigDecimal canBuy(BuyStrategy buyStrategy, Date currentDate) {
+		BigDecimal availableCash = BigDecimal.ZERO;
 		switch (buyStrategy) {
-		case LIMITROWS:
-			int ownedSharesSize = thisPortfolio.getOwnedPorfolioShares().size();
-			if (ownedSharesSize == DEFAULT_MAXIMUM_SIZE) return BigDecimal.ZERO;
-			if (ownedSharesSize > DEFAULT_MAXIMUM_SIZE) throw new RuntimeException();
-			return AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
-		case INFINITCASH:
-			return AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
-		case REINVEST:
-			BigDecimal availableCash = thisPortfolio.getAvailableCash(currentDate);
-			return (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0)? availableCash : BigDecimal.ZERO;
-		default:
-			throw new UnsupportedOperationException();
+			case LIMITROWS:
+				int ownedSharesSize = thisPortfolio.getOwnedPorfolioShares().size();
+				if (ownedSharesSize == DEFAULT_MAXIMUM_SIZE) {
+					LOGGER.info("Strategy " + buyStrategy + ", Maximum number of lines reached.");
+					availableCash = BigDecimal.ZERO;
+				} else if (ownedSharesSize > DEFAULT_MAXIMUM_SIZE) {
+					throw new RuntimeException("Strategy " + buyStrategy + ", Maximum number of lines over taken");
+				} else {
+					availableCash = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+				}
+				break;
+			case INFINITCASH:
+				availableCash = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+				break;
+			case REINVEST:
+				availableCash = thisPortfolio.getAvailableCash(currentDate);
+				//availableCash = (availableCash.compareTo(defaultTransactionAmount) >= 0)? availableCash : BigDecimal.ZERO;
+				break;
+			default:
+				throw new UnsupportedOperationException();
 		}
 		
+		LOGGER.info("Strategy " + buyStrategy + ", available cash: " + availableCash);
+		return availableCash;
 	}
 
 	private TransactionHistory checkBuySignals(BuyStrategy buyStrategy, Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
@@ -211,7 +228,7 @@ public class AutoPortfolioDelegate {
 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
 		LOGGER.info("Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate);
-		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) > 0) {
+		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) >= 0) {
 			throw new IgnoredEventDateException(
 					"Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate + ". " +
 					"Invalid event date or no event found in " + symbolEvents, new Throwable());
@@ -259,11 +276,13 @@ public class AutoPortfolioDelegate {
 			BigDecimal buyPrice = quotations.getClosestCloseForDate(currentDate);
 
 			BigDecimal availableCash = canBuy(buyStrategy, currentDate);
-			if (availableCash.compareTo(AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT) >= 0) {
-				
-				BigDecimal availableAmount = thisPortfolio.withdrawCash(currentDate, transactionCurrency);
-				BigDecimal quantity = availableAmount.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
-				LOGGER.info("Buying: " + quantity + " " + stock + " on the " + currentDate + ". Available amount: " + availableAmount + ". Triggering event " + symbolEvents);
+			if (availableCash.compareTo(MINIMUM_TRANSACTION_AMOUNT) >= 0) {
+				BigDecimal requestedAmount = (availableCash.compareTo(DEFAULT_TRANSACTION_AMOUNT) >= 0)? DEFAULT_TRANSACTION_AMOUNT : availableCash;
+				BigDecimal effectiveAmountWithDrawn = thisPortfolio.withdrawCash(currentDate, requestedAmount, transactionCurrency);
+				BigDecimal quantity = effectiveAmountWithDrawn.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
+				LOGGER.info("Buying: " + quantity + " " + stock + " on the " + currentDate + ". " +
+							"Requested " + transactionCurrency + " amount: " + requestedAmount + ". Effective " + thisPortfolio.getPortfolioCurrency() + "  amount: " + effectiveAmountWithDrawn + ". " +
+							"Triggering event " + symbolEvents);
 
 				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
 					throw new NoQuotationsException("Invalid stock " + stock + " with price " + buyPrice + " on " + currentDate + ". Can't be bought");
@@ -274,7 +293,7 @@ public class AutoPortfolioDelegate {
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
 				
 			} else {
-				throw new NoCashAvailableException("Not enough cash left : " + availableCash + ". Can't buy: " + symbolEvents);
+				throw new NoCashAvailableException("Cash left : " + availableCash + ", buyStrategy: " + buyStrategy + ", minimum required: " + MINIMUM_TRANSACTION_AMOUNT + ". Can't buy: " + symbolEvents);
 			}
 
 		} catch (NoQuotationsException e) {
@@ -350,7 +369,7 @@ public class AutoPortfolioDelegate {
 
 		//check if already done 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
-		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) > 0) 
+		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) >= 0) 
 			throw new IgnoredEventDateException("Last event date : " + latestEventDateAndNewBuyDate + " and current date : " + currentDate + ". Invalid event date or no event found in " + symbolEvents, new Throwable());
 
 		try {

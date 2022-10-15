@@ -41,13 +41,13 @@ public class TuningResDTO implements Serializable, IsSerializable {
 
 	private static final long serialVersionUID = 6537421829385394184L;
 
-	private List<PeriodRatingDTO> periods;
 	private String csvLink;
 	private String chartLink;
 
 	private String configRatingFile;
 	private String footNote;
 
+	private List<PeriodRatingDTO> periods;
 	private Date calculationStart;
 	private Double calculationStartPrice;
 	private Date calculationEnd;
@@ -79,6 +79,12 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		this.csvLink = csvLink;
 		this.chartLink = chartLink;
 		this.footNote = toString();
+	}
+	
+	public void resetStart(List<PeriodRatingDTO> periods, Date calculationStart, Double calculationStartPrice) {
+		this.periods = periods;
+		this.calculationStart = calculationStart;
+		this.calculationStartPrice = calculationStartPrice;
 	}
 
 	public Double getStockPriceChange() {
@@ -236,6 +242,27 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();
 		PeriodRatingDTO currentPeriod = null;
 		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(date) <= 0) {
+			if (currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {	//End of bullish (exclusive).
+				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
+				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
+			}
+		}
+		return trendFollowProfit - 1;
+	}
+	
+	/**
+	 * [from, to]
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public Double getFollowProfitBetween(Date from, Date to) {
+		Double trendFollowProfit = 1.00;
+		Iterator<PeriodRatingDTO> iterator = periods.iterator();
+		PeriodRatingDTO currentPeriod = null;
+		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(to) <= 0) {
+			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
 			if (currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {	//End of bullish (exclusive).
 				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;

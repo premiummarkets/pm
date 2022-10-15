@@ -86,10 +86,9 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		this.eventSignalConfig = eventSignalConfig;
 	}
 
-	public synchronized BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException {
-		BigDecimal withDrawn = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+	public synchronized BigDecimal withdrawCash(Date currentDate, BigDecimal amount, Currency transactionCurrency) throws NoCashAvailableException {
 		Currency portfolioCurrency = (this.getPortfolioCurrency() == null) ? Currency.EUR : this.getPortfolioCurrency();
-		return PortfolioMgr.getInstance().getCurrencyConverter().convert(portfolioCurrency, transactionCurrency, withDrawn, currentDate);
+		return PortfolioMgr.getInstance().getCurrencyConverter().convert(portfolioCurrency, transactionCurrency, amount, currentDate);
 	}
 
 	@Transient

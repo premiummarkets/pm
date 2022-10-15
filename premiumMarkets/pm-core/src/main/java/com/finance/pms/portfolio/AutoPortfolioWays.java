@@ -53,7 +53,7 @@ public interface AutoPortfolioWays {
 	Boolean isAutoCalculationIdempotent();
 
 	//The buy and sell thing
-	BigDecimal withdrawCash(Date currentDate, Currency transactionCurrency) throws NoCashAvailableException;
+	BigDecimal withdrawCash(Date currentDate, BigDecimal amount, Currency transactionCurrency) throws NoCashAvailableException;
 	BigDecimal getAvailableCash(Date currentDate);
 	
 	Currency getPortfolioCurrency();
