@@ -90,6 +90,8 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 		try {
 			currencyDBAccessSemaphore.acquire();
+			
+			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 
 			NavigableSet<CurrencyRate> dbRates = new TreeSet<CurrencyRate>();
 			dbRates.addAll(currencyDao.getRates(fromCurrency, toCurrency));
@@ -109,7 +111,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 				Stock currencyStock = new CurrencyStockBuilder(fromCurrency, toCurrency).buildStock();
 
 				if (isUpdateGranted) {//Additional Grant check necessary as the update of exchange rate can come also from calls to convert as well as update quotations
-					LOGGER.info("Currency update granted for " + currencyStock + " between " + lastCurrencyRateDate + " and " + today);
+					LOGGER.info(currencyStock + ": update granted from " + df.format(lastCurrencyRateDate) + " to " + df.format(today));
 
 					//bulk download
 					dbRates.addAll(bulkCompletion(fromCurrency, toCurrency, today, lastCurrencyRateDate));
@@ -122,12 +124,12 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 					//Complete 5 days missing
 					if (onlyFiveDaysMissing) {
-						LOGGER.info("Currency 5 last days update granted for " + currencyStock + " between " + lastCurrencyRateDate + " and " + today);
+						LOGGER.info(currencyStock + ": 5 last days update granted from " + df.format(lastCurrencyRateDate) + " to " + df.format(today));
 						dbRates.addAll(fiveDaysCompletion(fromCurrency, toCurrency, today, lastCurrencyRateDate));
 					}
 
 				} else {
-					LOGGER.debug("Currency update NOT granted for " + currencyStock + " and "+today);
+					LOGGER.debug(currencyStock + ": update NOT granted at " + df.format(today));
 				}
 
 			}
@@ -147,8 +149,8 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	}
 
 	private Collection<? extends CurrencyRate> bulkCompletion(Currency fromCurrency, Currency toCurrency, Date today, Date lastCurrencyRateDate) {
-
-		LOGGER.info("Currency bulk completion from "+fromCurrency+" to "+ toCurrency+ " between "+lastCurrencyRateDate+" and "+today);
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+		LOGGER.info(fromCurrency + " to " + toCurrency + ": bulk completion from " + df.format(lastCurrencyRateDate) + " to " + df.format(today));
 		//ExchangeRatesFetcher fetcher = new OandaIterativeFetcher(httpSource);
 		ExchangeRatesFetcher fetcher = new EuropeanCentralBankFetcher(httpSource);
 
@@ -168,8 +170,8 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 	}
 
 	private List<CurrencyRate> fiveDaysCompletion(Currency fromCurrency, Currency toCurrency, Date today, Date lastCurrencyRateDate) {
-
-		LOGGER.info("Currency daily completion from " + fromCurrency + " to " + toCurrency + " between " + lastCurrencyRateDate + " and " + today);
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+		LOGGER.info(fromCurrency + " to " + toCurrency + ": daily completion from " + df.format(lastCurrencyRateDate) + " to " + df.format(today));
 		ExchangeRatesFetcher fetcher = new XRatesIterativeFetcher(httpSource);
 
 		List<CurrencyRate> webRates = fetch(fetcher, fromCurrency, toCurrency, lastCurrencyRateDate, today);

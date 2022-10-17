@@ -70,7 +70,7 @@ public class SeriesPrinter {
 	        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
 	        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
 				
-				//Find the last date and trunk series to last date
+				//Find the last date and trunk series to last date (ex. lines containing NaN)
 	        	inputWTmp.write(line); //headers
 	        	inputWTmp.newLine();
 				while ((line = inputR.readLine()) != null) {

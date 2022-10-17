@@ -105,7 +105,7 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 		try {
 			
-			LOGGER.info("Processing signals " + getAnalysisName() + " with " + reducedEvents.size() + " events up to " + spanEnd);
+			LOGGER.info("Processing events " + getAnalysisName() + " with " + reducedEvents.size() + " event set(s) up to " + spanEnd);
 			if (reducedEvents.isEmpty()) return;
 
 			for (String configName : getPassedThroughConfigs().keySet()) {
@@ -115,7 +115,7 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyStrategy, buyPonderationRule, sellPonderationRule);
 			sendTransactionHistory(calculationTransactions);
 
-			LOGGER.info("Processor message completed : " + getAnalysisName() + " with " + reducedEvents.size() + " events.");
+			LOGGER.info("Processing message completed : " + getAnalysisName() + " with " + reducedEvents.size() + " events set(s).");
 
 		} catch (Exception e) {
 			LOGGER.error("Error in " + this.toString(), e);

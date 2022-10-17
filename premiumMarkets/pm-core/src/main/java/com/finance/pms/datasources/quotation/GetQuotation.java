@@ -96,6 +96,8 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 			Date dateAtZero = DateFactory.dateAtZero();
+			
+			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 
 			GetQuotationResult ret = new GetQuotationResult(stock);
 			Date lastQuoteBeforeUpdate;
@@ -123,31 +125,31 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 
 				if (endDate.compareTo(updateStart) >= 0 && (forceReset || forceUpdate || updateGranted)) { //Update granted for today
 
-					LOGGER.guiInfo(	"Updating quotation for " + stock.getFriendlyName() + " ( " + stock.getTradingMode() + " / " + stock.getMarket().getUTCTimeLag() + " ) " +
-							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + " ( last quote +1 )" +
-							" to " + new SimpleDateFormat("yyyy/MM/dd").format(endDate) + " ( end date US Localfixed ) ");
+					LOGGER.guiInfo(stock.getSymbol() + ": Updating quotation ( " + stock.getTradingMode() + " / " + stock.getMarket().getUTCTimeLag() + " ) " +
+							" from " + df.format(updateStart) + " ( last quote +1 )" +
+							" to " + df.format(endDate) + " ( end date US Localfixed ) ");
 
 					Providers.getInstance(stock.getSymbolMarketQuotationProvider().getCmdParam()).getQuotes(stock, updateStart, endDate);
 					ret.isSuccessfulUpdate = true;
 					
 					LOGGER.guiInfo(
-							"Done quotations for " + stock.getFriendlyName() +
-							" from " + new SimpleDateFormat("yyyy/MM/dd").format(updateStart) + 
-							" to " + new SimpleDateFormat("yyyy/MM/dd").format(endDate) +
+							stock.getSymbol() + ": Done quotations " +
+							" from " + df.format(updateStart) + 
+							" to " + df.format(endDate) +
 							" STATUS : Success " + ret.isSuccessfulUpdate);
 
 				} else {//No Update : already done today
 
 					ret.isSuccessfulUpdate = null;
-					LOGGER.info("Ungranted quotation update for " + stock.getFriendlyName()+" from the " + updateStart + " to " + endDate );
+					LOGGER.info(stock.getSymbol() + ": Ungranted quotation update from " + df.format(updateStart) + " to " + df.format(endDate) );
 
 				}
 
 			} catch (Exception e) {
 
-				String scrapErrorMess = "Failed to update quotes for :" + stock.toString() + ".\n" +
+				String scrapErrorMess = stock.getSymbol() + ": Failed to update quotes.\n" +
 						"\tBecause " + e + ".\n" +
-						"\tIn update request from " + updateStart + " to " + endDate + ".";
+						"\tIn update request from " + df.format(updateStart) + " to " + df.format(endDate) + ".";
 				LOGGER.warn(scrapErrorMess);
 				ret.isSuccessfulUpdate = false;
 				ret.failureCause = e;
@@ -178,10 +180,10 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 			updateLastQuoteDateForShareInDB(lastQuote);
 
 			LOGGER.info(
-					"Done quotations for " + stock.getFriendlyName() + " from " + updateStart + " to " + endDate + ", last quotation : " + stock.getLastQuote() + ", "
-							+ "STATUS : Success " + ret.isSuccessfulUpdate + " (granted: " + updateGranted + "), "
-							+ "New data " + ret.hasNewQuotations + ", Has previous data " + ret.hasPreviousQuotations + 
-							" (ex. User Entries with overshadowing " + stock.isOverrideUserQuotes() + ")");
+					stock.getSymbol() + ": Done quotations from " + df.format(updateStart) + " to " + df.format(endDate) + ", last quote: " + df.format(stock.getLastQuote()) + ", "
+							+ "Status: " + ret.isSuccessfulUpdate + ", Granted: " + updateGranted + ", "
+							+ "New data: " + ret.hasNewQuotations + ", Has previous web data: " + ret.hasPreviousQuotations + 
+							" (user overshadowing " + stock.isOverrideUserQuotes() + ")");
 
 			if (ret.hasNewQuotations) {
 				lastUpdateChecker.resetFatalThreshold(stock.getSymbol());

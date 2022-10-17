@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,6 +75,8 @@ public class LastUpdateStampChecker {
 	//Compare the attempt time stamp with Mc (see GetQuotations) which should give which end date was attempted already.
 	public Boolean isUpdateGranted(String asset, Date lastQuoteDateForAsset, int utcTimeLag, TradingMode tradinMode) {
 		
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+		
 		LastUpDateStampRecord timeStampOfLastUpdate = getLastUpdateStampRecord(asset);
 		
 		//XXX NOW time zone should depend on the stock provider location (info that could be available in MarketQuotationProviders of stock)
@@ -81,23 +84,23 @@ public class LastUpdateStampChecker {
 		Date lastMrktCloseBeforeNowDate = DateFactory.endDateFix(now, utcTimeLag, tradinMode); //Previous/This close day after 6PM - can be today 6PM or yesterday 6PM !!US!!
 		try {
 			
-			String timeStampMsg = "Last market close (with UTC lag " + utcTimeLag + "): " + lastMrktCloseBeforeNowDate + " <=? " + "Last quote: " + lastQuoteDateForAsset;
+			String timeStampMsg = "Last market close (UTC lag " + utcTimeLag + "H): " + df.format(lastMrktCloseBeforeNowDate) + " <=? last quote: " + df.format(lastQuoteDateForAsset);
 			
 			if (lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) >= 0) {//Already up to date
 				timeStampOfLastUpdate.resetNbAttemts();
-				LOGGER.info(asset + " is up to date." + timeStampMsg);
+				LOGGER.info(asset + " is UP TO DATE. " + timeStampMsg);
 				return false;
 			}
 			
 			if (timeStampOfLastUpdate.getFatalThreshold() >= MAXATTEMPTSFATAL) {//Dead Quote!!??
-				LOGGER.warn(asset + " has no quotations new update. Max failed attempt reach: " + MAXATTEMPTSFATAL + ". " + timeStampMsg);
+				LOGGER.warn(asset + " CAN'T be updated. Max failed attempt reach: " + MAXATTEMPTSFATAL + ". " + timeStampMsg);
 				return false; 
 			}
 			
 			//Should be == as can't be < as timeStampOfLastUpdate is updated with lastMrktCloseBeforeNowDate
 			//so we always have timeStampOfLastUpdate <= lastMrktCloseBeforeNowDate
 			if (lastMrktCloseBeforeNowDate.compareTo(timeStampOfLastUpdate.getLastAttemptDate()) == 0 ) { 
-				LOGGER.info(asset + " has Failed previous update. " + timeStampMsg);
+				LOGGER.info(asset + " has FAILED PREVIOUS update. " + timeStampMsg);
 				//Latest actual close day 6PM at Now == Last close day recorded for asset: don't update more then MAXATTEMPTS
 				//This means we already have tried update with the actual market data available
 				timeStampOfLastUpdate.incNbAttempts();
@@ -111,16 +114,16 @@ public class LastUpdateStampChecker {
 				//New attempt
 				if (timeStampOfLastUpdate.getNbAttempts() <= MAXRETRY &&
 					lastQuoteDateForAsset != null && lastQuoteDateForAsset.compareTo(lastMrktCloseBeforeNowDate) < 0) {//Needs update but failed
-					LOGGER.info(asset + " is NOT up to date and may have new market data. Retrying... " + timeStampMsg);
+					LOGGER.info(asset + " is NOT UP TO DATE and may have NEW DATA. Retrying... " + timeStampMsg);
 					return true;
 				}
 
-				LOGGER.info(asset + " is NOT up to date. Has Failed all update attempts for the latest market data session. " + timeStampMsg);
+				LOGGER.info(asset + " has FAILED all update attempts: " + timeStampOfLastUpdate.getNbAttempts() + " times. " + timeStampMsg);
 				return false;
 				
 			} else { //Potential new market data available since last check
 				timeStampOfLastUpdate.resetNbAttemts();
-				LOGGER.info(asset + " is NOT up to date. Needs updating. " + timeStampMsg);
+				LOGGER.info(asset + " is NOT UP TO DATE. Needs updating. " + timeStampMsg);
 				return true;
 			}
 			

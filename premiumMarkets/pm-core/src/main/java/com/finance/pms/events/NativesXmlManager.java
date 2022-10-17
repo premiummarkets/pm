@@ -45,6 +45,7 @@ import com.finance.pms.events.operations.RandomOperation;
 import com.finance.pms.events.operations.TargetStockDelegateOperation;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.BandRatioNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.ConcatStringOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
@@ -211,6 +212,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(requiredShiftWrapperOperation);
 		RandomizeStringOperation randomizeStringOperation = new RandomizeStringOperation();
 		nativeOperations.addOperation(randomizeStringOperation);
+		ConcatStringOperation concatStringOperation = new ConcatStringOperation();
+		nativeOperations.addOperation(concatStringOperation);
 
 		//Other
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();
