@@ -57,6 +57,7 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventState;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.ConfigFreePonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -70,7 +71,11 @@ import com.finance.pms.threads.ObserverMsg;
 /**
  * @author Guillaume Thoreton
  * AutoPortfolio Delegate Implementation based on Technical Analysis events and Screening events
- *
+ * On replay: checks are in place and past events should not affect the portfolio status
+ * Erratic forecast: 
+ * 	- in case the past forecast changes, past changed event won't be accounted if outside the calculation span.
+ * 	- hence, in this case, then final trend could be different from the portfolio status
+ * 	- INFINITCASH strategy should be applied in this case.. 
  */
 public class AutoPortfolioDelegate {
 
@@ -78,13 +83,13 @@ public class AutoPortfolioDelegate {
 	
 	private static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
 	private static final BigDecimal MINIMUM_TRANSACTION_AMOUNT = BigDecimal.ONE;
-	private static final int DEFAULT_MAXIMUM_SIZE = 1;
-	protected static final BigDecimal DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(DEFAULT_MAXIMUM_SIZE));
+	private static final int DEFAULT_MAXIMUM_LINES = 1;
+	protected static final BigDecimal DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(DEFAULT_MAXIMUM_LINES));
 
 	
 	private TransactionHistory transactionHistory;
 	
-	public enum BuyStrategy { REINVEST, LIMITROWS, INFINITCASH };
+	public enum BuyStrategy { REINVEST, LIMITROWS, INFINITCASH, INFINITQUANTITY };
 
 	protected AutoPortfolioWays thisPortfolio;
 
@@ -106,8 +111,8 @@ public class AutoPortfolioDelegate {
 		TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
 
 		LOGGER.debug("Checking events for AutoPortfolio: " + thisPortfolio.getName() + " and date " + currentDate);
-		thisCalculationHistory.addAll(this.checkSellSignals(currentDate, listEvents, sellComparator));
-		BigDecimal canBuy = canBuy(buyStrategy, currentDate);
+		thisCalculationHistory.addAll(this.checkSellSignals(buyStrategy, currentDate, listEvents, sellComparator));
+		BigDecimal canBuy = canBuy(buyStrategy);
 		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
 			thisCalculationHistory.addAll(this.checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
 		} else {
@@ -120,25 +125,26 @@ public class AutoPortfolioDelegate {
 
 	}
 
-	protected BigDecimal canBuy(BuyStrategy buyStrategy, Date currentDate) {
+	protected BigDecimal canBuy(BuyStrategy buyStrategy) {
 		BigDecimal availableCash = BigDecimal.ZERO;
 		switch (buyStrategy) {
 			case LIMITROWS:
 				int ownedSharesSize = thisPortfolio.getOwnedPorfolioShares().size();
-				if (ownedSharesSize == DEFAULT_MAXIMUM_SIZE) {
+				if (ownedSharesSize == DEFAULT_MAXIMUM_LINES) {
 					LOGGER.info("Strategy " + buyStrategy + ", Maximum number of lines reached.");
 					availableCash = BigDecimal.ZERO;
-				} else if (ownedSharesSize > DEFAULT_MAXIMUM_SIZE) {
+				} else if (ownedSharesSize > DEFAULT_MAXIMUM_LINES) {
 					throw new RuntimeException("Strategy " + buyStrategy + ", Maximum number of lines over taken");
 				} else {
 					availableCash = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 				}
 				break;
 			case INFINITCASH:
+			case INFINITQUANTITY:
 				availableCash = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
 				break;
 			case REINVEST:
-				availableCash = thisPortfolio.getAvailableCash(currentDate);
+				availableCash = thisPortfolio.getAvailableCash();
 				//availableCash = (availableCash.compareTo(defaultTransactionAmount) >= 0)? availableCash : BigDecimal.ZERO;
 				break;
 			default:
@@ -193,11 +199,15 @@ public class AutoPortfolioDelegate {
 		sortedSymbolEvents.addAll(listEvents);
 		LOGGER.debug("Total bullish events: " + sortedSymbolEvents);
 
-		SortedSet<SymbolEvents> sortedSymbolEventsTail = sortedSymbolEvents.headSet(symbolEventsThreshold); //XXX PonderationRule.compare is reversed!!
-		LOGGER.debug("Filtered bullish events tail: " + sortedSymbolEventsTail);
+		SortedSet<SymbolEvents> sortedSymbolEventsHead = sortedSymbolEvents.headSet(symbolEventsThreshold); //XXX PonderationRule.compare is reversed!!
+		LOGGER.debug("Filtered bullish events tail: " + sortedSymbolEventsHead);
+		
+		if (sortedSymbolEventsHead.isEmpty()) {
+			LOGGER.info("No buy signal at " + currentDate + " with " + listEvents);
+		}
 
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
-		for (SymbolEvents symbolEvents:sortedSymbolEventsTail) {
+		for (SymbolEvents symbolEvents:sortedSymbolEventsHead) {
 			try {
 				TransactionRecord buyTrans = checkNBuyPondaratedEvents(buyStrategy , symbolEvents, currentDate);
 				if (buyTrans != null) {
@@ -224,21 +234,24 @@ public class AutoPortfolioDelegate {
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
 		isValidEventDate(currentDate, latestEventDateAndNewBuyDate);
 
-		try {
+		//Check if already bought
+		PortfolioShare alreadyBoughtShare  = thisPortfolio.getListShares().get(symbolEvents.getStock());
+		if (	!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) &&
+				(alreadyBoughtShare != null && 
+				 alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) > 0)) {
+			LOGGER.info("Won't buy at " + currentDate + " with " + symbolEvents.getSymbol() + ". Already bought (buy once policy).");
+			return null;
+		}
+		
+		LOGGER.info("Portfolio share is NOT owned or INFINITQUANTITY is granted: " + symbolEvents.getStock());
 
-			//Check if already bought
-			PortfolioShare alreadyBoughtShare  = null;
-			if ((alreadyBoughtShare = thisPortfolio.getListShares().get(symbolEvents.getStock())) != null) { //TODO multiple buy of the same (would depend on some progressive buy strategy?)
-				LOGGER.info("Won't buy at " + currentDate + " with " + symbolEvents.getSymbol() + ". Already bought on the " + alreadyBoughtShare.getLastTransactionDate());
-				return null;
-			}
-			
-			isValidDateForLine(latestEventDateAndNewBuyDate, alreadyBoughtShare);
-			
+		isValidDateForLine(latestEventDateAndNewBuyDate, alreadyBoughtShare);
+		
+		try {
 			LOGGER.info("Buying at " + currentDate + " with " + symbolEvents.getSymbol());
 			TransactionRecord buyTransactionRecord = buy(buyStrategy, symbolEvents, currentDate);
 			thisPortfolio.setChanged();
-			
+
 			return buyTransactionRecord;
 
 		} catch (InvalidAlgorithmParameterException e) {
@@ -251,21 +264,24 @@ public class AutoPortfolioDelegate {
 	}
 
 	private void isValidEventDate(Date currentDate, Date latestEventDateAndNewBuyDate) throws IgnoredEventDateException {
-		LOGGER.info("Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate);
+		LOGGER.info("Is valid event date: is event date: " + latestEventDateAndNewBuyDate + " (strictly before?) iteration current date: " + currentDate + ". ");
 		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) >= 0) {
 			throw new IgnoredEventDateException(
-					"Last event date: " + latestEventDateAndNewBuyDate + " and current date: " + currentDate + ". " +
-					"Invalid event date", new Throwable());
+					"Event date: " + latestEventDateAndNewBuyDate + " and current iteration date: " + currentDate + ". " +
+					"Event should be processed later: ", new Throwable());
 		}
 	}
 
 	protected void isValidDateForLine(Date latestEventDateAndNewBuyDate, PortfolioShare existingPs) throws IgnoredEventDateException {
 		LOGGER.info("Checking existing transactions: " + this.thisPortfolio.getTransactions());
-		LOGGER.info("Checking event invalidity: only if " + latestEventDateAndNewBuyDate + " after " + existingPs.getLastTransactionDate());
-		if (existingPs != null && !latestEventDateAndNewBuyDate.after(existingPs.getLastTransactionDate())) {
-			throw new IgnoredEventDateException("Event already processed (" + latestEventDateAndNewBuyDate + "): " + 
-								existingPs + " last transaction on the " + existingPs.getLastTransactionDate(), new Throwable());
-		};
+		if (existingPs != null) {
+			Date lastTransactionDate = existingPs.getLastTransactionDate();
+			LOGGER.info("Event validity for line: is event date: " + latestEventDateAndNewBuyDate + " (strictly after?) last transaction: " + lastTransactionDate);
+			if (!latestEventDateAndNewBuyDate.after(lastTransactionDate)) {
+				throw new IgnoredEventDateException("Event (" + latestEventDateAndNewBuyDate + ") already processed: " + 
+					  existingPs + " last transaction on the " + lastTransactionDate, new Throwable());
+			}
+		}
 	}
 
 	protected TransactionRecord buy(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
@@ -285,7 +301,7 @@ public class AutoPortfolioDelegate {
 									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
 									.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
 
-			BigDecimal availableCash = canBuy(buyStrategy, currentDate);
+			BigDecimal availableCash = canBuy(buyStrategy);
 			if (availableCash.compareTo(MINIMUM_TRANSACTION_AMOUNT) >= 0) {
 				BigDecimal requestedAmount = (availableCash.compareTo(DEFAULT_TRANSACTION_AMOUNT) >= 0)? DEFAULT_TRANSACTION_AMOUNT : availableCash;
 				BigDecimal effectiveAmountWithDrawn = thisPortfolio.withdrawCash(currentDate, requestedAmount, transactionCurrency);
@@ -298,6 +314,8 @@ public class AutoPortfolioDelegate {
 					throw new NoQuotationsException("Invalid stock " + stock + " with price " + buyPrice + " on " + currentDate + ". Can't be bought");
 				}
 				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
+				
+				LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left : " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
 
 				// Log
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
@@ -312,9 +330,9 @@ public class AutoPortfolioDelegate {
 		}
 	}
 
-	private TransactionHistory checkSellSignals(Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
+	private TransactionHistory checkSellSignals(BuyStrategy buyStrategy, Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
 		
-		LOGGER.info("Checking sell signals at " + currentDate + " for " + listEvents);
+		LOGGER.info("Checking sell signals at " + currentDate + " with " + listEvents);
 
 		SymbolEvents symbolEventThreshold = new SymbolEvents(
 				new Stock() {
@@ -355,11 +373,15 @@ public class AutoPortfolioDelegate {
 
 		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventThreshold); //XXX PonderationRule.compare is reversed!!
 		LOGGER.debug("Filtered bearish events head: " + sortedSymbolEventsHead);
+		
+		if (sortedSymbolEventsHead.isEmpty()) {
+			LOGGER.info("No sell signal at " + currentDate + " with " + listEvents);
+		}
 
 		TransactionHistory transactionHistory = new TransactionHistory(this.thisPortfolio.getName());
 		for (SymbolEvents symbolEvents : sortedSymbolEventsHead.descendingSet()) {
 			try {
-				TransactionRecord sellTransaction = checkNSellPondaratedEvents(symbolEvents, currentDate);
+				TransactionRecord sellTransaction = checkNSellPondaratedEvents(buyStrategy, symbolEvents, currentDate);
 				if (sellTransaction != null) {
 					transactionHistory.add(sellTransaction);
 				}
@@ -374,35 +396,33 @@ public class AutoPortfolioDelegate {
 	}
 
 
-	private TransactionRecord checkNSellPondaratedEvents(SymbolEvents symbolEvents, Date currentDate) throws IgnoredEventDateException {
-		
+	private TransactionRecord checkNSellPondaratedEvents(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) throws IgnoredEventDateException {
+
 		LOGGER.info("Checking pondarated sell: " + symbolEvents);
 
 		Date latestEventDateAndNewBuyDate = symbolEvents.getLatestRelevantEventDate();
 		isValidEventDate(currentDate, latestEventDateAndNewBuyDate);
 
+		PortfolioShare alreadyBoughtShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
+		if ( alreadyBoughtShare == null || 
+			  alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) == 0 ) {
+			LOGGER.info("Won't sell at " + currentDate + " with " + symbolEvents.getSymbol() + ": is not in owned at present.");
+			return null;
+		}
+		
+		LOGGER.info("Portfolio share is owned: " + alreadyBoughtShare);
+
+		isValidDateForLine(latestEventDateAndNewBuyDate, alreadyBoughtShare);
+
 		try {
 
-			if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
-
-				PortfolioShare portfolioShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
-
-				if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
-					LOGGER.info("Won't sell at " + currentDate + " with " + symbolEvents.getSymbol() + ": " + portfolioShare + " has no quantity.");
-					return null;
-				}
-
-				isValidDateForLine(latestEventDateAndNewBuyDate, portfolioShare);
-				
-				LOGGER.info("Selling at " + currentDate + " with " + symbolEvents.getSymbol());
-				TransactionRecord sellTransactionRecord = sell(symbolEvents, currentDate, null, portfolioShare); //TODO Amount is null (would depend on some progressive sell strategy?)
-				thisPortfolio.setChanged();
-				
-				return sellTransactionRecord;
-
-			} else {
-				LOGGER.info("Won't sell at " + currentDate + " with " + symbolEvents.getSymbol() + ": " + symbolEvents.getSymbol() + " is not in shareList.");
-			}
+			LOGGER.info("Selling at " + currentDate + " with " + symbolEvents.getSymbol());
+			BigDecimal amount = (BuyStrategy.INFINITQUANTITY.equals(buyStrategy))?
+					BigDecimal.valueOf((Math.max(alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).doubleValue(), DEFAULT_TRANSACTION_AMOUNT.doubleValue()))):
+					null;
+			TransactionRecord sellTransactionRecord = sell(symbolEvents, currentDate, amount, alreadyBoughtShare);
+			thisPortfolio.setChanged();
+			return sellTransactionRecord;
 
 		} catch (InvalidAlgorithmParameterException e) 	{
 			LOGGER.warn("Can't sell " + symbolEvents.getStock() + " from " + thisPortfolio.getName( ) + 
@@ -428,13 +448,13 @@ public class AutoPortfolioDelegate {
 			BigDecimal highPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.HIGH);
 			BigDecimal lowPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.LOW);
 			BigDecimal closePrice = quotations.getClosestCloseForDate(currentDate);
-			double fee = -0.01;
+			double fee = 0.01;
 			BigDecimal sellPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
 									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
 									.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
 
 			BigDecimal quantityProrata;
-			BigDecimal quantity = portfolioShare.getQuantity(currentDate);
+			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());
 			if (sellAmount != null) {
 				quantityProrata = sellAmount.divide(sellPrice, 10, RoundingMode.HALF_EVEN);
 				quantityProrata = quantityProrata.min(quantity);
@@ -443,7 +463,7 @@ public class AutoPortfolioDelegate {
 			}
 
 			thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, sellPrice, TransactionType.AOUT);
-			LOGGER.info("Selling: " + quantityProrata + " " + portfolioShare + ", quantity left : " + quantity);
+			LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left : " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
 
 			//log
 			return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, sellPrice, currentDate);
@@ -472,7 +492,7 @@ public class AutoPortfolioDelegate {
 
 		TransactionRecord transactionRecord = 
 				new TransactionRecord(
-						thisPortfolio.getName(), shareList.getAvailableCash(currentDate), currentDate,
+						thisPortfolio.getName(), shareList.getAvailableCash(), currentDate,
 						stock, movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
 		getTransactionHistory().add(transactionRecord);
 

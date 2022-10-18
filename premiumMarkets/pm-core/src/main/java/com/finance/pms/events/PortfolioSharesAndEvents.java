@@ -39,7 +39,7 @@ import com.finance.pms.portfolio.PortfolioShare;
 
 public class PortfolioSharesAndEvents {
 
-	SortedSet<PortfolioShare> portfolioShares;
+	private SortedSet<PortfolioShare> portfolioShares;
 	private SortedMap<EventInfo,List<EventValue>> events;
 
 	public PortfolioSharesAndEvents() {

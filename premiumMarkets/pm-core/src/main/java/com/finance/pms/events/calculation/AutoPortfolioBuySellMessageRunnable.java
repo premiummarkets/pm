@@ -94,10 +94,10 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 		} else {
 			synchronized (syncObject) {
 				this.sendRunnableStartProcessingEvent(getAnalysisName(), this);
-				LOGGER.info(Thread.currentThread() + ": waiting on " + syncObject.hashCode());
+				LOGGER.debug(Thread.currentThread() + ": waiting on " + syncObject.hashCode());
 				syncObject.wait();
 			}
-			LOGGER.info(Thread.currentThread() + ": released " + syncObject.hashCode());
+			LOGGER.debug(Thread.currentThread() + ": released " + syncObject.hashCode());
 		}
 	}
 
@@ -120,11 +120,11 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 		} catch (Exception e) {
 			LOGGER.error("Error in " + this.toString(), e);
 		} finally {
-			LOGGER.info(Thread.currentThread() + ": notifying " + syncObject.hashCode());
+			LOGGER.debug(Thread.currentThread() + ": notifying " + syncObject.hashCode());
 			synchronized (syncObject) {
 				syncObject.notify();
 			}
-			LOGGER.info(Thread.currentThread() + ": notified " + syncObject.hashCode());
+			LOGGER.debug(Thread.currentThread() + ": notified " + syncObject.hashCode());
 		}
 
 	}

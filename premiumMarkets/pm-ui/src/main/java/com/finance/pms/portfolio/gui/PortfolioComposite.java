@@ -2247,19 +2247,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				//Then Add as new
 				if (transaction.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
 
-					try {
+					PortfolioShare replacementPS = portfolio.addOrUpdateShare(
+							portfolioShare.getStock(), transaction.getQuantity(), transaction.getDate(), //EventSignalConfig.getNewDate(), 
+							transaction.getTransactionSharePrice(), portfolioShare.getMonitorLevel(), portfolioShare.getTransactionCurrency(),
+							TransactionType.AIN);
 
-						PortfolioShare replacementPS = portfolio.addOrUpdateShare(
-								portfolioShare.getStock(), transaction.getQuantity(), transaction.getDate(), //EventSignalConfig.getNewDate(), 
-								transaction.getTransactionSharePrice(), portfolioShare.getMonitorLevel(), portfolioShare.getTransactionCurrency(),
-								TransactionType.AIN);
-
-						SlidingPortfolioShare replacememntSlidingPS = tabBuildSlidingPortfolioShare(replacementPS);
-						modelControler.addOrUpdateSlidingShareToTab(tabIdx, replacememntSlidingPS);
-
-					} catch (InvalidAlgorithmParameterException e) {
-						LOGGER.error(e,e);
-					}
+					SlidingPortfolioShare replacememntSlidingPS = tabBuildSlidingPortfolioShare(replacementPS);
+					modelControler.addOrUpdateSlidingShareToTab(tabIdx, replacememntSlidingPS);
 
 					refreshChartData();
 				}

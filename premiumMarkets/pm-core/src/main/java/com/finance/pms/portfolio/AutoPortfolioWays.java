@@ -54,7 +54,7 @@ public interface AutoPortfolioWays {
 
 	//The buy and sell thing
 	BigDecimal withdrawCash(Date currentDate, BigDecimal amount, Currency transactionCurrency) throws NoCashAvailableException;
-	BigDecimal getAvailableCash(Date currentDate);
+	BigDecimal getAvailableCash();
 	
 	Currency getPortfolioCurrency();
 	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;

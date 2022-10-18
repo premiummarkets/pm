@@ -42,6 +42,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -92,8 +93,9 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Transient
-	public BigDecimal getAvailableCash(Date currentDate) {
-		BigDecimal inMinusOut = getTotalInAmountEver(null, currentDate).subtract(getTotalOutAmountEver(null, currentDate)).setScale(2, RoundingMode.HALF_EVEN);
+	public BigDecimal getAvailableCash() {
+		Date nowEndDate = DateFactory.getNowEndDate();
+		BigDecimal inMinusOut = getTotalInAmountEver(null, nowEndDate).subtract(getTotalOutAmountEver(null, nowEndDate)).setScale(2, RoundingMode.HALF_EVEN);
 		return AutoPortfolioDelegate.DEFAULT_INITIAL_CASH.subtract(inMinusOut);
 	}
 

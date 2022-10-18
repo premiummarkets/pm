@@ -186,7 +186,6 @@ public class SymbolEvents implements Serializable {
 	@Override
 	public String toString() {
 		StringBuffer retour = new StringBuffer();
-		Collection<EventValue> drl = this.getSortedDataResultList();
 		retour.append(stock.getSymbol());
 		retour.append(";");
 		retour.append(stock.getName());
@@ -197,6 +196,7 @@ public class SymbolEvents implements Serializable {
 		retour.append(";");
 		retour.append(" sell triggering events : "+((getSellTriggeringEvents() != null)?getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
 		retour.append(";[");
+		Collection<EventValue> drl = this.getSortedDataResultList();
 		Iterator<EventValue> drlIt = drl.iterator();
 		while (drlIt.hasNext()) {
 			EventValue drv = drlIt.next();

@@ -65,7 +65,7 @@ public class UserPortfolioDelegate extends AutoPortfolioDelegate {
 	}
 
 	@Override
-	protected BigDecimal canBuy(BuyStrategy buyStrategy, Date currentDate) {
+	protected BigDecimal canBuy(BuyStrategy buyStrategy) {
 		return BigDecimal.ONE;
 	}
 

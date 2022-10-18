@@ -98,7 +98,7 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Transient
-	public BigDecimal getAvailableCash(Date currentDate) {
+	public BigDecimal getAvailableCash() {
 		throw new NotImplementedException();
 	}
 
