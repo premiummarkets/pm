@@ -97,7 +97,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 
 				try {
 
-					LOGGER.guiInfo("Processing alerts events for portfolio "+portfolio.getName());
+					LOGGER.guiInfo("Processing alerts events for portfolio: " + portfolio.getName() + ", and share: " + portfolioShare);
 
 					final Queue eventQueue = this.eventQueue;
 					final JmsTemplate jmsTemplate = this.jmsTemplate;

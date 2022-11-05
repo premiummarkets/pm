@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -175,16 +179,44 @@ public class ValueManipulator {
 			combinationsAcc = combinationsAccPrim;
 			hCombinationsAcc = hCombinationsAccPrim;
 		}
+		
 
 		//Calc
-		List<NumericableMapValue> allOutputs = new ArrayList<NumericableMapValue>();
-		List<String> outputsOperandsRefs = new ArrayList<String>();
+		ExecutorService executor = Executors.newCachedThreadPool();
+		List<Future<Object[]>> futures = new ArrayList<>();
+		final List<String> fHCombinationsAcc = hCombinationsAcc;
+		final List<List<NumericableMapValue>> fCombinationsAcc = combinationsAcc;
+		
 		for (int i = 0; i < combinationsAcc.size(); i++) {
-			NumericableMapValue doubleMapValue = innerCalcFunc.apply(combinationsAcc.get(i));
-			allOutputs.add(doubleMapValue);
-			outputsOperandsRefs.add(hCombinationsAcc.get(i));
+			int fI = i;
+			Future<Object[]> iterationFuture = executor.submit(new Callable<Object[]>() {
+				@Override
+				public Object[] call() throws Exception {
+					String outputsOperandsRef = fHCombinationsAcc.get(fI);
+					LOGGER.info("Running: " + operation.getReference() + " with params " + outputsOperandsRef);
+					NumericableMapValue doubleMapValue = innerCalcFunc.apply(fCombinationsAcc.get(fI));
+					LOGGER.info("Done: " + operation.getReference() + " with params " + outputsOperandsRef);
+					return new Object[]{outputsOperandsRef, doubleMapValue};
+				}
+			});
+			futures.add(iterationFuture);
 		}
 		
+		List<NumericableMapValue> allOutputs = new ArrayList<NumericableMapValue>();
+		List<String> outputsOperandsRefs = new ArrayList<String>();
+		
+		executor.shutdown();
+		for(Future<Object[]> f:futures) {
+			try {
+				Object[] objects = f.get();
+				outputsOperandsRefs.add((String) objects[0]);
+				allOutputs.add((NumericableMapValue) objects[1]);
+			} catch (Exception e) {
+				LOGGER.error(e, e);
+			}
+		}
+		
+		//To Array
 		try {
 			SortedMap<Date, double[]> factorisedOuputs = ValueManipulator.inputListToArray(targetStock, allOutputs, true, true);
 			return new DoubleArrayMapValue(factorisedOuputs, outputsOperandsRefs, 0);

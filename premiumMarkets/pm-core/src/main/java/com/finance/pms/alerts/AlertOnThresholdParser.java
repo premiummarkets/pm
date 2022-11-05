@@ -31,7 +31,6 @@ package com.finance.pms.alerts;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -156,7 +155,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					}
 
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
-					String message = "Above "+alert+ " at " + todaysQuotation;
+					String message = "Above " + alert + " at " + todaysQuotation;
 					message = message + additionnalMessage(todaysQuotation);
 
 					EventType eventType = EventType.INFO; //default alert
@@ -172,12 +171,8 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 	}
 
 	private String additionnalMessage(BigDecimal todaysQuotation) {
-		BigDecimal avgPriceDist = BigDecimal.ZERO;
-		BigDecimal avgBuyPrice = portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency());
-		if (avgBuyPrice.compareTo(BigDecimal.ZERO) != 0) {
-			avgPriceDist = todaysQuotation.subtract(avgBuyPrice).divide(avgBuyPrice, 10, RoundingMode.HALF_EVEN);
-		}
-		return ".\nFYI, price ("+todaysQuotation+") is "+new DecimalFormat("#0.00 %").format(avgPriceDist.doubleValue())+" away from average cost per unit ("+avgBuyPrice+").";
+		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency());
+		return ".\nFYI, current price: " + todaysQuotation + " and cost per unit price: " + pricePerUnitCost + ").";
 	}
 
 	private void alertDetected(Map<EventKey, EventValue> eventData, Date current, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {

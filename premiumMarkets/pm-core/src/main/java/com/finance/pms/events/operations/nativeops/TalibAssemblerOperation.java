@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -80,7 +84,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		assembledOperationClone.getOperands().clear();
 		assembledOperationClone.setOperands(assembledOpOperands);
 		
-		List<NumericableMapValue> runsOutputs = new ArrayList<NumericableMapValue>();
+		List<Future<NumericableMapValue>> futures = new ArrayList<>();
 		List<String> inputsOperandsRefs = new ArrayList<String>();
 		List<Double> pivotParamSlices = slices.values().stream().filter(s -> s.size() == 3).findFirst().orElse(Lists.newArrayList(0.0,1.0,1.0));
 		Double start = pivotParamSlices.get(0);
@@ -88,7 +92,9 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		Double step = pivotParamSlices.get(2);
 		int paddingSize = String.format("%d", (int) ((end-start)/(step))).length();
 		
+		ExecutorService executor = Executors.newCachedThreadPool(); 
 		for (double i = 0; i*step < (end-start); i++) {
+			Operation iterationOperationClone = (Operation) assembledOperationClone.clone();
 			String paramsStringInfo = "";
 			for(Integer operandPos: slices.keySet()) {
 				Value<?> itParameter = null;
@@ -96,7 +102,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					itParameter = new NumberValue(slices.get(operandPos).get(0) + i*slices.get(operandPos).get(2));
 				} else if (slices.get(operandPos).size() == 2) { //factor
 					int otherOperandParamPos = slices.get(operandPos).get(0).intValue();
-					if (!slices.containsKey(otherOperandParamPos)) throw new RuntimeException("Invalid parameter index for this operation: " + assembledOperationClone.getReference());
+					if (!slices.containsKey(otherOperandParamPos)) throw new RuntimeException("Invalid parameter index for this operation: " + iterationOperationClone.getReference());
 					Double otherOperandParamValue = slices.get(otherOperandParamPos).get(0) + i*slices.get(otherOperandParamPos).get(2);
 					Double factor = slices.get(operandPos).get(1);
 					itParameter = new NumberValue(otherOperandParamValue * factor);
@@ -104,18 +110,39 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					itParameter = new NumberValue(slices.get(operandPos).get(0));
 				}
 				paramsStringInfo = paramsStringInfo + "," + itParameter.getValue(targetStock);
-				if (operandPos >= assembledOperationClone.getOperands().size()) {
-					Operation lastOperand = assembledOperationClone.getOperands().get(assembledOperationClone.getOperands().size()-1);
+				if (operandPos >= iterationOperationClone.getOperands().size()) {
+					Operation lastOperand = iterationOperationClone.getOperands().get(iterationOperationClone.getOperands().size()-1);
 					if (!lastOperand.getIsVarArgs()) throw new RuntimeException();
 					Operation newVarArgOperand = (Operation) lastOperand.clone();
-					assembledOperationClone.getOperands().add(newVarArgOperand);
+					iterationOperationClone.getOperands().add(newVarArgOperand);
 				}
-				assembledOperationClone.getOperands().get(operandPos).setParameter(itParameter);
+				iterationOperationClone.getOperands().get(operandPos).setParameter(itParameter);
 			}
-			LOGGER.info("Running: " + assembledOperationClone.getReference() + " with params " + paramsStringInfo);
-			runsOutputs.add((NumericableMapValue) assembledOperationClone.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift));
-			inputsOperandsRefs.add(assemblerGroupName + String.format("%0" + paddingSize + "d", (int)i) + "_" + assembledOperationClone.toFormulaeShort());
+			//LOGGER.info("Running: " + iterationOperationClone.getReference() + " with params " + paramsStringInfo);
+			//runsOutputs.add((NumericableMapValue) iterationOperationClone.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift));
+			final String fParamsStringInfo = paramsStringInfo;
+			Future<NumericableMapValue> iterationFuture = executor.submit(new Callable<NumericableMapValue>() {
+				@Override
+				public NumericableMapValue call() throws Exception {
+					LOGGER.info("Running: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
+					NumericableMapValue run = (NumericableMapValue) iterationOperationClone.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift);
+					LOGGER.info("Done: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
+					return run;
+				}
+			});
+			futures.add(iterationFuture);
+			inputsOperandsRefs.add(assemblerGroupName + String.format("%0" + paddingSize + "d", (int)i) + "_" + iterationOperationClone.toFormulaeShort());
 		}
+		
+		executor.shutdown();
+		List<NumericableMapValue> runsOutputs = futures.stream().map(f -> {
+			try {
+				return f.get();
+			} catch (Exception e) {
+				LOGGER.error(e, e);
+				return new DoubleMapValue();
+			}
+		}).collect(Collectors.toList());
 		
 		try {
 			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, runsOutputs, false, true);

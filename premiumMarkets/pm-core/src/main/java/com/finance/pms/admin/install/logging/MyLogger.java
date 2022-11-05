@@ -573,9 +573,9 @@ public class MyLogger {
 
 		//Is active?
 		MyLogger.mailActivationType = MainPMScmd.getMyPrefs().get("mail.log.activated", "true");
-		String errorMailSetup = "Mail Settings log activation type : " + MyLogger.mailActivationType;
-		System.out.println(errorMailSetup);
-		delegateLogger.info(errorMailSetup);
+		String errorMailSetup = "Mail Settings log activation type: " + MyLogger.mailActivationType;
+		//System.out.println(errorMailSetup);
+		delegateLogger.debug(errorMailSetup);
 
 		//No sending mail
 		if ("false".equals(MyLogger.mailActivationType) || SpringContext.getSingleton() == null || !SpringContext.getSingleton().isActive()) return;

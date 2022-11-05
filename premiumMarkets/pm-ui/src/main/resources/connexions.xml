@@ -54,7 +54,7 @@
 			<props>
 				<prop key="mail.transport.protocol">smtp</prop>
 				<prop key="mail.smtp.auth">true</prop>
-				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.starttls.enable">${startls.enable}</prop>
 				<prop key="mail.smtp.timeout">5000</prop>
 			</props>
 		</property>

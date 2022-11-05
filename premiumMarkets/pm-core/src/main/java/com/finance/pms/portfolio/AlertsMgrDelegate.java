@@ -298,19 +298,16 @@ public class AlertsMgrDelegate {
 			this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT);
 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
+			BigDecimal aboveThresholdSellPrice = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency()));
+			
+			String aboveMessage = 
+					"(" + readablePercentOf(sellLimitToPriceRate) + " gain. " +
+					"Limit price: " + aboveThresholdSellPrice + ", cost per unit price: " + ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency()) + ", and actual price: " + calculationPrice + ")";
 
-			BigDecimal cashin = ps.getCashin(currentDate, ps.getTransactionCurrency());
-			BigDecimal augmentedCashin = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(cashin).setScale(10, RoundingMode.HALF_EVEN);
-			BigDecimal cashout = ps.getCashout(currentDate, ps.getTransactionCurrency());
-			BigDecimal aboveSellLimit = augmentedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
-			BigDecimal resultingPercentAboveAvgPrice = calculationPrice.divide(aboveSellLimit, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
-
-			String aboveMessage = "(" + readablePercentOf(sellLimitToPriceRate) + " gain. Price is " + readablePercentOf(resultingPercentAboveAvgPrice) + " away from threshold)";
-
-			addAboveTakeProfitAlert(aboveSellLimit, aboveMessage);
+			addAboveTakeProfitAlert(aboveThresholdSellPrice, aboveMessage);
 
 		} catch (RuntimeException e) {
-			LOGGER.error("Failed to update Portfolio share :"+this,e);
+			LOGGER.error("Failed to update Portfolio share :" + this,e);
 			throw e;
 		}
 	}

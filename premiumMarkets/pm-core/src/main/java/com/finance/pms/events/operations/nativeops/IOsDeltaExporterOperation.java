@@ -27,6 +27,8 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 
 public class IOsDeltaExporterOperation extends StringerOperation {
 	
+	private static final int APPEND_IDX = 3;
+	private static final int DELTA_FILE_IDX = 1;
 	private static final int FIRST_INPUT = 4;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsDeltaExporterOperation.class);
 	
@@ -55,13 +57,11 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
-		String fileRootPath = ((StringValue) inputs.get(1)).getValue(targetStock);
+		String fileRootPath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
-		Boolean append = Boolean.valueOf(((StringValue) inputs.get(3)).getValue(targetStock));
+		Boolean append = Boolean.valueOf(((StringValue) inputs.get(APPEND_IDX)).getValue(targetStock));
 		
-		if (!fileRootPath.startsWith(File.separator)) {
-			fileRootPath = System.getProperty("installdir") + File.separator + fileRootPath;
-		}
+
 		
 		boolean fileExists = Files.exists(Path.of(URI.create("file://" + fileRootPath))) && new File(fileRootPath).length() > 0;
 		if (!fileExists) {
@@ -100,9 +100,25 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 		return new StringValue("None");
 	}
 
+	private String extractedFileRootPath(String fileRootPath) {
+		if (!fileRootPath.startsWith(File.separator)) {
+			fileRootPath = System.getProperty("installdir") + File.separator + fileRootPath;
+		}
+		return fileRootPath;
+	}
+
 	@Override
 	public int operandsRequiredStartShift() {
-		return 0;
+		int lagAmount = getLagAmount(getOperands());
+		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
+		return lagAmount;
+	}
+	
+	private int getLagAmount(List<Operation> operations) {
+		if (operations.isEmpty()) return 0;
+		return operations.stream()
+			.map(o -> Math.max((o instanceof LaggingOperation)?((LaggingOperation) o).rightLagAmount():0, getLagAmount(o.getOperands())))
+			.reduce(0, (a, e) -> Math.max(a, e));
 	}
 
 	@Override

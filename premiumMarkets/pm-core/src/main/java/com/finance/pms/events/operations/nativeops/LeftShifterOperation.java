@@ -41,9 +41,10 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.LeftShifter;
 
-public class LeftShifterOperation extends PMWithDataOperation {
+public class LeftShifterOperation extends PMWithDataOperation implements LaggingOperation {
 
 
+	private static final int LEFT_SHIFT_AMOUNT_IDX = 0;
 	private static MyLogger LOGGER = MyLogger.getLogger(LeftShifterOperation.class);
 
 	public LeftShifterOperation() {
@@ -60,7 +61,7 @@ public class LeftShifterOperation extends PMWithDataOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
-		int leftShiftSpan = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();
+		int leftShiftSpan = ((NumberValue)inputs.get(LEFT_SHIFT_AMOUNT_IDX)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 
 		//Calc
@@ -89,6 +90,11 @@ public class LeftShifterOperation extends PMWithDataOperation {
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
 		String opsFormulaeShort = toFormulaeShort(ops);
 		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+
+	@Override
+	public int rightLagAmount() {
+		return ((NumberValue) getOperands().get(LEFT_SHIFT_AMOUNT_IDX).getParameter()).getValue(null).intValue();
 	}
 
 }

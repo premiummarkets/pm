@@ -588,11 +588,13 @@ public class Portfolio extends AbstractSharesList {
 			CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
 
 			String messagePortCurrency = 
-					"Transactions ("+targetCurrency+" - "+dateFormat.format(cpgPeriodStart)+" -> "+dateFormat.format(cpgPeriodEnd)+" - transaction fee "+transactionFee+" - exchange fee "+ exchangeFee+") in " + getName() + " :\n"
-							+ "stock, date, transaction price, quantity in, amount in, quantity out, amount out, realised capital gain, currency, close price";
+					"Transactions (" + targetCurrency + " - " + dateFormat.format(cpgPeriodStart) + " -> " + dateFormat.format(cpgPeriodEnd) + 
+					" - transaction fee " + transactionFee + " - exchange fee " +  exchangeFee + ") in "  +  getName()  +  " :\n" +
+					"stock, date, transaction price, quantity in, amount in, quantity out, amount out, realised capital gain, currency, close price";
 			String messageNoConvertion = 
-					"Transactions (Original currencies - "+dateFormat.format(cpgPeriodStart)+" -> "+dateFormat.format(cpgPeriodEnd)+" - transaction fee "+transactionFee+") in " + getName() + " :\n"
-							+ "stock, date, transaction price, quantity in, amount in, quantity out, amount out, realised capital gain, currency, close price, exchange rate";
+					"Transactions (Original currencies - " + dateFormat.format(cpgPeriodStart) + " -> " + dateFormat.format(cpgPeriodEnd) + 
+					" - transaction fee " + transactionFee + ") in " + getName() + " :\n" +
+					"stock, date, transaction price, quantity in, amount in, quantity out, amount out, realised capital gain, currency, close price, exchange rate";
 			Stock currentStock = null;
 
 			//Transactions
@@ -626,11 +628,13 @@ public class Portfolio extends AbstractSharesList {
 
 				if (buy) {
 					messagePortCurrency = 
-							messagePortCurrency + "\n"+
-									currentStock.getFriendlyName()+","+dateFormat.format(te.getDate())+","+convertedTransPrice+","+te.getQuantity()+","+convertedTransAmount+",,,0.00,"+targetCurrency+","+convertedClosePrice;
+							messagePortCurrency + "\n" + 
+									currentStock.getFriendlyName() + "," + dateFormat.format(te.getDate()) + "," + convertedTransPrice + "," + 
+									te.getQuantity() + "," + convertedTransAmount + ",,,0.00," + targetCurrency + "," + convertedClosePrice;
 					messageNoConvertion = 
-							messageNoConvertion + "\n"+
-									currentStock.getFriendlyName()+","+dateFormat.format(te.getDate())+","+transPrice+","+te.getQuantity()+","+transAmount+",,,0.00,"+te.getCurrency()+","+closePrice+","+convertionRate;
+							messageNoConvertion  +  "\n" + 
+									currentStock.getFriendlyName() + "," + dateFormat.format(te.getDate()) + "," + transPrice + "," + 
+									te.getQuantity() + "," + transAmount + ",,,0.00," + te.getCurrency() + "," + closePrice + "," + convertionRate;
 				} else {//sell
 					Boolean isSellWithinCpgPeriod = te.getDate().compareTo(cpgPeriodStart) >= 0 && te.getDate().compareTo(cpgPeriodEnd) <= 0;
 
@@ -641,8 +645,9 @@ public class Portfolio extends AbstractSharesList {
 						pss.get(currentStock)[0] = pss.get(currentStock)[0].add(cpgPortCurrency);
 					}
 					messagePortCurrency = 
-							messagePortCurrency + "\n"+
-									currentStock.getFriendlyName()+","+dateFormat.format(te.getDate())+","+convertedTransPrice+",,,"+te.getQuantity()+","+convertedTransAmount+","+cpgPortCurrency+","+targetCurrency+","+convertedClosePrice;
+							messagePortCurrency + "\n" +
+									currentStock.getFriendlyName() + "," + dateFormat.format(te.getDate()) + "," + convertedTransPrice + ",,," + 
+									te.getQuantity() + "," + convertedTransAmount + "," + cpgPortCurrency + "," + targetCurrency + "," + convertedClosePrice;
 
 					BigDecimal cpgNoConv = BigDecimal.ZERO;
 					if (isSellWithinCpgPeriod) {
@@ -652,17 +657,20 @@ public class Portfolio extends AbstractSharesList {
 					}
 					messageNoConvertion = 
 							messageNoConvertion + "\n" +
-									currentStock.getFriendlyName()+","+dateFormat.format(te.getDate())+","+transPrice+",,,"+te.getQuantity()+","+transAmount+","+cpgNoConv+","+te.getCurrency()+","+closePrice+","+convertionRate;
+									currentStock.getFriendlyName() + "," + dateFormat.format(te.getDate()) + "," + transPrice + ",,," + 
+									te.getQuantity() + "," + transAmount + "," + cpgNoConv + "," + te.getCurrency() + "," + closePrice + "," + convertionRate;
 				}
 
 			}
 
-			messagePortCurrency = messagePortCurrency +"\n\n"
-					+ "Totals ("+targetCurrency+" - "+dateFormat.format(cpgPeriodStart)+" -> "+dateFormat.format(cpgPeriodEnd)+" - transaction fee "+transactionFee+" - exchange fee "+ exchangeFee+") in " + getName() + " :\n"
-					+ "stock, on the, average price, quantity, invested (in-out), value, capital gain for period, out for period, potential capital gain, currency, last close";
-			messageNoConvertion = messageNoConvertion +"\n\n"
-					+ "Totals (Original currencies - "+dateFormat.format(cpgPeriodStart)+" -> "+dateFormat.format(cpgPeriodEnd)+" - transaction fee "+transactionFee+") in " + getName() + " :\n"
-					+ "stock, on the, average price, quantity, invested (in-out), value, capital gain for period, out for period, potential capital gain, currency, last close, last exchange rate";
+			messagePortCurrency = messagePortCurrency + "\n\n"
+					+ "Totals (" + targetCurrency + " - " + dateFormat.format(cpgPeriodStart) + " -> " + dateFormat.format(cpgPeriodEnd) + 
+					" - transaction fee " + transactionFee + " - exchange fee " + exchangeFee + ") in " + getName() + " :\n"
+					+ "stock, on the, average price, quantity, invested (in-out), value, capital gain for period, in for period, out for period, potential capital gain, currency, last close";
+			messageNoConvertion = messageNoConvertion + "\n\n"
+					+ "Totals (Original currencies - " + dateFormat.format(cpgPeriodStart) + " -> " + dateFormat.format(cpgPeriodEnd) + 
+					" - transaction fee " + transactionFee + ") in " + getName() + " :\n"
+					+ "stock, on the, average price, quantity, invested (in-out), value, capital gain for period, in for period, out for period, potential capital gain, currency, last close, last exchange rate";
 
 			//Totals
 			for (Stock stock : pss.keySet()) {
@@ -678,25 +686,31 @@ public class Portfolio extends AbstractSharesList {
 					BigDecimal quantity = getQuantityFor(ps, startDate, endDate);
 					boolean isQuantityPositiveAtEndPeriod = ps.getQuantity(startDate, cpgPeriodEnd).compareTo(BigDecimal.ZERO) > 0;
 
+					BigDecimal inPortCur = applyFee(true, applyFee(true, ps.getCashin(startDate, endDate, targetCurrency), transactionFee), exchangeFee);
 					BigDecimal outPortCur = applyFee(false, applyFee(false, ps.getCashout(startDate, endDate, targetCurrency), transactionFee), exchangeFee);
+					BigDecimal investedPortCur = inPortCur.subtract(outPortCur);
+					BigDecimal in4PeriodPortCur = applyFee(true, applyFee(true, ps.getCashin(cpgPeriodStart, cpgPeriodEnd, targetCurrency), transactionFee), exchangeFee);
 					BigDecimal out4PeriodPortCur = applyFee(false, applyFee(false, ps.getCashout(cpgPeriodStart, cpgPeriodEnd, targetCurrency), transactionFee), exchangeFee);
-					BigDecimal invPortCur = applyFee(true, applyFee(true, ps.getCashin(startDate, endDate, targetCurrency), transactionFee), exchangeFee).subtract(outPortCur);
 					BigDecimal valuePortCur = applyFee(false, applyFee(false, ps.getValue(startDate, endDate, targetCurrency), transactionFee), exchangeFee);
 
-					messagePortCurrency = messagePortCurrency +"\n" +
-							ps.getStock().getFriendlyName() + ", " + dateFormat.format(endDate) + ", " + applyFee(true, applyFee(true, ps.getPriceAvgBuy(startDate, endDate, targetCurrency), transactionFee), exchangeFee) + ", "+
-							quantity + "," + invPortCur + ", " + valuePortCur + ", " + 
-							pss.get(stock)[0] + "," + out4PeriodPortCur + "," + (isQuantityPositiveAtEndPeriod?valuePortCur.subtract(invPortCur):BigDecimal.ZERO) + ", " +
+					messagePortCurrency = messagePortCurrency + "\n" +
+							ps.getStock().getFriendlyName() + ", " + dateFormat.format(endDate) + ", " + 
+							applyFee(true, applyFee(true, ps.getPriceAvgBuy(startDate, endDate, targetCurrency), transactionFee), exchangeFee) + ", "+
+							quantity + "," + investedPortCur + ", " + valuePortCur + ", " + 
+							pss.get(stock)[0] + "," + in4PeriodPortCur + "," + out4PeriodPortCur + "," + (isQuantityPositiveAtEndPeriod?valuePortCur.subtract(investedPortCur):BigDecimal.ZERO) + ", " +
 							targetCurrency + ", " + lastConvertedClosePrice;
 
+					BigDecimal inNoConv = applyFee(true, ps.getCashin(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee);
 					BigDecimal outNoConv = applyFee(false, ps.getCashout(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee);
+					BigDecimal investedNoConv = inNoConv.subtract(outNoConv);
+					BigDecimal in4PeriodNoConv = applyFee(true, ps.getCashin(cpgPeriodStart, cpgPeriodEnd, stock.getMarketValuation().getCurrency()), transactionFee);
 					BigDecimal out4PeriodNoConv = applyFee(false, ps.getCashout(cpgPeriodStart, cpgPeriodEnd, stock.getMarketValuation().getCurrency()), transactionFee);
-					BigDecimal invNoConv = applyFee(true, ps.getCashin(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee).subtract(outNoConv);
 					BigDecimal valueNoConv = applyFee(false, ps.getValue(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee);
 					messageNoConvertion = messageNoConvertion + "\n" +
-							ps.getStock().getFriendlyName() + ", " + dateFormat.format(endDate) + ", " + applyFee(true, ps.getPriceAvgBuy(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee) + ", " +
-							quantity + "," + invNoConv + ", " + valueNoConv + ", " + 
-							pss.get(stock)[1] + "," + out4PeriodNoConv + "," + (isQuantityPositiveAtEndPeriod?valueNoConv.subtract(invNoConv):BigDecimal.ZERO) + ", " +
+							ps.getStock().getFriendlyName() + ", " + dateFormat.format(endDate) + ", " + 
+							applyFee(true, ps.getPriceAvgBuy(startDate, endDate, stock.getMarketValuation().getCurrency()), transactionFee) + ", " +
+							quantity + "," + investedNoConv + ", " + valueNoConv + ", " + 
+							pss.get(stock)[1] + "," + in4PeriodNoConv + "," + out4PeriodNoConv + "," + (isQuantityPositiveAtEndPeriod?valueNoConv.subtract(investedNoConv):BigDecimal.ZERO) + ", " +
 							stock.getMarketValuation().getCurrency() + ", " + lastClosePrice + ", " +
 							lastConvertionRate;
 
@@ -712,8 +726,12 @@ public class Portfolio extends AbstractSharesList {
 		}
 	}
 
-	private BigDecimal applyFee(boolean buy, BigDecimal price, BigDecimal transactionFee) {
-		return (transactionFee.compareTo(BigDecimal.ZERO) == 0)?price:price.multiply((buy)?BigDecimal.ONE.add(transactionFee):BigDecimal.ONE.subtract(transactionFee)).setScale(2, RoundingMode.HALF_EVEN);
+	private BigDecimal applyFee(boolean isBuyTransaction, BigDecimal price, BigDecimal transactionFee) {
+		return (transactionFee.compareTo(BigDecimal.ZERO) == 0)?
+				price:
+				price.multiply((isBuyTransaction)?
+						BigDecimal.ONE.add(transactionFee):
+						BigDecimal.ONE.subtract(transactionFee)).setScale(2, RoundingMode.HALF_EVEN);
 	}
 
 	protected SortedSet<TransactionElement> transactionsSortedByStock(Date startDate, Date endDate) {

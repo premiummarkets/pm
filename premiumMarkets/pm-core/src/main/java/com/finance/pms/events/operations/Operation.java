@@ -631,7 +631,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * The start shift left required to the operands calculation by this operation for this operation to provide output at start date.
+	 * The start shift left required, from the operands calculations outputs, by this operation, for this operation to provide an output at start date.
 	 * Basically the amount of data necessary from the operands for this to yield at least one output at start date.
 	 * This is a number of data points (ie open days), not number of calendar days.
 	 */
