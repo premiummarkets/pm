@@ -125,7 +125,7 @@ public class AlertOnThreshold implements Serializable {
 	@Override
 	public String toString() {
 		NumberFormat format = new DecimalFormat("#0.00");
-		return format.format(this.value) + ", " + this.alertType.getText()+ " " + this.optionalMessage;
+		return format.format(this.value) + ", " + this.alertType.getText() + " " + this.optionalMessage;
 	}
 	
 	@Id

@@ -298,16 +298,30 @@ public class AlertsMgrDelegate {
 			this.removeAlertOnThresholdFor(AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT);
 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
-			BigDecimal aboveThresholdSellPrice = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency()));
+
+			BigDecimal priceUnitCost = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
+			
+			BigDecimal aboveThresholdSellPrice = BigDecimal.ZERO;
+			BigDecimal actualPriceToThresholdPrice = null;
+			BigDecimal costPerUnitToThresholdPrice = null;
+			if (priceUnitCost.compareTo(BigDecimal.ZERO) > 0) {
+				aboveThresholdSellPrice = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(priceUnitCost);
+				actualPriceToThresholdPrice = calculationPrice.divide(aboveThresholdSellPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE);
+				costPerUnitToThresholdPrice = priceUnitCost.divide(aboveThresholdSellPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE);
+			}
 			
 			String aboveMessage = 
-					"(" + readablePercentOf(sellLimitToPriceRate) + " gain. " +
-					"Limit price: " + aboveThresholdSellPrice + ", cost per unit price: " + ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency()) + ", and actual price: " + calculationPrice + ")";
+					"(" + readablePercentOf(sellLimitToPriceRate) + " threshold). " +
+					"\nWith limit price: " + aboveThresholdSellPrice + 
+					", current price: " + calculationPrice + "(" + ((actualPriceToThresholdPrice != null)? readablePercentOf(actualPriceToThresholdPrice):"inf%") + ")" +
+					", cost per unit price: " + priceUnitCost + "(" + ((costPerUnitToThresholdPrice != null)? readablePercentOf(costPerUnitToThresholdPrice):"inf%") + ")" + 
+					" On the " + currentDate + "." +
+					"\nUnrealised gain on the " + currentDate + ": " + ps.getGainUnreal(null, currentDate, ps.getTransactionCurrency());
 
 			addAboveTakeProfitAlert(aboveThresholdSellPrice, aboveMessage);
 
 		} catch (RuntimeException e) {
-			LOGGER.error("Failed to update Portfolio share :" + this,e);
+			LOGGER.error("Failed to update Portfolio share :" + this, e);
 			throw e;
 		}
 	}

@@ -31,6 +31,7 @@ package com.finance.pms.alerts;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -89,7 +90,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					LOGGER.info(
 							"Alerts on Threshold crossing for share " + portfolioShare.getStock() + " in " + eventListName + " :" +
 							"\nRegistered thresholds : " + portfolioShare.getAlertsOnThreshold() +
-							"\nResulting events : "+edata);
+							"\nResulting events : " + edata);
 				}
 			} else {
 				LOGGER.debug("Can't parse alert on the " + quotation.getDate() +
@@ -113,7 +114,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					new AlertsMgrDelegate(portfolioShare).resetCrossDown(alert, todaysQuotation);
 
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
-					String message = "Below "+ alert + " at " + todaysQuotation;
+					String message = "Below " + alert + " at " + todaysQuotation;
 					message = message + additionnalMessage(todaysQuotation);
 
 					//TODO improved rules
@@ -171,8 +172,9 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 	}
 
 	private String additionnalMessage(BigDecimal todaysQuotation) {
-		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency());
-		return ".\nFYI, current price: " + todaysQuotation + " and cost per unit price: " + pricePerUnitCost + ").";
+		Date nowEndDate = DateFactory.getNowEndDate();
+		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(nowEndDate, portfolioShare.getTransactionCurrency());
+		return ".\n\nFYI, current price: " + todaysQuotation + " and cost per unit price: " + pricePerUnitCost + " On the " + nowEndDate + ".";
 	}
 
 	private void alertDetected(Map<EventKey, EventValue> eventData, Date current, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {
