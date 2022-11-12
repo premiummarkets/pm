@@ -113,7 +113,7 @@ public class ProfitOperation extends ArrayMapOperation implements MultiValuesOut
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 	}
 
 	@Override

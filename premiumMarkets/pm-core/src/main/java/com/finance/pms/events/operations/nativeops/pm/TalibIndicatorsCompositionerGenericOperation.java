@@ -183,7 +183,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//Nothing
 		//  This is not an EventInfo but an operation although it can be composed within one of Parameterized Indicator -> Event to delete
 		//  And this doesn't have any storage calculation result to wipe out.

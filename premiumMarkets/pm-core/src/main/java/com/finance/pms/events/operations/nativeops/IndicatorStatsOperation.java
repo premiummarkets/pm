@@ -132,7 +132,7 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//Nothing
 	}
 

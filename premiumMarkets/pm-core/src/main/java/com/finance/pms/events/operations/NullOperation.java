@@ -38,7 +38,7 @@ public class NullOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 	}
 
 }

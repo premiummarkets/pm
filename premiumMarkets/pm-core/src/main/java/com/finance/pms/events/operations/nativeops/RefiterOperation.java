@@ -73,7 +73,7 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -71,7 +71,7 @@ public class StringOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//Nothing
 	}
 

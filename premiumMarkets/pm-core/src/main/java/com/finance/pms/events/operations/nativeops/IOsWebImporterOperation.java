@@ -65,7 +65,7 @@ public class IOsWebImporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		new File(((StringValue) getOperands().get(0).getParameter()).getValueAsString()).delete();
 	}
 	

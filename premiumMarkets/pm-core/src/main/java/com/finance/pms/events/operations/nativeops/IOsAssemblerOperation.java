@@ -130,7 +130,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//Nothing specific to this operation
 	}
 

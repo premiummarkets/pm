@@ -59,7 +59,7 @@ public class ListOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		// TODO Auto-generated method stub
 	}
 

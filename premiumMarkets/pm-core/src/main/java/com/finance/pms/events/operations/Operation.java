@@ -661,7 +661,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands.stream().reduce(false, (r, e) -> r || e.isDateSensitive(), (a, b) -> a || b);
 	}
 
-	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock);
+	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams);
 
 	public void invalidateAllNonIdempotentOperands(String analysisName, Optional<Stock> stock) {
 		LOGGER.debug("Checking " + getReference() + " for invalidation.");

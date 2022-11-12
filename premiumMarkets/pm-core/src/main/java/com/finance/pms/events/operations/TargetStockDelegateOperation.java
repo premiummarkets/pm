@@ -55,7 +55,7 @@ public class TargetStockDelegateOperation extends MapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock) {
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 	}
 
 }
