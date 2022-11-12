@@ -85,8 +85,8 @@ public class EventValue implements Serializable {
 	
 
 	public String toEmail() {
-		DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
-		return eventType.toString()+" : "+eventDef.getEventReadableDef()+" on the "+df.format(date) + ((this.message != "")?" :\n"+message:".");
+		DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		return eventType.toString() + ": " + eventDef.getEventReadableDef() + " on the " + df.format(date) + "." + ((this.message != "")?"\n" + message : "");
 	}
 
 	public Integer getEventDefId() {

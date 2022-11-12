@@ -82,7 +82,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 
 		try {
-			LOGGER.debug("Analysing events for portfolio share "+portfolioShare+", starting at "+startDate);
+			LOGGER.debug("Analysing events for portfolio share " + portfolioShare + ", starting at " + startDate);
 
 			AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
 

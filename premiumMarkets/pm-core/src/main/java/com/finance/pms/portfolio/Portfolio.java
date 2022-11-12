@@ -153,10 +153,10 @@ public class Portfolio extends AbstractSharesList {
 
 		Transaction transaction = new Transaction(quantity, lastQuotation, movement, buyDate);
 		if (transaction.getTransactionSharePrice().compareTo(BigDecimal.ZERO) == 0) {
-			throw new InvalidQuantityException("The amount is too small. Amount must be >= 0.0001 in transaction "+transaction, new Throwable());
+			throw new InvalidQuantityException("The amount is too small. Amount must be >= 0.0001 in transaction " + transaction, new Throwable());
 		}
 		if (transaction.getQuantity().compareTo(BigDecimal.ZERO) == 0 ) {
-			LOGGER.warn("Ignoring. Trying to sell with a quantity of zero : "+transaction+" and "+recipientPS);
+			LOGGER.warn("Ignoring. Trying to sell with a quantity of zero : " + transaction + " and " + recipientPS);
 		}
 
 		TransactionElement transactionElement = recipientPS.createTransactionElement(transaction);
@@ -519,7 +519,7 @@ public class Portfolio extends AbstractSharesList {
 		}
 	}
 
-	public SortedSet<TransactionElement> latestTransactions( ) {
+	public SortedSet<TransactionElement> latestTransactions() {
 		Map<Stock, List<TransactionElement>> stocksTransactions = new HashMap<>();
 		Map<Stock, BigDecimal> stocksQuantity = new HashMap<>();
 		for(TransactionElement transaction: transactions) {

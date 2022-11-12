@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -103,16 +104,16 @@ public class AlertsMgrDelegate {
 
 	private void addBuyPriceAlertBelow(Date currentDate) {
 		BigDecimal avgBuyPrice = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
-		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + readableNumber(avgBuyPrice) +")");
+		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice));
 	}
 
 	private void addBuyPriceAlertAbove(Date currentDate) {
 		BigDecimal avgBuyPrice = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
-		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "(Calculation price is avg buy price " + readableNumber(avgBuyPrice) +")");
+		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice));
 	}
 
 	private String readableNumber(BigDecimal aNumber) {
-		NumberFormat format = new DecimalFormat("#0.0000000000");
+		NumberFormat format = new DecimalFormat("#0.00");
 		return format.format(aNumber);
 	}
 
@@ -146,7 +147,7 @@ public class AlertsMgrDelegate {
 		if (sellLimitGuardPrice.compareTo(ps.getPriceClose(currentDate, ps.getTransactionCurrency())) <= 0) {
 			addWeightedZeroProfitAlertGuard(sellLimitGuardPrice);
 		} else {
-			String aboveMessage = "(Will set a guard when "+ readablePercentOf(sellLimitGuardPriceRate) + " above calculation price " + readableNumber(avgBuyPrice) +")";
+			String aboveMessage = "Will set a guard when "+ readablePercentOf(sellLimitGuardPriceRate) + " above calculation price " + readableNumber(avgBuyPrice);
 			addWeightedZeroProfitAlertGuardSetter(sellLimitGuardPrice, aboveMessage);
 		}
 
@@ -173,7 +174,7 @@ public class AlertsMgrDelegate {
 		BigDecimal limitPriceBelowRate = getEventsConfig().getLimitPriceBelow();
 		BigDecimal belowSellLimit = addPercentage(crossingPrice, limitPriceBelowRate.negate());
 
-		String belowMessage = "(" +readablePercentOf(limitPriceBelowRate) + " below calculation price " + readableNumber(crossingPrice) +")";
+		String belowMessage = readablePercentOf(limitPriceBelowRate) + " below calculation price " + readableNumber(crossingPrice);
 
 		this.addAlertOnThreshold(ThresholdType.DOWN, belowSellLimit, AlertOnThresholdType.BELOW_PRICE_CHANNEL, belowMessage);
 	}
@@ -216,7 +217,7 @@ public class AlertsMgrDelegate {
 			this.removeAlertOnThreshold(alert);
 			break;
 		default:
-			LOGGER.error("Nothing to do for : " + alert);
+			LOGGER.error("Nothing to do for: " + alert);
 		}
 
 	}
@@ -251,7 +252,7 @@ public class AlertsMgrDelegate {
 			this.removeAlertOnThreshold(alert);
 			break;
 		default:
-			LOGGER.error("Nothing to do for : " + alert);
+			LOGGER.error("Nothing to do for: " + alert);
 		}
 
 	}
@@ -274,7 +275,7 @@ public class AlertsMgrDelegate {
 		String message = "";
 		BigDecimal limitPriceAboveRate = getEventsConfig().getLimitPriceAbove();
 		BigDecimal limitAbovePrice = addPercentage(crossingPrice, limitPriceAboveRate);
-		message = "(" +readablePercentOf(limitPriceAboveRate) + " above calculation price " + readableNumber(crossingPrice) +")";
+		message = readablePercentOf(limitPriceAboveRate) + " above calculation price " + readableNumber(crossingPrice);
 
 		this.addAlertOnThreshold(ThresholdType.UP, limitAbovePrice, AlertOnThresholdType.ABOVE_PRICE_CHANNEL, message);
 
@@ -303,25 +304,25 @@ public class AlertsMgrDelegate {
 			
 			BigDecimal aboveThresholdSellPrice = BigDecimal.ZERO;
 			BigDecimal actualPriceToThresholdPrice = null;
-			BigDecimal costPerUnitToThresholdPrice = null;
 			if (priceUnitCost.compareTo(BigDecimal.ZERO) > 0) {
 				aboveThresholdSellPrice = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(priceUnitCost);
 				actualPriceToThresholdPrice = calculationPrice.divide(aboveThresholdSellPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE);
-				costPerUnitToThresholdPrice = priceUnitCost.divide(aboveThresholdSellPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE);
 			}
 			
-			String aboveMessage = 
-					"(" + readablePercentOf(sellLimitToPriceRate) + " threshold). " +
-					"\nWith limit price: " + aboveThresholdSellPrice + 
-					", current price: " + calculationPrice + "(" + ((actualPriceToThresholdPrice != null)? readablePercentOf(actualPriceToThresholdPrice):"inf%") + ")" +
-					", cost per unit price: " + priceUnitCost + "(" + ((costPerUnitToThresholdPrice != null)? readablePercentOf(costPerUnitToThresholdPrice):"inf%") + ")" + 
-					" On the " + currentDate + "." +
-					"\nUnrealised gain on the " + currentDate + ": " + ps.getGainUnreal(null, currentDate, ps.getTransactionCurrency());
+			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+			String takeProfitMessage = 
+					readablePercentOf(sellLimitToPriceRate) + " threshold reached. " +
+					"\nWith " + 
+					"limit: " + readableNumber(aboveThresholdSellPrice) + 
+					", current: " + readableNumber(calculationPrice) + " (current/limit: " + ((actualPriceToThresholdPrice != null)? readablePercentOf(actualPriceToThresholdPrice):"inf %") + ")" +
+					", unit cost: " + readableNumber(priceUnitCost) +  " (latest line)" +
+					", unrealised: " + readableNumber(ps.getGainUnreal(null, currentDate, ps.getTransactionCurrency())) + 
+					" on the " + df.format(currentDate);
 
-			addAboveTakeProfitAlert(aboveThresholdSellPrice, aboveMessage);
+			addAboveTakeProfitAlert(aboveThresholdSellPrice, takeProfitMessage);
 
 		} catch (RuntimeException e) {
-			LOGGER.error("Failed to update Portfolio share :" + this, e);
+			LOGGER.error("Failed to update Portfolio share: " + this, e);
 			throw e;
 		}
 	}
@@ -345,7 +346,7 @@ public class AlertsMgrDelegate {
 			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
 			BigDecimal resultingPercentBelowAvgPrice = calculationPrice.divide(belowSellLimit, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 
-			String belowMessage = "(" + readablePercentOf(sellLimitBelowPriceRate) + " loss. Price is " + readablePercentOf(resultingPercentBelowAvgPrice) + " below threshold)";
+			String belowMessage = readablePercentOf(sellLimitBelowPriceRate) + " loss. Price is " + readablePercentOf(resultingPercentBelowAvgPrice) + " below threshold";
 
 			addAboveTakeProfitAlert(belowSellLimit, belowMessage);
 

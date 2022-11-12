@@ -31,6 +31,8 @@ package com.finance.pms.alerts;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -76,7 +78,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 		for (int quotationIndex = quotations.getFirstDateShiftedIdx(); quotationIndex <= quotations.getLastDateIdx() && quotationIndex < quotations.size(); quotationIndex++) {
 
-			LOGGER.debug("Calculate alerts for : " + portfolioShare);
+			LOGGER.debug("Calculate alerts for: " + portfolioShare);
 
 			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());
 			QuotationUnit quotation = quotations.get(quotationIndex);
@@ -88,14 +90,14 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 				if (!edata.isEmpty()) {
 					LOGGER.info(
-							"Alerts on Threshold crossing for share " + portfolioShare.getStock() + " in " + eventListName + " :" +
+							"Alerts on Threshold crossing for share " + portfolioShare.getStock() + " in " + eventListName + ":" +
 							"\nRegistered thresholds : " + portfolioShare.getAlertsOnThreshold() +
 							"\nResulting events : " + edata);
 				}
 			} else {
 				LOGGER.debug("Can't parse alert on the " + quotation.getDate() +
-						" cause either : the share was bought after on " + portfolioShare.getLastTransactionDate() +
-						" or the share as been sold by another thread and there is none left : quantity left is " + quantity);
+						" cause either: the share was bought after on " + portfolioShare.getLastTransactionDate() +
+						" or the share as been sold by another thread and there is none left: quantity left is " + quantity);
 
 			}
 		}
@@ -114,7 +116,10 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					new AlertsMgrDelegate(portfolioShare).resetCrossDown(alert, todaysQuotation);
 
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
-					String message = "Below " + alert + " at " + todaysQuotation;
+					Date nowEndDate = DateFactory.getNowEndDate();
+					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+					NumberFormat nf = new DecimalFormat("#0.00");
+					String message = "'Below alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\n" + alert;
 					message = message + additionnalMessage(todaysQuotation);
 
 					//TODO improved rules
@@ -156,7 +161,10 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					}
 
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
-					String message = "Above " + alert + " at " + todaysQuotation;
+					Date nowEndDate = DateFactory.getNowEndDate();
+					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+					NumberFormat nf = new DecimalFormat("#0.00");
+					String message = "'Above alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\n" + alert;
 					message = message + additionnalMessage(todaysQuotation);
 
 					EventType eventType = EventType.INFO; //default alert
@@ -173,8 +181,9 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 	private String additionnalMessage(BigDecimal todaysQuotation) {
 		Date nowEndDate = DateFactory.getNowEndDate();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(nowEndDate, portfolioShare.getTransactionCurrency());
-		return ".\n\nFYI, current price: " + todaysQuotation + " and cost per unit price: " + pricePerUnitCost + " On the " + nowEndDate + ".";
+		return ".\n\nFYI, current: " + todaysQuotation + " and cost per unit: " + pricePerUnitCost + " on the " + df.format(nowEndDate) + ".";
 	}
 
 	private void alertDetected(Map<EventKey, EventValue> eventData, Date current, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {
