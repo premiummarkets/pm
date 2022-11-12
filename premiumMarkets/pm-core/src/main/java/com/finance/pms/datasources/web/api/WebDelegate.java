@@ -147,13 +147,22 @@ public class WebDelegate {
 	}
 
 	public void deleteLocalFile(String trainingCsv) {
-		Path trainingCsvFilePath = Path.of(URI.create("file://" + trainingCsv));
-		if (Files.exists(trainingCsvFilePath)) {
-			try {
-				Files.delete(trainingCsvFilePath);
-			} catch (IOException e) {
-				LOGGER.error(e, e);
+
+		try {
+			Path trainingCsvFilePath = Path.of(URI.create("file://" + trainingCsv));
+			LOGGER.info("Deleting file local copy: " + trainingCsvFilePath.toString());
+			boolean exist = Files.exists(trainingCsvFilePath);
+			if (exist) {
+				try {
+					Files.delete(trainingCsvFilePath);
+				} catch (IOException e) {
+					LOGGER.error(e, e);
+				}
 			}
+		} catch (Exception e1) {
+			LOGGER.error("Can't create path from " + trainingCsv, e1);
 		}
+		
+		
 	}
 }
