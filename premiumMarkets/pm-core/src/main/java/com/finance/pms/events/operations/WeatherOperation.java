@@ -36,7 +36,7 @@ public class WeatherOperation extends EventMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}
 }

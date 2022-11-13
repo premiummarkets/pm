@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.TargetStockInfo;
 
 public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 
@@ -50,7 +51,7 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 
 
     @Override
-    public final int operandsRequiredStartShift() {//Always 0 as the shift must be done ad'hoc and internally in the operation implementer
+    public final int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {//Always 0 as the shift must be done ad'hoc and internally in the operation implementer
         return 0;
     }
 

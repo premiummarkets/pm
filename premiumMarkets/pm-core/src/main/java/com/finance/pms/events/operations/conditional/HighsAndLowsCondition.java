@@ -290,7 +290,7 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		
 		return IntStream.range(0, THRESHOLDS_IDX)
 		.map(i -> {
@@ -298,7 +298,7 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 			if (numberOperand instanceof NumberOperation) {
 				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
 			} else {
-				return getOperands().get(i).operandsRequiredStartShift();
+				return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 			}
 		})
 		.reduce(0, (r, e) -> r + e);

@@ -33,7 +33,7 @@ public class NullOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}
 

@@ -37,7 +37,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}
 

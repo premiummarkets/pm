@@ -108,7 +108,7 @@ public class ProfitOperation extends ArrayMapOperation implements MultiValuesOut
 	}
 	
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}
 

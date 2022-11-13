@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -70,18 +71,15 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
+		targetStock.roolBackStartDate();
+		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
 		String baseFilePath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		Boolean append = Boolean.valueOf(((StringValue) inputs.get(APPEND_IDX)).getValue(targetStock));
 		
-		boolean fileExists = Files.exists(Path.of(URI.create("file://" + baseFilePath))) && new File(baseFilePath).length() > 0;
-		if (!fileExists) {
-			append = false;
-			LOGGER.warn("Append was requested but is not possible as the file is empty or inexistent: " + baseFilePath);
-		}
-
 		try {
+			//Append or over write
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
 			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true);
@@ -97,33 +95,37 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 			series.put(headersPrefix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
+			
 			if (append) {
 				SeriesPrinter.appendto(baseFilePath, headersPrefixes, series);
 			} else {
 				SeriesPrinter.printo(baseFilePath, headersPrefixes, series);
 			}
 			
-			//TODO expended against sliding
-			//return the delta: parentStartShift = thisStartShift - this.operandsRequiredStartShift()
-			int parentStartShift = thisStartShift - this.operandsRequiredStartShift();
+			//Return the delta: parentStartShift = thisStartShift - this.operandsRequiredStartShift()
+			Date startDate = targetStock.getStartDate(thisStartShift - getLagAmount(getOperands()));
+			List<String> reversedContent = new ArrayList<>();
+			try (ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
+				String date = new SimpleDateFormat("dd/MM/yyyy").format(targetStock.getEndDate());
+				do {
+					String readLine = reversedLinesFileReader.readLine();
+					date = readLine.split(",")[0];
+					if (!"date".equals(date.trim())) {
+						reversedContent.add(readLine);
+					}
+				} while (!"date".equals(date.trim()) && new SimpleDateFormat("dd/MM/yyyy").parse(date).compareTo(startDate) > 0);
+			}
 			
 			String headers;
 			try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(baseFilePath)))) {
 				headers = fileReader.readLine();
 			}
 			
-			List<String> reversedContent = new ArrayList<>();
-			try (ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
-				for (int i = parentStartShift-1; i >= 0; i--) {
-					reversedContent.add(reversedLinesFileReader.readLine());
-				}
-			}
-			
 			String extension = FilenameUtils.getExtension(baseFilePath);
 			String deltaFile = baseFilePath.replaceAll("." + extension, "_" + UUID.randomUUID() + "." + extension);
 			try (PrintStream printStream = new PrintStream(new File(deltaFile))) {
 				printStream.println(headers);
-				for (int i = parentStartShift-1; i >= 0; i--) {
+				for (int i = reversedContent.size()-1; i >= 0; i--) {
 					printStream.println(reversedContent.get(i));
 				}
 			}
@@ -145,10 +147,61 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+		
 		int lagAmount = getLagAmount(getOperands());
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
+		
+		//Base file check
+		//XXX this is assumed the DELTA_FILE_IDX operand does not make any further calculations
+		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).getParameter();
+		if (parameter == null) {
+			parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, "Inner calc of " + this.shortOutputReference(), thisParentStartShift + lagAmount);
+		}
+		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
+		
+		boolean fileExists = Files.exists(Path.of(URI.create("file://" + baseFilePath))) && new File(baseFilePath).length() > 0;
+		if (!fileExists) {
+			//append = false;
+			getOperands().get(APPEND_IDX).setParameter(new StringValue(Boolean.FALSE.toString()));
+			LOGGER.warn("Append was requested but is not possible as the file is empty or inexistent: " + baseFilePath);
+		} else {
+			try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(baseFilePath)))) {
+				fileReader.readLine(); //headers
+				String firstLine = fileReader.readLine();
+				Date firstLineDate = (firstLine != null)? new SimpleDateFormat("dd/MM/yyyy").parse(firstLine.split(",")[0]):null;
+				if (firstLineDate == null || firstLineDate.after(targetStock.getStartDate(thisParentStartShift))) {
+					//append = false;
+					getOperands().get(APPEND_IDX).setParameter(new StringValue(Boolean.FALSE.toString()));
+					LOGGER.warn("Append was requested but is not possible as the first line starts after the requested start: " + firstLineDate + " is after " + targetStock.getStartDate(thisParentStartShift));
+				}
+			} catch (Exception e) {
+				LOGGER.error(e, e);
+				throw new RuntimeException(e);
+			}
+		}
+
+		if (Boolean.valueOf(((StringValue) getOperands().get(APPEND_IDX).getParameter()).getValue(targetStock))) {
+			try (ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
+				String lastLine = reversedLinesFileReader.readLine();
+				String lastLineDateStr = (lastLine != null)?lastLine.split(",")[0]:null;
+				if (lastLineDateStr != null || !"date".equals(lastLineDateStr)) {
+					Date lastLineDate = new SimpleDateFormat("dd/MM/yyyy").parse(lastLineDateStr);
+					if (lastLineDate.compareTo(targetStock.getEndDate()) >= 0) {
+						targetStock.roolForthStartDate(targetStock.getEndDate());
+					} else {
+						targetStock.roolForthStartDate(lastLineDate);
+					}
+					LOGGER.info("Delta right shift fix, new start date: " + targetStock.getStartDate(0) + " with last calculated " + lastLineDate);
+				}
+			} catch (Exception e) {
+				LOGGER.error(e, e);
+				throw new RuntimeException(e);
+			}
+		}
+		
 		return lagAmount;
+	
 	}
 	
 	private int getLagAmount(List<Operation> operations) {

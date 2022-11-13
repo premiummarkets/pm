@@ -62,7 +62,7 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}
 

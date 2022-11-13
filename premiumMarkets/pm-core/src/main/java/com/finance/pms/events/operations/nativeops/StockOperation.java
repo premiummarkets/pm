@@ -138,7 +138,7 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 1;
 	}
 	

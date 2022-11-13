@@ -89,7 +89,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		if (!startShiftOverrideValue.equals(-1)) {
 			operationStartDateShift = startShiftOverrideValue;
 		} else {
-			operationStartDateShift = this.eventInfoOpsCompoOperationHolder.operandsRequiredStartShift();
+			operationStartDateShift = 0; //this.eventInfoOpsCompoOperationHolder.operandsRequiredStartShift(targetSock, thisParentStartShift);
 		}
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(startDate);

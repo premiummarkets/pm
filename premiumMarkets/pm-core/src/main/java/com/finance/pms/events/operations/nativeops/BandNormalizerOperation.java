@@ -105,7 +105,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		double trimFactor = ((NumberValue)getOperands().get(DATAINPUTIDX-1).getParameter()).getValue(null).doubleValue();
 		if (Double.isNaN(trimFactor)) return 0;
 		return trimmerSlidingPeriod;

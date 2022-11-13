@@ -147,7 +147,8 @@ public class TargetStockInfo {
 	private String analysisName;
 	private EventInfoOpsCompoOperation eventInfoOpsCompoOperation;
 	private Stock stock;
-	private final Date startDate;
+	private Date startDate;
+	private Date roolBackStartDate;
 	private final Date endDate;
 
 	private Map<OutputReference,SoftReference<Output>> calculatedOutputsCache;
@@ -513,6 +514,17 @@ public class TargetStockInfo {
 				.findFirst()
 				.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + gatheredChartableOutputs)));
 		return indexOfMain;
+	}
+
+	public void roolForthStartDate(Date newStartDate) {
+		this.roolBackStartDate = this.startDate;
+		this.startDate = newStartDate;
+		
+	}
+
+	public void roolBackStartDate() {
+		if (roolBackStartDate != null) this.startDate = roolBackStartDate;
+		
 	}
 
 }

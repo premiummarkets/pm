@@ -120,14 +120,14 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	@Override //Adding shift inherent to over, for and spanning
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return IntStream.range(0, OTHER_PARAMS)
 		.map(i -> {
 			Operation numberOperand = getOperands().get(i);
 			if (numberOperand instanceof NumberOperation) {
 				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
 			} else {
-				return getOperands().get(i).operandsRequiredStartShift();
+				return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 			}
 		})
 		.reduce(0, (r, e) -> r + e);

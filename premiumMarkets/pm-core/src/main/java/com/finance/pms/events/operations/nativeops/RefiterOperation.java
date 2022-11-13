@@ -67,7 +67,7 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

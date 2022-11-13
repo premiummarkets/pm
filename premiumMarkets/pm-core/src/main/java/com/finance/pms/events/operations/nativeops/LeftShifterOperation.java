@@ -79,7 +79,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue();
 	}
 	

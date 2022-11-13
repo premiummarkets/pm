@@ -114,7 +114,7 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		
 		return IntStream.range(2, mainInputPosition() )
 		.map(i -> {
@@ -122,7 +122,7 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 			if (numberOperand instanceof NumberOperation) {
 				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
 			} else {
-				return getOperands().get(i).operandsRequiredStartShift();
+				return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 			}
 		})
 		.reduce(0, (r, e) -> r + e);

@@ -162,13 +162,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift) {
 
-		int thisOperandsRequiredStartShift = parentRequiredStartShift + operandsRequiredStartShift();
+		int operationOperandsRequiredStartShift = operandsRequiredStartShift(targetStock, parentRequiredStartShift);
+		int fullOperandsRequieredshift = parentRequiredStartShift + operationOperandsRequiredStartShift;
 		
 		int stackDepth = parentCallStack.split("=>").length  + 1;
 		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
 		String thisCallStack = 
 					parentCallStack + ": \n" + 
-					"Call Stack: " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + " with s" +  operandsRequiredStartShift() + " and d" + stackDepth;
+					"Call Stack: " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + " with s" +  operationOperandsRequiredStartShift + " and d" + stackDepth;
 		
 		LOGGER.debug(thisCallStack);
 		
@@ -182,7 +183,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			if (parameter != null) {
 				return parameter;
 			}
-			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOperandsRequiredStartShift)) != null) {
+			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), fullOperandsRequieredshift)) != null) {
 				return alreadyCalculated;
 			}
 			else {
@@ -191,17 +192,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				for (int i = 0; i < operands.size(); i++) {
 
 					Operation operand = operands.get(i);
-					Value<?> output = operand.run(targetStock, thisCallStack, thisOperandsRequiredStartShift);
-					gatherCalculatedOutput(targetStock, operand, output, thisOperandsRequiredStartShift, isInChart);
-					output = output.filterToParentRequierements(targetStock, thisOperandsRequiredStartShift, this);
+					Value<?> output = operand.run(targetStock, thisCallStack, fullOperandsRequieredshift);
+					gatherCalculatedOutput(targetStock, operand, output, fullOperandsRequieredshift, isInChart);
+					output = output.filterToParentRequierements(targetStock, fullOperandsRequieredshift, this);
 					operandsOutputs.add(output);
 
 				}
 
 				if (isInChart) targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
 
-				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift " + parentRequiredStartShift + " and parent+this " + thisOperandsRequiredStartShift);
-				Value<?> operationOutput = calculate(targetStock, thisOperandsRequiredStartShift, operandsOutputs);
+				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift " + parentRequiredStartShift + " and parent+this " + fullOperandsRequieredshift);
+				Value<?> operationOutput = calculate(targetStock, fullOperandsRequieredshift, operandsOutputs);
 
 				if (LOGGER.isDebugEnabled())
 					LOGGER.debug("Operation " + this.getReference() + ((this.getOutputSelector() != null)?":" + this.getOutputSelector():"") + " returns " + operationOutput.toString());
@@ -250,7 +251,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * Hence, this is used for no data operations (where operands are not pre-calculated) as it accumulates all the hierarchy of parents start shifts.
 	 * Not to be confused with the operandsRequiredStartShift() method which only has this operation required start shift from its operands (without the parent).
 	 */
-	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 
 	/**
 	 * Operation reference as in User Operations list.
@@ -634,17 +635,19 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * The start shift left required, from the operands calculations outputs, by this operation, for this operation to provide an output at start date.
 	 * Basically the amount of data necessary from the operands for this to yield at least one output at start date.
 	 * This is a number of data points (ie open days), not number of calendar days.
+	 * @param targetStock TODO
+	 * @param thisParentStartShift TODO
 	 */
-	public abstract int operandsRequiredStartShift();
+	public abstract int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift);
 	
 	/**
 	 * This gives how far the leafs operands will have to shift
 	 */
-	public int operandsRequiredStartShiftRecursive() {
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisParentStartShift) {
 		if (operands.isEmpty()) return 0;
 		return operands.stream().reduce(0, (max, operand) -> {
-			int thisOperandsShift = operand.operandsRequiredStartShift();
-			return Math.max(max, thisOperandsShift + operand.operandsRequiredStartShiftRecursive());
+			int thisOperandsShift = operand.operandsRequiredStartShift(targetStock, thisParentStartShift);
+			return Math.max(max, thisOperandsShift + operand.operandsRequiredStartShiftRecursive(targetStock, thisParentStartShift));
 		}, (a, b) -> Math.max(a, b));
 	}
 

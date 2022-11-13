@@ -250,7 +250,7 @@ public class TalibGenericOperation extends TalibOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift() {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 
 		int thisOperationStartShift = 0;
 		for (int i = 0; i < inConstantsNames.size(); i++) {
