@@ -33,34 +33,14 @@ public class IOsWebImporterOperation extends StringerOperation {
 
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
+
 		String filePath = ((StringValue) inputs.get(0)).getValue(targetStock);
-		
+
 		synchronized(WebDelegate.class) {
-			try {
-				
-				Path localFilePath = Path.of(URI.create("file://" + filePath));
-				boolean exist = Files.exists(localFilePath);
-				if (exist) {
-					String remoteFile = web.httpGetFile(filePath, true);
-					Path remoteFilePathCopy = Path.of(URI.create("file://" + remoteFile));
-					if (localFilePath.toFile().length() != remoteFilePathCopy.toFile().length()) {
-						Files.copy(remoteFilePathCopy, localFilePath);
-						Files.delete(remoteFilePathCopy);
-					}
-				} else {
-					filePath = web.httpGetFile(filePath, false);
-				}
-				
-				return new StringValue(filePath);
-				
-			} catch (IOException e) {
-				LOGGER.error(e, e);
-				return new StringValue("NAN");
-			}
+			filePath = web.httpGetFile(filePath);
+			return new StringValue(filePath);
 		}
-		
-		
+
 	}
 
 	@Override

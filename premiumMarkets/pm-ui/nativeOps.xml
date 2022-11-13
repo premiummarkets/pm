@@ -886,8 +886,8 @@
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>exportFolder</referenceAsOperand>
-                    <description>Export folder path</description>
+                    <referenceAsOperand>filePath</referenceAsOperand>
+                    <description>Export filePath path root prefix</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>
@@ -1052,7 +1052,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsDeltaExporterOperation">
             <reference>iosDeltaExporter</reference>
-            <description>Exports all datasets to a given file path and returns the same file path.</description>
+            <description>Exports all datasets delta to the given file path and returns a file path, copy of the requested delta.</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1068,7 +1068,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>filePath</referenceAsOperand>
-                    <description>Exact file path of the output. Must be consistent between runs ..</description>
+                    <description>Base file path containing the full output. This must be constant between runs.</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>
@@ -1079,7 +1079,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>headerPrefixe</referenceAsOperand>
-                    <description>Prefix of the column headers</description>
+                    <description>Prefix of the column headers. This must be constant between runs.</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>

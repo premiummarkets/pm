@@ -39,7 +39,7 @@ public class IOsExporterOperation extends StringerOperation {
 	public IOsExporterOperation() {
 		this("iosExporter", "Exports all input datasets to a file. The file name is generated: <runtime-id>_ <stock-symbol> _k_training_ <random-id> .csv",
 				new NumberOperation("number", "rouding", "Rouding precision", new NumberValue(Double.NaN)),
-				new StringOperation("string", "filePath", "Export filePath path prefix", new StringValue("")),
+				new StringOperation("string", "filePath", "Export filePath path root prefix", new StringValue("")),
 				new StringOperation("string", "headerPrefixe", "Prefix of the column headers", new StringValue("")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);

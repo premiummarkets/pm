@@ -83,10 +83,6 @@ public class WebDelegate {
 	}
 	
 	public String httpGetFile(String fileName) {
-		return this.httpGetFile(fileName, false);
-	}
-
-	public String httpGetFile(String fileName, Boolean copy) {
 		
 		String[] split = fileName.split(".+?" + File.separator + "(?=[^" + File.separator + "]+$)"); //".+?/(?=[^/]+$)"
 		String fileNameBaseName = split[split.length-1];
@@ -96,9 +92,31 @@ public class WebDelegate {
 							      				.map(f -> f.substring(0, fileNameBaseName.lastIndexOf(".")))
 							      				.orElse(fileNameBaseName);
 		
-	
+		String localFileCopyName = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + fileNameBaseNameWOExt + ".csv";
+		
+		Path localFileCopyPath = Path.of(URI.create("file://" + localFileCopyName));
+		boolean exist = Files.exists(localFileCopyPath);
+		if (exist) {
+			String remoteFileCopy = doHttpGetFile(fileNameBaseNameWOExt, localFileCopyName + "." + UUID.randomUUID());
+			Path remoteFilePathCopy = Path.of(URI.create("file://" + remoteFileCopy));
+			try {
+				if (localFileCopyPath.toFile().length() != remoteFilePathCopy.toFile().length()) {
+					Files.copy(remoteFilePathCopy, localFileCopyPath);
+				}
+				Files.delete(remoteFilePathCopy);
+				return localFileCopyPath.toString();
+			} catch (IOException e) {
+				LOGGER.error(e, e);
+				return "None";
+			}
+		} else {
+			return doHttpGetFile(fileNameBaseNameWOExt, localFileCopyName);
+		}
+		
+	}
+
+	private String doHttpGetFile(String fileNameBaseNameWOExt, String localFileCopyName) {
 		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/csvfile/autoPortfolioLogs/"+fileNameBaseNameWOExt);
-		String localFileCopyName = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + fileNameBaseNameWOExt + ".csv" + ((copy)?"." + UUID.randomUUID():"");
 	    try (
 	    		CloseableHttpResponse getResponse = getHttpClient().execute(getPredictionFile);
 	    		FileWriter outFile = new FileWriter(new File(localFileCopyName), false);
@@ -113,7 +131,6 @@ public class WebDelegate {
 			LOGGER.error(e, e);
 		}
 		return localFileCopyName;
-		
 	}
 	
 	public InputStream runAny(String... cmdAndArgs) {		
