@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -33,6 +34,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 
+//FIXME implement a Deletable interface which could be called add the end of the calculation on all operands recursively. Problem how to pass the file name to be deleted?
 public class WebDelegate {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(WebDelegate.class);
@@ -79,8 +81,12 @@ public class WebDelegate {
 		}
 		return httpClient;
 	}
-
+	
 	public String httpGetFile(String fileName) {
+		return this.httpGetFile(fileName, false);
+	}
+
+	public String httpGetFile(String fileName, Boolean copy) {
 		
 		String[] split = fileName.split(".+?" + File.separator + "(?=[^" + File.separator + "]+$)"); //".+?/(?=[^/]+$)"
 		String fileNameBaseName = split[split.length-1];
@@ -92,7 +98,7 @@ public class WebDelegate {
 		
 	
 		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/csvfile/autoPortfolioLogs/"+fileNameBaseNameWOExt);
-		String localFileCopyName = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + fileNameBaseNameWOExt + ".csv";
+		String localFileCopyName = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + fileNameBaseNameWOExt + ".csv" + ((copy)?"." + UUID.randomUUID():"");
 	    try (
 	    		CloseableHttpResponse getResponse = getHttpClient().execute(getPredictionFile);
 	    		FileWriter outFile = new FileWriter(new File(localFileCopyName), false);

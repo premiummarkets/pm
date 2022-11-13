@@ -245,10 +245,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * thisStartShift : The start left shift required from the operands calculation of this operation + the added parent requirement accumulated.
+	 * thisStartShift : The start left shift required from the operands calculation of this operation + the added parents requirement accumulated.
 	 * Operands are already calculated at this stage. So this is assumed they already have had their calculation start shifted to comply with this operation requirement.
 	 * Hence, this is used for no data operations (where operands are not pre-calculated) as it accumulates all the hierarchy of parents start shifts.
-	 * Not to be confused with the operandsRequiredStartShift() method which only has this operation required start shift (without the parent).
+	 * Not to be confused with the operandsRequiredStartShift() method which only has this operation required start shift from its operands (without the parent).
 	 */
 	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 

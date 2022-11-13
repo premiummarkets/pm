@@ -1,14 +1,13 @@
 package com.finance.pms.events.operations.nativeops;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -40,19 +39,24 @@ public class IOsWebImporterOperation extends StringerOperation {
 		synchronized(WebDelegate.class) {
 			try {
 				
-				filePath = web.httpGetFile(filePath);
+				Path localFilePath = Path.of(URI.create("file://" + filePath));
+				boolean exist = Files.exists(localFilePath);
+				if (exist) {
+					String remoteFile = web.httpGetFile(filePath, true);
+					Path remoteFilePathCopy = Path.of(URI.create("file://" + remoteFile));
+					if (localFilePath.toFile().length() != remoteFilePathCopy.toFile().length()) {
+						Files.copy(remoteFilePathCopy, localFilePath);
+						Files.delete(remoteFilePathCopy);
+					}
+				} else {
+					filePath = web.httpGetFile(filePath, false);
+				}
 				
-				String fileCopy = filePath + "_" + UUID.randomUUID();
-				Files.copy(Paths.get(filePath), Paths.get(fileCopy));
-				getOperands().get(0).setParameter(new StringValue(fileCopy));
-				
-				return new StringValue(fileCopy);
+				return new StringValue(filePath);
 				
 			} catch (IOException e) {
 				LOGGER.error(e, e);
 				return new StringValue("NAN");
-			} finally {
-				web.deleteLocalFile(filePath);
 			}
 		}
 		
@@ -65,8 +69,25 @@ public class IOsWebImporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
-		new File(((StringValue) getOperands().get(0).getParameter()).getValueAsString()).delete();
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... webFilesCopies) {
+		if (webFilesCopies != null) {
+			for (int i = 0; i < webFilesCopies.length; i++) {
+				try {
+					Path deltaFile = Path.of(URI.create("file://" + webFilesCopies[i]));
+					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
+					boolean exist = Files.exists(deltaFile);
+					if (exist) {
+						try {
+							Files.delete(deltaFile);
+						} catch (IOException e) {
+							LOGGER.error(e, e);
+						}
+					}
+				} catch (Exception e1) {
+					LOGGER.error("Can't create path from " + webFilesCopies[i], e1);
+				}
+			}
+		}
 	}
 	
 	@Override

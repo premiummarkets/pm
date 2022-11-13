@@ -1,6 +1,10 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.file.Files;
@@ -13,8 +17,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.apache.commons.math3.util.Precision;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -25,6 +32,13 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 
+/**
+ * The full data file is a permanent local file
+ * Only the requested delta is sent back
+ * 
+ * @author guil
+ *
+ */
 public class IOsDeltaExporterOperation extends StringerOperation {
 	
 	private static final int APPEND_IDX = 3;
@@ -38,10 +52,10 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	}
 
 	public IOsDeltaExporterOperation() {
-		this("iosDeltaExporter", "Exports all datasets to a given file path and returns the same file path.",
+		this("iosDeltaExporter", "Exports all datasets delta to the given file path and returns a file path, copy of the requested delta.",
 				new NumberOperation("number", "rouding", "Rouding precision", new NumberValue(Double.NaN)),
-				new StringOperation("string", "filePath", "Exact file path of the output. Must be consistent between runs ..", new StringValue("")),
-				new StringOperation("string", "headerPrefixe", "Prefix of the column headers", new StringValue("")),
+				new StringOperation("string", "filePath", "Base file path containing the full output. This must be constant between runs.", new StringValue("")),
+				new StringOperation("string", "headerPrefixe", "Prefix of the column headers. This must be constant between runs.", new StringValue("")),
 				new StringOperation("boolean", "append", "True if we append. False for overwrite", new StringValue("TRUE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (typically a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -57,16 +71,14 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
-		String fileRootPath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
+		String baseFilePath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		Boolean append = Boolean.valueOf(((StringValue) inputs.get(APPEND_IDX)).getValue(targetStock));
 		
-
-		
-		boolean fileExists = Files.exists(Path.of(URI.create("file://" + fileRootPath))) && new File(fileRootPath).length() > 0;
+		boolean fileExists = Files.exists(Path.of(URI.create("file://" + baseFilePath))) && new File(baseFilePath).length() > 0;
 		if (!fileExists) {
 			append = false;
-			LOGGER.warn("Append was requested but is not possible as the file is empty or inexistent: " + fileRootPath);
+			LOGGER.warn("Append was requested but is not possible as the file is empty or inexistent: " + baseFilePath);
 		}
 
 		try {
@@ -86,12 +98,37 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
 			if (append) {
-				SeriesPrinter.appendto(fileRootPath, headersPrefixes, series);
+				SeriesPrinter.appendto(baseFilePath, headersPrefixes, series);
 			} else {
-				SeriesPrinter.printo(fileRootPath, headersPrefixes, series);
+				SeriesPrinter.printo(baseFilePath, headersPrefixes, series);
 			}
 			
-			return new StringValue(fileRootPath);
+			//TODO expended against sliding
+			//return the delta: parentStartShift = thisStartShift - this.operandsRequiredStartShift()
+			int parentStartShift = thisStartShift - this.operandsRequiredStartShift();
+			
+			String headers;
+			try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(baseFilePath)))) {
+				headers = fileReader.readLine();
+			}
+			
+			List<String> reversedContent = new ArrayList<>();
+			try (ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
+				for (int i = parentStartShift-1; i >= 0; i--) {
+					reversedContent.add(reversedLinesFileReader.readLine());
+				}
+			}
+			
+			String extension = FilenameUtils.getExtension(baseFilePath);
+			String deltaFile = baseFilePath.replaceAll("." + extension, "_" + UUID.randomUUID() + "." + extension);
+			try (PrintStream printStream = new PrintStream(new File(deltaFile))) {
+				printStream.println(headers);
+				for (int i = parentStartShift-1; i >= 0; i--) {
+					printStream.println(reversedContent.get(i));
+				}
+			}
+			
+			return new StringValue(deltaFile);
 			
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
@@ -122,8 +159,25 @@ public class IOsDeltaExporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
-		//TODO delete the added lines?
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... deltaFiles) {
+		if (deltaFiles != null) {
+			for (int i = 0; i < deltaFiles.length; i++) {
+				try {
+					Path deltaFile = Path.of(URI.create("file://" + deltaFiles[i]));
+					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
+					boolean exist = Files.exists(deltaFile);
+					if (exist) {
+						try {
+							Files.delete(deltaFile);
+						} catch (IOException e) {
+							LOGGER.error(e, e);
+						}
+					}
+				} catch (Exception e1) {
+					LOGGER.error("Can't create path from " + deltaFiles[i], e1);
+				}
+			}
+		}
 	}
 
 }

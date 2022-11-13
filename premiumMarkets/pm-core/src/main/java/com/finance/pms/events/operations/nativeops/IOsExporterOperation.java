@@ -1,6 +1,10 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -35,7 +39,7 @@ public class IOsExporterOperation extends StringerOperation {
 	public IOsExporterOperation() {
 		this("iosExporter", "Exports all input datasets to a file. The file name is generated: <runtime-id>_ <stock-symbol> _k_training_ <random-id> .csv",
 				new NumberOperation("number", "rouding", "Rouding precision", new NumberValue(Double.NaN)),
-				new StringOperation("string", "exportFolder", "Export folder path", new StringValue("")),
+				new StringOperation("string", "filePath", "Export filePath path prefix", new StringValue("")),
 				new StringOperation("string", "headerPrefixe", "Prefix of the column headers", new StringValue("")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -51,10 +55,11 @@ public class IOsExporterOperation extends StringerOperation {
 	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
-		String exportFolder = ((StringValue) inputs.get(1)).getValue(targetStock);
+		String exportFilePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		
-		String fileSuffix = targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
+		String fileSuffix = UUID.randomUUID().toString() + ".csv"; //targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
+		String filePath = exportFilePrefix + "_" + fileSuffix;
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -72,7 +77,7 @@ public class IOsExporterOperation extends StringerOperation {
 			series.put(headersPrefix, factorisedInput);
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
-			String filePath = SeriesPrinter.printo(fileSuffix, exportFolder, headersPrefixes, series);
+			filePath = SeriesPrinter.printo(filePath, headersPrefixes, series);
 			return new StringValue(filePath);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
@@ -92,8 +97,25 @@ public class IOsExporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
-		//Nothing as exports have a unique name
+	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... trainingFiles) {
+		if (trainingFiles != null) {
+			for (int i = 0; i < trainingFiles.length; i++) {
+				try {
+					Path deltaFile = Path.of(URI.create("file://" + trainingFiles[i]));
+					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
+					boolean exist = Files.exists(deltaFile);
+					if (exist) {
+						try {
+							Files.delete(deltaFile);
+						} catch (IOException e) {
+							LOGGER.error(e, e);
+						}
+					}
+				} catch (Exception e1) {
+					LOGGER.error("Can't create path from " + trainingFiles[i], e1);
+				}
+			}
+		}
 	}
 
 }
