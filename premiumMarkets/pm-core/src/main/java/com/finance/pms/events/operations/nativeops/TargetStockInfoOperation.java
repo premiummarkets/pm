@@ -25,7 +25,7 @@ public class TargetStockInfoOperation extends Operation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String selector = ((StringValue) inputs.get(0)).getValue(targetStock);
 		
@@ -44,6 +44,11 @@ public class TargetStockInfoOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return null;
 	}
 
 }

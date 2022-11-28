@@ -28,7 +28,7 @@ public class NullOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new AnyValueListValue<>(inputs);
 	}
 
@@ -39,6 +39,11 @@ public class NullOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return null;
 	}
 
 }

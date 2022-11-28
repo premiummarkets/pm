@@ -114,11 +114,11 @@ public abstract class ANTLRParserHelper {
 	public void updateEditableOperationLists(Map<String, Operation> nativeOperations, Map<String, Operation> userCurrentOperations) {
 		this.nativeOpEditorDescrs = new ConcurrentSkipListSet<EditorOpDescr>();
 		updateNativeOperationList(nativeOperations, this.nativeOpEditorDescrs);
-		//LOGGER.debug("available native ops : " + this.nativeOpEditorDescrs);
+		//if (LOGGER.isDebugEnabled()) LOGGER.debug("available native ops : " + this.nativeOpEditorDescrs);
 
 		this.userCurrentOpEditorDescrs = new ConcurrentSkipListSet<EditorOpDescr>();
 		updateUserOperationList(userCurrentOperations, this.userCurrentOpEditorDescrs);
-		//LOGGER.debug("available user ops : " + this.userCurrentOpEditorDescrs);
+		//if (LOGGER.isDebugEnabled()) LOGGER.debug("available user ops : " + this.userCurrentOpEditorDescrs);
 	}
 	
 	public boolean isInitialised() {

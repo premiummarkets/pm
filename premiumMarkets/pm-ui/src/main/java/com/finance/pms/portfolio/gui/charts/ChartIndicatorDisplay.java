@@ -474,7 +474,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		} else { //Thats all, some date is good to display
 
-			if (LOGGER.isDebugEnabled()) try {LOGGER.debug("Before updating the display: " + chartTarget.getChartedEvtDefsTrends().stream().map(t -> {
+			if (LOGGER.isDebugEnabled()) try {if (LOGGER.isDebugEnabled()) LOGGER.debug("Before updating the display: " + chartTarget.getChartedEvtDefsTrends().stream().map(t -> {
 				Set<OutputDescr> allOutputDescr = t.getEventDefDescriptor().allOutputDescr();
 				return allOutputDescr.stream().map( od -> od.toString()).reduce((r,e) -> r + "\n\t\t" + e).orElse("None");
 			}).reduce((r,e) -> r + " " + e));} catch (Exception e) {LOGGER.warn("Cannot debug this", e);};

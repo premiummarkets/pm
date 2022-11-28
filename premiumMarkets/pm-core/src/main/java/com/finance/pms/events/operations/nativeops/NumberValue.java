@@ -95,7 +95,7 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 	}
 	
 	@Override
-	public NumberValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public NumberValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
 	}
 

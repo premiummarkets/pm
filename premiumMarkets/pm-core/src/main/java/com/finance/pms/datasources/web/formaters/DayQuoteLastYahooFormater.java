@@ -54,7 +54,7 @@ public class DayQuoteLastYahooFormater extends LineFormater {
 			if (null == DayQuoteLastYahooFormater.PATTERNS)
 				DayQuoteLastYahooFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		String symbol = stock.getSymbol().replace(".", "\\.").toLowerCase();
 		lastQuote = Pattern.compile(DayQuoteLastYahooFormater.PATTERNS.getProperty("yahoolastquote", symbol));

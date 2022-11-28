@@ -209,7 +209,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
 		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.debug("Cash in is zero for "+this);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
 			return value.add(cashout).subtract(cashin).divide(cashin, 10, RoundingMode.HALF_EVEN);
@@ -248,7 +248,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
 		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.debug("Cash in is zero for "+this);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
 			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 10, RoundingMode.HALF_EVEN);
@@ -463,8 +463,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 				inPreviousTransaction = transaction;
 
-				LOGGER.debug("In Weighted value : " + weightedCashin);
-				LOGGER.debug("In Added quantity : " + transaction.getQuantity());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("In Weighted value : " + weightedCashin);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("In Added quantity : " + transaction.getQuantity());
 			} 
 
 			//out
@@ -485,8 +485,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 				outPreviousTransaction = transaction;
 
-				LOGGER.debug("Out Weighted value : "+weightedCashout);
-				LOGGER.debug("Out Added quantity : "+transaction.getQuantity().abs());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Out Weighted value : "+weightedCashout);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Out Added quantity : "+transaction.getQuantity().abs());
 
 			}
 		}
@@ -505,7 +505,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			weightedCashout = weightedCashout.multiply(toDateRateOutFactor).setScale(10, RoundingMode.HALF_EVEN);
 		}
 
-		LOGGER.debug("Weighted invested value for " + this.stock.getIsin() + " is " + weightedCashin);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Weighted invested value for " + this.stock.getIsin() + " is " + weightedCashin);
 
 		return new InOutWeighted(weightedCashin, weightedCashout, currentEndDate);
 	}
@@ -547,7 +547,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 			LOGGER.warn(e,e); 
 		}
 
-		LOGGER.debug("Inflation rate between "+firstDate+" and "+secondDate+" is : "+inflationRate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Inflation rate between "+firstDate+" and "+secondDate+" is : "+inflationRate);
 		return inflationRate;
 
 	}

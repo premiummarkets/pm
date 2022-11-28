@@ -43,7 +43,7 @@ public class ListOperation extends Operation {
 	}
 
 	@Override
-	public AnyValueListValue<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public AnyValueListValue<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new AnyValueListValue<>(inputs);
 	}
 
@@ -61,6 +61,11 @@ public class ListOperation extends Operation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public  AnyValueListValue<?> emptyValue() {
+		return new AnyValueListValue<>();
 	}
 
 }

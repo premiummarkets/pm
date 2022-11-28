@@ -92,30 +92,34 @@ public class YahooPythonQuotationFixer {
 				while ((line = in.readLine()) != null) {
 					if (line.isEmpty()) continue;
 					String[] split = line.split(",");
-					Date date = dateFormat.parse(split[0]);
-					//skipping 1rst and last columns
-					double[] value = Arrays.asList(split).subList(1, split.length-1).stream().mapToDouble(s -> Double.valueOf(s)).toArray();
-					webData.put(date, value);
-					
-					double[] dbValue = dbData.get(date);
-					List<ValidatableDated> formatLine = dsf.formatLine(line).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-					if (dbValue == null) {
-						LOGGER.warn("Missing date in db: " + dateFormat.format(date));
-						validatables.addAll(formatLine);
-					} else {
-						for(int i = 0; i < dbValue.length; i++) {
-							if (Precision.round(value[i], 4) != dbValue[i]) {
-								LOGGER.warn("Inconstistent " + i + " at " + dateFormat.format(date) + ": web " + value[i] + " V db " + dbValue[i]);
-								validatables.addAll(formatLine);
-								break;
+					try {
+						Date date = dateFormat.parse(split[0]);
+						//skipping 1rst and last columns
+						double[] value = Arrays.asList(split).subList(1, split.length-1).stream().mapToDouble(s -> Double.valueOf(s)).toArray();
+						webData.put(date, value);
+						
+						double[] dbValue = dbData.get(date);
+						List<ValidatableDated> formatLine = dsf.formatLine(line).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+						if (dbValue == null) {
+							LOGGER.warn("Missing date in db: " + dateFormat.format(date));
+							validatables.addAll(formatLine);
+						} else {
+							for(int i = 0; i < dbValue.length; i++) {
+								if (Precision.round(value[i], 4) != dbValue[i]) {
+									LOGGER.warn("Inconstistent " + i + " at " + dateFormat.format(date) + ": web " + value[i] + " V db " + dbValue[i]);
+									validatables.addAll(formatLine);
+									break;
+								}
 							}
 						}
+					} catch (Exception e) {
+						LOGGER.warn("Error reading line: " + line + " for " + stock.getSymbol() + ", from " + start + " to " + end + ". " + e.toString());
 					}
 				}
 			}
 			
 			LOGGER.info("Count of descrepencies in db: " + validatables.size());
-			LOGGER.debug(validatables);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(validatables);
 			
 			List<ValidatableDated> ohlcvValids = validatables.stream().filter(ohlcv -> !ohlcv.getDate().after(end)).collect(Collectors.toList());
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(ohlcvValids), new ArrayList<>());

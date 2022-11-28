@@ -90,7 +90,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer spanningShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();

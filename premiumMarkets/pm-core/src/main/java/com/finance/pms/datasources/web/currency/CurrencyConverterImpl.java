@@ -129,7 +129,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 					}
 
 				} else {
-					LOGGER.debug(currencyStock + ": update NOT granted at " + df.format(today));
+					if (LOGGER.isDebugEnabled()) LOGGER.debug(currencyStock + ": update NOT granted at " + df.format(today));
 				}
 
 			}

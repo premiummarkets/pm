@@ -60,7 +60,7 @@ public class StockComplementOpinionBoursoramaFormater extends LineFormater {
 			if (null == StockComplementOpinionBoursoramaFormater.PATTERNS)
 				StockComplementOpinionBoursoramaFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		meanRec = Pattern.compile(StockComplementOpinionBoursoramaFormater.PATTERNS.getProperty("boursoopinioncompletion"));

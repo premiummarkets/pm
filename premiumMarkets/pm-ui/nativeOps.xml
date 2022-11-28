@@ -171,7 +171,7 @@
                     <referenceAsOperand>pattern</referenceAsOperand>
                     <description>Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.</description>
                     <defaultValue xsi:type="stringValue">
-                        <stringValue>None</stringValue>
+                        <stringValue>NONE</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -182,7 +182,7 @@
                     <referenceAsOperand>default</referenceAsOperand>
                     <description>Default value.</description>
                     <defaultValue xsi:type="stringValue">
-                        <stringValue>None</stringValue>
+                        <stringValue>NONE</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -887,7 +887,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>filePath</referenceAsOperand>
-                    <description>Export filePath path root prefix</description>
+                    <description>Export file path prefix</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>
@@ -1068,7 +1068,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>filePath</referenceAsOperand>
-                    <description>Base file path containing the full output. This must be constant between runs.</description>
+                    <description>Export delta file path full name with extension.</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue></stringValue>
                     </defaultValue>
@@ -1516,7 +1516,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>parameter</referenceAsOperand>
-                    <description>Parameter to put in palce in the formulae</description>
+                    <description>Parameter values for each ?</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>14.0</numberValue>
                     </defaultValue>

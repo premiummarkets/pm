@@ -86,7 +86,7 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, List<? extends Value> inputs) {
 
 		//Sof (sof is first because of the following constants VarArgs.
 		//And

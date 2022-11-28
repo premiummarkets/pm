@@ -127,7 +127,7 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 		String dateFin = df.format(datefin);
 		
 		MasSource.getInstance().setInitAnalyzeDates(dateDeb,dateFin);
-		LOGGER.debug("Mas calculation date range : from "+datedeb+" to "+datefin);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Mas calculation date range : from "+datedeb+" to "+datefin);
 		
 //		ThreadSemaphore ts =
 //			ThreadSemaphore.getNewSemaphore(symbols.size(),(Integer.valueOf(MainPMScmd.prefs.get("mas.semaphore.nbthread","5"))));
@@ -147,7 +147,7 @@ public class MasIndicatorCalculationService extends IndicatorsCalculationService
 					//FIXME
 					//executor.execute(new MasEventFetchingThread(periodType, stock, dateDeb, dateFin,analyseName, null, this.eventQueue, this.jmsTemplate));
 //				} catch (InterruptedException e) {
-//					LOGGER.debug("",e);
+//					if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 //				}
 			} else {
 				LOGGER.warn("No symbol for stock : "+stock.toString());

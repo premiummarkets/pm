@@ -394,16 +394,16 @@ public class EventsResources {
 		for (String eventListName : eventListNames) {
 			EventsForAnalisysNameCacheHolder eventListNameEventsCache = EVENTS_CACHE.get(eventListName);
 			if (eventListNameEventsCache == null || eventListNameEventsCache.get(stock) == null) { //New analyses entry or stock entry for this analyses
-				LOGGER.debug("Events not found in cache for : "+eventListName+ " and incidentally, "+stock + " from "+startDate+" to "+endDate);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Events not found in cache for : "+eventListName+ " and incidentally, "+stock + " from "+startDate+" to "+endDate);
 				SymbolEvents eventsForEventListNameNStockNEventDefs = DataSource.getInstance().loadEventsByDate(eventsTableName, stock, startDate, endDate, eventDefinitions, eventListName);
 				eventDefinitions.stream().forEach(eventInfo -> this.addEventsToSoftCache(Arrays.asList(new SymbolEvents[]{eventsForEventListNameNStockNEventDefs}), eventListName, eventInfo));
 			} else { //Existing analyses and stock
-				LOGGER.debug(eventListName + " has had been cached but needs check for potential clearance.");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(eventListName + " has had been cached but needs check for potential clearance.");
 				Set<EventInfo> newEvDefsEntries = eventDefinitions.stream()
 						.filter(eventInfo -> eventListNameEventsCache.readEventsFromStockCache(stock, eventInfo) == null) //New EventDef entry
 						.collect(Collectors.toSet());
 				if (newEvDefsEntries.isEmpty()) {
-					LOGGER.debug("All events are up to date in cache for : "+eventListName+ " and "+ eventDefinitions.stream().map(e-> e.getEventDefinitionRef()).reduce((r,e) -> r +", "+ e) + " and " + stock + " and incidentally from "+startDate+" to "+endDate);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("All events are up to date in cache for : "+eventListName+ " and "+ eventDefinitions.stream().map(e-> e.getEventDefinitionRef()).reduce((r,e) -> r +", "+ e) + " and " + stock + " and incidentally from "+startDate+" to "+endDate);
 					return;
 				}
 				LOGGER.info("Events not found in cache for : " + eventListName + " and "+ newEvDefsEntries.stream().map(e-> e.getEventDefinitionRef()).reduce((r,e) -> r +", "+ e) + " and "+stock + ", incidentally from "+startDate+" to "+endDate);
@@ -764,8 +764,8 @@ public class EventsResources {
 						"Update return was " +
 						Arrays.toString(updated)
 						,e);
-				LOGGER.debug(e.getCause());
-				LOGGER.debug(e.getNextException());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getCause());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getNextException());
 
 			} 
 

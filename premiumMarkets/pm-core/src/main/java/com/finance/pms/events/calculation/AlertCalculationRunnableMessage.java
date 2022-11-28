@@ -107,7 +107,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 					futures.add(submitedRunnable);
 
 				} catch (Throwable e) {
-					LOGGER.debug(e,e);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug(e,e);
 				}
 			}
 

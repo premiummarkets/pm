@@ -67,7 +67,7 @@ public class RecursiveOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Params check
 		Integer period = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue(); //Used in operationStartDateShift() calculation for seeding

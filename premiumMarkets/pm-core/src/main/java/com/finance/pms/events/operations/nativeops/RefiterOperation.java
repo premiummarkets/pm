@@ -33,7 +33,7 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		SortedMap<Date, Double> refitee = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
 		SortedMap<Date, Double> refiter = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);

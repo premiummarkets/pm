@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -33,6 +34,8 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 //FIXME implement a Deletable interface which could be called add the end of the calculation on all operands recursively. Problem how to pass the file name to be deleted?
 public class WebDelegate {
@@ -82,6 +85,32 @@ public class WebDelegate {
 		return httpClient;
 	}
 	
+	public JsonObject postHttpJson(HttpPost postTrain) throws IOException, ClientProtocolException {
+		JsonObject responseJson;
+		try (
+				CloseableHttpResponse putResponse = getHttpClient().execute(postTrain);
+				StringWriter writer = new StringWriter();
+				WriterOutputStream outStream = new WriterOutputStream(writer);
+			) {
+			putResponse.getEntity().writeTo(outStream);
+			responseJson = new JsonParser().parse(writer.toString()).getAsJsonObject();
+			if (responseJson.size() == 0) throw new RuntimeException("The api didn't return a valid response: " + responseJson + ", url " + postTrain.toString());
+		}
+		return responseJson;
+	}
+	
+	public String postHttpString(HttpPost postTrain) throws IOException, ClientProtocolException {
+		try (
+				CloseableHttpResponse putResponse = getHttpClient().execute(postTrain);
+				StringWriter writer = new StringWriter();
+				WriterOutputStream outStream = new WriterOutputStream(writer);
+			) {
+			putResponse.getEntity().writeTo(outStream);
+			return writer.toString();
+		}
+		
+	}
+	
 	public String httpGetFile(String fileName) {
 		
 		String[] split = fileName.split(".+?" + File.separator + "(?=[^" + File.separator + "]+$)"); //".+?/(?=[^/]+$)"
@@ -101,13 +130,14 @@ public class WebDelegate {
 			Path remoteFilePathCopy = Path.of(URI.create("file://" + remoteFileCopy));
 			try {
 				if (localFileCopyPath.toFile().length() != remoteFilePathCopy.toFile().length()) {
+					Files.delete(localFileCopyPath);
 					Files.copy(remoteFilePathCopy, localFileCopyPath);
 				}
 				Files.delete(remoteFilePathCopy);
 				return localFileCopyPath.toString();
 			} catch (IOException e) {
 				LOGGER.error(e, e);
-				return "None";
+				return "NONE";
 			}
 		} else {
 			return doHttpGetFile(fileNameBaseNameWOExt, localFileCopyName);

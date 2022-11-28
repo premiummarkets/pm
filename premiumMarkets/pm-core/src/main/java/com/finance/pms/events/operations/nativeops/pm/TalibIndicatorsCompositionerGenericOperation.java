@@ -99,7 +99,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	 * @return True when bullish and False when bearish
 	 */
 	@Override
-	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		EventMapValue buySellEventsMainOutput = new EventMapValue();
 		try {

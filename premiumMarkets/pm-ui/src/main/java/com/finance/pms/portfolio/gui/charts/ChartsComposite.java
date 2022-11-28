@@ -107,7 +107,6 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
  */
 public class ChartsComposite extends SashForm implements RefreshableView {
 
-
 	private static final int MINSLIDERVALUE = 1;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ChartsComposite.class);
@@ -180,7 +179,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.stripedCloseFunction = new StripedCloseRelativeToInvested(true, slidingStartDate, slidingEndDate);
 		this.initGUI();
-		chartDisplayStrategy = new ChartPerfDisplay(this);
+		chartDisplayStrategy = new ChartIndicatorDisplay(this); //new ChartPerfDisplay(this);
 
 	}
 
@@ -905,7 +904,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= MINSLIDERVALUE) {
 			if (sliderStartDate.getSelection() >= MINSLIDERVALUE) {
-				int startValue = sliderValue-MINSLIDERVALUE;
+				int startValue = sliderValue - MINSLIDERVALUE;
 				sliderStartDate.setSelection(startValue);
 				startSliderUpdate(sliderStartDate, startDateLabel, startValue);
 			} else {
@@ -959,7 +958,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 	private Date maxDate() {
-		lastEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
+		if (lastEndDate == null) lastEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		return lastEndDate;
 	}
 

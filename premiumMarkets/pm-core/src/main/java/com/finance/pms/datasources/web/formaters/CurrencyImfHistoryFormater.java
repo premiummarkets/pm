@@ -83,7 +83,7 @@ public class CurrencyImfHistoryFormater extends LineFormater {
 			if (null == CurrencyImfHistoryFormater.PATTERNS)
 				CurrencyImfHistoryFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		imfDateLine = Pattern.compile(CurrencyImfHistoryFormater.PATTERNS.getProperty("imfdateline"));
@@ -173,7 +173,7 @@ public class CurrencyImfHistoryFormater extends LineFormater {
 				}
 
 			} catch (ParseException e) {
-				LOGGER.debug("",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 			} 
 		}
 		

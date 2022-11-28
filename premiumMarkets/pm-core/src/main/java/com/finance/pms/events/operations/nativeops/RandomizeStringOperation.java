@@ -24,7 +24,7 @@ public class RandomizeStringOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String param = ((StringValue) inputs.get(0)).getValue(targetStock);
 		return new StringValue(param + "_" + UUID.randomUUID());
 	}

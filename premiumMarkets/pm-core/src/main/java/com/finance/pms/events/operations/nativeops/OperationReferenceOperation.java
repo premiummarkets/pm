@@ -27,7 +27,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 
 	@Override
-	public OperationReferenceValue<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public OperationReferenceValue<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return (OperationReferenceValue<?>) inputs.get(0).getValue(targetStock);
 	}
 	
@@ -43,6 +43,11 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return null;
 	}
 
 }

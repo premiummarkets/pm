@@ -57,7 +57,7 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public MATypeValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public MATypeValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((MATypeValue)inputs.get(0));
 	}
 
@@ -69,6 +69,11 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//Nothing
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return null;
 	}
 
 }

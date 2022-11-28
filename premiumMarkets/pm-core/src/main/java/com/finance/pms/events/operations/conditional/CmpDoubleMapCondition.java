@@ -82,7 +82,7 @@ public abstract class CmpDoubleMapCondition extends Condition<Double> implements
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer forPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Double epsilon = ((NumberValue) inputs.get(OTHER_PARAMS)).getValue(targetStock).doubleValue()/100;

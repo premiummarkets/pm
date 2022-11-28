@@ -378,7 +378,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				}
 
 				private void handle(SelectionEvent arg0) {
-					LOGGER.debug("Column selected" + ((TableColumn) arg0.getSource()).getText());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Column selected" + ((TableColumn) arg0.getSource()).getText());
 					getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 					try {
 						sortColumn(((TableColumn) arg0.getSource()).getText());

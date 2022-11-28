@@ -37,7 +37,7 @@ public class NumberMathOperation extends Operation {
 	}
 
 	@Override
-	public NumberValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumberValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		List<Number> numbers = inputs.stream().map(n -> ((NumberValue) n).getValue(targetStock)).collect(Collectors.toList());
@@ -65,6 +65,11 @@ public class NumberMathOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return null;
 	}
 
 }

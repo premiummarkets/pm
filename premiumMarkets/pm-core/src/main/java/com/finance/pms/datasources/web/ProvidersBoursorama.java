@@ -410,8 +410,8 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 							if ((snew.getSymbol().equals(sold.getSymbol()) && !snew.getIsin().equals(sold.getIsin()))
 									|| (!snew.getSymbol().equals(sold.getSymbol()) && snew.getIsin().equals(sold.getIsin()))) {
 								if (!toRemove.contains(sold)) {
-									LOGGER.debug("Share inconsistency.\n	New : " + snew.toString());
-									LOGGER.debug("	Old : " + sold.toString());
+									if (LOGGER.isDebugEnabled()) LOGGER.debug("Share inconsistency.\n	New : " + snew.toString());
+									if (LOGGER.isDebugEnabled()) LOGGER.debug("	Old : " + sold.toString());
 									buildLookupDeleteReq(delS, delL, sold);
 									toRemove.add(sold);
 								}

@@ -72,7 +72,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserContentStrategyEngine.class);
 
 	public void callbackForStockListFetch(Set<Observer> engineObservers, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) {
-		LOGGER.debug("No list update available for this model.");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("No list update available for this model.");
 	}
 
 	public void callbackForQuotationFetch(Set<Observer> engineObservers, Date startAnalyseDate, Date endAnalysisDate, X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws QuotationUpdateException {
@@ -82,7 +82,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		LOGGER.guiInfo("Running task : Updating quotations");
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 
-		LOGGER.debug("Fetching monitored quotations");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Fetching monitored quotations");
 		quotationUpdate.addObservers(engineObservers);
 
 		updateQuotations(quotationUpdate, buildStockListFrom);

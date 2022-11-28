@@ -211,7 +211,7 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 	private void updateLastQuoteDateForShareInDB(Date lastQuote) {
 
 		if (null == lastQuote) {
-			LOGGER.debug("No last date returned from quotation fetch for : " + stock + ". Assuming that it is up to date.");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("No last date returned from quotation fetch for : " + stock + ". Assuming that it is up to date.");
 			return;
 		}
 

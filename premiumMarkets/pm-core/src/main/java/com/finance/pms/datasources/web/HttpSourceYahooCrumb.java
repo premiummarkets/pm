@@ -66,7 +66,7 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
 	            crumb = URLEncoder.encode(crumb.replace("\\u002F", "/"),"UTF-8"); //The replace may not be need with Content input stream read using StandardCharsets.UTF_8 
 	            System.out.println(crumb);
 	        } catch (UnsupportedEncodingException e) {
-	            LOGGER.debug("",e);
+	            if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 	        }
     	}
 
@@ -82,7 +82,7 @@ public class HttpSourceYahooCrumb extends HttpSourceQuotation implements SourceC
                 "&interval=1d&events=history&includeAdjustedClose=true" +
                 ((crumb != null)?"&crumb=" + crumb:"");
 
-        LOGGER.debug(url);
+        if (LOGGER.isDebugEnabled()) LOGGER.debug(url);
 
         MyUrl myUrl = new MyUrl(url);
         if (cookie != null) myUrl.addCookie(cookie);

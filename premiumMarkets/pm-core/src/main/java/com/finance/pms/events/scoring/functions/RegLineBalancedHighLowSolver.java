@@ -126,10 +126,10 @@ public class RegLineBalancedHighLowSolver implements HighLowSolver {
 	private void printRes(String source, Double[] periodData, double[] periodSmoothedThresh, Double[] extrems, double slopeCoef, ArrayList<Double> regLine) {
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("source : "+ source+ ", regLine coefficient "+slopeCoef);
-			LOGGER.debug("periodData,periodThreshCurve,extremes,dataSlope");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("source : "+ source+ ", regLine coefficient "+slopeCoef);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("periodData,periodThreshCurve,extremes,dataSlope");
 			for (int i = 0; i < extrems.length; i++) {
-				LOGGER.debug(periodData[i]+","+((periodSmoothedThresh != null && periodSmoothedThresh.length >0)?periodSmoothedThresh[i]:Double.NaN)+","+extrems[i]+","+regLine.get(i)); //((i < regLine.size())?regLine.get(i):Double.NaN));
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(periodData[i]+","+((periodSmoothedThresh != null && periodSmoothedThresh.length >0)?periodSmoothedThresh[i]:Double.NaN)+","+extrems[i]+","+regLine.get(i)); //((i < regLine.size())?regLine.get(i):Double.NaN));
 			}
 		}
 	}

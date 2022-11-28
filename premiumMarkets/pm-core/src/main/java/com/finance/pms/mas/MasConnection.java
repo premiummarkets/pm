@@ -132,12 +132,12 @@ public class MasConnection implements SourceClient {
 		this.connectionTimeout = connectionTimeout;
 		
 		try {
-				LOGGER.debug("Login params : "+loginParams);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Login params : "+loginParams);
 				this.login(loginParams);
 		} catch (RestartServerException s) {
 			throw s;
 		} catch (IOException e) {
-				LOGGER.debug("",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 				throw e;
 		}
 
@@ -176,7 +176,7 @@ public class MasConnection implements SourceClient {
 			soc = connect();
 			sendMsg(LOGIN_REQUEST,lParams, 0, soc);
 			response = receiveMsg(soc);
-			LOGGER.debug("logged in :"+response.getAckNumber() + " ; "+ response.getMessage());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("logged in :"+response.getAckNumber() + " ; "+ response.getMessage());
 			if (response.getAckNumber() != OK ) {
 				// Failure of login request is a fatal error.
 				throw new IOException (response.toString());
@@ -212,9 +212,9 @@ public class MasConnection implements SourceClient {
 			soc = connect();
 			sendMsg(LOGOUT_REQUEST, new String(), sessionKey.intValue(),soc);
 		} catch (RestartServerException e) {
-			LOGGER.debug("Silent logout",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Silent logout",e);
 		} catch (IOException e) {
-			LOGGER.debug("Silent logout",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Silent logout",e);
 		} finally {
 			disconnect(soc);
 		}
@@ -236,7 +236,7 @@ public class MasConnection implements SourceClient {
 				socket.close();
 			}
 		} catch (IOException e1) {
-			LOGGER.debug("Silent disconnection",e1);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Silent disconnection",e1);
 		}
 	}
 
@@ -265,10 +265,10 @@ public class MasConnection implements SourceClient {
 			sendMsg(request_code, request, sessionKey.intValue(),soc);
 			retour = receiveMsg(soc);
 		} catch (SocketTimeoutException stE) {
-			LOGGER.debug("",stE);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("",stE);
 			throw new RestartServerException("No response : Mas Server is in time out");
 		} catch (RestartServerException e1) {
-			LOGGER.debug("",e1);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("",e1);
 			throw e1;
 		} catch (IOException e) {
 			LOGGER.error("Error : "+this._hostname+":"+this._portNumber,e);
@@ -443,7 +443,7 @@ public class MasConnection implements SourceClient {
 		// Obtain any session state information sent by the server.
 		while (t.hasMoreTokens()) {
 			s = t.nextToken();
-			LOGGER.debug("Server login Response : "+ s);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Server login Response : "+ s);
 			if (s.equals(NO_OPEN_SESSION)) {
 				throw new IOException("Not Connected");
 			}

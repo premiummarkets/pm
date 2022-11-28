@@ -6,6 +6,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +26,6 @@ import java.util.stream.IntStream;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.google.common.io.Files;
 import com.google.common.primitives.Doubles;
 
 public class SeriesPrinter {
@@ -53,66 +56,86 @@ public class SeriesPrinter {
     
 
     //Append
-	public static String appendto(String fileFullPath, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
-
-        try {
-        	
-        	//Read existing and remove NaNs out of it
-        	String last = null;
-        	List<Integer> seriesWidths = new ArrayList<>();
-        	try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPath)); BufferedWriter inputWTmp = new BufferedWriter(new FileWriter(fileFullPath + ".tmp"))) {
-   
-	    		//Check headers
-	        	String line = inputR.readLine();
-	        	List<String> existingHeaders = Arrays.asList(line.split(","));
-	        	List<String> existingHeaders_wo_date = existingHeaders.subList(1, existingHeaders.size());
-	            List<String> newHeaders = Arrays.asList(makeHeaders(headersPrefixes, series, seriesWidths).get(0).split(","));
-	        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
-	        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
-				
-				//Find the last date and trunk series to last date (ex. lines containing NaN)
-	        	inputWTmp.write(line); //headers
-	        	inputWTmp.newLine();
-				while ((line = inputR.readLine()) != null) {
-					if (!line.contains("NaN")) {
-						last = line;
-						inputWTmp.write(line);
-						inputWTmp.newLine();
+	public static String appendto(String fileFullPathStr, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
+		
+		if (series.isEmpty() || series.values().stream().anyMatch(v -> v.isEmpty())) {
+			LOGGER.warn("Empty series. No append was made: " + fileFullPathStr);
+			return fileFullPathStr;
+		}
+		
+		synchronized (LOGGER) {
+	        try {
+	        	
+	        	//Read existing and remove NaNs out of it
+	        	String last = null;
+	        	List<Integer> seriesWidths = new ArrayList<>();
+	        	String tmpExtenstion = "." + UUID.randomUUID().toString();
+	        	String tmpFileName = fileFullPathStr + tmpExtenstion;
+				Path tmpFilePath = Path.of(URI.create("file://" + tmpFileName));
+				try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPathStr)); BufferedWriter inputWTmp = new BufferedWriter(new FileWriter(tmpFileName))) {
+	   
+		    		//Check headers
+		        	String line = inputR.readLine();
+		        	List<String> existingHeaders = Arrays.asList(line.split(","));
+		        	List<String> existingHeaders_wo_date = existingHeaders.subList(1, existingHeaders.size());
+		            List<String> newHeaders = Arrays.asList(makeHeaders(headersPrefixes, series, seriesWidths).get(0).split(","));
+		        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
+		        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
+					
+					//Find the last date and trunk series to last date (ex. lines containing NaN)
+		        	inputWTmp.write(line); //headers
+		        	inputWTmp.newLine();
+					while ((line = inputR.readLine()) != null) {
+						if (!line.contains("NaN")) {
+							last = line;
+							inputWTmp.write(line);
+							inputWTmp.newLine();
+						}
 					}
-				}
+					
+					Path fileFullPath = Path.of(URI.create("file://" + fileFullPathStr));
+					Files.delete(fileFullPath);
+					Files.move(tmpFilePath, fileFullPath);
+					
+		        } finally {
+		        	try { //In case of failure
+						Files.delete(tmpFilePath);
+		        	} catch (NoSuchFileException e) {
+		        		LOGGER.info("File " + tmpFilePath + " does not exists. All is well");
+					} catch (IOException e) {
+						LOGGER.error(e, e);
+					}
+		        }
+	        	
+		    	SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+				Date lastCalculatedDate = dateFormat.parse(last.split(",")[0]);
+				Calendar lastCalculatedCal = Calendar.getInstance();
+				lastCalculatedCal.setTime(lastCalculatedDate);
+				lastCalculatedCal.add(Calendar.DAY_OF_YEAR, 1);
 				
-	        }
-        	Files.move(new File(fileFullPath + ".tmp"), new File(fileFullPath));
-        	
-	    	SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-			Date lastCalculatedDate = dateFormat.parse(last.split(",")[0]);
-			Calendar lastCalculatedCal = Calendar.getInstance();
-			lastCalculatedCal.setTime(lastCalculatedDate);
-			lastCalculatedCal.add(Calendar.DAY_OF_YEAR, 1);
-			
-			series.entrySet().stream().forEach(s -> LOGGER.info("Received serie: " + s.getKey() + " from " + s.getValue().firstKey() + " to " + s.getValue().lastKey()));
-			LOGGER.info("Tailing from: " + lastCalculatedCal.getTime());
-			
-			LinkedHashMap<String, SortedMap<Date, double[]>> tailSeries = series.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().tailMap(lastCalculatedCal.getTime()), (a,b) -> a, LinkedHashMap::new));
-			
-			 try (BufferedWriter inputW = new BufferedWriter(new FileWriter(fileFullPath, true))) {
-				 appendContent(tailSeries, seriesWidths, inputW);
-			 }
-			
-			return fileFullPath;
-			
-		} catch (Exception e) {
-			throw new RuntimeException(" in " + fileFullPath, e);
+				series.entrySet().stream().forEach(s -> LOGGER.info("Received serie: " + s.getKey() + " from " + s.getValue().firstKey() + " to " + s.getValue().lastKey()));
+				LOGGER.info("Tailing from: " + lastCalculatedCal.getTime());
+				
+				LinkedHashMap<String, SortedMap<Date, double[]>> tailSeries = series.entrySet().stream()
+						.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().tailMap(lastCalculatedCal.getTime()), (a,b) -> a, LinkedHashMap::new));
+				
+				 try (BufferedWriter inputW = new BufferedWriter(new FileWriter(fileFullPathStr, true))) {
+					 appendContent(tailSeries, seriesWidths, inputW);
+				 }
+				
+				return fileFullPathStr;
+				
+			} catch (Exception e) {
+				throw new RuntimeException(" in " + fileFullPathStr, e);
+			}
 		}
 
 	}
 	
 	//Over Write
     public static String printo(String exportFile, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
-
-    	Boolean printOutputs = MainPMScmd.getMyPrefs().getBoolean("print.outputs", true);
-    	if (!printOutputs) return "None";
+    	
+    	if (series.isEmpty() || series.values().stream().anyMatch(v -> v.isEmpty())) return "NONE";
 
         try (FileWriter fileWriter = new FileWriter(exportFile, false); BufferedWriter bufferWriter = new BufferedWriter(fileWriter)) {
             
@@ -145,7 +168,7 @@ public class SeriesPrinter {
     public static String printo(String fileName, String subFolder, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series, String ...forcedBaseFileName) {
 
     	Boolean printOutputs = MainPMScmd.getMyPrefs().getBoolean("print.outputs", true);
-    	if (!printOutputs) return "None";
+    	if (!printOutputs) return "NONE";
 
         String baseFileName = (forcedBaseFileName == null || forcedBaseFileName.length != 1)?SeriesPrinter.appRunStamp.toString():forcedBaseFileName[0];
         File exportFile = new File(System.getProperty("installdir") + File.separator + ((subFolder != null)? subFolder + File.separator:"") + baseFileName + "_" + fileName + ".csv");

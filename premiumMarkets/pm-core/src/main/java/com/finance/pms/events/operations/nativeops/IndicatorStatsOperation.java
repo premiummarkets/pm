@@ -52,7 +52,7 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Double periodRangeSpan = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		SortedMap<Date, Double> quotations = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);

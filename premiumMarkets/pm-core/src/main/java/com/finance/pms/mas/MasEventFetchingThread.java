@@ -135,7 +135,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					if (nbretry < 3) {
 						nbretry++;
 						//symbolResults = new SymbolEvents(stock,new HashMap<EventKey, EventValue>(),new HashMap<Integer, String>(),EventState.STATE_TORETRY);
-						LOGGER.debug("To retry "+stock+". On server port "+ c.get_portNumber());
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("To retry "+stock+". On server port "+ c.get_portNumber());
 						c = MasSource.restartConnection(c);
 					}
 					if (nbretry == 3) {
@@ -144,7 +144,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 									new ConcurrentSkipListMap<EventKey, EventValue>(),
 									new ArrayList<String>(),
 									EventState.STATE_ABORTEDRETRIED);
-						LOGGER.debug("Aborted after "+nbretry+ " retry "+stock+". On server port "+ c.get_portNumber());
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Aborted after "+nbretry+ " retry "+stock+". On server port "+ c.get_portNumber());
 						throw new RuntimeException("Aborted after "+nbretry+ " retry "+stock+". On server port "+ c.get_portNumber());
 					}
 				} catch (ApplicativeException e) { //MAS : applicative non recoverable
@@ -152,7 +152,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 							new ConcurrentSkipListMap<EventKey, EventValue>(),
 							new ArrayList<String>(),
 							EventState.STATE_ABORTED);
-					LOGGER.debug("Aborted (MAS applicative) "+stock+". On server port "+ c.get_portNumber());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Aborted (MAS applicative) "+stock+". On server port "+ c.get_portNumber());
 				}
 			}
 		} catch (IOException e) { //unrecoverable
@@ -160,7 +160,7 @@ public class MasEventFetchingThread implements Runnable { //extends MyRunnable {
 					new ConcurrentSkipListMap<EventKey, EventValue>(),
 					new ArrayList<String>(), 
 					EventState.STATE_ABORTED);
-			LOGGER.debug("Aborted "+stock+". On server port "+ c.get_portNumber(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Aborted "+stock+". On server port "+ c.get_portNumber(),e);
 			throw new RuntimeException(e);
 		} finally {
 			MasSource.realesePoolConnection(c);

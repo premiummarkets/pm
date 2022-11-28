@@ -98,12 +98,12 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
 
 			setCalculationParameters();
 			calculate(symbolEventsForStock, dataSetExceptions);
 
-			LOGGER.debug("End analyse "+stock+" from "+startDate+" to "+endDate);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("End analyse "+stock+" from "+startDate+" to "+endDate);
 
 		} catch (Exception e) {
 			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and dates "+startDate+" to "+endDate, e);

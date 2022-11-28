@@ -1,5 +1,6 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -26,7 +27,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 
-public class IOsExporterOperation extends StringerOperation {
+public class IOsExporterOperation extends StringerOperation implements CachableOperation {
 
 	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);
@@ -39,7 +40,7 @@ public class IOsExporterOperation extends StringerOperation {
 	public IOsExporterOperation() {
 		this("iosExporter", "Exports all input datasets to a file. The file name is generated: <runtime-id>_ <stock-symbol> _k_training_ <random-id> .csv",
 				new NumberOperation("number", "rouding", "Rouding precision", new NumberValue(Double.NaN)),
-				new StringOperation("string", "filePath", "Export filePath path root prefix", new StringValue("")),
+				new StringOperation("string", "filePath", "Export file path prefix", new StringValue("")),
 				new StringOperation("string", "headerPrefixe", "Prefix of the column headers", new StringValue("")),
 				new DoubleMapOperation("data", "datasets", "Datasets to export (usually a list of iosAssembler)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -52,14 +53,14 @@ public class IOsExporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
 		String exportFilePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		
 		String fileSuffix = UUID.randomUUID().toString() + ".csv"; //targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
-		String filePath = exportFilePrefix + "_" + fileSuffix;
+		String filePath = extractedFileRootPath(exportFilePrefix + "_" + fileSuffix);
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -80,10 +81,17 @@ public class IOsExporterOperation extends StringerOperation {
 			filePath = SeriesPrinter.printo(filePath, headersPrefixes, series);
 			return new StringValue(filePath);
 		} catch (Exception e) {
-			LOGGER.error(this.getReference() + " : " + e, e);
+			LOGGER.error(this.getReference() + ": " + e, e);
 		}
 
-		return new StringValue("None");
+		return new StringValue("NONE");
+	}
+	
+	private String extractedFileRootPath(String fileRootPath) {
+		if (!fileRootPath.startsWith(File.separator)) {
+			fileRootPath = System.getProperty("installdir") + File.separator + fileRootPath;
+		}
+		return fileRootPath;
 	}
 
 	@Override
@@ -116,6 +124,12 @@ public class IOsExporterOperation extends StringerOperation {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public Integer operationNaturalShift() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

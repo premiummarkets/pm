@@ -43,10 +43,10 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 	}
 	
 	@Override
-	public DoubleMapValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public DoubleMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		try {
 			Stock stock = targetStock.getStock();
-			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequieredStockData());
+			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
 			Quotations quotations  = QuotationsFactories.getFactory()
 					.getQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
 			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);

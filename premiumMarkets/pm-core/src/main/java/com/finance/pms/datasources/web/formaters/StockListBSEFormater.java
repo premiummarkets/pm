@@ -77,7 +77,7 @@ public class StockListBSEFormater extends LineFormater {
 			if (strArray.length == 1) {
 			    LOGGER.trace("Comment line : "+line);
 			} else if ((strArray.length != 14 &&  strArray.length != 13) || "SC_CODE".equals(strArray[0])) {
-				LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
 			} else {
 				retour.add(new Stock(
 						strArray[0],

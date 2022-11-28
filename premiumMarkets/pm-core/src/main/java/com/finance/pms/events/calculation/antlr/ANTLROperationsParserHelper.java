@@ -90,7 +90,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 
 
 		} catch (ExitParsingException e) {
-			LOGGER.debug("Operation "+parsedLine+" early exit : "+e + "cause : "+e.getCause());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Operation "+parsedLine+" early exit : "+e + "cause : "+e.getCause());
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
@@ -129,16 +129,16 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				exceptionIndex = 0;
 				parser.indicatorexpr();
 			} catch (ExitParsingException e) {
-				LOGGER.debug("Early exit : "+e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Early exit : "+e);
 			}
 
-			LOGGER.debug("Exception stack :" + exceptions);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception stack :" + exceptions);
 
-			LOGGER.debug("---------------------------------------------------");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
+				if (LOGGER.isDebugEnabled()) if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
 			}
-			LOGGER.debug("---------------------------------------------------");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 
 			//Filter
 			String suggFilter = "";
@@ -422,7 +422,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, suggFilter, "Invalid entry", "Please delete", null, filterPosition));
 			}
 
-			LOGGER.debug("Final position : "+state.tokenStartLine+", "+state.tokenStartCharPositionInLine);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Final position : "+state.tokenStartLine+", "+state.tokenStartCharPositionInLine);
 			int finalCaretPosition = translatePositionToCaret(parsedLine, state.tokenStartLine, state.tokenStartCharPositionInLine);
 			if (parsedLine.length() > finalCaretPosition) {
 				String excedent = parsedLine.substring(finalCaretPosition, parsedLine.length());
@@ -450,8 +450,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				}
 			}
 
-			LOGGER.debug("Priority list : "+priorityList);
-			LOGGER.debug("Next token alternatives : "+nextToken);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Priority list : "+priorityList);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Next token alternatives : "+nextToken);
 
 			return nextToken;
 
@@ -534,7 +534,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					foundMatch = true; // no exception was raised meaning match was found
 					//break;
 				} catch (Exception e) {
-					LOGGER.debug("No matching op for " + parsedParam);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("No matching op for " + parsedParam);
 				}
 				break;
 			case MATYPE:

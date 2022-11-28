@@ -60,7 +60,7 @@ public class HttpSourceEuroNext extends HttpSource implements SourceConnector {
 
 	public HttpSourceEuroNext(String pathToprops, MyBeanFactoryAware beanFactory) {
 		super(pathToprops, beanFactory);		
-		LOGGER.debug("Number of Http Threads : 1 - hard coded :)");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of Http Threads : 1 - hard coded :)");
 		threadPool = new PoolSemaphore(1, this, false);
 	}
 
@@ -86,7 +86,7 @@ public class HttpSourceEuroNext extends HttpSource implements SourceConnector {
 				"pricesearchresults=actif&filter=1&mep=8583&belongsToList=market_EURLS&lan=EN" +
 				"&resultsTitle=EurolistbyEuronext&cha=1800&format=txt";
 		
-		LOGGER.debug("EuroNext list url  :"+url);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("EuroNext list url  :"+url);
 		
 		return url;
 	}

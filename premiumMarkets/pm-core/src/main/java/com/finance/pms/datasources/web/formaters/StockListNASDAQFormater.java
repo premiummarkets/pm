@@ -77,7 +77,7 @@ public class StockListNASDAQFormater extends LineFormater {
 				//FIXME handle line break in descriptions => handle several lines ??
 			    LOGGER.trace("Comment line : "+line);
 			} else if (strArray.length != 6 || "Name".equals(removeTextDelim(strArray[0], textDelim))) {
-				LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
 			} else {
 				retour.add(new Stock(
 						removeTextDelim(strArray[1],textDelim),

@@ -60,7 +60,7 @@ public class FilterOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		SortedMap<Date, Double> filteredData = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
 		SortedMap<Date, Double> filteringData = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);

@@ -76,7 +76,7 @@ public class BooleanValue extends Value<Boolean> implements StringableValue, Clo
 	}
 
 	@Override
-	public BooleanValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public BooleanValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
 	}
 	

@@ -198,7 +198,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 	public StockList retreiveStockListFromFile(String pathToList, StockList stockList) throws InputMismatchException {
 
-		LOGGER.debug("From File : ");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("From File : ");
 		StockList fileStockList = new StockList(pathToList);
 
 		for (Stock stock : fileStockList) {
@@ -481,7 +481,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 			executor.execute(t);
 
-			LOGGER.debug("Done : "+((++cpt)*100/nbShares)+" % ");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Done : "+((++cpt)*100/nbShares)+" % ");
 		}
 
 		executor.shutdown();

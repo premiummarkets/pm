@@ -73,7 +73,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 	public void callbackForStockListFetch(Set<Observer> engineObservers, Collection<ShareListInfo> rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws HttpException {
 
-		LOGGER.debug("Updating list of shares : "+rootParam);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Updating list of shares : "+rootParam);
 		for (Object shareList : rootParam) {
 			MarketListProvider provider = ProvidersList.getMarketListInstance(((ShareListInfo) shareList).info());
 			provider.addObservers(engineObservers);
@@ -87,7 +87,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 
 		QuotationUpdate quotationUpdate = new QuotationUpdate();
 
-		LOGGER.debug("Fetching all quotations");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Fetching all quotations");
 		quotationUpdate.addObservers(engineObservers);
 		for (Object shareList : rootParam) {
 			MarketListProvider provider = ProvidersList.getMarketListInstance(((ShareListInfo) shareList).info());
@@ -118,7 +118,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 			}
 			for (int i = 0; i < analysers.length; i++) {
 
-				LOGGER.debug("running analysis for " + analysers[i]);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("running analysis for " + analysers[i]);
 				SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
 				ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
@@ -158,7 +158,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 	
 	public void callbackForReco(Set<Observer> engineObservers) {
 		//TODO ??
-//		LOGGER.debug("Updating recos");
+//		if (LOGGER.isDebugEnabled()) LOGGER.debug("Updating recos");
 //		String listStProvider = MainPMScmd.prefs.get("quotes.listprovider", "euronext");
 //		Providers provider = Providers.getInstance(listStProvider);
 //		provider.retrieveScreeningInfo(new ArrayList<Stock>());
@@ -171,7 +171,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getMyPrefs().get("quotes.lastlistfetch", "1970/01/01"));
 		} catch (ParseException e) {
 			LOGGER.error("Wrong date format for last  shares list update, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastlistfetch", "1970/01/01"),e);
-			LOGGER.debug(e,e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e,e);
 			return DateFactory.DEFAULT_DATE;
 		}
 	}
@@ -182,7 +182,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getMyPrefs().get("quotes.lastfetch", "1970/01/01"));
 		} catch (ParseException e) {
 			LOGGER.error("Wrong date format for last quotation update, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastfetch", "1970/01/01"),e);
-			LOGGER.debug(e,e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e,e);
 			return DateFactory.DEFAULT_DATE;
 		}
 	}
@@ -193,7 +193,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 			return new SimpleDateFormat("yyyy/MM/dd").parse(MainPMScmd.getMyPrefs().get("quotes.lastanalyse", "1970/01/01"));
 		} catch (ParseException e) {
 			LOGGER.error("Wrong date format for last analyse, please check your settings. "+ MainPMScmd.getMyPrefs().get("quotes.lastanalyse", "1970/01/01"),e);
-			LOGGER.debug(e,e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e,e);
 			return DateFactory.DEFAULT_DATE;
 		}
 	}	

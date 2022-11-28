@@ -69,7 +69,7 @@ public class HttpSourceBSEMarket extends HttpSourceMarket {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
 		String url = "http://www.bseindia.com/download/BhavCopy/Equity/eq"+dateFormat.format(calendar.getTime())+"_csv.zip";
 		
-		LOGGER.debug("BSE list url  :"+url);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("BSE list url  :"+url);
 		
 		return url;
 	}

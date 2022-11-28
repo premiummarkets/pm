@@ -60,7 +60,7 @@ public class StockComplementOpinionYahooFormater extends LineFormater {
 			if (null == StockComplementOpinionYahooFormater.PATTERNS)
 				StockComplementOpinionYahooFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		meanRec = Pattern.compile(StockComplementOpinionYahooFormater.PATTERNS.getProperty("yahooopinioncompletion"));

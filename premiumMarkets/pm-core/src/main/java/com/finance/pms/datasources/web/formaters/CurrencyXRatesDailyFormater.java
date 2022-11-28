@@ -68,7 +68,7 @@ public class CurrencyXRatesDailyFormater extends LineFormater {
 		try {
 			if (null == CurrencyXRatesDailyFormater.PATTERNS) CurrencyXRatesDailyFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		fromCurrencyPattern = Pattern.compile(String.format(CurrencyXRatesDailyFormater.PATTERNS.getProperty("xRatesCurrencyLine"), fromCurrency.name()));

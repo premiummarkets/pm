@@ -58,7 +58,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int leftShiftSpan = ((NumberValue)inputs.get(LEFT_SHIFT_AMOUNT_IDX)).getValue(targetStock).intValue();

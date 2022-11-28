@@ -200,7 +200,7 @@ public class IndicatorCalculationServiceMain {
 					try {
 						PortfolioMgr.getInstance().addPortfolio(autoPortfolio);
 					} catch (InvalidAlgorithmParameterException e1) {
-						LOGGER.debug("",e1);
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("",e1);
 					}
 					
 					IndicatorAnalysisCalculationRunnableMessage indicatorAnalyser = null; //FIXME

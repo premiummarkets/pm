@@ -180,7 +180,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	public void hibStorePortfolio() {
 
 		for (AbstractSharesList portfolio: this.portfolios) {
-			LOGGER.debug("saving : "+portfolio.getName());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("saving : "+portfolio.getName());
 			try {			
 				this.portfolioDAO.saveOrUpdatePortfolio(portfolio);
 			} catch (Exception e) {
@@ -217,9 +217,9 @@ public class PortfolioMgr implements ApplicationContextAware {
 		for (AbstractSharesList portfolio : this.portfolios) {
 			if (portfolio.getName().equals(portfolioName)) {
 				for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
-					LOGGER.debug("Nb of shares for "+portfolio.getName()+" not empty : "+portfolioShare.getStock());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Nb of shares for "+portfolio.getName()+" not empty : "+portfolioShare.getStock());
 					if (portfolioShare.getStock().getSymbol().equals(stockSymbol)) {
-						LOGGER.debug("Share matching : "+stockSymbol+" with "+portfolioShare.getStock().getName());
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Share matching : "+stockSymbol+" with "+portfolioShare.getStock().getName());
 						return portfolioShare;
 					}
 				}

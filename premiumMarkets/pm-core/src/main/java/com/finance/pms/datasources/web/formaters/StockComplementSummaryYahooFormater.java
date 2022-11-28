@@ -57,7 +57,7 @@ public class StockComplementSummaryYahooFormater extends LineFormater {
 			if (null == StockComplementSummaryYahooFormater.PATTERNS)
 				StockComplementSummaryYahooFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		divPattern = Pattern.compile(StockComplementSummaryYahooFormater.PATTERNS.getProperty("yahoodividendcompletion"));
 		isDivSetOrReset = false;

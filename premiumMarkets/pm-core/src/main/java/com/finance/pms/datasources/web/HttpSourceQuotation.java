@@ -55,7 +55,7 @@ public abstract class HttpSourceQuotation extends HttpSource {
 
 	@Override
 	public String getStockInfoPageURL(String isin) {//throws ToDoYahooException {
-		LOGGER.debug("Fecthing complementary stock information is not implemented by default");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Fecthing complementary stock information is not implemented by default");
 		throw new RuntimeException("Fecthing complementary stock information is not implemented by default");
 	}
 

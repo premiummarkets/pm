@@ -132,10 +132,10 @@ public class DbSettings extends Dialog {
 				if (!shell.getDisplay().readAndDispatch()) shell.getDisplay().sleep();
 			} catch (RuntimeException e) {
 				LOGGER.error("Error in MarketSettings Gui : "+e.getMessage(),e);
-				LOGGER.debug("Error in MarketSettings Gui : ",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Error in MarketSettings Gui : ",e);
 			} catch (Error e) {
 				LOGGER.error("Error in  Gui : "+e.getMessage(),e);
-				LOGGER.debug("Error in  Gui : ",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Error in  Gui : ",e);
 			}
 		}
 

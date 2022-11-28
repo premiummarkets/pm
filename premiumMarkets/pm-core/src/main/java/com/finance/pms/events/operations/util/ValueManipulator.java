@@ -11,13 +11,13 @@ import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
@@ -142,8 +142,8 @@ public class ValueManipulator {
 		NumericableMapValue apply(List<NumericableMapValue> data);
 	}
 	
-	public static NumericableMapValue doubleArrayExpender(Operation operation, int dataInputIdx, TargetStockInfo targetStock, InnerCalcFunc innerCalcFunc, List<NumericableMapValue> numericableMapValues) {
-		
+	public static NumericableMapValue doubleArrayExpender(Operation operation, int dataInputIdx, TargetStockInfo targetStock, int parentRequiredStartShift, InnerCalcFunc innerCalcFunc, List<NumericableMapValue> numericableMapValues) {
+	
 		List<Map<String, NumericableMapValue>> allInputs = new ArrayList<Map<String,NumericableMapValue>>();
 		
 		//There can be a mix of inputs with arrays and no arrays. We need to expend to the combination.
@@ -182,7 +182,7 @@ public class ValueManipulator {
 		
 
 		//Calc
-		ExecutorService executor = Executors.newCachedThreadPool();
+		ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
 		List<Future<Object[]>> futures = new ArrayList<>();
 		final List<String> fHCombinationsAcc = hCombinationsAcc;
 		final List<List<NumericableMapValue>> fCombinationsAcc = combinationsAcc;
@@ -193,9 +193,21 @@ public class ValueManipulator {
 				@Override
 				public Object[] call() throws Exception {
 					String outputsOperandsRef = fHCombinationsAcc.get(fI);
-					LOGGER.info("Running: " + operation.getReference() + " with params " + outputsOperandsRef);
+					
+					LOGGER.info(
+							"Running: " + operation.getReference() + " with params " + outputsOperandsRef + 
+							". From " + targetStock.getStartDate(parentRequiredStartShift) + " to " + targetStock.getEndDate());
+					
 					NumericableMapValue doubleMapValue = innerCalcFunc.apply(fCombinationsAcc.get(fI));
+					
 					LOGGER.info("Done: " + operation.getReference() + " with params " + outputsOperandsRef);
+					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + doubleMapValue);
+					
+					if (doubleMapValue.getValue(targetStock).size() == 0) {
+						throw new RuntimeException(
+								"Empty results for "  + operation.getReference() + " with params " + outputsOperandsRef + " and " + targetStock + ". " +
+								"Input boundaries: " + fCombinationsAcc.get(fI));
+					}
 					return new Object[]{outputsOperandsRef, doubleMapValue};
 				}
 			});
@@ -205,7 +217,6 @@ public class ValueManipulator {
 		List<NumericableMapValue> allOutputs = new ArrayList<NumericableMapValue>();
 		List<String> outputsOperandsRefs = new ArrayList<String>();
 		
-		executor.shutdown();
 		for(Future<Object[]> f:futures) {
 			try {
 				Object[] objects = f.get();

@@ -879,7 +879,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						dialog.open();				
 
 					} catch (IOException e) {
-						LOGGER.debug(e);
+						if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 					}
 				}
 			});
@@ -1238,7 +1238,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		this.viewPortfolioMenuItem.setSelection(true);
 		this.setMainDisplay();
 
-		LOGGER.debug("Finished initialising MainGui Data.");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Finished initialising MainGui Data.");
 	}
 
 	private void openSettings() throws FileNotFoundException {

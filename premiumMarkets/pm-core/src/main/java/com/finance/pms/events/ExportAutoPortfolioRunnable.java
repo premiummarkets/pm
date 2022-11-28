@@ -52,7 +52,7 @@ public class ExportAutoPortfolioRunnable implements Runnable {
 	public void run() {
 
 			try {
-				LOGGER.debug("Exporting "+message);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Exporting "+message);
 				
 				AbstractSharesList autoPortfolio =  PortfolioMgr.getInstance().getPortfolio(message.getAnalyseName());
 				

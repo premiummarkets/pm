@@ -85,7 +85,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			if (null == DayQuoteInvestirFormater.PATTERNS)
 				DayQuoteInvestirFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		datePattern = Pattern.compile(DayQuoteInvestirFormater.PATTERNS.getProperty("investirdateline"));

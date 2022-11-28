@@ -97,7 +97,7 @@ public class OTFTuningFinalizer {
 			//Build res
 			Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));
 			if (evtDef instanceof EventInfoOpsCompoOperation) {
-				requieredStockDataTypes = ((EventInfoOpsCompoOperation) evtDef).getRequieredStockData();
+				requieredStockDataTypes = ((EventInfoOpsCompoOperation) evtDef).getRequiredStockData();
 			}
 			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.getFilterFor(requieredStockDataTypes));
 			SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
@@ -243,7 +243,7 @@ public class OTFTuningFinalizer {
 		
 		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
 		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, startDate, endDate);
-		LOGGER.debug(export(buildResOnValidPeriods));
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(export(buildResOnValidPeriods));
 
 		return buildResOnValidPeriods;
 	}

@@ -69,7 +69,7 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Double direction = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Double changeRatio = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();

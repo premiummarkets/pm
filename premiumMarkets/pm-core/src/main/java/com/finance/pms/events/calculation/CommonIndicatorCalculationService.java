@@ -116,7 +116,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			LOGGER.error("Invalid number of days backward : "+"-"+MainPMScmd.getMyPrefs().get("talib.daysbackwardday","10"),e);
 		}
 
-		LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
 		return allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, passNumber, passOneCalcMode, observers);
 
 	}

@@ -65,7 +65,7 @@ public class StockComplementBoursoFormater extends LineFormater {
 			if (null == StockComplementBoursoFormater.PATTERNS)
 				StockComplementBoursoFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 			throw new StopParseErrorException("Error : pattern file not found : resources/patterns.properties", e.getMessage());
 		}
 		
@@ -86,7 +86,7 @@ public class StockComplementBoursoFormater extends LineFormater {
 				try {
 					stockPart.setSymbol(fit.group(1));
 				} catch (InvalidAlgorithmParameterException e) {
-					LOGGER.debug("", e);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 					throw new StopParseErrorException("Invalide match symbol/isin while setting symbol", e.getMessage());
 				}
 			}
@@ -99,7 +99,7 @@ public class StockComplementBoursoFormater extends LineFormater {
 				try {
 					stockPart.setIsin(fit.group(1));
 				} catch (InvalidAlgorithmParameterException e) {
-					LOGGER.debug("", e);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 					throw new StopParseErrorException("Invalide match symbol/isin while setting isin", e.getMessage());
 				}
 			}

@@ -67,11 +67,15 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
-
+	/**
+	 * amount * 7/5
+	 * @param amount
+	 * @return
+	 */
 	private int noGapsAmount(int amount) {
-		int nbWeeksBaseOnOpenDays = amount / 5;
-		int addedWeekends = 2 * nbWeeksBaseOnOpenDays;
-		return amount + addedWeekends;
+//		int nbWeeksBaseOnOpenDays = amount / 5;
+//		int addedWeekends = 2 * nbWeeksBaseOnOpenDays;
+		return  amount * 7/ 5;
 	}
 
 

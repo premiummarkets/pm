@@ -74,7 +74,7 @@ public class ChartImageBuilder {
 
 		Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));
 		if (eventInfo instanceof EventInfoOpsCompoOperation) {
-			requieredStockDataTypes = ((EventInfoOpsCompoOperation) eventInfo).getRequieredStockData();
+			requieredStockDataTypes = ((EventInfoOpsCompoOperation) eventInfo).getRequiredStockData();
 		}
         Quotations quotations = QuotationsFactories.getFactory()
         		.getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 100, ValidityFilter.getFilterFor(requieredStockDataTypes));

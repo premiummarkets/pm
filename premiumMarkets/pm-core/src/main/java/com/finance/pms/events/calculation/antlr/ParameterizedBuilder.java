@@ -192,18 +192,18 @@ public abstract class ParameterizedBuilder extends Observable {
 		Boolean isNewOp = false;
 		try {
 
-			LOGGER.debug("Creating parser for formula " + identifier);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Creating parser for formula " + identifier);
 			formulaParser = new FormulaParser(this, identifier, formula, false);
 
-			LOGGER.debug("Parsing for formula " + identifier);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Parsing for formula " + identifier);
 			runParsing(formulaParser);
-			LOGGER.debug("Parsing ok for formula " + identifier);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Parsing ok for formula " + identifier);
 
 			Operation operation = formulaParser.getBuiltOperation();
 
 			if (operation != null) {
 
-				LOGGER.debug("Saving formula operation " + identifier);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Saving formula operation " + identifier);
 				saveUserOperation(identifier, formula);
 
 				Operation alreadyExists = getCurrentOperations().get(operation.getReference());
@@ -235,7 +235,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			throw new IOException(e);
 		} finally {
 			if (formulaParser != null) {
-				LOGGER.debug("Shutting down the parser for " + identifier);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Shutting down the parser for " + identifier);
 				formulaParser.shutdown();
 			}
 		}
@@ -513,7 +513,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 				Operation parsedOp = formulaParser.getBuiltOperation();
 				if (parsedOp != null) {//Operation is complete
-					LOGGER.debug(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " + parsedOp.getFormulae());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug(this.getClass().getSimpleName() + ", Solved : " + parsedOp.getReference() + ", Disabled : " + formulaParser.isDisabled() + ", Formulae : " + parsedOp.getFormulae());
 					parsedOp.setDisabled(formulaParser.isDisabled());
 					parsingQueueProvider.getCurrentOperations().put(parsedOp.getReference(), parsedOp);
 

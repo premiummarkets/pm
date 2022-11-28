@@ -377,7 +377,7 @@ public class GnuCashAdvPortfolioParser {
 		//							}
 		//							
 		//						} catch (Exception e1) {
-		//							LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
+		//							if (LOGGER.isDebugEnabled()) LOGGER.debug("No url can be resolved for "+ref+" "+name+" with "+providerInstance.getClass().getSimpleName());
 		//						}
 		//	
 		//					}

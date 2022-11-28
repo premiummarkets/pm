@@ -65,7 +65,7 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 		this.relativeQuotationsFull = relativeQuotations;
 		this.arbitraryStartDate = arbitraryStartDate;
-		LOGGER.debug("The arbitrary date is : "+arbitraryStartDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("The arbitrary date is : "+arbitraryStartDate);
 
 	}
 

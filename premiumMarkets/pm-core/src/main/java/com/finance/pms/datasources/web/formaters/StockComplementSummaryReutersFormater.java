@@ -57,7 +57,7 @@ public class StockComplementSummaryReutersFormater extends LineFormater {
 			if (null == StockComplementSummaryReutersFormater.PATTERNS)
 				StockComplementSummaryReutersFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		eps = Pattern.compile(StockComplementSummaryReutersFormater.PATTERNS.getProperty("reutersEPS"));

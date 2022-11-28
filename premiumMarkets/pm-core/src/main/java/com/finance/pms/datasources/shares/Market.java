@@ -213,7 +213,7 @@ public enum Market implements Serializable {
 		int mill = 1000*60*60;
 		
 		int osUTCLag = TimeZone.getDefault().getOffset(Calendar.getInstance(TimeZone.getDefault()).getTimeInMillis())/mill;
-		LOGGER.debug("getUTCTimeLag: " + (utcTimeLag - osUTCLag));
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("getUTCTimeLag: " + (utcTimeLag - osUTCLag));
 		return utcTimeLag - osUTCLag;
 	}
 

@@ -76,7 +76,7 @@ public class GetInflation {
 
 		double inflationRate =  knowQsInflationRate.doubleValue() * ( (double)requestedDatesSpan/ (double)knownQsSpan );
 
-		LOGGER.debug("Inflation rate between " + firstDate + " and " + secondDate + " is : " + inflationRate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Inflation rate between " + firstDate + " and " + secondDate + " is : " + inflationRate);
 		return BigDecimal.valueOf(inflationRate);
 
 	}

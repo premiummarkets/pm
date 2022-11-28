@@ -84,7 +84,7 @@ public class ProvidersListStaticList extends ProvidersList {
 //			try {
 //				try {
 //					String url = this.httpSource.getStockInfoPageURL(stock.getSymbol());
-//					LOGGER.debug(" Will parse url : "+url);
+//					if (LOGGER.isDebugEnabled()) LOGGER.debug(" Will parse url : "+url);
 //					LineFormater dsf = new StockComplementYahooFormater(url, stock);
 //					Stock nameIsincompletedStock = (Stock) this.httpSource.readURL(dsf).get(0);
 //					stock.resetStock(nameIsincompletedStock);

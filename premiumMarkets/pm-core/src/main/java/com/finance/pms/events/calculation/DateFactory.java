@@ -140,11 +140,14 @@ public class DateFactory {
 			LOGGER.error("Shouldn't be here", e1);
 		}
 	}
-
-	public static Date incrementDateWraper(Date startDate, int startShift) {
+	
+	/**
+	 * nb days = data point amount * 7/5
+	 */
+	public static Date incrementDateWraper(Date startDate, int dataPointsAmount) {
 		Calendar startCal = Calendar.getInstance();
 		startCal.setTime(startDate);
-		QuotationsFactories.getFactory().incrementDate(startCal, startShift);
+		QuotationsFactories.getFactory().incrementDate(startCal, dataPointsAmount);
 		return startCal.getTime();
 	}
 	

@@ -75,7 +75,7 @@ public class AssVieScanner implements MyBeanFactoryAware {
 	public Set<Stock> fetchAssVieStocks() throws HttpException {
 		
 		final String url = httpSource.getUrl();
-		LOGGER.debug("Url : "+url);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Url : "+url);
 	
 		Set assVieStocks = new HashSet<Stock>();
 		assVieStocks.addAll(httpSource.readURL(new AssVieFormater(url)));

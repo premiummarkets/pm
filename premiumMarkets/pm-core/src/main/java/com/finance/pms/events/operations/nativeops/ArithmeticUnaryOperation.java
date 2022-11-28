@@ -58,7 +58,7 @@ public abstract class ArithmeticUnaryOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
 		@SuppressWarnings("unchecked")
@@ -67,7 +67,7 @@ public abstract class ArithmeticUnaryOperation extends DoubleMapOperation {
 		
 		//NumericableMapValue outputs = innerCalc(targetStock, unaryOperand, data);
 		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, unaryOperand, data);
-		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, innerCalcFunc, numericableMapValue);
+		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, parentRequiredStartShift, innerCalcFunc, numericableMapValue);
 		
 	}
 

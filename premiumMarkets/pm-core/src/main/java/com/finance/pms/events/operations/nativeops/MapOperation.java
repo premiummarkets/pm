@@ -27,8 +27,13 @@ public abstract class MapOperation extends Operation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack,  int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((NumericableMapValue)inputs.get(0));
+	}
+	
+	@Override
+	public NumericableMapValue emptyValue() {
+		return new DoubleMapValue();
 	}
 
 }

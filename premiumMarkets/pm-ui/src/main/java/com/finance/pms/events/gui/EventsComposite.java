@@ -1086,8 +1086,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 		eventsLists[1] = EventsResources.getInstance().getFinList();
 		eventsLists[2] = EventsResources.getInstance().getMidleList();
 		eventsLists[3] = EventsResources.getInstance().getSortedList();
-		LOGGER.debug("Nb buy : " + eventsLists[0].size() + "; Nb sell : " + eventsLists[1].size() + "; Nb neutral : " + eventsLists[2].size());
-		LOGGER.debug("Nb All : " + eventsLists[3].size());
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Nb buy : " + eventsLists[0].size() + "; Nb sell : " + eventsLists[1].size() + "; Nb neutral : " + eventsLists[2].size());
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Nb All : " + eventsLists[3].size());
 		refreshTabs();
 	}
 

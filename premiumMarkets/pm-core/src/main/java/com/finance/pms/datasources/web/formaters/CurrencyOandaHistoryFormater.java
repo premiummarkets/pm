@@ -68,7 +68,7 @@ public class CurrencyOandaHistoryFormater extends LineFormater {
 		try {
 			if (null == CurrencyOandaHistoryFormater.PATTERNS) CurrencyOandaHistoryFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		oandaTableStartLine = Pattern.compile(CurrencyOandaHistoryFormater.PATTERNS.getProperty("oandatablestartline"));

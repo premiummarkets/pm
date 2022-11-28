@@ -58,7 +58,7 @@ public class StockComplementYahooFormater extends LineFormater {
 			if (null == StockComplementYahooFormater.PATTERNS)
 				StockComplementYahooFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		String symbol = stockPart.getSymbol().replace(".", "\\.");
 		String isinPatProperty = String.format(StockComplementYahooFormater.PATTERNS.getProperty("yahoonameisincompletion"), symbol);
@@ -118,7 +118,7 @@ public class StockComplementYahooFormater extends LineFormater {
 					stockPart.setIsin(Stock.MISSINGCODE);
 				}
 			} catch (InvalidAlgorithmParameterException e1) {
-				LOGGER.debug("",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 			}
 			throw new StopParseErrorException("Invalid match scrip code while setting scrip id", e.getMessage());
 		}

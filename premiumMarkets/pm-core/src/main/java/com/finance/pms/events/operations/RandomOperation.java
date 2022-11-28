@@ -59,7 +59,7 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 	}
 
 	@Override
-	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Bla
 //		Double min = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();

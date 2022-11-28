@@ -84,7 +84,7 @@ public class StringValue extends Value<String> implements StringableValue, Clone
 	}
 	
 	@Override
-	public StringValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public StringValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
 	}
 

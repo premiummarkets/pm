@@ -29,7 +29,9 @@
  */
 package com.finance.pms.events.operations;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -37,6 +39,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -46,9 +52,11 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
@@ -82,6 +90,8 @@ import com.finance.pms.events.quotations.QuotationDataType;
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
+	
+	private static Boolean isDisplay = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true"));
 
 	private String formulae;
 	
@@ -116,9 +126,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	protected Operation() {
 		super();
-		this.operands = new ArrayList<Operation>();
+		this.operands = new ArrayList<>();
 		this.availableOutputSelectors = new ArrayList<String>();
-
 		this.disabled = false;
 	}
 
@@ -139,7 +148,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		super();
 		this.reference = reference;
 		this.description = description;
-		this.operands = new ArrayList<Operation>();
+		this.operands = new ArrayList<>();
 		this.availableOutputSelectors = new ArrayList<String>();
 
 		this.operationReference = reference;
@@ -152,7 +161,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.referenceAsOperand = referenceAsOperand;
 		this.description = description;
 		this.defaultValue = (Value<?>) defaultValue;
-		this.operands = new ArrayList<Operation>();
+		this.operands = new ArrayList<>();
 		this.availableOutputSelectors = new ArrayList<String>();
 
 		this.operationReference = reference;
@@ -160,61 +169,160 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.disabled = false;
 	}
 
-	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift) {
+	/**
+	 * 
+	 * @param targetStock
+	 * @param parentCallStack
+	 * @param thisOutputRequiredStartShiftFromParent: (this operation output shift (== parent input shift) + this operation required operands input shift for 0 lag) (== total operands output shift)
+	 * @return
+	 */
+	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftFromParent) {
+		
+		int nbOperands = operands.size();
+		
+		//Literals
+		if (parameter != null) {
+			return parameter;
+		}
+		else {
+			for (int i = 0; i < nbOperands; i++) {
+				Operation operand = operands.get(i);
+				if (!operand.isQuotationsDataSensitive()) {
+					Value<?> output = operand.run(targetStock, operand.shortOutputReference(), 0);								
+					operand.setParameter(output);
+				}
+			}
+		}
 
-		int operationOperandsRequiredStartShift = operandsRequiredStartShift(targetStock, parentRequiredStartShift);
-		int fullOperandsRequieredshift = parentRequiredStartShift + operationOperandsRequiredStartShift;
+		//Quotation sensitives
+		int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftFromParent);
+		int thisInputOperandsRequiredshiftFromThis = thisOutputRequiredStartShiftFromParent + thisOperationOperandsStartShift;
 		
-		int stackDepth = parentCallStack.split("=>").length  + 1;
-		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
-		String thisCallStack = 
-					parentCallStack + ": \n" + 
-					"Call Stack: " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + " with s" +  operationOperandsRequiredStartShift + " and d" + stackDepth;
+		String thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftFromParent, thisOperationOperandsStartShift, targetStock);
 		
-		LOGGER.debug(thisCallStack);
+		//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
+		//LOGGER.info(thisCallStack);
 		
 		int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
-		boolean isInChart = thisCallStack.split("=>").length <= maxDepth;
+		boolean isInChart = isDisplay && thisCallStack.split("=>").length <= maxDepth;
 		
-
-		Value<?> alreadyCalculated = null;
+		final AtomicBoolean failed = new AtomicBoolean(false);
 		try {
-
-			if (parameter != null) {
-				return parameter;
-			}
-			else if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), fullOperandsRequieredshift)) != null) {
+			
+			Value<?> alreadyCalculated = null;
+			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOutputRequiredStartShiftFromParent)) != null) {
 				return alreadyCalculated;
 			}
 			else {
-
-				List<Value<?>> operandsOutputs = new ArrayList<Value<?>>();
-				for (int i = 0; i < operands.size(); i++) {
-
-					Operation operand = operands.get(i);
-					Value<?> output = operand.run(targetStock, thisCallStack, fullOperandsRequieredshift);
-					gatherCalculatedOutput(targetStock, operand, output, fullOperandsRequieredshift, isInChart);
-					output = output.filterToParentRequierements(targetStock, fullOperandsRequieredshift, this);
-					operandsOutputs.add(output);
-
+				List<Value<?>> operandsOutputs = new ArrayList<>(Collections.nCopies(nbOperands, (Value<?>) null));
+				
+				//If start > true, non literals operands will be set empty 
+				final Boolean literalsOnly = targetStock.getStartDate(thisInputOperandsRequiredshiftFromThis).compareTo(targetStock.getEndDate()) > 0;
+				
+				//Non literals
+				List<Future<Value<?>>> futures = new ArrayList<>(Collections.nCopies(nbOperands, (Future<Value<?>>) null));
+				ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
+				for (int i = 0; i < nbOperands; i++) {
+					
+					final Operation operand = operands.get(i);
+					if (operand.getParameter() == null) {
+						Callable<Value<?>> callable = new Callable<Value<?>>() {
+							@Override
+							public Value<?> call() throws Exception {
+								if (!literalsOnly) {
+									OutputReference myOutputReferenceUnfinished = new OutputReference(operand, operand.getOutputSelector());
+									try {
+										while (!failed.get()) {
+											synchronized (targetStock) {
+												OutputReference theirFutureIsDone = targetStock.getOutputCalculationFuture(myOutputReferenceUnfinished);
+												if (theirFutureIsDone == null) {
+													targetStock.putOutputCalculationFuture(myOutputReferenceUnfinished);
+													break;
+												}
+											}
+											Thread.sleep(10);
+										};
+											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredshiftFromThis);								
+											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredshiftFromThis, isInChart);
+											return output;
+									} catch (Exception e) {
+										LOGGER.error("In " + thisCallStack, e);
+										return operand.emptyValue();
+									} finally {
+										synchronized (targetStock) {
+											targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
+										}
+									}
+								} else {
+									return operand.emptyValue();
+								}
+							}
+						};
+						//Future<Value<?>> iterationFuture = executor.submit(callable);
+						//futures.set(i, iterationFuture);
+						operandsOutputs.set(i, callable.call()); //Test
+						
+					} else {
+						operandsOutputs.set(i, operand.getParameter());
+					}
+					
+				}
+				
+				IntStream.range(0, nbOperands).forEach(j -> {
+					try {
+						Future<Value<?>> future = futures.get(j);
+						if (future != null) {
+							Value<?> output = future.get();
+							output = output.filterToParentRequirements(targetStock, thisOutputRequiredStartShiftFromParent, this);
+							operandsOutputs.set(j, output);
+						}
+					} catch (Exception e) {
+						LOGGER.error("Operand Calculation failed: " + e);
+						throw new RuntimeException(e);
+					}
+				});
+				
+				if (isInChart) {
+					synchronized (targetStock.getChartedOutputGroupsAsync()) {
+						targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
+					}
 				}
 
-				if (isInChart) targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
-
-				LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift " + parentRequiredStartShift + " and parent+this " + fullOperandsRequieredshift);
-				Value<?> operationOutput = calculate(targetStock, fullOperandsRequieredshift, operandsOutputs);
-
-				if (LOGGER.isDebugEnabled())
-					LOGGER.debug("Operation " + this.getReference() + ((this.getOutputSelector() != null)?":" + this.getOutputSelector():"") + " returns " + operationOutput.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift (this output required) " + thisOutputRequiredStartShiftFromParent + " and parent+this (this input required)" + thisInputOperandsRequiredshiftFromThis);
+				
+				Value<?> operationOutput = calculate(targetStock, thisCallStack, thisOutputRequiredStartShiftFromParent, thisInputOperandsRequiredshiftFromThis, operandsOutputs);
+				
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculation results " + this.getReference() + ((this.getOutputSelector() != null)?":" + this.getOutputSelector():"") + " returns " + operationOutput.toString());
 
 				return operationOutput;
 			}
 
 		} catch (Exception e) {
+			failed.set(true);
 			LOGGER.warn("Operation calculation error " + this, e);
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	/**
+	 * 
+	 * @param parentCallStack
+	 * @param parentRequiredStartShift: this operation output shift (== parent input shift)
+	 * @param operationOperandsRequiredStartShift: this operation required operands input shift for 0 lag
+	 * @param targetStock
+	 * @return
+	 */
+	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) {
+		int stackDepth = parentCallStack.split("=>").length  + 1;
+		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+		String thisCallStack = 
+					parentCallStack + ": \n" + 
+					"Call Stack: " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + 
+					" with s" +  operationOperandsRequiredStartShift + " and d" + stackDepth + 
+					" from " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate());
+		return thisCallStack;
 	}
 
 	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart) {
@@ -246,13 +354,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * thisStartShift : The start left shift required from the operands calculation of this operation + the added parents requirement accumulated.
+	 * thisInputOperandsRequiredShiftFromThis : The start left shift required from the operands calculation of this operation + the added parents requirement accumulated (thisOutputRequiredStartShiftFromParent).
 	 * Operands are already calculated at this stage. So this is assumed they already have had their calculation start shifted to comply with this operation requirement.
 	 * Hence, this is used for no data operations (where operands are not pre-calculated) as it accumulates all the hierarchy of parents start shifts.
 	 * Not to be confused with the operandsRequiredStartShift() method which only has this operation required start shift from its operands (without the parent).
+	 * @param parentCallStack TODO
+	 * @param parentRequiredStartShift TODO
 	 */
-	public abstract Value<?> calculate(TargetStockInfo targetStock, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
-
+	public abstract Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftFromParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	
+	public abstract Value<?> emptyValue();
+	
 	/**
 	 * Operation reference as in User Operations list.
 	 */
@@ -421,33 +533,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public void setFormulae(String formula) {
 		this.formulae = formula;
-	}
-
-	public String toFullString() {
-		ArrayList<Operation> parents = new ArrayList<Operation>();
-		return toStringRecursive(parents);
-	}
-
-	private String noOperandsToString() {
-		return "Operation [reference=" + reference + ", outputSelector=" + outputSelector + ", parameter=" + parameter + ", description=" + description + ", formula=" + formulae+",  Operands=";
-	}
-
-
-	private String toStringRecursive(List<Operation> parents) {
-
-		if (this.formulae != null) parents.add(this);
-		String opreandStr = "[";
-
-		String sep ="";
-		for (Operation operand : operands) {
-			if (operand.getFormulae() != null && parents.contains(operand)) {
-				opreandStr = opreandStr + sep + "Operation [loop on User Operation " + operand.getReference() + "]";
-			} else {
-				opreandStr = opreandStr + sep + operand.toStringRecursive(parents);
-			}
-			sep = ",";
-		}
-		return noOperandsToString() + opreandStr + "]";
 	}
 
 	@Override
@@ -633,7 +718,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	/**
 	 * The start shift left required, from the operands calculations outputs, by this operation, for this operation to provide an output at start date.
-	 * Basically the amount of data necessary from the operands for this to yield at least one output at start date.
+	 * Basically the amount of data necessary from the operands (input of this) for this to yield at least one output at start date.
 	 * This is a number of data points (ie open days), not number of calendar days.
 	 * @param targetStock TODO
 	 * @param thisParentStartShift TODO
@@ -643,11 +728,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	/**
 	 * This gives how far the leafs operands will have to shift
 	 */
-	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
 		if (operands.isEmpty()) return 0;
 		return operands.stream().reduce(0, (max, operand) -> {
-			int thisOperandsShift = operand.operandsRequiredStartShift(targetStock, thisParentStartShift);
-			return Math.max(max, thisOperandsShift + operand.operandsRequiredStartShiftRecursive(targetStock, thisParentStartShift));
+			int operandShift = operand.operandsRequiredStartShift(targetStock, thisOperationStartShift);
+			int operandOperandsShift = operand.operandsRequiredStartShiftRecursive(targetStock, operandShift);
+			if (operandShift != 0) LOGGER.info(operand.getReference() + " operand shift: " + operandShift + ", operands' operand shift:" + operandOperandsShift + " = " + (operandShift + operandOperandsShift));
+			return Math.max(max, operandShift + operandOperandsShift);
 		}, (a, b) -> Math.max(a, b));
 	}
 
@@ -659,15 +746,27 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
 	}
 	
+	/**
+	 * @Deprecated?? FIXME
+	 * @return
+	 */
+	@Deprecated
 	public boolean isDateSensitive() {
 		if (operands.isEmpty()) return false;
 		return operands.stream().reduce(false, (r, e) -> r || e.isDateSensitive(), (a, b) -> a || b);
+	}
+	
+	
+	public boolean isQuotationsDataSensitive() {
+		if (this instanceof StockOperation || this instanceof OperationReferenceOperation) return true;
+		if (operands.isEmpty()) return false;
+		return operands.stream().reduce(false, (r, e) -> r || e instanceof StockOperation || e instanceof OperationReferenceOperation || e.isQuotationsDataSensitive(), (a, b) -> a || b);
 	}
 
 	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams);
 
 	public void invalidateAllNonIdempotentOperands(String analysisName, Optional<Stock> stock) {
-		LOGGER.debug("Checking " + getReference() + " for invalidation.");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking " + getReference() + " for invalidation.");
 		if (!this.isIdemPotent()) {
 			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
 			this.invalidateOperation(analysisName, stock);
@@ -680,13 +779,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				});
 	}
 	
-	public Set<QuotationDataType> getRequieredStockData() {
+	public Set<QuotationDataType> getRequiredStockData() {
 		Set<QuotationDataType> quotationDataTypes = new HashSet<>();
 		if (this instanceof StockOperation) {
 			quotationDataTypes.add(QuotationDataType.valueOf(this.getOutputSelector().toUpperCase()));
 		}
 		if (!operands.isEmpty()) {
-			quotationDataTypes.addAll(operands.stream().flatMap(o -> o.getRequieredStockData().stream()).collect(Collectors.toList()));
+			quotationDataTypes.addAll(operands.stream().flatMap(o -> o.getRequiredStockData().stream()).collect(Collectors.toList()));
 		}
 		return quotationDataTypes;
 	}

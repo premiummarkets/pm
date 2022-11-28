@@ -84,7 +84,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {//Iterate groups
 
 					try {
-						LOGGER.debug("Group description: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Group description: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 						LOGGER.info("Group description: " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
 						Boolean groupIsDisplayed = false;
 
@@ -176,7 +176,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 											+ "</html>";
 											return tooltip;
 										} catch (Exception e) {
-											LOGGER.debug(e, e);
+											if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
 										}
 										return "NaN";
 
@@ -221,7 +221,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 							//if ( rendererIdx != 0 ) 
 							indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
 
-							LOGGER.debug("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+							if (LOGGER.isDebugEnabled()) LOGGER.debug("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 
 						} else {
 							if (groupIsDisplayed && !hasData) {

@@ -31,7 +31,7 @@ public class PreAndSignalCondition extends Condition<Boolean> {
 	}
 	
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		//Unary check
 		if (inputs.size() == 1) return ((BooleanMapValue) inputs.get(0));
 		

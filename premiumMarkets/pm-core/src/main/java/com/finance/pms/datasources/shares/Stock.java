@@ -119,12 +119,12 @@ public class Stock implements Validatable {
 		try {
 			this.setIsin(isin);
 		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.debug(e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 		}
 		try {
 			this.setSymbol(symbol);
 		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.debug(e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 		}
 		this.category = stockCat;
 		this.overrideUserQuotes = true;

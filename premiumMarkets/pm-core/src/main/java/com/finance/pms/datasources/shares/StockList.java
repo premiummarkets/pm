@@ -145,7 +145,7 @@ public class StockList extends ArrayList<Stock> {
 				newStock.setSymbolMarketQuotationProvider(marketListProvider);
 				this.add(newStock);
 			} catch (InvalidAlgorithmParameterException e) {
-				LOGGER.debug(e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 			}
 		}
 	}

@@ -81,7 +81,7 @@ public class TalibLinearSmoother extends Smoother {
 		
 		RetCode rc = TalibCoreService.getCore().linearReg(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, linearRegression);
 		
-		LOGGER.debug("linear smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("linear smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		List<Date> dates = new ArrayList<Date>(data.keySet());

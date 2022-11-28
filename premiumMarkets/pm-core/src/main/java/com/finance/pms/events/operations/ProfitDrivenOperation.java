@@ -46,7 +46,7 @@ public class ProfitDrivenOperation extends EventMapOperation {
 	}
 	
 	@Override
-	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double minIncreaseForSell = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		Double minDecreaseForBuy = ((NumberValue) inputs.get(1)).getValue(targetStock).doubleValue();

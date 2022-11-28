@@ -191,15 +191,15 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 //		// Execute HTTP POST
 //		try {
 //			
-//			LOGGER.debug("Connection request : "+httppost.getPath());
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug("Connection request : "+httppost.getPath());
 //			
 //			result = httpclient.executeMethod(httppost);
 //			
 //			//DEBUG
-//			LOGGER.debug("Connection result : "+result);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug("Connection result : "+result);
 //			if (LOGGER.isDebugEnabled()) {
 //				 for (int i = 0; i < httppost.getResponseHeaders().length; i++) {
-//					 LOGGER.debug(" Post Response header " + httppost.getResponseHeaders()[i].toExternalForm());
+//					 if (LOGGER.isDebugEnabled()) LOGGER.debug(" Post Response header " + httppost.getResponseHeaders()[i].toExternalForm());
 //				 }  
 //			}
 //			if (LOGGER.isTraceEnabled()) {
@@ -215,7 +215,7 @@ public class HttpSourceBoursorama extends HttpSource implements SourceConnector 
 //				 String line;
 //				 while ((line = dis.readLine()) != null)
 //				 {
-//					 LOGGER.debug("Response :" + line);
+//					 if (LOGGER.isDebugEnabled()) LOGGER.debug("Response :" + line);
 //				 }
 //			}
 //			//END DEBUG

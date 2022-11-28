@@ -68,7 +68,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		try {
 			if (null == StockComplementSummaryBoursoramaFormater.PATTERNS) StockComplementSummaryBoursoramaFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		dividends = Pattern.compile(StockComplementSummaryBoursoramaFormater.PATTERNS.getProperty("boursoramaDiv"));
@@ -93,7 +93,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		grabBna(line, stockPart, bnaValueMatcher);
 
 		if (yeDiv == 2) {
-			LOGGER.debug("Found bourso PEG for "+stockPart.getSymbol()+ " : BNA "+stockPart.getBoursoBNA()+" and estBNA "+stockPart.getBoursoEstBNA()+" and div "+stockPart.getDividend());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Found bourso PEG for "+stockPart.getSymbol()+ " : BNA "+stockPart.getBoursoBNA()+" and estBNA "+stockPart.getBoursoEstBNA()+" and div "+stockPart.getDividend());
 			Validatable validatable = stockPart;
 			validatable.setState(Validatable.VALID);
 			throw new StopParseFoundException(validatable);
@@ -132,7 +132,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		case 1 :
 			if (bnaValueMatcher.find()) {
 				year1BnaGRealise = extractPattern(bnaValueMatcher);
-				LOGGER.debug("Bourso BNA y1 for "+stockPart.getSymbol()+" : "+year1BnaGRealise);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Bourso BNA y1 for "+stockPart.getSymbol()+" : "+year1BnaGRealise);
 				stockPart.setBoursoBNA(year1BnaGRealise);
 				yeBNA++;
 			}
@@ -140,7 +140,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		case 2 :
 			if (bnaValueMatcher.find()) {
 				year2Bna = extractPattern(bnaValueMatcher);
-				LOGGER.debug("Bourso BNA y2 for "+stockPart.getSymbol()+" : "+year2Bna);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Bourso BNA y2 for "+stockPart.getSymbol()+" : "+year2Bna);
 				stockPart.setBoursoEstBNA(year2Bna);
 				yeBNA++;
 			}
@@ -148,7 +148,7 @@ public class StockComplementSummaryBoursoramaFormater extends LineFormater {
 		case 3 :
 			if (bnaValueMatcher.find()) {
 				year3Bna = extractPattern(bnaValueMatcher);
-				LOGGER.debug("Bourso BNA y3 for "+stockPart.getSymbol()+" : "+year3Bna);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Bourso BNA y3 for "+stockPart.getSymbol()+" : "+year3Bna);
 				yeBNA++;
 			}
 			break;

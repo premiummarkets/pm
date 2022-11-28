@@ -197,7 +197,7 @@ public class AlertsMgrDelegate {
 	}
 
 	public void resetCrossDown(AlertOnThreshold alert, BigDecimal crossingPrice) {
-		LOGGER.debug("Params : " + alert);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Params : " + alert);
 
 		switch (alert.getAlertType()) {
 		case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:
@@ -223,7 +223,7 @@ public class AlertsMgrDelegate {
 	}
 
 	public void resetCrossUp(AlertOnThreshold alert, BigDecimal crossingPrice) {
-		LOGGER.debug("Params : " + alert);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Params : " + alert);
 
 		switch (alert.getAlertType()) {
 		case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:

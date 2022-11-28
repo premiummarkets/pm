@@ -87,7 +87,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			parameterizedBuilder.moveToTrash(operationName);
 		} catch (InterruptedException e) {
 			interrupt();
-			LOGGER.debug(this + " has been shutdown.");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(this + " has been shutdown.");
 		} catch (Exception e) {
 			interrupt();
 			LOGGER.warn(this + "." + e.toString(), e);
@@ -113,7 +113,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		if (LOGGER.isDebugEnabled()) {
 			DOTTreeGenerator gen = new DOTTreeGenerator();
 			StringTemplate st = gen.toDOT(commonTree);
-			LOGGER.debug(st);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(st);
 		}
 
 		Operation builtOperation = buildOperation(commonTree);
@@ -132,7 +132,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 				CommonTree child = (CommonTree) commonTree.getChild(i);
 				Operation builtOperation = null;
-				if ((child.getChildCount() == 1 && child.getChild(0).getChildCount() == 0)) {
+				if ((child.getChildCount() == 1 && child.getChild(0).getChildCount() == 0)) { //Leaf
 
 					if (child.getToken().getText().equals("OperationOutput")) {
 						//Output selector
@@ -143,7 +143,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 							try {
 								builtOperation = buildLeafOperation(child);
 								break;
-							} catch (Exception e) { //Handling the leaf operation reference case
+							} catch (Exception e) { //Handling the operation reference case as a leaf
 								if (e.getCause() instanceof MissingReferenceException) {
 									missingReference = ((MissingReferenceException) e.getCause()).getMissingReference();
 									suspend();
@@ -154,8 +154,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 						}
 					}
 
-				} else {
-					//Sub op
+				} else { //Build operands first
 					builtOperation = buildOperation(child);
 				}
 
@@ -177,11 +176,11 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		threadSuspended = true;
 		synchronized(this) {
 			while (threadSuspended) {
-				LOGGER.debug("Wait on suspended " + this);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wait on suspended " + this);
 				wait();
 			}
 		}
-		LOGGER.debug("Wait on suspended released for " + this);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Wait on suspended released for " + this);
 		
 		//We give up on shutdown
 		if (shutdown) {
@@ -217,17 +216,17 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			try {
 
 				String childText = opPackage + child.getToken().getText();
-				LOGGER.debug("Instantiating NON pre parameterise native op: " + childText);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Instantiating NON pre parameterise native op: " + childText);
 
 				Class<Operation> opClass = (Class<Operation>) Class.forName(childText);
 				Constructor<Operation> constructor = opClass.getConstructor(ArrayList.class, String.class);
 				Operation newInstance = constructor.newInstance(operands, outputSelector);
 				
-				LOGGER.debug("Initialising instance of: " + newInstance.getReference());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Initialising instance of: " + newInstance.getReference());
 				return newInstance;
 				
 			} catch (ClassNotFoundException e) {
-				LOGGER.debug(e.getMessage() + " is not native.");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getMessage() + " is not native.");
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage() + ", exception: " + e.toString() + ", cause: " + ((e.getCause() != null)? e.getCause().toString() : "unknown") + ". " +
 							 "child obj: " + child + "; root obj " + child.getAncestor(0) + "; operands: " + operands + ". Can't Instantiate: " + opPackage);
@@ -236,7 +235,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		}
 
 		//All above as failed : snd pass marker (for user defined operations)
-		LOGGER.debug(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(this.operationName + " is missing reference : " + child + "; Parent object " + child.getAncestor(0) + "; operands : " + operands + ". Could not instanciate. Will be parked for now.");
 		missingReference = child.getText();
 		suspend();
 		
@@ -277,7 +276,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 			return opInstance;
 
 		} catch (InvocationTargetException e) {
-			LOGGER.debug("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value + " unresolved yet, " + e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value + " unresolved yet, " + e);
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error("Child obj : " + child + ", Class name :" + valueClassName + ", Const value : " + value, e);
@@ -291,27 +290,27 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 	}
 
 	public void resume() {
-		LOGGER.debug("Resuming Parser thread.");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Resuming Parser thread.");
 		if (holdingThread == null) {//Not started yet
 			Thread thread = new Thread(this);
 			holdingThread = thread;
 			thread.start();
 		} else {//We resume
-			LOGGER.debug("Synchronising on " + this + " in order to change state to " + !threadSuspended);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Synchronising on " + this + " in order to change state to " + !threadSuspended);
 			synchronized (this) {
 				threadSuspended = !threadSuspended;
 				if (!threadSuspended) {
-					LOGGER.debug("Notifying wait of " + this);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Notifying wait of " + this);
 					notify();
 				}
-				LOGGER.debug("End of notification for " + this);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("End of notification for " + this);
 			}
 		}
 
 	}
 
 	public void shutdown() {
-		LOGGER.debug("Shutting down Parser thread.");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Shutting down Parser thread.");
 		if (holdingThread != null) {
 			this.shutdown = true;
 			resume();

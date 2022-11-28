@@ -100,7 +100,7 @@ public abstract class SymbolNameResolver {
 		if (symbol == null || symbol.equals(Stock.MISSINGCODE)) {
 			//LOGGER.error("ERROR : don't want to set a null symbol, find somthing else :).");
 			//throw new InvalidAlgorithmParameterException("ERROR : don't want to set a null symbol, find somthing :).",new Throwable());
-			LOGGER.debug("Warning : don't want to set a null symbol, can't you find something else :).");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Warning : don't want to set a null symbol, can't you find something else :).");
 			return null;
 		}
 

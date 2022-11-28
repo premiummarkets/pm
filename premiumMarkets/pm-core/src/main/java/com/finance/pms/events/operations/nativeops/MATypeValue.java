@@ -82,7 +82,7 @@ public class MATypeValue extends Value<MAType> implements StringableValue, Clone
 	}
 	
 	@Override
-	public MATypeValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public MATypeValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
 	}
 

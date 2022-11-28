@@ -31,6 +31,7 @@ package com.finance.pms.events.operations;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -127,7 +129,7 @@ public class TargetStockInfo {
 
 		@Override
 		public String toString() {
-			return "Output [outputReference=" + outputReference + ", chartedDescription=" + chartedDescription + "]";
+			return "Output [outputReference=" + outputReference + ", chartedDescription=" + chartedDescription + ", startShift=" + startShift +"]";
 		}
 
 		public OutputReference getOutputReference() {
@@ -147,11 +149,11 @@ public class TargetStockInfo {
 	private String analysisName;
 	private EventInfoOpsCompoOperation eventInfoOpsCompoOperation;
 	private Stock stock;
-	private Date startDate;
-	private Date roolBackStartDate;
+	private final Date startDate;
 	private final Date endDate;
 
 	private Map<OutputReference,SoftReference<Output>> calculatedOutputsCache;
+	private List<OutputReference> calculatingOutputsFutures;
 	
 	private List<Output> gatheredChartableOutputs;
 	private List<ChartedOutputGroup> chartedOutputGroups;
@@ -172,9 +174,10 @@ public class TargetStockInfo {
 		this.startDate = startDate;
 		this.endDate = endDate;
 
-		this.calculatedOutputsCache = new HashMap<OutputReference,SoftReference<Output>>();
-		this.gatheredChartableOutputs = new ArrayList<TargetStockInfo.Output>();
-		this.chartedOutputGroups = new ArrayList<ChartedOutputGroup>();
+		this.calculatedOutputsCache = new ConcurrentHashMap<>();
+		this.calculatingOutputsFutures = Collections.synchronizedList(new ArrayList<>());
+		this.gatheredChartableOutputs = new ArrayList<>();
+		this.chartedOutputGroups = new ArrayList<>();
 		this.outputAnalysers = new HashMap<>();
 
 	}
@@ -182,7 +185,9 @@ public class TargetStockInfo {
 	private Output getCalculatedOutputsCacheFor(OutputReference outputReference) {
 		SoftReference<Output> softOutput = this.calculatedOutputsCache.get(outputReference);
 		if (softOutput != null) {
-			return softOutput.get();
+			Output output = softOutput.get();
+			if (output == null) LOGGER.warn("Cache for " + outputReference.getReference() + " as been cleared");
+			return output;
 		}
 		return null;
  	}
@@ -195,7 +200,14 @@ public class TargetStockInfo {
 		return stock;
 	}
 
+	/**
+	 * Take a left shift in data points and returns a left shift in calendar days
+	 * @param startShift
+	 * @return
+	 */
 	public Date getStartDate(int startShift) {
+		double dataPointToCalendarDaysConversionFactor = getStock().getTradingMode().getDataPointFactor();
+		startShift = (int) (startShift * dataPointToCalendarDaysConversionFactor * 5/7) + (int) (1 * Math.signum(startShift)); //Data points conversion fix for non stop quotations
 		Date incStartDate = DateFactory.incrementDateWraper(startDate, -startShift);
 		return incStartDate;
 	}
@@ -219,13 +231,32 @@ public class TargetStockInfo {
 	public void addEventAnalyser(Operation operation, EventsAnalyser eventAnalyser) {
 		outputAnalysers.put(new OutputReference(operation, operation.getOutputSelector()), eventAnalyser);
 	}
+	
+	public void putOutputCalculationFuture(OutputReference unfinishedOutputReference) {
+		calculatingOutputsFutures.add(unfinishedOutputReference);
+	}
+	
+	public void removeOutputCalculationFuture(OutputReference unfinishedOutputReference) {
+		boolean removed = calculatingOutputsFutures.remove(unfinishedOutputReference);
+		if (!removed) throw new RuntimeException("Could not remove: " + unfinishedOutputReference);
+	}
+	
+	public OutputReference getOutputCalculationFuture(OutputReference unfinishedOutputReference) {
+		int indexOf = calculatingOutputsFutures.indexOf(unfinishedOutputReference);
+		OutputReference theirOutputReference = null;
+		if (indexOf != -1) theirOutputReference = calculatingOutputsFutures.get(indexOf);
+		return theirOutputReference;
+	}
 
-	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int parentRequiredStartShift) {
-		//XXX All operation will be checked although we know only numericable outputs and outputs for cachable are stored?/
+	public Value<?> checkAlreadyCalculated(Operation operation, String outputSelector, int operandsRequiredshift) {
+		//XXX All operation will be checked although we know only numericable outputs and outputs for cachable are stored?
 		OutputReference outputReference = new OutputReference(operation, outputSelector);
+		
 		Output output = getCalculatedOutputsCacheFor(outputReference);
-		if (output == null || (parentRequiredStartShift > output.getStartShift())) {
-			if (output != null) calculatedOutputsCache.remove(outputReference);
+		if (output == null || (operandsRequiredshift > output.getStartShift())) {
+			if (output != null) {
+				calculatedOutputsCache.remove(outputReference);
+			}
 			return null;
 		}
 		return output.getOutputData();
@@ -242,7 +273,7 @@ public class TargetStockInfo {
 		Value<?> alreadyCalculated = checkAlreadyCalculated(operation, outputDiscriminator.orElse(operation.getOutputSelector()), operationRequiredStartShift);
 		if (alreadyCalculated != null) {
 			if (getIndexOfChartableOutput(operation, outputDiscriminator.orElse(operation.getOutputSelector())) == -1) {
-				if (isInChart) this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, operationRequiredStartShift));
+				if (isInChart) this.gatheredChartableOutputsAdd(new Output(new OutputReference(operation, operation.getOutputSelector()), alreadyCalculated, operationRequiredStartShift));
 			}
 			return;
 		}
@@ -252,28 +283,27 @@ public class TargetStockInfo {
 			for (String selector : ((MultiSelectorsValue) outputValue).getSelectors()) {
 				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
 				String tamperedFormula = (operation.getFormulae() != null)?
-						operation.getFormulae().replaceAll(":[^\\(]*\\(", ":"+selector+"("): //encogPlus:xxxxx(... => encogPlus:selector(...
-						operation.toFullString() + ":" + selector; //Anonymous operation
+						operation.getFormulae().replaceFirst(":[^\\(]*\\(", ":" + selector + "("): //encogPlus:xxxxx(... => encogPlus:selector(...
+						operation.toFormulae().replaceFirst(":[^\\(]*\\(", ":" + selector + "("); //Anonymous operation
 				//constant = null as the selector output as to be a NumericableMapValue and hence can't be a constant.
-				OutputReference outputReference = new OutputReference(
-						operation.getReference(), selector, tamperedFormula, operation.getReferenceAsOperand(), null, operation.getOperationReference(), operation.toFullString());
+				OutputReference outputReference = new OutputReference(operation, selector, tamperedFormula);
 				if (isCachable) putCalculatedOutputsCache(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), operationRequiredStartShift));
 			}
 			//Only make available for chart the specific selector
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
-			if (isInChart)  this.gatheredChartableOutputs.add(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, operationRequiredStartShift));
+			if (isInChart)  this.gatheredChartableOutputsAdd(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, operationRequiredStartShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
 			Output outputHolder = new Output(
 					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
 					outputValue, operationRequiredStartShift);
 			if (isCachable) putCalculatedOutputsCache(outputHolder);
-			if (isInChart)  this.gatheredChartableOutputs.add(outputHolder);
+			if (isInChart)  this.gatheredChartableOutputsAdd(outputHolder);
 		} else {
 			Output outputHolder = new Output(
 					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
 					outputValue, operationRequiredStartShift);
 			if (isCachable) putCalculatedOutputsCache(outputHolder);
-			if (isInChart) this.gatheredChartableOutputs.add(outputHolder);
+			if (isInChart) this.gatheredChartableOutputsAdd(outputHolder);
 		}
 
 	}
@@ -292,7 +322,7 @@ public class TargetStockInfo {
 				chartedDesrc.maskType(Type.MAIN);
 			} else {
 				ChartedOutputGroup chartedOutputGroup = new ChartedOutputGroup(operation, outputSelector, indexOfOutput, displayByDefault);
-				chartedOutputGroups.add(chartedOutputGroup);
+				chartedOutputGroupsAdd(chartedOutputGroup);
 				chartedDesrc = chartedOutputGroup.getThisGroupMainOutputDescription();
 				output.setChartedDescription(chartedDesrc);
 			}
@@ -304,11 +334,23 @@ public class TargetStockInfo {
 	}
 
 	public Integer getIndexOfChartableOutput(Operation operation, String outputSelector) {
-		return gatheredChartableOutputs.indexOf(new Output(new OutputReference(operation, outputSelector)));
+		return getGatheredChartableOutputs().indexOf(new Output(new OutputReference(operation, outputSelector)));
 	}
 
 	public List<ChartedOutputGroup> getChartedOutputGroups() {
+		return Collections.synchronizedList(chartedOutputGroups);
+	}
+	
+	public List<ChartedOutputGroup> getChartedOutputGroupsAsync() {
 		return chartedOutputGroups;
+	}
+	
+	private void chartedOutputGroupsRemove(int indexOf) {
+		getChartedOutputGroups().remove(indexOf);	
+	}
+	
+	private void chartedOutputGroupsAdd(ChartedOutputGroup chartedOutputGroup) {
+		getChartedOutputGroups().add(chartedOutputGroup);
 	}
 
 	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation, Boolean displayByDefault) {
@@ -330,7 +372,7 @@ public class TargetStockInfo {
 						OutputDescr oldOutputDescr = existingChartedGrp.getComponents().get(oldContentRef);
 						mainChartedGrp.mvComponentInThisGrp(oldContentRef, oldOutputDescr);
 					}
-					this.chartedOutputGroups.remove(this.chartedOutputGroups.indexOf(existingChartedGrp));
+					this.chartedOutputGroupsRemove(this.getChartedOutputGroups().indexOf(existingChartedGrp));
 				}
 			} else {
 				chartedDescr = mainChartedGrp.addSignal(operation, indexOfOutput,displayByDefault);
@@ -359,7 +401,7 @@ public class TargetStockInfo {
 
 	private Output getGatheredChartableOutput(Integer indexOfOutput) {
 		try {
-			return gatheredChartableOutputs.get(indexOfOutput);
+			return getGatheredChartableOutputs().get(indexOfOutput);
 		} catch (Exception e) {
 			LOGGER.error("No gathered output for "+indexOfOutput, e);
 			throw e;
@@ -372,7 +414,15 @@ public class TargetStockInfo {
 	}
 
 	public List<Output> getGatheredChartableOutputs() {
+		return Collections.synchronizedList(gatheredChartableOutputs);
+	}
+	
+	public List<Output> getGatheredChartableOutputsAsync() {
 		return gatheredChartableOutputs;
+	}
+	
+	private void gatheredChartableOutputsAdd(Output output) {
+		this.getGatheredChartableOutputs().add(output);	
 	}
 
 	public void printOutputs() {
@@ -380,10 +430,10 @@ public class TargetStockInfo {
 		Set<Date> allKeys = new TreeSet<Date>();
 		String header = this.stock.getFriendlyName().replaceAll(",", " ") + ",";
 
-		for (Output output : gatheredChartableOutputs) {
+		for (Output output : getGatheredChartableOutputs()) {
 			Value<?> outputData = output.getOutputData();
 			if (outputData instanceof NumericableMapValue) {
-				header = header + output.getOutputReference().getReference()+",";
+				header = header + output.getOutputReference().getReference() + ",";
 				Set<Date> keySet = ((NumericableMapValue)outputData).getValue(this).keySet();
 				allKeys.addAll(keySet);
 			}
@@ -392,7 +442,7 @@ public class TargetStockInfo {
 
 		for (Date date : allKeys) {
 			String line = date + ",";
-			for (Output output : gatheredChartableOutputs) {
+			for (Output output : getGatheredChartableOutputs()) {
 				Value<?> outputData = output.getOutputData();
 				if (outputData instanceof NumericableMapValue) {
 					line = line + ((NumericableMapValue)outputData).getValue(this).get(date) + ",";
@@ -422,6 +472,10 @@ public class TargetStockInfo {
 
 		ChartedOutputGroup chartedOutputGroup = null;
 		List<Operation> operands = operation.getOperands();
+		if (operands.size() != operandsOutputs.size()) {
+			throw new RuntimeException("Operation " + operation + " has no ouput.");
+		}
+		
 		if (operation instanceof OnSignalCondition) {//Operands outputs are grouped
 			//pick up or create the group
 			int mainOpPosition = ((OnSignalCondition) operation).mainInputPosition();
@@ -509,22 +563,11 @@ public class TargetStockInfo {
 	}
 
 	private Integer getIndexOfMainChartableOutput() {
-		Integer indexOfMain = gatheredChartableOutputs.indexOf(gatheredChartableOutputs.stream()
+		Integer indexOfMain = getGatheredChartableOutputs().indexOf(getGatheredChartableOutputs().stream()
 				.filter(o -> o.getChartedDescription() != null)
 				.findFirst()
-				.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + gatheredChartableOutputs)));
+				.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + getGatheredChartableOutputs())));
 		return indexOfMain;
-	}
-
-	public void roolForthStartDate(Date newStartDate) {
-		this.roolBackStartDate = this.startDate;
-		this.startDate = newStartDate;
-		
-	}
-
-	public void roolBackStartDate() {
-		if (roolBackStartDate != null) this.startDate = roolBackStartDate;
-		
 	}
 
 }

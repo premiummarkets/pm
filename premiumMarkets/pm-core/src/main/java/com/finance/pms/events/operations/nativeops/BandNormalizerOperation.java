@@ -64,7 +64,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		double lowerThreshold = ((NumberValue)inputs.get(0)).getValue(targetStock).doubleValue();
@@ -80,7 +80,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 		
 		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, lowerThreshold, upperThreshold, actualCenter, trimFactor, data);
 		
-		return ValueManipulator.doubleArrayExpender(this, DATAINPUTIDX, targetStock, innerCalcFunc, numericableMapValue);
+		return ValueManipulator.doubleArrayExpender(this, DATAINPUTIDX, targetStock, parentRequiredStartShift, innerCalcFunc, numericableMapValue);
 	}
 
 	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double lowerThreshold, double upperThreshold, double actualCenter, Double trimFactor, List<NumericableMapValue> data) {

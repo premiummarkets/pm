@@ -320,7 +320,7 @@ public class Quotations {
 	public Boolean hasQuotations() {
 		QuotationData quotationData = getQuotationData();
 		if (quotationData == null || quotationData.size() == 0) {
-			LOGGER.debug("No Quotations for :" + this.stock + " !! ");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("No Quotations for :" + this.stock + " !! ");
 			return false;
 		}
 		return true;

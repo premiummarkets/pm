@@ -94,7 +94,7 @@ public class MarketList {
 				case 'B': capD = capD.multiply(new BigDecimal(1000));
 				case 'M': capD = capD.multiply(new BigDecimal(1000000));
 				break;
-				default : LOGGER.debug("Oops");
+				default : if (LOGGER.isDebugEnabled()) LOGGER.debug("Oops");
 				}
 			}
 
@@ -113,7 +113,7 @@ public class MarketList {
 
 				list.add(s);
 			} catch (InvalidAlgorithmParameterException e) {
-				LOGGER.debug("ReOops",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("ReOops",e);
 			}
 		}
 		

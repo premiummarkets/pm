@@ -92,7 +92,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Double threshold = ((NumberValue) inputs.get(CONSTANT_POSITION)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();

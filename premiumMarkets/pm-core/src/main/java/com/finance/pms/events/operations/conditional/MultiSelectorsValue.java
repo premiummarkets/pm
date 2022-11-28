@@ -70,10 +70,10 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	}
 	
 	@Override
-	public MultiSelectorsValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		super.filterToParentRequierements(targetStock, startShift, parent);
+	public MultiSelectorsValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
+		super.filterToParentRequirements(targetStock, startShift, parent);
 		this.selectorOutputs = selectorOutputs.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequierements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequirements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
 		return this;
 	}
 

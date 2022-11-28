@@ -31,21 +31,30 @@ package com.finance.pms.datasources.shares;
 
 public enum TradingMode {
 	
-	UNKNOWN ("Unknown"),
-	CONTINUOUS ("Continuous"),
-	DOUBLE_CALL_AUCTION("Double call auction"),
-	CALL_AUCTION ("Call auction"),
-	NON_STOP("Non Stop");
+	UNKNOWN ("Unknown", 7/5),
+	CONTINUOUS ("Continuous", 7/5),
+	DOUBLE_CALL_AUCTION("Double call auction", 7/5),
+	CALL_AUCTION ("Call auction", 7/5),
+	NON_STOP("Non Stop", 1);
 	
 	
 	String tradingModeLabel;
+	double dataPointsFactor;
 
-	private TradingMode(String tradingModeLabel) {
+	private TradingMode(String tradingModeLabel, double dataPointsFactor) {
 		this.tradingModeLabel = tradingModeLabel;
+		this.dataPointsFactor = dataPointsFactor;
 	}
 
 	public String getTradingModeLabel() {
 		return tradingModeLabel;
+	}
+	
+	/**
+	 *  data points factor to calendar days
+	 */
+	public double getDataPointFactor() {
+		return dataPointsFactor;
 	}
 	
 	public static TradingMode valueOfLabel(String st) {

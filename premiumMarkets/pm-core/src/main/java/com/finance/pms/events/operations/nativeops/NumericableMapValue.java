@@ -57,6 +57,6 @@ public abstract class NumericableMapValue extends MapValue<Double> implements Cl
 	}
 	
 	@Override
-	public abstract NumericableMapValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent);
+	public abstract NumericableMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent);
 
 }

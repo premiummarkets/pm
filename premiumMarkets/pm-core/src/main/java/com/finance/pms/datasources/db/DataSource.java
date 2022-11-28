@@ -154,7 +154,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		EVENTS.ANALYSE_NAME = MainPMScmd.getMyPrefs().get("events.type", "ANALYSENAME");
 
 		if (singleton == null) {
-			LOGGER.debug("Number of Long batch DB Threads :" + Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of Long batch DB Threads :" + Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
 			threadPool = new PoolSemaphore((Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10"))).intValue(), this, false);
 			singleton = this;
 		}
@@ -202,8 +202,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		} catch (SQLException e) {
 			LOGGER.error("ERROR releasing connection : ", e);
-			LOGGER.debug(e.getCause());
-			LOGGER.debug(e.getNextException());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getCause());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getNextException());
 
 			try {
 				conn = DataSource.getInstance().getThreadPool().reconnectSource(conn);
@@ -246,7 +246,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 //				endConstraint = " AND "+QUOTATIONS.DATE_FIELD+ " <= '" + new SimpleDateFormat("yyyy-MM-dd").format(DateFactory.getNowEndDate())+ "' ";
 //			}
 //		} catch (IllegalArgumentException e) {
-//			LOGGER.debug("No test past end date specified because : "+e);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug("No test past end date specified because : "+e);
 //		}
 //
 //		return endConstraint;
@@ -283,7 +283,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 			if (date != null) {
 				retour = date;
-				LOGGER.debug("Last ticker date in data base for " + stock.getSymbol() + " : " + date.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Last ticker date in data base for " + stock.getSymbol() + " : " + date.toString());
 			} else {
 				retour = DateFactory.dateAtZero();
 				LOGGER.warn("No value in data base : " + stock + " is a new ticker");
@@ -507,7 +507,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(startDate);
 		select.addValue(endDate);
 
-		LOGGER.debug(select.getQuery()+" with startDate : "+startDate+ " and endDate :	"+endDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery()+" with startDate : "+startDate+ " and endDate :	"+endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
 
 		return (List<SymbolEvents>) lret;
@@ -538,7 +538,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				+ EVENTS.SYMBOL_FIELD + " = ? AND "
 				+ EVENTS.ISIN_FIELD+" = ?";
 
-		LOGGER.debug(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate, stock.getSymbol(), stock.getIsin()));
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate, stock.getSymbol(), stock.getIsin()));
 
 		Query select = new Query(queryString) {
 
@@ -562,7 +562,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(stock.getSymbol());
 		select.addValue(stock.getIsin());
 
-		LOGGER.debug(select.getQuery()+" with startDate :"+startDate+ " and endDate :	"+endDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery()+" with startDate :"+startDate+ " and endDate :	"+endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
 
 		if (lret.size() == 0) return  new SymbolEvents(stock, EventState.STATE_TERMINATED);
@@ -681,7 +681,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(EventDefinition.SCREENER.getEventDefinitionRef());
 		select.addValue(endDate);
 
-		LOGGER.debug(select.getQuery());
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery());
 		List<EventValue> eventValues = executeQuery(select, 1);
 		if (eventValues.size() == 0) return null; 
 		EventValue eventValue = eventValues.get(0);
@@ -710,11 +710,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			Date d = (rs.next()) ? rs.getDate(1) : null;
 			if (d != null) {
 				retour = d;
-				LOGGER.debug(minMax+" event date in data base : " + d.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(minMax+" event date in data base : " + d.toString());
 			} else {
 				DateFormat df = new SimpleDateFormat("yyyyMMdd");
 				retour = df.parse("19700101");
-				LOGGER.debug("No events in data base");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("No events in data base");
 			}
 			rs.close();
 			pst.close();
@@ -743,11 +743,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			Date d = (rs.next()) ? rs.getDate(1) : null;
 			if (d != null) {
 				retour = d;
-				LOGGER.debug("Last event date in data base : " + d.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Last event date in data base : " + d.toString());
 			} else {
 				DateFormat df = new SimpleDateFormat("yyyyMMdd");
 				retour = df.parse("19700101");
-				LOGGER.debug("No events in data base");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("No events in data base");
 			}
 			rs.close();
 			pst.close();
@@ -873,7 +873,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		} catch (SQLException e) {
 			LOGGER.error("Query : " + sqlQueryString, e);
-			LOGGER.debug(e, e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
 		} finally {
 			DataSource.realesePoolConnection(scnx);
 		}
@@ -929,7 +929,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			this.connectNotCommited.commit();
 		} catch (SQLException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 			throw new RuntimeException("Can't commit Query. Sorry. :" + e + "\n REASON : " + e.getNextException());
 		}
 	}
@@ -938,7 +938,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			this.connectNotCommited.rollback();
 		} catch (SQLException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 			throw new RuntimeException("Can't roolback Query. Sorry. :" + e + "\n REASON : " + e.getNextException());
 		}
 	}
@@ -954,7 +954,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			conn.setAutoCommit(autocommit);
 			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
-			LOGGER.debug("Db connection isolation : " + conn.getTransactionIsolation() + ". Autocommit : " + conn.getAutoCommit());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Db connection isolation : " + conn.getTransactionIsolation() + ". Autocommit : " + conn.getAutoCommit());
 			StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 			String stackString = "";
 			if (LOGGER.isDebugEnabled()) {
@@ -966,9 +966,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		} 
 
 		catch (SQLException e) {
-			LOGGER.debug("SQL ERROR; Connection URL : " + connectionURL);
-			LOGGER.debug("Data Base not started !? :" + e);
-			LOGGER.debug("cause : " + e.getCause() + "\n next : " + e.getNextException(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("SQL ERROR; Connection URL : " + connectionURL);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Data Base not started !? :" + e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("cause : " + e.getCause() + "\n next : " + e.getNextException(),e);
 			nbExceptions++;
 			if (nbExceptions < PoolSemaphore.NUMBER_OF_CONNEXION_TRY) {
 				throw new RestartServerException("Data Base not started or already in use.");
@@ -1008,7 +1008,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			PreparedStatement pst = sdbcnx.getConn().prepareStatement(preparedQuery);
 			Iterator<Validatable> qIt = qL.iterator();
-			LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
 			while (qIt.hasNext()) {
 				debug = "";
 				Query query = ((Validatable) qIt.next()).toDataBase();
@@ -1061,7 +1061,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 
 			Iterator<Validatable> qIt = qL.iterator();
-			LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
 			while (qIt.hasNext()) {
 				debug = "";
 				Query query = ((Validatable) qIt.next()).toDataBase();
@@ -1137,7 +1137,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				if (!tablesLocked.get(i).getLockModeValue().equals(TableLocker.LockMode.NOLOCK)) {
 					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName()+" "+ tablesLocked.get(i).getLockModeValue().getLockMode());
 					tableLocked = true;
-					LOGGER.debug("Lock on table : " + tablesLocked.get(i).getTableName() + " : "+ tablesLocked.get(i).getLockModeValue().getLockMode());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Lock on table : " + tablesLocked.get(i).getTableName() + " : "+ tablesLocked.get(i).getLockModeValue().getLockMode());
 				}
 			}
 

@@ -71,7 +71,7 @@ public enum MarketQuotationProviders_old {
 			MarketQuotationProviders_old.valueOfCmd(prov);
 			contains = true;
 		} catch (IllegalArgumentException e) {
-			LOGGER.debug("Wrong provider :" + prov, e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong provider :" + prov, e);
 			contains = false;
 		}
 		return contains;

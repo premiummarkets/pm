@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
 public class MapUtils {
@@ -56,11 +55,11 @@ public class MapUtils {
 
 	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats) {
 
-		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long)period) * (1000l * 60l * 60l * 24l));
+		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long) period) * (1000l * 60l * 60l * 24l));
 
 		//Bypassing the potential from restrictive range
 		Date startFrom = (map.firstKey().compareTo(startDate) > 0)? map.firstKey(): startDate;
-		Date endFrom = new Date(startFrom.getTime() + ((long)period) * (1000l * 60l * 60l * 24l));
+		Date endFrom = new Date(startFrom.getTime() + ((long) period) * (1000l * 60l * 60l * 24l));
 
 		final TreeMap<Date, Double> movingStats =
 				map.tailMap(endFrom).keySet().stream()
@@ -77,7 +76,8 @@ public class MapUtils {
 						},
 						(a, b) -> a, TreeMap<Date,Double>::new));
 
-		Date firstValidResult = DateFactory.incrementDateWraper(map.firstKey(), period);
+		//Date firstValidResult = DateFactory.incrementDateWraper(map.firstKey(), period);
+		Date firstValidResult = endFrom;
 
 		TreeMap<Date, Double> noNaNMovingStats = movingStats.keySet()
 				.stream()

@@ -82,7 +82,7 @@ public class TalibBollingerSmoother extends Smoother {
 
 		RetCode rc = TalibCoreService.getCore().bbands(startIdx, endIdx, inReal, optInTimePeriod, optInNbDevUp, optInNbDevDn, MAType.Sma, outBegIdx, outNBElement, outRealUpperBand, outRealMiddleBand, outRealLowerBand);
 
-		LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		int j = 0;

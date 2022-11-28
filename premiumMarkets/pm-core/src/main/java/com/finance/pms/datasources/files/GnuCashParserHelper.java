@@ -100,19 +100,19 @@ public class GnuCashParserHelper {
 	}
 
 	protected Currency extractCurrency(String columnTxt) {
-		LOGGER.debug("Checking if :"+columnTxt+" contains $?");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking if :"+columnTxt+" contains $?");
 		if (columnTxt.contains("$") || columnTxt.contains("\u0024")) {
-			LOGGER.debug(columnTxt+" contains $!");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(columnTxt+" contains $!");
 			return Currency.USD;
 		}
-		LOGGER.debug("Checking if :"+columnTxt+" contains \u00A3?");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking if :"+columnTxt+" contains \u00A3?");
 		if (columnTxt.contains("\u00A3")) {
-			LOGGER.debug(columnTxt+"contains \u00A3!");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(columnTxt+"contains \u00A3!");
 			return Currency.GBP;
 		}
-		LOGGER.debug("Checking if :"+columnTxt+" contains \u20AC?");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking if :"+columnTxt+" contains \u20AC?");
 		if (columnTxt.contains("\u20AC")) {
-			LOGGER.debug(columnTxt+"contains \u20AC!");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(columnTxt+"contains \u20AC!");
 			return Currency.EUR;
 		}
 		return   Currency.valueOf(columnTxt.replace("\n","").trim().split("( |\n)")[0]);

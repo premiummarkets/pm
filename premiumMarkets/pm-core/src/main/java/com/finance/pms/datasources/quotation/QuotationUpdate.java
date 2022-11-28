@@ -244,7 +244,7 @@ public class QuotationUpdate {
 
 			Stock stock = stlIt.next();
 
-			LOGGER.debug("Fetching quotations for Ticker: " + stock);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Fetching quotations for Ticker: " + stock);
 			GetQuotation command = new GetQuotation(DateFactory.getNowEndTime(), stock, forceReset, forceUpdate);
 			for (Observer observer : observers) {
 				command.addObserver(observer);
@@ -296,7 +296,7 @@ public class QuotationUpdate {
 			throw exceptions;
 		}
 
-		LOGGER.debug("Download duration : " + (System.currentTimeMillis() - dlance) / (1000 * 60) + " minutes");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Download duration : " + (System.currentTimeMillis() - dlance) / (1000 * 60) + " minutes");
 
 	}
 

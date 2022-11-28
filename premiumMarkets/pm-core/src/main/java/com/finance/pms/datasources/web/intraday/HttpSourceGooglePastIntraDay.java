@@ -110,7 +110,7 @@ public class HttpSourceGooglePastIntraDay extends HttpSourceGoogleIntraDay {
 //								"Reason : " + ((StopParseErrorException) e).getReason());
 			
 					} catch (Exception e) {
-						LOGGER.debug("Ignoring line :" + line);
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line :" + line);
 						LOGGER.trace(e);
 					}
 				}

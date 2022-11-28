@@ -9,12 +9,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -53,7 +53,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int assemblerOutputStartShift, int assemblerInputStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ta-" + assemblerGroupName + "_";
@@ -92,7 +92,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		Double step = pivotParamSlices.get(2);
 		int paddingSize = String.format("%d", (int) ((end-start)/(step))).length();
 		
-		ExecutorService executor = Executors.newCachedThreadPool(); 
+		ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
 		for (double i = 0; i*step < (end-start); i++) {
 			Operation iterationOperationClone = (Operation) assembledOperationClone.clone();
 			String paramsStringInfo = "";
@@ -124,9 +124,22 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 			Future<NumericableMapValue> iterationFuture = executor.submit(new Callable<NumericableMapValue>() {
 				@Override
 				public NumericableMapValue call() throws Exception {
-					LOGGER.info("Running: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
-					NumericableMapValue run = (NumericableMapValue) iterationOperationClone.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift);
+					
+					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);
+					
+					LOGGER.info(
+							"Running assemblee: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 
+							" and shift " + assemblerInputStartShift + " and added operands shift " + assembleeOperandStartShift +
+							". From " + targetStock.getStartDate(assemblerInputStartShift) + " to " + targetStock.getEndDate());
+					
+					NumericableMapValue run = (NumericableMapValue) iterationOperationClone
+							.run(targetStock, addThisToStack(thisCallStack, assemblerInputStartShift, assembleeOperandStartShift, targetStock), assemblerInputStartShift + assembleeOperandStartShift);
+					
 					LOGGER.info("Done: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
+					LOGGER.info(
+							"Yield: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 
+							" and this shift " + assemblerInputStartShift + " and operands added shift " + assembleeOperandStartShift + ": " + run);
+					
 					return run;
 				}
 			});
@@ -134,7 +147,6 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 			inputsOperandsRefs.add(assemblerGroupName + String.format("%0" + paddingSize + "d", (int)i) + "_" + iterationOperationClone.toFormulaeShort());
 		}
 		
-		executor.shutdown();
 		List<NumericableMapValue> runsOutputs = futures.stream().map(f -> {
 			try {
 				return f.get();

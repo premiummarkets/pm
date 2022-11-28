@@ -27,12 +27,12 @@ public class CsvFileFilterOperation extends StringerOperation {
 		this("csvFilterOperation", "Loads filtered data from a csv file. Only the last match is returned.",
 			new StringOperation("string","filePath", "CSV File Path", new StringValue("autoPortfolioLogs/input.csv")),
 			new NumberOperation("number","columnIndex", "Index of the column to retrieve", new NumberValue(0.0)),
-			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("None")),
-			new StringOperation("string","default", "Default value.", new StringValue("None")));
+			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("NONE")),
+			new StringOperation("string","default", "Default value.", new StringValue("NONE")));
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		String filePath = ((StringValue) inputs.get(0)).getValue(targetStock);
 		if (!filePath.startsWith(File.separator)) {//Relative

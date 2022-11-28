@@ -113,18 +113,18 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 	}
 	
 	@Override
-	public EventMapValue filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public EventMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 
 		try {
 			Stock stock = targetStock.getStock();
-			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequieredStockData());
+			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
 			Quotations quotations  = QuotationsFactories.getFactory()
 					.getQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
 			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 			this.eventData = eventData.entrySet().stream().filter(e -> exactMapFromQuotations.containsKey(e.getKey().getDate())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
 
 			this.additionalOutputs = additionalOutputs.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequierements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
+					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequirements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
 			return this;
 		} catch (Exception e) {
 			throw new RuntimeException(e);

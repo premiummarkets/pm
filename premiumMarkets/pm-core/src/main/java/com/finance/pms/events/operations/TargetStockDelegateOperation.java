@@ -32,7 +32,7 @@ public class TargetStockDelegateOperation extends MapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		Operation operationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(0)).getValue(targetStock).clone();
 		String stockSymbolDelegate = ((StringValue) inputs.get(1)).getValue(targetStock);
 
@@ -41,7 +41,7 @@ public class TargetStockDelegateOperation extends MapOperation {
 			TargetStockInfo targetStockDelegate = new TargetStockInfo(
 					targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), 
 					stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
-			return (NumericableMapValue) operationClone.run(targetStockDelegate, targetStockDelegate.getEventInfoOpsCompoOperation().getReference(), thisStartShift);
+			return (NumericableMapValue) operationClone.run(targetStockDelegate, addThisToStack(thisCallStack, thisStartShift, 0, targetStock), thisStartShift + 0);
 		} catch (WarningException e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}

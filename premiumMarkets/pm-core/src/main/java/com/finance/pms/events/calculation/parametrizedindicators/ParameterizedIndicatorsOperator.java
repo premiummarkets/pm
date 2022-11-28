@@ -121,8 +121,15 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
 
 			eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
-			EventMapValue eventMapValue = (EventMapValue) eventInfoOpsCompoOperationHolder.run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
-
+			
+			long startTime = new Date().getTime();
+			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime);
+			EventMapValue eventMapValue = 
+					(EventMapValue) ((EventInfoOpsCompoOperation)eventInfoOpsCompoOperationHolder.clone())
+										.run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
+			long finishTime = new Date().getTime();
+			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds." );
+			
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
 			try {
@@ -179,7 +186,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 		try {
 
-			List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputs();
+			List<Output> gatheredOutputs = targetStock.getGatheredChartableOutputsAsync();
 
 			List<Object> normOutputs = new ArrayList<>();
 			SortedSet<Date> fullDateSet = new TreeSet<>();
@@ -200,7 +207,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			}
 
 			//Add Constants outputs
-			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
+			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroupsAsync();
 			for (ChartedOutputGroup chartedOutputGroup : chartedOutputGroups) {
 				Collection<OutputDescr> values = chartedOutputGroup.getComponents().values();
 				for (OutputDescr outputDescr : values) {
@@ -270,7 +277,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 	@Override
 	public ValidityFilter quotationsValidity() {
-		Set<QuotationDataType> requieredStockData = this.eventInfoOpsCompoOperationHolder.getRequieredStockData();
+		Set<QuotationDataType> requieredStockData = this.eventInfoOpsCompoOperationHolder.getRequiredStockData();
 		return ValidityFilter.getFilterFor(requieredStockData);
 	}
 

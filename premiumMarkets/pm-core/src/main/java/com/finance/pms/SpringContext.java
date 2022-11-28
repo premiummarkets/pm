@@ -468,6 +468,9 @@ public class SpringContext extends GenericApplicationContext {
 			//Event cache
 			System.out.println("event cache is "+props.getProperty("event.cache"));
 			putInPrefs("event.cache", props);
+			
+			//Chart
+			putInPrefs("chart.display", props);
 
 			MainPMScmd.getMyPrefs().flushy();
 

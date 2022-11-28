@@ -85,10 +85,10 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 //			httpgetStr  = httpgetStr.concat("&q=").concat(URLEncoder.encode(Q,"utf-8"));
 //			
 //		} catch (UnsupportedEncodingException e) {
-//			LOGGER.debug(e);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 //		}
 //		
-//		LOGGER.debug(httpgetStr);
+//		if (LOGGER.isDebugEnabled()) LOGGER.debug(httpgetStr);
 //		
 //		GetMethod httpget = new GetMethod(httpgetStr);
 //		return httpget;
@@ -117,11 +117,11 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 //				ml = this.readUrl(new InputStreamReader(new ByteArrayInputStream(arrayOutputStream.toByteArray())));
 //			}
 //		} catch (URIException e) {
-//			LOGGER.debug(e);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 //		} catch (HttpException e) {
-//			LOGGER.debug(e);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 //		} catch (IOException e) {
-//			LOGGER.debug(e);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug(e);
 //		} finally {
 //			getMethod.releaseConnection();
 //		}
@@ -141,7 +141,7 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 
 	@Override
 	public String getStockInfoPageURL(String isin) {
-		LOGGER.debug("Fecthing stock information is not implemented for google");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Fecthing stock information is not implemented for google");
         throw new RuntimeException("Fecthing stock information is not implemented for google");
 	}
 
@@ -150,7 +150,7 @@ public class HttpSourceGoogle extends HttpSource implements SourceConnector {
 			String endMonth, String endDay) {
 		//http://finance.google.com/finance/historical?q=NYSE:IBM&output=csv
 		//http://finance.google.com/finance/historical?cid=18241&startdate=Oct+6%2C+1970&enddate=Oct+4%2C+2008&output=csv
-		LOGGER.debug("http://finance.google.com/finance/historical?q=" +ticker+
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("http://finance.google.com/finance/historical?q=" +ticker+
 				"&startdate="+ startMonth + "+" + startDay + ",+" + startYear +
 				"&enddate="+ endMonth + "+" + endDay + ",+" + endYear + "&output=csv");
 		

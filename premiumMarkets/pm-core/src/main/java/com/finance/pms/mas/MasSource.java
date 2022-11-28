@@ -229,7 +229,7 @@ public class MasSource implements SourceConnector {
 				LOGGER.error("", e);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				LOGGER.debug("", e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 			}
 		}
 	}
@@ -283,7 +283,7 @@ public class MasSource implements SourceConnector {
 			return new MasConnection(MainPMScmd.getMyPrefs().get("mas.hostname", "localhost"), Integer.valueOf(portNum), loginParam, Integer
 					.parseInt(MainPMScmd.getMyPrefs().get("mas.ctimeout", "20000")));
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -367,7 +367,7 @@ public class MasSource implements SourceConnector {
 		}
 		if (this.processMap.containsKey(Integer.valueOf(connectionId))) {
 			MasProcess mp = this.processMap.get(Integer.valueOf(connectionId));
-			LOGGER.debug("Stop pss " + this.numPortMap.get(Integer.valueOf(connectionId)));
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Stop pss " + this.numPortMap.get(Integer.valueOf(connectionId)));
 			mp.stopProcess();
 			this.processMap.remove((Integer.valueOf(connectionId)));
 		}
@@ -592,7 +592,7 @@ public class MasSource implements SourceConnector {
 
 	public void destroy() {
 		for (MasProcess mp : this.processMap.values()) {
-			LOGGER.debug("Destroying mas process left running ");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Destroying mas process left running ");
 			mp.stopProcess();
 		}
 	}
@@ -602,12 +602,12 @@ public class MasSource implements SourceConnector {
 		int portNum = getNextAvailablePort(connectionId);
 		String cmd[] = { MainPMScmd.getMyPrefs().get("mas.server.cmd", "/usr/local/opt/Prgs/mas/bin/mas"), portNum + "", "-p", "-b" };
 		//env
-		LOGGER.debug("\n\nYour home : " + System.getenv("HOME"));
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("\n\nYour home : " + System.getenv("HOME"));
 		//dir (for cores and messages)
 		File dir = new File(MainPMScmd.getMyPrefs().get("mas.server.dir", System.getenv("HOME") + "/tmp"));
 		File outputfile = new File(dir, "output4thread_" + connectionId + ".log");
 		//exec
-		LOGGER.debug("\n\nStarting server (Thread " + connectionId + ") : " + Arrays.toString(cmd));
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("\n\nStarting server (Thread " + connectionId + ") : " + Arrays.toString(cmd));
 		try {
 			//Run
 			ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -622,7 +622,7 @@ public class MasSource implements SourceConnector {
 			if (Boolean.valueOf(MainPMScmd.getMyPrefs().get("mas.logserver","false"))) mpl.start();
 			this.processMap.put(Integer.valueOf(connectionId), mp);
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 	}
 }

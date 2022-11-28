@@ -96,14 +96,14 @@ protected static MyLogger LOGGER = MyLogger.getLogger(MasProcessLogging.class);
 			}
 			inputB.close();
 		} catch (IOException e) {
-			LOGGER.debug("logging interupted for connection " + c1 + ". Probably this server was stoped ...",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("logging interupted for connection " + c1 + ". Probably this server was stoped ...",e);
 		} finally {
-			LOGGER.debug("Mas loggin terminated for connection " + c1);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Mas loggin terminated for connection " + c1);
 			try {
 				outputB.flush();
 				outputB.close();
 			} catch (IOException e) {
-				LOGGER.debug("Can't close logging error for connection " + c1+". Can't close output.",e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't close logging error for connection " + c1+". Can't close output.",e);
 			}		
 		}
 	}

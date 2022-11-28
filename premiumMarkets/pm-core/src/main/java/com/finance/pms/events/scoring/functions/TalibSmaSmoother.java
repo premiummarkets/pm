@@ -108,7 +108,7 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 		} else {
 			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
 		}
-		LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Smoothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 		return sma;
 	}
 
@@ -147,7 +147,7 @@ public class TalibSmaSmoother extends Smoother implements SSmoother {
 		} else {
 			rc = TalibCoreService.getCore().sma(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, sma);
 		}
-		LOGGER.debug("smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 
 		SortedMap<Date, Double> ret = new TreeMap<Date, Double>();
 		int j = 0;

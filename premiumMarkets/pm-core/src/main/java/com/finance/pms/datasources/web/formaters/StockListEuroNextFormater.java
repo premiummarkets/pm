@@ -82,14 +82,14 @@ public class StockListEuroNextFormater extends LineFormater {
     	try {
 			String[] strArray = line.split(";");
 			if (strArray.length != 34 || "Symbol".equals(strArray[4])) {
-				LOGGER.debug("Wrong file format while proceding web stock list : " + 
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong file format while proceding web stock list : " + 
 						line+" with lenght "+strArray.length+". Ignoring line");
 			} else {
 				Long capitalisation = 0L;
 				try {
 					capitalisation = Long.valueOf(strArray[13].replace(",",""));
 				} catch (NumberFormatException e) {
-					LOGGER.debug("No capitalisation value for "+strArray[4]);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("No capitalisation value for "+strArray[4]);
 				}
 				
 				retour.add(new Stock(strArray[1], strArray[4], strArray[0], true, this.stockCategorie, 

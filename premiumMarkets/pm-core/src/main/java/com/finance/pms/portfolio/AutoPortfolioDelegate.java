@@ -110,7 +110,7 @@ public class AutoPortfolioDelegate {
 
 		TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
 
-		LOGGER.debug("Checking events for AutoPortfolio: " + thisPortfolio.getName() + " and date " + currentDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking events for AutoPortfolio: " + thisPortfolio.getName() + " and date " + currentDate);
 		thisCalculationHistory.addAll(this.checkSellSignals(buyStrategy, currentDate, listEvents, sellComparator));
 		BigDecimal canBuy = canBuy(buyStrategy);
 		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
@@ -193,14 +193,14 @@ public class AutoPortfolioDelegate {
 
 		};
 
-		LOGGER.debug("Threshold event: " + symbolEventsThreshold);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Threshold event: " + symbolEventsThreshold);
 
 		SortedSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
-		LOGGER.debug("Total bullish events: " + sortedSymbolEvents);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Total bullish events: " + sortedSymbolEvents);
 
 		SortedSet<SymbolEvents> sortedSymbolEventsHead = sortedSymbolEvents.headSet(symbolEventsThreshold); //XXX PonderationRule.compare is reversed!!
-		LOGGER.debug("Filtered bullish events tail: " + sortedSymbolEventsHead);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Filtered bullish events tail: " + sortedSymbolEventsHead);
 		
 		if (sortedSymbolEventsHead.isEmpty()) {
 			LOGGER.info("No buy signal at " + currentDate + " with " + listEvents);
@@ -365,14 +365,14 @@ public class AutoPortfolioDelegate {
 				return "Event sell threshold = " + getWeight(null);
 			}
 		};
-		LOGGER.debug("Threshold event: " + symbolEventThreshold);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Threshold event: " + symbolEventThreshold);
 
 		NavigableSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
 		LOGGER.trace("Total bearish events: " + sortedSymbolEvents);
 
 		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventThreshold); //XXX PonderationRule.compare is reversed!!
-		LOGGER.debug("Filtered bearish events head: " + sortedSymbolEventsHead);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Filtered bearish events head: " + sortedSymbolEventsHead);
 		
 		if (sortedSymbolEventsHead.isEmpty()) {
 			LOGGER.info("No sell signal at " + currentDate + " with " + listEvents);
@@ -517,7 +517,7 @@ public class AutoPortfolioDelegate {
 				.append(availableCash + ",").append(calcDate + "," + symbol + "," + isin + ",").append(cleanSharename + ",").append(currency + ",")
 				.append(("sell".equals(movement)?"-":"") + quantity + ",").append(price + ",").append(("sell".equals(movement)?"-":"") + amount + ",")
 				.append(timeStamp + ",").append(cleanEventList);
-			LOGGER.debug(line);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(line);
 
 			fos.write(line.toString()+"\n");
 			fos.flush();

@@ -39,7 +39,7 @@ public class DayQuoteInvestingFormater extends LineFormater {
 			if (null == PATTERNS)
 				PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		uniquePattern = Pattern.compile(PATTERNS.getProperty("investingPattern"));

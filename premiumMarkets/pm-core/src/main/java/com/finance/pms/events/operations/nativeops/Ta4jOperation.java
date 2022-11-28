@@ -59,7 +59,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String ta4jClassName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		ValidityFilter validityFilter = ValidityFilter.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));

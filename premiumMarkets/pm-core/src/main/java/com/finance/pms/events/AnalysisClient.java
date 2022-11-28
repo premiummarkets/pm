@@ -159,7 +159,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 	private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
 
-		LOGGER.debug(
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(
 				"Email/Popup potential (before filtering) message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : "+
 				symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
 
@@ -184,7 +184,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 	private void runAsyncTask(String analysisName, Runnable runnable) {
 
-		LOGGER.debug("Executing executor :"+runnable.getClass().getName()+" for "+ analysisName);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Executing executor :"+runnable.getClass().getName()+" for "+ analysisName);
 		analysisExecutor.execute(runnable);
 
 	}

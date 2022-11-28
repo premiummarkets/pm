@@ -65,7 +65,7 @@ public class StockListStaticListFormater extends LineFormater {
     	try {
 			String[] strArray = line.split(columnDelim);
 			if ((strArray.length != 4 ) || "Code".equals(strArray[0])) {
-				LOGGER.debug("Header or unparsable line : " + line+". Ignoring line");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Header or unparsable line : " + line+". Ignoring line");
 			} else {
 				retour.add(new Stock(
 						strArray[0].replaceAll("\"", ""),

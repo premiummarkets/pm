@@ -31,8 +31,11 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 
 public class OutputReference implements Comparable<OutputReference> {
+	
+//	private static MyLogger LOGGER = MyLogger.getLogger(OutputReference.class);
 
 	private String reference;
 	private String operationReference;
@@ -40,41 +43,35 @@ public class OutputReference implements Comparable<OutputReference> {
 	private String formula;
 	private String referenceAsOperand;
 	private StringableValue constant;
-	private String fullOperationString;
-
-	public OutputReference(String reference, String outputSelector, String formula, String referenceAsOperand, StringableValue constant, String operationReference, String operationFullString) {
-
-		//These are just names edited and don't discriminate the calculation
-		this.reference = reference;
-		this.referenceAsOperand = referenceAsOperand;
-
-		//Discriminating fields
-		this.operationReference = operationReference;
-		this.outputSelector = outputSelector;
-		this.formula = formula;
-		this.fullOperationString = operationFullString.replaceAll("\\s+","");
-		this.constant = constant;
-
-	}
-
+	
 	//FIXME multiOutputDiscriminator and outputSelector should two distinctive attributes
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
-
 		this.reference = operation.getReference();
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 
 		this.operationReference = operation.getOperationReference();
 		this.outputSelector = multiOutputDiscriminator;
-		this.formula = operation.getFormulae();
-		this.fullOperationString = operation.toFullString().replaceAll("\\s+","");
+		this.formula = (operation.getFormulae() != null)?operation.getFormulae():operation.toFormulae();
+		this.formula = this.formula.replaceAll("\\s+","");
+	}
+
+	public OutputReference(Operation operation, String referenceAsOperandOverride, NumberValue doubleValue) {
+		this(operation, operation.getOutputSelector());
+		this.referenceAsOperand = referenceAsOperandOverride;
+		this.constant = doubleValue;
+	}
+
+	public OutputReference(Operation operation, String selector, String tamperedFormula) {
+		this(operation, selector);
+		this.formula = tamperedFormula;
+		this.formula = this.formula.replaceAll("\\s+","");
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((formula == null) ? 0 : formula.replaceAll("\\s+","").hashCode());
-		result = prime * result + ((fullOperationString == null) ? 0 : fullOperationString.hashCode());
+		result = prime * result + ((formula == null) ? 0 : formula.hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
 		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
@@ -94,19 +91,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		if (formula == null) {
 			if (other.formula != null)
 				return false;
-		}
-		else if (other.formula == null) 
-			return false;
-		else if (!formula.replaceAll("\\s+","").equals(other.formula.replaceAll("\\s+","")))
-			return false;
-		
-		if (fullOperationString == null) {
-			if (other.fullOperationString != null)
-				return false;
-		}
-		else if (other.fullOperationString == null) 
-			return false;
-		else if (!fullOperationString.equals(other.fullOperationString))
+		} else if (!formula.equals(other.formula))
 			return false;
 
 		if (outputSelector == null) {
@@ -163,20 +148,6 @@ public class OutputReference implements Comparable<OutputReference> {
 			}
 		}
 		if (compareTo == 0) {
-			if (this.fullOperationString == null && o.fullOperationString == null) {
-				compareTo = 0;
-			} 
-			else if (this.fullOperationString == null) {
-				compareTo = 1;
-			}
-			else if (o.fullOperationString == null) {
-				compareTo = -1;
-			}
-			else {
-				compareTo = this.fullOperationString.compareTo(o.fullOperationString);
-			}
-		}
-		if (compareTo == 0) {
 			if (this.constant == null && o.constant == null) {
 				compareTo = 0;
 			}
@@ -200,8 +171,15 @@ public class OutputReference implements Comparable<OutputReference> {
 
 	@Override
 	public String toString() {
-		return "OutputReference [constant=" + constant + ", referenceAsOperand=" + referenceAsOperand + ", reference=" + reference + ", operationReference=" + operationReference +
-				", outputSelector=" + outputSelector + ", formula=" + formula + ", fullOperationString=" + fullOperationString + "]";
+		return "OutputReference ["
+				+ " reference=" + reference 
+				+ " referenceAsOperand=" + referenceAsOperand + ","
+				
+				+ " formula=" + formula + ","
+				+ " outputSelector=" + outputSelector + ","
+				+ " operationReference=" + operationReference + ","
+				+ " constant=" + constant + ","
+				+ "]";
 	}
 
 	public String getOperationReference() {

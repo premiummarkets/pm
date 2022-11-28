@@ -43,7 +43,7 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 	}
 
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer overPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(getLastPeriodsIndex())).getValue(targetStock).intValue();

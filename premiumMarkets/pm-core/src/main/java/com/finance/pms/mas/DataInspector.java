@@ -92,7 +92,7 @@ public class DataInspector {
 				throw new RestartServerException("No reponse: Probably Mas Server crash");
 			}
 		} catch (Exception e) {
-			LOGGER.debug("",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 			throw new RestartServerException();
 		} 
 	}

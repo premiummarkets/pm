@@ -66,7 +66,7 @@ public class ImfOneRequestFetcher implements ExchangeRatesFetcher {
 		endDateCalendar.setTime(end);
 
 		final String url = httpSource.getImfHistoryUrl(start);
-		LOGGER.debug("Url : "+url);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Url : "+url);
 		
 		Thread thread = new Thread(new Runnable() {
 

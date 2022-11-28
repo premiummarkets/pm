@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -31,12 +32,12 @@ public class MetaOperation extends Operation {
 	public MetaOperation() {
 		this("meta", "Takes any function formulae, as prepared, with '?' in place of numeric parameters and its numeric parameters as input.", 
 				new StringOperation("string", "formulae", "Prepared formulae. Ex sma(?, close)", new StringValue("sma(?, close)")),
-				new NumberOperation("number", "parameter", "Parameter to put in palce in the formulae", new NumberValue(14.0)));
+				new NumberOperation("number", "parameter", "Parameter values for each ?", new NumberValue(14.0)));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String preparedFormula =  ((StringValue) inputs.get(0)).getValue(targetStock);
 		List<Number> parametersInPlace = inputs.subList(1, inputs.size()).stream().map(n -> ((NumberValue) n).getValue(targetStock)).collect(Collectors.toList());
@@ -47,19 +48,29 @@ public class MetaOperation extends Operation {
 		}
 		
 		ParameterizedBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
-		String operationNewId = "meta_" + UUID.randomUUID();
+		Checksum crc32 = new CRC32();
+		byte[] formulaeBytes = formula.getBytes();
+		crc32.update(formulaeBytes, 0, formulaeBytes.length);
+		long formulaeCheckSum = crc32.getValue();
+		String operationNewId = "meta_" + formulaeCheckSum;
 		try {
 			
 			NextToken checkNextToken = parameterizedOperationBuilder.checkNextToken(formula);
 			if (checkNextToken != null) throw new RuntimeException("Invalid formulae. " + operationNewId + ". Formula: " + formula + ". Error: " + checkNextToken);
 			Operation existingOperation = parameterizedOperationBuilder.getCurrentOperations().get(operationNewId);
-			if (existingOperation != null) throw new RuntimeException("Operation already exists. " + operationNewId + ": " + formula);
-			
-			LOGGER.info("Adding formulae. " + operationNewId + ": " + formula);
-			parameterizedOperationBuilder.addFormula(operationNewId, formula);
+			if (existingOperation == null) {
+				LOGGER.info("Adding formulae. " + operationNewId + ": " + formula);
+				parameterizedOperationBuilder.addFormula(operationNewId, formula);
+			}
 
-			Operation operation = parameterizedOperationBuilder.getCurrentOperations().get(operationNewId);
-			Value<?> output = operation.run(targetStock, targetStock.getEventInfoOpsCompoOperation().getReference(), thisStartShift);
+			Operation operation = (Operation) parameterizedOperationBuilder.getCurrentOperations().get(operationNewId).clone();
+			int operationOperandsStartShift = operation.operandsRequiredStartShift(targetStock, thisStartShift);
+			
+			LOGGER.info(
+					"Running meta: " + operation.getReference() + " with formulea: " + formula + 
+					" and shift: " + thisStartShift + " and operands shift: " + operationOperandsStartShift);
+			
+			Value<?> output = operation.run(targetStock, addThisToStack(thisCallStack, thisStartShift, operationOperandsStartShift, targetStock), thisStartShift + operationOperandsStartShift);
 			
 			return output;
 			
@@ -102,6 +113,11 @@ public class MetaOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return new DoubleMapValue();
 	}
 
 }

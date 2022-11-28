@@ -1413,13 +1413,13 @@ public class OperationBuilderComposite extends Composite {
 		getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, Math.min(popupSize.x, getShell().getSize().x), Math.min(200, popupSize.y) + 10);
 		getPopupShell().setVisible(showContextPopup);
 
-		LOGGER.debug("Items : " + tokenAltsTable.getItems());
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Items : " + tokenAltsTable.getItems());
 		if (LOGGER.isDebugEnabled()) {
 			String itemsStr = "";
 			for (TableItem tableItem : tokenAltsTable.getItems()) {
 				itemsStr = itemsStr + tableItem.getText(0) + ":" + tableItem.getText(1) + " , ";
 			}
-			LOGGER.debug("ItemStr size " + tokenAltsTable.getItems().length + ". Items str : " + itemsStr);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("ItemStr size " + tokenAltsTable.getItems().length + ". Items str : " + itemsStr);
 		}
 
 	}

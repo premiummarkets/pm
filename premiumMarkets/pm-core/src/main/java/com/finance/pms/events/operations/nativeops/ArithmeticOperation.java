@@ -58,7 +58,7 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		if (inputs.size() == 0) return new DoubleMapValue();
 		if (inputs.size() == 1) return (NumericableMapValue) inputs.get(0);
@@ -69,7 +69,7 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 //		NumericableMapValue outputs = innerCalc(targetStock, checkedInputs, fullKeySet);
 //		return outputs;
 		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, data);
-		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, innerCalcFunc, checkedInputs);
+		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, parentRequiredStartShift, innerCalcFunc, checkedInputs);
 
 	}
 

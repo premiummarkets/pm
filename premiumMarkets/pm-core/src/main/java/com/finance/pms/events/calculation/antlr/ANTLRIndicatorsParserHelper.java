@@ -161,16 +161,16 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				exceptionIndex = 0;
 				parser.complete_expression();
 			} catch (ExitParsingException e) {
-				LOGGER.debug("Early exit : " + e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Early exit : " + e);
 			}
 
-			LOGGER.debug("Exception stack :"+ exceptions);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception stack :"+ exceptions);
 
-			LOGGER.debug("---------------------------------------------------");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
+				if (LOGGER.isDebugEnabled()) if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
 			}
-			LOGGER.debug("---------------------------------------------------");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 
 			SortedMap<AltType, SortedMap<Integer, LinkedList<Alternative>>> priorityList = new TreeMap<AltType, SortedMap<Integer,LinkedList<Alternative>>>(new Comparator<AltType>() {
 
@@ -238,7 +238,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 						deletePosition = new int[]{exception.line,exception.charPositionInLine+tokenTxt.length()-1};
 					}
 				}
-				LOGGER.debug("Expected : " + expectedTxt);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Expected : " + expectedTxt);
 
 				//TokenTxt
 				if (tokenTxt.isEmpty() && !parsedLine.isEmpty()) {
@@ -257,7 +257,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					}
 					if (!eofToken) deletePosition = new int[]{exception.line,exception.charPositionInLine+tokenTxt.length()-1};
 				}
-				LOGGER.debug("Token : " + tokenTxt);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Token : " + tokenTxt);
 
 				//Positions
 				int[] eofPosition =  ANTLRParserHelper.translateCaretToPosition(parsedLine, parsedLine.length()-1);
@@ -269,11 +269,11 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				}
 				//int[] tokenPosition = new int[]{deletePosition[0], deletePosition[1]+1};
 
-				LOGGER.debug("Delete position : " + deletePosition[0] + ", " + deletePosition[1]);
-				//LOGGER.debug("Token position : " + tokenPosition[0] + ", " + tokenPosition[1]);
-				LOGGER.debug("Exception position : " + exception.line + ", " + exception.charPositionInLine);
-				LOGGER.debug("EOF Position : " + eofPosition[0] + ", " + eofPosition[1]);
-				LOGGER.debug("is EOFToken : " + eofToken);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Delete position : " + deletePosition[0] + ", " + deletePosition[1]);
+				//if (LOGGER.isDebugEnabled()) LOGGER.debug("Token position : " + tokenPosition[0] + ", " + tokenPosition[1]);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception position : " + exception.line + ", " + exception.charPositionInLine);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("EOF Position : " + eofPosition[0] + ", " + eofPosition[1]);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("is EOFToken : " + eofToken);
 
 				//Expected
 				if (expectedTxt != null && expectedTxt.equals("WhiteChar")) {
@@ -541,7 +541,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 			}
 
-			LOGGER.debug("Final position : " + state.tokenStartLine + ", " + state.tokenStartCharPositionInLine);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Final position : " + state.tokenStartLine + ", " + state.tokenStartCharPositionInLine);
 			if (priorityList.isEmpty()) {
 				int finalCaretPosition = translatePositionToCaret(parsedLine, state.tokenStartLine, state.tokenStartCharPositionInLine);
 				if (parsedLine.length() > finalCaretPosition) {
@@ -561,8 +561,8 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 			}
 
 
-			LOGGER.debug("Priority list : " + priorityList);
-			LOGGER.debug("Next token alt : " + nextToken);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Priority list : " + priorityList);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Next token alt : " + nextToken);
 
 			return nextToken;
 
@@ -592,7 +592,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 			allOpsAndStockDataAsAlts.addAll(addAllOpsAsAlts(expectedTxt, position));
 			foundMatching = true;
 		} catch (IllegalArgumentException e) {
-			LOGGER.debug("No operation matching" + e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("No operation matching" + e);
 		}
 		return foundMatching;
 	}

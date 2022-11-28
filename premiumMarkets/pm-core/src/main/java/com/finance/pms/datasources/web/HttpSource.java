@@ -254,7 +254,7 @@ public abstract class HttpSource implements SourceConnector {
 			while (result == 302) {//redirected
 
 				String locationRedir = response.getFirstHeader("location").getValue();
-				LOGGER.debug("Redirection URL :" + locationRedir);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Redirection URL :" + locationRedir);
 				//httpget.releaseConnection();
 				response.close();
 
@@ -333,7 +333,7 @@ public abstract class HttpSource implements SourceConnector {
 						validatables = formater.formatLine(line);
 						if (validatables != null) resultSet.addAll(validatables);
 					} catch (StopParseFoundException e) {
-						LOGGER.debug("Symbol : " + ((StopParseFoundException) e).getLastOne() + " Found");
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Symbol : " + ((StopParseFoundException) e).getLastOne() + " Found");
 						resultSet.add((e.getLastOne()));
 						break;
 					} catch (StopParseErrorException e) {
@@ -351,7 +351,7 @@ public abstract class HttpSource implements SourceConnector {
 
 					} catch (Exception e) {
 
-						LOGGER.debug("Ignoring line :" + line);
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line :" + line);
 						LOGGER.trace(e);
 						otherExeptions.add(e);
 

@@ -61,7 +61,7 @@ public class AssVieFormater extends LineFormater {
 			if (null == AssVieFormater.PATTERNS)
 				AssVieFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		stockLine = Pattern.compile(AssVieFormater.PATTERNS.getProperty("assVieStockLine"));

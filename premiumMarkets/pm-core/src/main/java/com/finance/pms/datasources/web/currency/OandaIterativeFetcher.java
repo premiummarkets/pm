@@ -50,7 +50,7 @@ public class OandaIterativeFetcher implements ExchangeRatesFetcher {
 	
 	private final MyLogger LOGGER = MyLogger.getLogger(OandaIterativeFetcher.class);
 	
-	private static final int DELTA_INC = 500*5/7 - 100;
+	private static final int DELTA_INC = 500*5/7 - 100; //FIXME data points conversion
 	private HttpSourceExchange httpSource;
 	
 	public OandaIterativeFetcher(HttpSourceExchange httpSource) {
@@ -83,7 +83,7 @@ public class OandaIterativeFetcher implements ExchangeRatesFetcher {
 						
 						List<Validatable> readURL = httpSource.readURL(new CurrencyOandaHistoryFormater(fromCurrency, toCurrency, oandaHistoryUrl));
 						LOGGER.info("Found : "+readURL.size());
-						LOGGER.debug("Found : "+readURL);
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Found : "+readURL);
 						rates.addAll(readURL);
 						
 						QuotationsFactories.getFactory().incrementDate(currentCal, 1);

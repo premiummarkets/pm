@@ -429,14 +429,14 @@ public class EventSignalConfig extends Config implements Cloneable {
 				}
 				Constructor<PonderationRule> constructor = ponderationRuleClass.getConstructor(paramTypes);
 				PonderationRule newInstance = constructor.newInstance(constructParam);
-				LOGGER.debug("Found constructor with param for : "+newInstance.getClass().getName());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Found constructor with param for : "+newInstance.getClass().getName());
 				return newInstance;
 			} catch (SecurityException e) {
 				LOGGER.error("Unknown Ponderation Rule " + ponderationRuleClassName + " with params " + Arrays.toString(constructParam), e);
 				return ponderationRuleClass.getDeclaredConstructor().newInstance();
 			} catch (NoSuchMethodException e) {
 				PonderationRule newInstance = ponderationRuleClass.getDeclaredConstructor().newInstance();
-				LOGGER.debug("Found constructor with NO param for : " + newInstance.getClass().getName());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Found constructor with NO param for : " + newInstance.getClass().getName());
 				return newInstance;
 			} catch (IllegalArgumentException e) {
 				LOGGER.error("Unknown Ponderation Rule " + ponderationRuleClassName  + " with params " + Arrays.toString(constructParam), e);

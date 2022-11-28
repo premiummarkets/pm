@@ -978,6 +978,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							}
 						}
 					});
+					indicatorMenuItem.setSelection(true);
 				}
 				{
 					final MenuItem perfsMenuItem = new MenuItem(mainGuiParent.chartSubMenu, SWT.RADIO);
@@ -991,7 +992,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							}
 						}
 					});
-					perfsMenuItem.setSelection(true);
+					//perfsMenuItem.setSelection(true);
 				}
 
 				{
@@ -1387,7 +1388,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				column.setToolTipText(Titles.values()[j].getToolTip());
 				column.addSelectionListener(new SelectionListener() {
 					public void widgetDefaultSelected(SelectionEvent arg0) {
-						LOGGER.debug("Column selected : " + ((TableColumn) arg0.getSource()).getText());
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Column selected : " + ((TableColumn) arg0.getSource()).getText());
 						sortColumn(((TableColumn) arg0.getSource()).getText());
 					}
 
@@ -2140,7 +2141,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		UserDialog inst;
 
-		LOGGER.debug("Tables Items :" + tableItem.getText(0) + ";" + tableItem.getText(1) + ";" + tableItem.getText(2) + ";" + tableItem.getText(3));
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Tables Items :" + tableItem.getText(0) + ";" + tableItem.getText(1) + ";" + tableItem.getText(2) + ";" + tableItem.getText(3));
 		final int tabIdx = selectedPortfolioIdx();
 		try {
 
@@ -2279,7 +2280,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 					if (LOGGER.isDebugEnabled()) {
 						try {
-							LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog(
+							if (LOGGER.isDebugEnabled()) LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog(
 									(slidingStartAnchor.getSelection()) ? chartsComposite.getSlidingStartDate() : DateFactory.dateAtZero(),
 											(slidingEndAnchor.getSelection()) ? chartsComposite.getSlidingEndDate() : DateFactory.getNowEndDate()));
 						} catch (Throwable e) {
@@ -2592,7 +2593,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 
 	private void handleRootShellClosed(Event evt) {
-		LOGGER.debug("dialogShell.shellClosed, event="+evt);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("dialogShell.shellClosed, event="+evt);
 		hibernatePortfolios();
 	}
 

@@ -34,7 +34,7 @@ public class StockListReutersIndicesHtmlScrapFormater extends LineFormater {
 		try {
 			if (null == PATTERNS) PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		symbolPattern = Pattern.compile(PATTERNS.getProperty("reutersindicestocksymbol"));
 		namePattern = Pattern.compile(PATTERNS.getProperty("reutersindicestockname"));

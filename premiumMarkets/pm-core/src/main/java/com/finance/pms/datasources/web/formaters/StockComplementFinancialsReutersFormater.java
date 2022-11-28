@@ -69,7 +69,7 @@ public class StockComplementFinancialsReutersFormater extends LineFormater {
 			if (null == StockComplementFinancialsReutersFormater.PATTERNS)
 				StockComplementFinancialsReutersFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		estEPSTtl = Pattern.compile(StockComplementFinancialsReutersFormater.PATTERNS.getProperty("reutersEstEPSTtl"));
 		estEPS = Pattern.compile(StockComplementFinancialsReutersFormater.PATTERNS.getProperty("reutersEstEPS"));

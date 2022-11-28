@@ -118,7 +118,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 			try {
 				try {
 					String url = this.httpSource.getStockInfoPageURL(stock.getSymbol());
-					LOGGER.debug(" Will parse url : " + url);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug(" Will parse url : " + url);
 					LineFormater dsf = new StockComplementYahooFormater(url, stock);
 					List<Validatable> readURL = this.httpSource.readURL(dsf);
 					if (!readURL.isEmpty()) {
@@ -246,7 +246,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement dividend and PEG for symbol (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with dividends and PEG (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with dividends and PEG (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with dividends and PEG (StockComplementSummaryYahooFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setYahooEPS(BigDecimal.ZERO);
 		}
@@ -278,7 +278,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement yahoo PEG for symbol (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with yahoo PEG (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with yahoo PEG (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with yahoo PEG (StockComplementEstimatesYahooFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setYahooEstEPS(BigDecimal.ZERO);
 		}	
@@ -301,7 +301,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement bourso PEG or DIV for symbol (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with bourso PEG or DIV (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with bourso PEG or DIV (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with bourso PEG or DIV (StockComplementSummaryBoursoramaFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setBoursoBNA(BigDecimal.ZERO);
 			trendSupStock.setBoursoEstBNA(BigDecimal.ZERO);
@@ -327,7 +327,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement Reuters PEG for symbol (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with Reuters PEG (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with Reuters PEG (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with Reuters PEG (StockComplementFinancialsReutersFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setReutersEstEPS(BigDecimal.ZERO);
 			trendSupStock.setReutersPayoutRatio(BigDecimal.ZERO);
@@ -351,7 +351,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement Reuters PEG for symbol (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with Reuters PEG (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with Reuters PEG (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with Reuters PEG (StockComplementSummaryReutersFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setReutersEPS(BigDecimal.ZERO);
 		}
@@ -386,7 +386,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 						trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
 					}
 				} catch (Exception e1) {
-					LOGGER.debug("Can't supplement bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
 					trendSupStock.setBoursoMeanRecommendations(BigDecimal.ZERO);
 					trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
 				}
@@ -395,7 +395,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		}  catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement bourso opinion symbol : "+trendSupStock.getStock().getSymbol(),e);
 		}  catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with bourso opinions (StockComplementOpinionBoursoramaFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setBoursoMeanRecommendations(BigDecimal.ZERO);
 			trendSupStock.setBoursoTargetPrice(BigDecimal.ZERO);
@@ -419,7 +419,7 @@ public class ProvidersYahooIndices extends ProvidersList {
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Can't supplement yahoo opinions symbol (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 		} catch (Exception e) {
-			LOGGER.debug("Can't supplement symbol with yahoo opinions (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't supplement symbol with yahoo opinions (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol(),e);
 			LOGGER.warn("Can't supplement symbol with yahoo opinions (StockComplementOpinionYahooFormater) : "+trendSupStock.getStock().getSymbol());
 			trendSupStock.setYahooMeanRecommendations(BigDecimal.ZERO);
 			trendSupStock.setYahooTargetPrice(BigDecimal.ZERO);

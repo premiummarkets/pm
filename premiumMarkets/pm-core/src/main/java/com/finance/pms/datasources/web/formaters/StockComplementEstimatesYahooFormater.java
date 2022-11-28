@@ -54,7 +54,7 @@ public class StockComplementEstimatesYahooFormater extends LineFormater {
 			if (null == StockComplementEstimatesYahooFormater.PATTERNS)
 				StockComplementEstimatesYahooFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		estEPS = Pattern.compile(StockComplementEstimatesYahooFormater.PATTERNS.getProperty("yahooEstEPS"));

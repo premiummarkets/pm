@@ -30,7 +30,6 @@
 package com.finance.pms.alerts;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -78,7 +77,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 		for (int quotationIndex = quotations.getFirstDateShiftedIdx(); quotationIndex <= quotations.getLastDateIdx() && quotationIndex < quotations.size(); quotationIndex++) {
 
-			LOGGER.debug("Calculate alerts for: " + portfolioShare);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculate alerts for: " + portfolioShare);
 
 			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());
 			QuotationUnit quotation = quotations.get(quotationIndex);
@@ -95,7 +94,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 							"\nResulting events : " + edata);
 				}
 			} else {
-				LOGGER.debug("Can't parse alert on the " + quotation.getDate() +
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Can't parse alert on the " + quotation.getDate() +
 						" cause either: the share was bought after on " + portfolioShare.getLastTransactionDate() +
 						" or the share as been sold by another thread and there is none left: quantity left is " + quantity);
 

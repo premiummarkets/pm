@@ -62,34 +62,34 @@ public class LeftShifter<T> {
 
 	public SortedMap<Date, T> shift(SortedMap<Date, T> data) {
 
-		SortedMap<Date, T> shiftedOuptput = new TreeMap<Date, T>();
+		SortedMap<Date, T> shiftedOutput = new TreeMap<Date, T>();
 
 		List<Date> keyList = new ArrayList<Date>(data.keySet());
 		int j0 = (nbDaysAhead >= 0)? nbDaysAhead:0;
 		int jLast =  (nbDaysAhead >= 0)? keyList.size(): keyList.size()+nbDaysAhead;
 		for (int j = j0; j < jLast; j++) {
-			shiftedOuptput.put(keyList.get(j-nbDaysAhead), data.get(keyList.get(j)));
+			shiftedOutput.put(keyList.get(j-nbDaysAhead), data.get(keyList.get(j)));
 		}
 
 		if (noDataLoss) {
-			int nbMissingDays = data.size() - shiftedOuptput.size();
+			int nbMissingDays = data.size() - shiftedOutput.size();
 			Calendar calendar = Calendar.getInstance();
 
 			if (nbDaysAhead > 0) {
-				calendar.setTime(shiftedOuptput.firstKey());
+				calendar.setTime(shiftedOutput.firstKey());
 				for (int i = 1; i <= nbMissingDays; i++) {
 					QuotationsFactories.getFactory().incrementDate(calendar, -1);
-					shiftedOuptput.put(calendar.getTime(), data.get(keyList.get(j0-i)));
+					shiftedOutput.put(calendar.getTime(), data.get(keyList.get(j0-i)));
 				}
 			} else {
-				calendar.setTime(shiftedOuptput.lastKey());
+				calendar.setTime(shiftedOutput.lastKey());
 				for (int i = 0; i < nbMissingDays; i++) {
 					QuotationsFactories.getFactory().incrementDate(calendar, +1);
-					shiftedOuptput.put(calendar.getTime(), data.get(keyList.get(jLast+i)));
+					shiftedOutput.put(calendar.getTime(), data.get(keyList.get(jLast+i)));
 				}
 			}
 		}
-		return shiftedOuptput;
+		return shiftedOutput;
 
 	}
 

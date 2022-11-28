@@ -55,7 +55,7 @@ public class StockComplementBSEFormater extends LineFormater {
 			if (null == StockComplementBSEFormater.PATTERNS)
 				StockComplementBSEFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 
 		String name = stockPart.getName().replace("(", "\\(").replace(")","\\)");
@@ -94,7 +94,7 @@ public class StockComplementBSEFormater extends LineFormater {
 		try {
 			stockPart.setSymbol(fit.group(1));
 		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 			throw new StopParseErrorException("Invalid match scrip code while setting scrip id", e.getMessage());
 		}
 	}

@@ -62,7 +62,7 @@ public class StockListYahooIncideHtmlScrapFormater extends LineFormater {
 			if (null == StockListYahooIncideHtmlScrapFormater.PATTERNS)
 				StockListYahooIncideHtmlScrapFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		yahooIndiceStockElementPattern = Pattern.compile(StockListYahooIncideHtmlScrapFormater.PATTERNS.getProperty("yahooindicestockelement"));
 	

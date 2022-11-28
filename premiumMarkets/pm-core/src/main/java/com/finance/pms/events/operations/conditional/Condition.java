@@ -107,7 +107,7 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new BooleanMapValue();
 	}
 
@@ -182,5 +182,10 @@ public class Condition<T> extends Operation {
 		Boolean conditionCheck = reduceRawOutputForPeriod(targetStock, fullKeySet, realRowOutputs, forPeriod, actualDate, rawConditionCheck);
 		if (conditionCheck != null) outputs.getValue(targetStock).put(actualDate, conditionCheck);
 		return conditionCheck;
+	}
+
+	@Override
+	public BooleanMapValue emptyValue() {
+		return new BooleanMapValue();
 	}
 }

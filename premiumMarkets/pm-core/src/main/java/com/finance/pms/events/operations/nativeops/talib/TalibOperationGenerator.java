@@ -167,7 +167,7 @@ public class TalibOperationGenerator {
 				if (!e.getMessage().contains("class [F is neither")) {
 					LOGGER.warn("Ignored talib entry : "+method.getName() + " cause : "+e.getMessage());
 				} else {
-					LOGGER.debug("Ignored Float talib entry : "+method.getName() + " cause : "+e.getMessage());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignored Float talib entry : "+method.getName() + " cause : "+e.getMessage());
 				}
 			}
 		}

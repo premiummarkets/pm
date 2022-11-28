@@ -51,7 +51,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName + "_";
@@ -92,7 +92,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 			return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
 			
 		} catch (Exception e) {
-			LOGGER.error(this.getReference() + " : " + e, e);
+			LOGGER.error(this.getReference() + " failed: with " + targetStock + " and " + assemblerGroupName + " and " + allowTrailingNaN + " and " + inputs, e);
 		}
 		
 		return new DoubleArrayMapValue();
@@ -110,7 +110,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		try {
 			IntStream.range(0, developpedInputs.size()).forEach( index -> {
 				if (developpedInputs.get(index).getDateKeys().isEmpty()) {
-					throw new RuntimeException("Yield no result: " + inputsOperandsRefs.get(index));
+					throw new RuntimeException("No result yield: " + inputsOperandsRefs);
 				}
 			});
 			return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, allowTrailingNaN);

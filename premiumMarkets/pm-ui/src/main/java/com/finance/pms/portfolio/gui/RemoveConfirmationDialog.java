@@ -86,7 +86,7 @@ public class RemoveConfirmationDialog extends org.eclipse.swt.widgets.Dialog {
 			RemoveConfirmationDialog inst = new RemoveConfirmationDialog(shell, true);
 			inst.open();
 		} catch (Exception e) {
-			LOGGER.debug("",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 		}
 	}
 

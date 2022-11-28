@@ -37,7 +37,7 @@ public class EuropeanCentralBankFetcher implements ExchangeRatesFetcher {
 		endDateCalendar.setTime(end);
 
 		final String url = httpSource.getEuropeanCentralBankUrl();
-		LOGGER.debug("Url : "+url);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Url : "+url);
 		
 		Thread thread = new Thread(new Runnable() {
 			public void run() {

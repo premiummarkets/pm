@@ -82,7 +82,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 
 		try {
-			LOGGER.debug("Analysing events for portfolio share " + portfolioShare + ", starting at " + startDate);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Analysing events for portfolio share " + portfolioShare + ", starting at " + startDate);
 
 			AlertOnThresholdParser thresholdAlertIndicator =  new AlertOnThresholdParser(portfolioShare, (Observer[]) observers.toArray(new Observer[0]));
 
@@ -109,7 +109,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 			}
 
 			ret.addEventResultElement(calculatedEventsForCalculator, EventDefinition.ALERTTHRESHOLD);
-			LOGGER.debug("end analyse " + portfolioShare + " from " + startDate + " to " + endDate);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("end analyse " + portfolioShare + " from " + startDate + " to " + endDate);
 
 		} catch (Exception e) {
 			// Oops

@@ -82,7 +82,7 @@ public class StockListASXFormater extends LineFormater {
 			if (strArray.length == 1) {
 			    LOGGER.trace("Comment line : "+line);
 			} else if (strArray.length != 3 || "Company name".equals(removeTextDelim(strArray[0], textDelim))) {
-				LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong file format while proceding web stock list : " + line+". Ignoring line");
 			} else {
 				retour.add(new Stock(
 						removeTextDelim(strArray[1],textDelim),

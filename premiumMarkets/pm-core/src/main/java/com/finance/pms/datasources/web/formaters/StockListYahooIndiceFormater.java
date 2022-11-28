@@ -74,7 +74,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 			if (strArray.length == 1) {
 			    LOGGER.trace("Comment line : "+line);
 			} else if (strArray.length != 9) {
-				LOGGER.debug("Wrong file format while proceeding with web stock list : " + line+". Ignoring line");
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong file format while proceeding with web stock list : " + line+". Ignoring line");
 			} else {
 				retour.add(new Stock(
 						removeTextDelim(strArray[0],textDelim), 
@@ -98,7 +98,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 				&& !market.getMarket().getYahooExtension().equals(YahooMarketExtentions.NN)
 				&& !market.getMarket().getYahooExtension().getSpecificMarketExtension().equals(SymbolNameResolver.UNKNOWNEXTENSION)) {
 			ret = ret.concat("."+market.getMarket().getYahooExtension().getSpecificMarketExtension());
-			LOGGER.debug("Applied extention "+market.getMarket().getYahooExtension().getSpecificMarketExtension()+" to symbol "+txt);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Applied extention "+market.getMarket().getYahooExtension().getSpecificMarketExtension()+" to symbol "+txt);
 		}
 		if (ret.contains(".NX")) {
 			ret = ret.replace(".NX", "."+YahooMarketExtentions.PAR.getSpecificMarketExtension());

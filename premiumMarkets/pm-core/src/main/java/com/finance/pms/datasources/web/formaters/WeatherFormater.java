@@ -60,7 +60,7 @@ public class WeatherFormater extends LineFormater {
 			if (null == WeatherFormater.PATTERNS)
 				WeatherFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		weatherYearTitle = Pattern.compile(WeatherFormater.PATTERNS.getProperty("weatherYearTitle"));

@@ -53,7 +53,7 @@ public class StockComplementSectorYahooFormater extends LineFormater {
 			if (null == StockComplementSectorYahooFormater.PATTERNS)
 				StockComplementSectorYahooFormater.PATTERNS = new PatternProperties("patterns.properties");
 		} catch (IOException e) {
-			LOGGER.debug("", e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
 		}
 		
 		codePattern = Pattern.compile(StockComplementSectorYahooFormater.PATTERNS.getProperty("yahoosectorcompletion"));

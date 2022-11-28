@@ -134,7 +134,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 									"Reason : " + ((StopParseErrorException) e).getReason());
 	
 				} catch (AssertionError| Exception e) {
-					LOGGER.debug("Ignoring line :" + line);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line :" + line);
 				}
 			}
 		}

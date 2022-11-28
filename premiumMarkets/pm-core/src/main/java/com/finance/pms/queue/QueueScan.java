@@ -81,7 +81,7 @@ public class QueueScan implements Observer {
 //	 */
 //	public synchronized void start(BeanFactory beanFactory) {
 //		super.start();
-//		LOGGER.debug("dataSource in QueueScan : "+beanFactory.getBean("dataSource"));
+//		if (LOGGER.isDebugEnabled()) LOGGER.debug("dataSource in QueueScan : "+beanFactory.getBean("dataSource"));
 //	}
 //
 //
@@ -101,7 +101,7 @@ public class QueueScan implements Observer {
 //				try {
 //					Thread.sleep(500);
 //				} catch (InterruptedException ignored) {
-//					LOGGER.debug("Interrupted Thread while Queue sleep : " + ignored);
+//					if (LOGGER.isDebugEnabled()) LOGGER.debug("Interrupted Thread while Queue sleep : " + ignored);
 //					toBeStoped = true;
 //				}
 //			}
@@ -111,12 +111,12 @@ public class QueueScan implements Observer {
 //			while (!destination.isEmpty()) {
 //				Message nextMess = destination.nextMessage();
 //				try {
-//					LOGGER.debug("Processing message :"+nextMess);
+//					if (LOGGER.isDebugEnabled()) LOGGER.debug("Processing message :"+nextMess);
 //					this.myMessageListener.onMessage(nextMess);
 //	
 //				} catch (Exception e) {
 //					LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
-//					LOGGER.debug(e, e);
+//					if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
 //				} finally {
 //					try {
 //						destination.removeMessage(nextMess);
@@ -137,12 +137,12 @@ public class QueueScan implements Observer {
 		while (!destination.isEmpty()) {
 			Message nextMess = destination.nextMessage();
 			try {
-				LOGGER.debug("Processing message :"+nextMess);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Processing message :"+nextMess);
 				this.myMessageListener.onMessage(nextMess);
 
 			} catch (Exception e) {
 				LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
-				LOGGER.debug(e, e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
 			} finally {
 				try {
 					destination.removeMessage(nextMess);

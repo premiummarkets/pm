@@ -29,6 +29,11 @@ public abstract class StringerOperation extends Operation {
 	}
 
 	@Override
-	public abstract StringValue calculate(TargetStockInfo targetStock, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	
+	@Override
+	public StringValue emptyValue() {
+		return null;
+	}
 
 }

@@ -102,7 +102,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public EventMapValue calculate(TargetStockInfo targetStock, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//		//We don't calculate event for operands when iterating as they are not used in the iterative calculation. This is to avoid excessive database access.
 		//		//isIterative should be reset false when iterations complete in order to take in account only events from the iterative itself.
@@ -148,7 +148,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 		}
 
-		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference()+"' at : "+inconsistent);
+		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference() + "' at : " + inconsistent);
 
 		///Finalizing this IndicatorOperator using its operands calculations
 		try {

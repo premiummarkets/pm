@@ -63,7 +63,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 		try {
 			ticker = URLEncoder.encode(ticker,"UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.debug("",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("",e);
 		}
 		return new MyUrl(this.getYahooQuoteURL(ticker, startYear,startMonth, startDay, endYear,endMonth, endDay));
 	}
@@ -82,7 +82,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 				//+ endMonth + "&e=" + endDay + "&f=" + endYear + "&g=d&ignore=.csv";
 				+ endMonth + "&e=" + endDay + "&f=" + endYear + "&ignore=.csv";
 
-		LOGGER.debug(url);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(url);
 		return url;
 	}
 
@@ -90,7 +90,7 @@ public class HttpSourceYahoo extends HttpSource implements SourceConnector {
 	@Override
 	public String getStockInfoPageURL(String isin) {//throws ToDoYahooException {
 		// TODO Completer la r�cup�ration des compl�ments de stocks sur Yahoo
-		LOGGER.debug("Fetching stock information is not implemented for yahoo");
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Fetching stock information is not implemented for yahoo");
 		throw new RuntimeException("Fetching stock information is not implemented for yahoo");
 	}
 

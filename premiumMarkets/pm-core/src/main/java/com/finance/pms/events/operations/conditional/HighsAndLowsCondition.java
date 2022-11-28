@@ -121,7 +121,7 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, int thisStartShift, List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, List<? extends Value> inputs) {
 
 		Integer lookBackNbDays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue(); //s
 		Integer overPeriodRemanence = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue(); //o

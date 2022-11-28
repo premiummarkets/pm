@@ -119,7 +119,7 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
         queries.addAll(readPage);
 
         LOGGER.guiInfo("Getting last quotes: Number of new quotations for " + stock.getSymbol() + " :" + queries.size());
-        LOGGER.debug(queries);
+        if (LOGGER.isDebugEnabled()) LOGGER.debug(queries);
 
         try {
             ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();

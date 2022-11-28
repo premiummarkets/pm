@@ -9,7 +9,7 @@ import com.finance.pms.events.operations.Value;
 public abstract class ListValue<X> extends Value<List<X>> {
 	
 	@Override
-	public ListValue<X> filterToParentRequierements(TargetStockInfo targetStock, int startShift, Operation parent) {
+	public ListValue<X> filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
 	}
 

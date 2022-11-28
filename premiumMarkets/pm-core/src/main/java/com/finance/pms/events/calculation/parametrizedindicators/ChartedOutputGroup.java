@@ -64,7 +64,7 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 
 	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue, Boolean displayByDefault) {
 		String referenceAsOperandOverride = parentReference + " " + operation.getReferenceAsOperand();
-		OutputReference outputReference = new OutputReference(operation.getReference(), null, null, referenceAsOperandOverride, doubleValue, operation.getOperationReference(), operation.toFullString());
+		OutputReference outputReference = new OutputReference(operation, referenceAsOperandOverride, doubleValue);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue, displayByDefault));
 	}
 

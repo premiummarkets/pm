@@ -133,12 +133,12 @@ public class PoolSemaphore {
 			while (connectionTry < 3 && connectionTry > -1) {
 				crashSpecificRestart(threadnum);
 				try {
-					LOGGER.debug("\n\nConnection attempts for thread " + threadnum + " : " + (connectionTry + 1));
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("\n\nConnection attempts for thread " + threadnum + " : " + (connectionTry + 1));
 					ret = initOneConnection(threadnum);
 					connectionTry = -1;
 				} catch (RestartServerException e1) {
 					connectionTry++;
-					LOGGER.debug("\n\nConnection echec for thread " + threadnum + " on the "+connectionTry+" attempts");
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("\n\nConnection echec for thread " + threadnum + " on the "+connectionTry+" attempts");
 				}
 			}
 			if (connectionTry == 3) {
@@ -302,7 +302,7 @@ public class PoolSemaphore {
         		sourceConnector.shutdownSource(sourceClient[i], i);
         		LOGGER.info("Stopping Thread pool, "+sourceConnector.getClass().getName()+" shutting down : "+i);
         	} else {
-        		LOGGER.debug("Stopping DB Thread pool, "+sourceConnector.getClass().getName()+" is empy  : "+i);
+        		if (LOGGER.isDebugEnabled()) LOGGER.debug("Stopping DB Thread pool, "+sourceConnector.getClass().getName()+" is empy  : "+i);
         	}
         }
     }

@@ -133,7 +133,7 @@ public class SectorCurveTransformator {
 				
 			} catch (NotEnoughDataException e) {
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-				LOGGER.debug("Best output NA for " + sdf.format(current.getTime()) + " cause " + e.getMessage());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Best output NA for " + sdf.format(current.getTime()) + " cause " + e.getMessage());
 			}
 
 			QuotationsFactories.getFactory().incrementDate(current, 1);
