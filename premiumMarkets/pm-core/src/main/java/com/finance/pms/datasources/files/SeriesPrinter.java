@@ -64,14 +64,15 @@ public class SeriesPrinter {
 		}
 		
 		synchronized (LOGGER) {
+        	String tmpExtenstion = "." + UUID.randomUUID().toString();
+        	String tmpFileName = fileFullPathStr + tmpExtenstion;
+			Path tmpFilePath = Path.of(URI.create("file://" + tmpFileName));
 	        try {
 	        	
 	        	//Read existing and remove NaNs out of it
 	        	String last = null;
 	        	List<Integer> seriesWidths = new ArrayList<>();
-	        	String tmpExtenstion = "." + UUID.randomUUID().toString();
-	        	String tmpFileName = fileFullPathStr + tmpExtenstion;
-				Path tmpFilePath = Path.of(URI.create("file://" + tmpFileName));
+
 				try (BufferedReader inputR = new BufferedReader(new FileReader(fileFullPathStr)); BufferedWriter inputWTmp = new BufferedWriter(new FileWriter(tmpFileName))) {
 	   
 		    		//Check headers
@@ -93,19 +94,11 @@ public class SeriesPrinter {
 						}
 					}
 					
-					Path fileFullPath = Path.of(URI.create("file://" + fileFullPathStr));
-					Files.delete(fileFullPath);
-					Files.move(tmpFilePath, fileFullPath);
-					
-		        } finally {
-		        	try { //In case of failure
-						Files.delete(tmpFilePath);
-		        	} catch (NoSuchFileException e) {
-		        		LOGGER.info("File " + tmpFilePath + " does not exists. All is well");
-					} catch (IOException e) {
-						LOGGER.error(e, e);
-					}
 		        }
+
+				Path fileFullPath = Path.of(URI.create("file://" + fileFullPathStr));
+				Files.delete(fileFullPath);
+				Files.move(tmpFilePath, fileFullPath);
 	        	
 		    	SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 				Date lastCalculatedDate = dateFormat.parse(last.split(",")[0]);
@@ -123,10 +116,18 @@ public class SeriesPrinter {
 					 appendContent(tailSeries, seriesWidths, inputW);
 				 }
 				
-				return fileFullPathStr;
+				 return fileFullPathStr;
 				
 			} catch (Exception e) {
 				throw new RuntimeException(" in " + fileFullPathStr, e);
+			} finally {
+				try { //In case of failure
+					Files.delete(tmpFilePath);
+	        	} catch (NoSuchFileException e) {
+	        		LOGGER.info("File " + tmpFilePath + " does not exists. All is well.");
+				} catch (IOException e) {
+					LOGGER.error(e, e);
+				}
 			}
 		}
 

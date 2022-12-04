@@ -131,5 +131,11 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	
+	
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		return true;
+	}
 
 }

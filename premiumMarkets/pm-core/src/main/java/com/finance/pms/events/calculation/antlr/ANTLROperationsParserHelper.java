@@ -129,10 +129,10 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				exceptionIndex = 0;
 				parser.indicatorexpr();
 			} catch (ExitParsingException e) {
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Early exit : "+e);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Early exit: " + e);
 			}
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception stack :" + exceptions);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception stack: " + exceptions);
 
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {

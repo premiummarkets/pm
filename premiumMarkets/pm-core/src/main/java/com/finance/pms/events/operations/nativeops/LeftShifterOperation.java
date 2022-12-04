@@ -70,17 +70,21 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 
 			LeftShifter<Double> leftShifter = new LeftShifter<Double>(leftShiftSpan, true);
 			SortedMap<Date, Double> shifted = leftShifter.shift(data);
+			
+			//NaN complement
+			data.tailMap(shifted.lastKey()).keySet().stream().forEach(d -> {if (!d.equals(shifted.lastKey())) shifted.put(d, Double.NaN);});
+			
 			ret.getValue(targetStock).putAll(shifted);
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " +e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
 		}
 		return ret;
 	}
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue();
+		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue() + 1; // + one to avoid all NaNs in the shifted result.
 	}
 	
 	@Override

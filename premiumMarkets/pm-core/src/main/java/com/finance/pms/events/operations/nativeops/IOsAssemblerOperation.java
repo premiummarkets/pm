@@ -56,8 +56,8 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName + "_";
 		
-		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
-		Boolean allowTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
+		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
+		Boolean allowTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
 
 		return innerCalculation(targetStock, inputs, assemblerGroupName,  isExport, allowTrailingNaN);
 	}

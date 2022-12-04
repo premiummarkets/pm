@@ -120,7 +120,7 @@ public class ChartGenerator {
 		}
 		
 		if (includeWeekends) {
-			LOGGER.info("Including weekends - continus quotations.");
+			LOGGER.info("Including weekends - continous quotations.");
 			hAxis.setTimeline(new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0));
 		} else {
 			LOGGER.info("Skiping weekends.");

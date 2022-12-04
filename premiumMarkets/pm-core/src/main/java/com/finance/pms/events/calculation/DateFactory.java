@@ -167,7 +167,7 @@ public class DateFactory {
 			dayMarketClosureCal.set(Calendar.SECOND, 0);
 			dayMarketClosureCal.set(Calendar.MILLISECOND, 0);
 		} else { //skip week ends
-			dayMarketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
+			dayMarketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateBeforeOrAt(actualDate)); //Today or last Friday (if Sat or Sun)
 			dayMarketClosureCal.set(Calendar.HOUR_OF_DAY, 18 - utcTimeLag); //At market closure time (inc time lag)
 		}
 		
@@ -178,7 +178,7 @@ public class DateFactory {
 				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -2);
 			} else {
 				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -1);
-				dayMarketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(dayMarketClosureCal.getTime())); 
+				dayMarketClosureCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateBeforeOrAt(dayMarketClosureCal.getTime())); 
 			}
 			Date previousMarketClosure = dayMarketClosureCal.getTime();
 			endDate = DateFactory.midnithDate(previousMarketClosure);

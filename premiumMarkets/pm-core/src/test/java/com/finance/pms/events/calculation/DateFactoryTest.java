@@ -91,9 +91,9 @@ public class DateFactoryTest {
 			for (int j = 0; j < 24; j++ ) {
 				if (i < 5 && j == 17 - aapl.getMarket().getUTCTimeLag()) {
 					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
-					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateAfterOrAt(expectedCal.getTime()));
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateAfterOrAt(expectedCal.getTime()));
 				} else {
-					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(expectedCal.getTime()));
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateBeforeOrAt(expectedCal.getTime()));
 				}
 				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
 				Date applDate = DateFactory.endDateFix(rollingHourCal.getTime(), aapl.getMarket().getUTCTimeLag(), aapl.getTradingMode());
@@ -119,9 +119,9 @@ public class DateFactoryTest {
 			for (int hour = 0; hour < 24; hour++ ) {
 				if (day < 5 && hour == 17 - fchi.getMarket().getUTCTimeLag()) {
 					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
-					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateAfterOrAt(expectedCal.getTime()));
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateAfterOrAt(expectedCal.getTime()));
 				} else {
-					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(expectedCal.getTime()));
+					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateBeforeOrAt(expectedCal.getTime()));
 				}
 				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
 				Date fchiDate = DateFactory.endDateFix(rollingHourCal.getTime(), fchi.getMarket().getUTCTimeLag(), fchi.getTradingMode());

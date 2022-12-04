@@ -258,9 +258,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								}
 							}
 						};
-						//Future<Value<?>> iterationFuture = executor.submit(callable);
-						//futures.set(i, iterationFuture);
-						operandsOutputs.set(i, callable.call()); //Test
+						Future<Value<?>> iterationFuture = executor.submit(callable);
+						futures.set(i, iterationFuture);
+						//operandsOutputs.set(i, callable.call()); //Test
 						
 					} else {
 						operandsOutputs.set(i, operand.getParameter());
@@ -273,7 +273,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						Future<Value<?>> future = futures.get(j);
 						if (future != null) {
 							Value<?> output = future.get();
-							output = output.filterToParentRequirements(targetStock, thisOutputRequiredStartShiftFromParent, this);
+							output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredshiftFromThis, this);
 							operandsOutputs.set(j, output);
 						}
 					} catch (Exception e) {
@@ -755,7 +755,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (operands.isEmpty()) return false;
 		return operands.stream().reduce(false, (r, e) -> r || e.isDateSensitive(), (a, b) -> a || b);
 	}
-	
 	
 	public boolean isQuotationsDataSensitive() {
 		if (this instanceof StockOperation || this instanceof OperationReferenceOperation) return true;

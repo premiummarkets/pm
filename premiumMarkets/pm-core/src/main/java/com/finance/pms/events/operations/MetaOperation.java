@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
@@ -48,11 +49,13 @@ public class MetaOperation extends Operation {
 		}
 		
 		ParameterizedBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
+		
 		Checksum crc32 = new CRC32();
 		byte[] formulaeBytes = formula.getBytes();
 		crc32.update(formulaeBytes, 0, formulaeBytes.length);
 		long formulaeCheckSum = crc32.getValue();
-		String operationNewId = "meta_" + formulaeCheckSum;
+		String operationNewId = "meta_" + formulaeCheckSum + "_" + UUID.randomUUID();
+		
 		try {
 			
 			NextToken checkNextToken = parameterizedOperationBuilder.checkNextToken(formula);
@@ -64,7 +67,7 @@ public class MetaOperation extends Operation {
 			}
 
 			Operation operation = (Operation) parameterizedOperationBuilder.getCurrentOperations().get(operationNewId).clone();
-			int operationOperandsStartShift = operation.operandsRequiredStartShift(targetStock, thisStartShift);
+			int operationOperandsStartShift = operation.operandsRequiredStartShift(targetStock, thisStartShift);//FIXME why do I need this shift here? The run should sort it out?
 			
 			LOGGER.info(
 					"Running meta: " + operation.getReference() + " with formulea: " + formula + 

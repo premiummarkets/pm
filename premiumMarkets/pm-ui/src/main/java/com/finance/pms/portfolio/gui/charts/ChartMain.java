@@ -649,7 +649,7 @@ public class ChartMain extends Chart {
 					Quotations quotations = getQuotationsClose(selectedShare, Currency.NAN, slideStart, slideEnd);
 					SortedMap<Date, double[]> quotationsMap = QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations);
 					boolean includeWeekends = quotationsMap.keySet().stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
-					LOGGER.info("Including weekends - continus quotations: " + includeWeekends);
+					LOGGER.info("Including weekends - continous quotations: " + includeWeekends);
 					DateAxis domainAxis = (DateAxis) combinedDomainXYPlot.getDomainAxis();
 					Timeline segmentedTimeline = includeWeekends?new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0):SegmentedTimeline.newMondayThroughFridayTimeline();
 					domainAxis.setTimeline(segmentedTimeline);

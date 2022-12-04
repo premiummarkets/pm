@@ -1,5 +1,6 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -125,12 +126,14 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				@Override
 				public NumericableMapValue call() throws Exception {
 					
-					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+					
+					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);//FIXME why do I need this shift here? The run should sort it out?
 					
 					LOGGER.info(
 							"Running assemblee: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 
 							" and shift " + assemblerInputStartShift + " and added operands shift " + assembleeOperandStartShift +
-							". From " + targetStock.getStartDate(assemblerInputStartShift) + " to " + targetStock.getEndDate());
+							". From " + df.format(targetStock.getStartDate(assemblerInputStartShift)) + " to " + df.format(targetStock.getEndDate()));
 					
 					NumericableMapValue run = (NumericableMapValue) iterationOperationClone
 							.run(targetStock, addThisToStack(thisCallStack, assemblerInputStartShift, assembleeOperandStartShift, targetStock), assemblerInputStartShift + assembleeOperandStartShift);

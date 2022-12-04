@@ -65,7 +65,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 						matchingLines.add(rowSplit[retrievedColumnIndex]);
 					}
 				} catch (Exception e) {
-					LOGGER.warn("Unreadable line in " + filePath + ": " + line); //+ ". Cause: " + e);
+					LOGGER.warn("Unreadable line in " + filePath + ": " + line.substring(0, Math.min(line.length(), 200)) + "..");
 				}
 				
 			}

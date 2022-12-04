@@ -42,9 +42,9 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public interface QuotationsFactory {
 
-    public abstract Date getValidQuotationDateBeforeOrAt(Date date);
+    public abstract Date getValidQuotingDateBeforeOrAt(Date date);
 
-    public abstract Date getValidQuotationDateAfterOrAt(Date date);
+    public abstract Date getValidQuotingDateAfterOrAt(Date date);
 
     public abstract Date shiftToOpeningTime(Calendar calendar);
 
@@ -63,6 +63,8 @@ public interface QuotationsFactory {
     public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
 
     public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
+    
+    public abstract int nbDataPointsBetweenFor(Stock stock, Date firstDate, Date secondDate, ValidityFilter validityFilter) throws NoQuotationsException, NotEnoughDataException;
 
     int nbOpenIncrementBetween(Date firstDate, Date secondDate);
 

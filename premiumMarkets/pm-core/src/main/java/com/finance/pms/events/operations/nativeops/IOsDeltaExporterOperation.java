@@ -29,13 +29,18 @@ import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.apache.commons.math3.util.Precision;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.files.InputFileChecker;
 import com.finance.pms.datasources.files.SeriesPrinter;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.events.quotations.QuotationsFactories;
 
 /**
  * The full data file is a permanent local file
@@ -106,15 +111,20 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
 			
+			String deltaFile;
 			if (append) {
 				synchronized (LOGGER) {
 					baseFilePath = SeriesPrinter.appendto(baseFilePath, headersPrefixes, series);
-					return  new StringValue(createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath));
+					deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
 				}
 			} else {
 				baseFilePath = SeriesPrinter.printo(baseFilePath, headersPrefixes, series);
-				return  new StringValue(createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath));
+				deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
 			}
+			
+			InputFileChecker.checkInputAgainstQuotations(deltaFile, targetStock.getStock(), ValidityFilter.getFilterFor(this.getRequiredStockData()), 0, this.getLagAmount(getOperands()));
+			
+			return new StringValue(deltaFile);
 			
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + ": " + e, e);
@@ -167,148 +177,166 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	/**
 	 * The INIT will always calculate from the farthest left shift and we assume the delta file has always been initialised this way.
 	 */
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent) {
 		
 		int lagAmount = getLagAmount(getOperands());
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
 		
-		int shift = deltaShiftFix(targetStock, thisParentStartShift, lagAmount);
+		try {
+			
+			Stock stock = targetStock.getStock();
+			Date startDate = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
+			Date endDate = targetStock.getEndDate();
+			int spanInDataPoints = QuotationsFactories.getFactory().nbDataPointsBetweenFor(stock, startDate, endDate, ValidityFilter.getFilterFor(this.getRequiredStockData()));
+			if (spanInDataPoints <= lagAmount) 
+				throw new NotEnoughDataException(stock, startDate, endDate, "Span is too small for the inherent lag of the operation: " + spanInDataPoints + "<=" + lagAmount, null);
 
-		return lagAmount + shift;
+			int shift = deltaShiftFix(targetStock, thisOutputRequiredStartShiftFromParent, lagAmount);
+			return lagAmount + shift;
+			
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+			throw new RuntimeException(e);
+		}
 
 	}
 
-	private int deltaShiftFix(TargetStockInfo targetStock, int thisParentStartShift, int lagAmount) {
+	private int deltaShiftFix(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent, int lagAmount) throws FileNotFoundException, IOException, ParseException {
 		
-		double dataPointFactor = targetStock.getStock().getTradingMode().getDataPointFactor();
+		SimpleDateFormat dflog = new SimpleDateFormat("yyyy-MM-dd");
 
 		int leftShiftGapDataPoints = 0;
 		int rightShiftGapDataPoints = 0;
 		Boolean isInit = false;
-		SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 		
-		Date startDateParentShifted = targetStock.getStartDate(thisParentStartShift);
+		Date startDateShifted = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
+		Date startDate = targetStock.getStartDate(0);
 		Date endDate = targetStock.getEndDate();
 		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).getParameter();
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
 		if (Boolean.valueOf(((StringValue) getOperands().get(APPEND_IDX).getParameter()).getValue(targetStock))) {
 			
+			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+			
 			boolean fileExists = Files.exists(Path.of(URI.create("file://" + baseFilePath))) && new File(baseFilePath).length() > 0;
 			if (!fileExists) {
 				isInit = true;
 			} else {
-				try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(baseFilePath))); 
-						ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
+				
+				try {
 					
-					//File checks
-					fileReader.readLine(); //headers
+					ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
+					InputFileChecker.checkInputAgainstQuotations(baseFilePath, targetStock.getStock(), filterFor, 0, this.getLagAmount(getOperands()));
+					
+					try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(baseFilePath))); 
+							ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
+						
+						//File checks
+						fileReader.readLine(); //headers
 
-					//First line
-					final String firstLine = fileReader.readLine();
-					final String firstDateStr = (firstLine != null)?firstLine.split(",")[0]: null;
-					final Date firstLineDate = (firstDateStr != null)? df.parse(firstDateStr):null;
+						//First line
+						final String firstLine = fileReader.readLine();
+						final String firstDateStr = (firstLine != null)?firstLine.split(",")[0]: null;
+						final Date firstLineDate = (firstDateStr != null)? df.parse(firstDateStr):null;
 
-					//Last line
-					final String lastLine = reversedLinesFileReader.readLine();
-					final String lastDateStr = (lastLine != null)? lastLine.split(",")[0] : null;
-					final Date lastLineDate = (firstDateStr != null && !"date".equals(lastDateStr))? df.parse(lastDateStr):null;
+						//Last line
+						final String lastLine = reversedLinesFileReader.readLine();
+						final String lastDateStr = (lastLine != null)? lastLine.split(",")[0] : null;
+						final Date lastLineDate = (firstDateStr != null && !"date".equals(lastDateStr))? df.parse(lastDateStr):null;
 
-					//Check date intersections 
-					if (firstLineDate == null || lastLineDate == null) {
-						isInit = true;
-					}
-					//start < first date and last date < end => no need to search in the file (short cut)
-					else if (startDateParentShifted.before(firstLineDate) && lastLineDate.before(endDate)) {
-						int startToLastDateInCalendarDays = 
-								(int) -TimeUnit.DAYS.convert(lastLineDate.getTime() - startDateParentShifted.getTime(), TimeUnit.MILLISECONDS);
-						rightShiftGapDataPoints =  (int) (startToLastDateInCalendarDays * dataPointFactor);
-						LOGGER.info("start < first date and last date < end. Shift in data points (positive => left): " + leftShiftGapDataPoints);
-					}
-					//start > last date => fill from last date to end => add the ]last date,start[ left shift gap (positive)
-					else if (startDateParentShifted.compareTo(lastLineDate) > 0) {
-						int lastDateTostartInCalendarDays = 
-								(int) TimeUnit.DAYS.convert(startDateParentShifted.getTime() - lastLineDate.getTime(), TimeUnit.MILLISECONDS);
-						leftShiftGapDataPoints = ((int) (lastDateTostartInCalendarDays * dataPointFactor)); //+ 10 for potential gaps ??
-						LOGGER.info("start > last date. Shift in data points (positive => left): " + leftShiftGapDataPoints);
-					}
-					else { //first date or beyond <= start <= last date => remove the -[start,last date] right shift gap (negative)
-						//Where are the start and end date in the file
-						String currentDateStr = lastDateStr;
-						Boolean found = false;
-						int startToLastDateInDataPoints = 0;
-						int endToLastDateInDataPoints = 0; //XXX An attempt to avoid start > end
-						while (currentDateStr != null && !"date".equals(currentDateStr)) {
-							Date currentDateLineDate = df.parse(currentDateStr);
-							startToLastDateInDataPoints = startToLastDateInDataPoints - 1;
-							if (currentDateLineDate.compareTo(endDate) > 0) endToLastDateInDataPoints = endToLastDateInDataPoints -1;
-							if (currentDateLineDate.compareTo(startDateParentShifted) <= 0) {
-								found = true;
-								break;
-							}
-							String nextLine = reversedLinesFileReader.readLine();
-							currentDateStr = (nextLine != null)? nextLine.split(",")[0] : null;
+						//Check date intersections 
+						if (firstLineDate == null || lastLineDate == null) {
+							isInit = true;
 						}
-						if (!found) { //The required start is beyond stock quotations start
-							int requiredDateToFirstPossibleDateGapInclusiveInCalendarDays = 
-									(int) -TimeUnit.DAYS.convert(firstLineDate.getTime() - startDateParentShifted.getTime(), TimeUnit.MILLISECONDS);
-							int requiredDateToFirstPossibleDateGapInclusiveInDataPoints = (int) (requiredDateToFirstPossibleDateGapInclusiveInCalendarDays * dataPointFactor);
-							rightShiftGapDataPoints = 	requiredDateToFirstPossibleDateGapInclusiveInDataPoints + 
-														startToLastDateInDataPoints - endToLastDateInDataPoints;
-							LOGGER.info("The required start is beyond stock quotations. Shift in calendar data points (negative => right): " + 
-									requiredDateToFirstPossibleDateGapInclusiveInDataPoints + "+" + 
-									startToLastDateInDataPoints + "+" + endToLastDateInDataPoints);
-						} else {
-							rightShiftGapDataPoints = startToLastDateInDataPoints - endToLastDateInDataPoints;
-							LOGGER.info("first date <= start <= last date. Shift in calendar data points (negative => right): " + startToLastDateInDataPoints + "-" + endToLastDateInDataPoints);
-						}			
-					}
+						//start || end < first date
+						else if (startDate.before(firstLineDate) || endDate.before(firstLineDate)) { 
+							throw new NotEnoughDataException(targetStock.getStock(), "Start or End date is beyond first quoation.", null);
+						}
+						//start beyond (< first date) and first date <= end <= last date
+						//or
+						//first date <= start && end <= last date
+						else if (endDate.compareTo(lastLineDate) <= 0) {
+							if (startDateShifted.before(firstLineDate)) { //start is beyond: fixing shit to first date
+								int fixedShift = QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), firstLineDate, startDate, filterFor);
+								rightShiftGapDataPoints = - (thisOutputRequiredStartShiftFromParent - fixedShift);
+								rightShiftGapDataPoints += -QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), firstLineDate, endDate, filterFor);
+							} else {
+								rightShiftGapDataPoints = -QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), startDateShifted, endDate, filterFor);
+							}
+							LOGGER.info("end <= last date. We have all we can gets. [start, end] needs removing. Shift in data points (negative => right): " + rightShiftGapDataPoints);
+						}
+						//start beyond (< first date) && last date < end ie the range is bigger then the file and spans on both sides
+						//Or
+						//first date <= start < end && last date <= end
+						else if (startDateShifted.before(lastLineDate) && endDate.after(lastLineDate)) {
+							if (startDateShifted.before(firstLineDate)) { //start is beyond
+								int fixedShift = QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), firstLineDate, startDate, filterFor);
+								rightShiftGapDataPoints = -(thisOutputRequiredStartShiftFromParent - fixedShift);
+								rightShiftGapDataPoints += -QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), firstLineDate, lastLineDate, filterFor);
+							} else {
+								rightShiftGapDataPoints = -QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), startDateShifted, lastLineDate, filterFor);
+							}
+							LOGGER.info("start < last date && last date < end. Only ]last date, end] needs filling in. [start, last date] needs removing. Shift in data points (negative => right): " + rightShiftGapDataPoints);
+						}
+						//last date < start
+						else if (startDateShifted.after(lastLineDate)) {
+							leftShiftGapDataPoints = QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), lastLineDate, startDateShifted, filterFor);
+							LOGGER.info("last date < start. ]last date, end] needs filling in. ]last date, start[ needs adding. Shift in data points (positive => left): " + leftShiftGapDataPoints);
+						}
+						
+						if ((thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints) < 0) {//XXX Fixing discrepancies
+							LOGGER.warn("Fixing potential righ shift discrepancy to parent shift value: parent " + thisOutputRequiredStartShiftFromParent + " is < calculated right shift " + -(leftShiftGapDataPoints + rightShiftGapDataPoints));
+							leftShiftGapDataPoints = 0;
+							rightShiftGapDataPoints = -thisOutputRequiredStartShiftFromParent;
+						}
 
-					//Finally
-					if (!isInit) {
+						//Final verdict
 						LOGGER.info(
+								"APPENDING: " + !isInit + ". " +
 								"Using " + baseFilePath + ". " +
-										"Delta shift fix TRANSLATED in data POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ". " +
-										"With added input shift required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ". " +
-										"Delta file boundaries: ["+ df.format(firstLineDate) + "," + df.format(lastLineDate) + "]. " +
-										"Requested boundaries: ["+ df.format(startDateParentShifted) + "," + df.format(endDate) + "]. " +
-										"Resulting dates: Operands output (delta + output from operands calculation) > this Input (required from this) > this Output (Input required from parent) => " + 
-										"[" + df.format(firstLineDate) + "," + df.format(lastLineDate) + "] + " +
-										"[" + df.format(targetStock.getStartDate(thisParentStartShift + lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints)) + "," + df.format(endDate) + "] > " + 
-										"[" + df.format(targetStock.getStartDate(thisParentStartShift + lagAmount)) + "," + df.format(endDate) + "] > " +
-										"[" + df.format(targetStock.getStartDate(thisParentStartShift))  + "," + df.format(endDate) + "]");
-					} else {
-						LOGGER.warn("Using " + baseFilePath + ". " +
-								"Append was requested but is not possible. First line date: " + df.format(firstLineDate) + ", last line date: " + df.format(lastLineDate) + 
-								". Start requested: " + df.format(startDateParentShifted) + ", end requested: " + df.format(endDate));
-					}
+								"Delta shift fix TRANSLATED in DATA POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+								"+ input shift " + lagAmount + " required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " +  ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount +leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+								"Delta file boundaries: ["+ dflog.format(firstLineDate) + "," + dflog.format(lastLineDate) + "]. " +
+								"Requested boundaries: ["+ dflog.format(startDateShifted) + "," + dflog.format(endDate) + "]. " +
+								"Resulting outputs ranges: " + 
+								"delta file + operands Output: " +
+									"[" + dflog.format(firstLineDate) + "," + dflog.format(lastLineDate) + "] + " +
+									"[" + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints)) + "," + dflog.format(endDate) + "] > " + 
+								"Input required by parent: [" + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent))  + "," + dflog.format(endDate) + "]");
 
-				} catch (Exception e) {
-					LOGGER.error(e, e);
-					throw new RuntimeException(e);
+					}
+					
+				} catch (NotEnoughDataException | NoQuotationsException e) {
+					isInit = true;
+					LOGGER.warn("Using " + baseFilePath + ". Append was requested but is not possible: " + e);
 				}
 			}
 			
 		} else {
 			isInit = true;
-			try {
-				Files.delete(Path.of(URI.create("file://" + baseFilePath)));
-			} catch (IOException e) {
-				LOGGER.warn(e);
-			}
 		}
 		
 		if (isInit) {
+			
+			try {
+				Files.delete(Path.of(URI.create("file://" + baseFilePath)));
+			} catch (IOException e) {
+				LOGGER.warn("Reinitialisation is " + isInit + ". Previous file does not exist: " + e);
+			}
+			
 			getOperands().get(APPEND_IDX).setParameter(new StringValue("INIT"));
 			leftShiftGapDataPoints = (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
-			LOGGER.info("Append was requested but is not possible as the file is empty or inexistent: " +
+			
+			LOGGER.info("NOT APPENDING. Append was requested but is NOT POSSIBLE as the file is empty, inexistent or corrupted. " +
 					"Using " + baseFilePath + ". " +
-					"Delta shift fix in data points: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ". " +
-					"With added input shift required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ". " +
-					"Resulting dates: Input (required from operands calculation) > Ouput (from this) > Input (required from this parent) => " + 
-					"[" + df.format(targetStock.getStartDate(thisParentStartShift + lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints)) + "," + df.format(endDate) + "] > " + 
-					"[" + df.format(targetStock.getStartDate(thisParentStartShift + lagAmount)) + "," + df.format(endDate) + "] > " +
-					"[" + df.format(startDateParentShifted)  + "," + df.format(endDate) + "]");
+					"Delta shift fix TRANSLATED in DATA POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+					"+ input shift " + lagAmount + " required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " +  ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount +leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+					"Requested boundaries: ["+ dflog.format(startDateShifted) + "," + dflog.format(endDate) + "]. " +
+					"Resulting outputs ranges: " + 
+					"operands Output: " +
+						"[" + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints)) + "," + dflog.format(endDate) + "] > " + 
+					"Input required by parent: [" + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent))  + "," + dflog.format(endDate) + "]");
 		}
 
 		int shift = leftShiftGapDataPoints + rightShiftGapDataPoints;
@@ -348,6 +376,12 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	public Integer operationNaturalShift() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	
+	
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		return true;
 	}
 
 }

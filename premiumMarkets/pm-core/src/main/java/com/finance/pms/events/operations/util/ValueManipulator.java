@@ -1,5 +1,6 @@
 package com.finance.pms.events.operations.util;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -72,6 +73,7 @@ public class ValueManipulator {
 		
 		SortedMap<Date, double[]> factorisedInput = new TreeMap<>();
 		SortedMap<Date, double[]> trailingNaNInput = new TreeMap<>();
+		SortedMap<Date, double[]> headingNaNInput = new TreeMap<>();
 		for (Date date : allDates) {
 
 			//Values at date can neither be Double, double[] or null. There will be one value per input at date
@@ -89,27 +91,30 @@ public class ValueManipulator {
 					return ((NumericableMapValue)developpedInput).getValue(targetStock).get(date);
 				}	
 			}).collect(Collectors.toList());
+			
+			double[] array = valuesAtDate.stream()
+					.map(value -> valueToDoubleArray(value)) //Transforms Potential Doubles to double[]s
+					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
+					.toArray();
 
 			if (!allowAnyNaN && factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(
 						v -> v == null ||
 						(v instanceof Double && Double.isNaN((double) v)) ||
 						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
 					)
-				)  //Heading NaN
+				) { //Heading NaN
+				headingNaNInput.put(date, array); //Keeping this in case all is NaN ie trailing are also heading ..
 				continue;
+			}
 			
-			double[] array = valuesAtDate.stream()
-					.map(value -> valueToDoubleArray(value)) //Transforms Potential Doubles to double[]s
-					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
-					.toArray();
 			if (allowAnyNaN || valuesAtDate.stream().noneMatch(
 						v -> v == null || 
 						(v instanceof Double && Double.isNaN((double) v)) ||
 						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
 					) 
-				) { //Don't add NaN in this loop if allowHeadingNaN is false
+				) { //Don't add NaN in this loop if allowAnyNaN is false
 				factorisedInput.put(date, array);
-			} else { //Only for trailing NaN (this is useful to create dataSet where all targets are not present).
+			} else { //Only for trailingNaN (this is useful to create dataSet where future training targets are not present).
 				trailingNaNInput.put(date, array);
 			}
 
@@ -120,11 +125,15 @@ public class ValueManipulator {
 			if (!factorisedInput.isEmpty()) {
 				Date factorisedLastKey = factorisedInput.lastKey();
 				factorisedInput.putAll(trailingNaNInput.tailMap(factorisedLastKey));
-				hasTrailing = !trailingNaNInput.headMap(factorisedLastKey).isEmpty();
+				hasTrailing = !trailingNaNInput.headMap(factorisedLastKey).isEmpty(); //Unexpected NaNs not trailing??
+			} 
+			else if (headingNaNInput.size() == allDates.size()) { //all data contain NaN and trailingNaN is authorised so we add them.
+				LOGGER.warn("All data has NaN in series: " + headingNaNInput);
+				factorisedInput.putAll(headingNaNInput);
 			}
 		}
 		if (hasTrailing) {
-			LOGGER.warn("Non authorised NaN data in series: " + trailingNaNInput);
+			LOGGER.warn("Non unexpected NaN data in series: " + trailingNaNInput);
 		}
 		return factorisedInput;
 	}
@@ -192,11 +201,13 @@ public class ValueManipulator {
 			Future<Object[]> iterationFuture = executor.submit(new Callable<Object[]>() {
 				@Override
 				public Object[] call() throws Exception {
+					
 					String outputsOperandsRef = fHCombinationsAcc.get(fI);
 					
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 					LOGGER.info(
 							"Running: " + operation.getReference() + " with params " + outputsOperandsRef + 
-							". From " + targetStock.getStartDate(parentRequiredStartShift) + " to " + targetStock.getEndDate());
+							". From " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate()));
 					
 					NumericableMapValue doubleMapValue = innerCalcFunc.apply(fCombinationsAcc.get(fI));
 					

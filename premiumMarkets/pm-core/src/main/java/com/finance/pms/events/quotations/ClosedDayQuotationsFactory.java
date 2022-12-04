@@ -61,6 +61,17 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	public Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
 		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
+	
+	@Override
+	public int nbDataPointsBetweenFor(Stock stock, Date firstDate, Date secondDate, ValidityFilter validityFilter) throws NoQuotationsException, NotEnoughDataException {
+		Quotations quotations = new Quotations(stock, firstDate, secondDate, true, null, 1, validityFilter);
+		Integer firstIndex = quotations.getQuotationData().getClosestIndexBeforeOrAtDate(0, firstDate);
+		if (firstIndex == -1) firstIndex = 0;
+		Integer sndIndex = quotations.getQuotationData().getClosestIndexBeforeOrAtDate(0, secondDate);
+		if (sndIndex == -1) 
+			throw new NotEnoughDataException(stock, firstDate, secondDate, "Invalid dates, outside the quotation range.", null);
+		return sndIndex - firstIndex;
+	}
 
 	public Calendar incrementDate(Calendar calendar, int amount) {
 		calendar.add(Calendar.DAY_OF_YEAR, noGapsAmount(amount));
@@ -111,14 +122,14 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 	private void fillEdgeGap(Calendar calendar, double amountSign) {
 		if (amountSign > 0) {
-			calendar.setTime(getValidQuotationDateAfterOrAt(calendar.getTime()));
+			calendar.setTime(getValidQuotingDateAfterOrAt(calendar.getTime()));
 		} else {
-			calendar.setTime(getValidQuotationDateBeforeOrAt(calendar.getTime()));
+			calendar.setTime(getValidQuotingDateBeforeOrAt(calendar.getTime()));
 		}
 	}
 
 
-	public  Date getValidQuotationDateAfterOrAt(Date date) {
+	public  Date getValidQuotingDateAfterOrAt(Date date) {
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -138,7 +149,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 
-	public  Date getValidQuotationDateBeforeOrAt(Date date) {
+	public  Date getValidQuotingDateBeforeOrAt(Date date) {
 
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);

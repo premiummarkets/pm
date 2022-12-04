@@ -62,7 +62,7 @@ public class HttpSourceBSEMarket extends HttpSourceMarket {
 		if (isWeekEnd) {
 			//calendar.add(Calendar.DAY_OF_MONTH, -(dayOfWeek+1));
 			calendar.add(Calendar.DAY_OF_MONTH, -1);
-			calendar.setTime(QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(calendar.getTime()));
+			calendar.setTime(QuotationsFactories.getFactory().getValidQuotingDateBeforeOrAt(calendar.getTime()));
 		} else if (calendar.get(Calendar.HOUR_OF_DAY) < 18) {
 			calendar.add(Calendar.DAY_OF_MONTH, -1);
 		}

@@ -184,5 +184,10 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 	public Integer operationNaturalShift() {
 		return 0;
 	}
+	
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		return true;
+	}
 
 }

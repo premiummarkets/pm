@@ -77,5 +77,10 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		return true;
+	}
 
 }

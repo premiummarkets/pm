@@ -207,7 +207,8 @@ public class TargetStockInfo {
 	 */
 	public Date getStartDate(int startShift) {
 		double dataPointToCalendarDaysConversionFactor = getStock().getTradingMode().getDataPointFactor();
-		startShift = (int) (startShift * dataPointToCalendarDaysConversionFactor * 5/7) + (int) (1 * Math.signum(startShift)); //Data points conversion fix for non stop quotations
+		int plusOne = (int) (1 * Math.signum(startShift));
+		startShift = (int) (startShift * dataPointToCalendarDaysConversionFactor * 5/7) + plusOne; //Data points conversion fix for non stop quotations
 		Date incStartDate = DateFactory.incrementDateWraper(startDate, -startShift);
 		return incStartDate;
 	}

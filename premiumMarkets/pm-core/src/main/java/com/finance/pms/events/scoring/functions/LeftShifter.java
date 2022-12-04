@@ -48,6 +48,10 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * ee19d8ce-650a-4f8b-b0c4-46a51d0c3655_IBM_k_training_0b6df74a-eeb0-47b7-a8b7-de1a9ec71f66.csv from 
  * fileOperation(iosExporter("autoPortfolioLogs",targetStockInfo("symbol"),iosAssembler("FALSE","FALSE",ogHouseTrendSMA(),ogHouseTrendUnNorm(),ogHouseTrendUnNormNLFix())),1,0)
  * @param <T>
+ * noDataLoss: 
+ * 	will complement the shit with the data that may have been cut (left is > 0 or right if < 0)
+ * 	The issue is that in this algorithm the keySet does not span over the cut period. Hence the made up dates using QuotationsFactories.getFactory().incrementDate calls.
+ * 
  */
 public class LeftShifter<T> {
 	

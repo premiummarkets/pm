@@ -268,7 +268,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		//		Boolean theDayBeforeYesterdayWasNotBank = yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && yesterday.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY;
 		//		
 		//		return (noCurrentData && lastUpdateWasNotYeasterday && yesterdayWasNotBank && lastUpdateWasNotTheDayBeforeYeasterday && theDayBeforeYesterdayWasNotBank);
-		Date lastOpenDayBeforeToday = QuotationsFactories.getFactory().getValidQuotationDateBeforeOrAt(today);
+		Date lastOpenDayBeforeToday = QuotationsFactories.getFactory().getValidQuotingDateBeforeOrAt(today);
 		Boolean isMissingOpenDays = lastCachedDate.before(lastOpenDayBeforeToday);
 
 		return isMissingOpenDays;

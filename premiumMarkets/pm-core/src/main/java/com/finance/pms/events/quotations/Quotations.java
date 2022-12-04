@@ -128,7 +128,6 @@ public class Quotations {
 	private Integer firstIndexShiftRequested;
 	private Date lastDateRequested;
 
-	private Integer firstDatedIndex;
 	private Integer lastDateIndex;
 
 	//Called in indicator calculation and event composition calculations via Quotations Factory getQuotationsInstance
@@ -326,17 +325,8 @@ public class Quotations {
 		return true;
 	}
 
-	public Boolean hasQuotationsDownToStartShift() {
-		QuotationData quotationData = getQuotationData();
-		return hasQuotations() && quotationData.getClosestIndexBeforeOrAtDate(0, firstDateRequested) >= (firstIndexShiftRequested-1); 
-	}
-
 	public Integer getFirstDateShiftedIdx() {
 		return 0;
-	}
-
-	public Integer getFirstDateIdx() {
-		return firstDatedIndex;
 	}
 
 	public Integer getLastDateIdx() {
@@ -725,7 +715,6 @@ public class Quotations {
 			if ( qj.getDate().compareTo(firstDate) > 0 ) {
 				if (quotationsUnitOut.isEmpty()) {
 					quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
-					firstDatedIndex = Math.max(0, quotationsUnitOut.size()-1);
 				}
 				if (qj.getDate().compareTo(lastDate) <= 0) {
 					quotationsUnitOut.add(qj);
@@ -743,7 +732,6 @@ public class Quotations {
 
 		if (quotationsUnitOut.isEmpty() && !quotationsUnitOutHead.isEmpty()) {
 			quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
-			firstDatedIndex = Math.max(0, quotationsUnitOut.size()-1);
 		}
 
 		lastDateIndex = Math.max(0, quotationsUnitOut.size()-1);
