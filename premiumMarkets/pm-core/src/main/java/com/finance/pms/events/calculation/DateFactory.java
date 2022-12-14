@@ -142,7 +142,9 @@ public class DateFactory {
 	}
 	
 	/**
-	 * nb days = data point amount * 7/5
+	 * TODO incrementDateWraper the increment date wrapper has to match the quotation data points availabilities
+	 * 	- For Non stop this 7/7
+	 * 	- For continuous this is 5/7. i.e calendar days = data point amount * 7/5
 	 */
 	public static Date incrementDateWraper(Date startDate, int dataPointsAmount) {
 		Calendar startCal = Calendar.getInstance();

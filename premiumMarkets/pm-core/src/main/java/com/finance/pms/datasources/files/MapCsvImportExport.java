@@ -75,11 +75,11 @@ public class MapCsvImportExport implements CsvImportExport<Date> {
 
             while ((line = bufferedReader.readLine()) != null) {
             	
-                String[] columns = line.split(",");
+                String[] columns = line.split(",", -1);
                 if (headers.isEmpty()) headers.addAll(Arrays.asList(columns));
                 
                 //file check
-                if (prevLength > 0 && prevLength != columns.length) throw new RuntimeException("Invalid file");
+                if (prevLength > 0 && prevLength != columns.length) throw new RuntimeException("Invalid file: " + exportFile.getName() + " at: " + line);
                 
                 try {
                     prevLength = columns.length;

@@ -261,13 +261,13 @@ public class Quotations {
 			if (splitData.getSplitRate() >= 2) {
 				roundedFactor = (double) splitData.getSplitRate(); 
 				LOGGER.warn(
-						"Split detected for " + this.stock.getFriendlyName()+ " : " + splitData +
-								"from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
+						"Split detected for " + this.stock.getFriendlyName()+ ": " + splitData +
+								" from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
 			} else if  (splitData.getMergeRate() >= 2) {
 				roundedFactor = 1d/((double) splitData.getMergeRate());
 				LOGGER.warn(
-						"Merge detected for " + this.stock.getFriendlyName()+ " : " + splitData +
-								"from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
+						"Merge detected for " + this.stock.getFriendlyName()+ ": " + splitData +
+								" from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
 			}
 			BigDecimal factor = new BigDecimal(roundedFactor, new MathContext(10, RoundingMode.HALF_EVEN));
 			for (int i = 0; i < quotationsUnitToJ.size()-1; i++) {

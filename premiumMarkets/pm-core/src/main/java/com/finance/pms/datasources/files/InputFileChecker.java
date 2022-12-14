@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -62,9 +61,9 @@ public class InputFileChecker {
 		
 		if (inputs.length < 2) return;
 		
+		List<String> headers = new ArrayList<>();
 		List<SortedMap<Date, double[]>> inputsData = Arrays.stream(inputs).map(in -> {
 			CsvImportExport<Date> csvImporter = new MapCsvImportExport();
-			List<String> headers = new ArrayList<>();
 			return csvImporter.importData(new File(in), headers);
 		}).collect(Collectors.toList());
 		
@@ -101,12 +100,12 @@ public class InputFileChecker {
 					for (int j = 0; j < bds.length; j++) {
 						if (Double.isNaN(ads[j])) {
 							if (!Double.isNaN(bds[j])) {
-								System.err.println("Maps " + fi + " and " + (fi+1) + " differ at " + k + " with " + ads[j] + " and " + bds[j]);
+								System.err.println("Maps " + fi + " and " + (fi+1) + " differ at " + k + ", column " + headers.get(j) + ", with " + ads[j] + " and " + bds[j]);
 								return true;
 							}
 						} else {
 							if (Double.isNaN(bds[j]) || (Math.abs(ads[j]-bds[j]) > precision))  {
-								System.err.println("Maps " + fi + " and " + (fi+1) + " differ at " + k + " with " + ads[j] + " and " + bds[j]);
+								System.err.println("Maps " + fi + " and " + (fi+1) + " differ at " + k + ", column " + headers.get(j) + ", with " + ads[j] + " and " + bds[j]);
 								return true;
 							}
 						}

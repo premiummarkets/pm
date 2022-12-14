@@ -184,12 +184,12 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		
 		try {
 			
-			Stock stock = targetStock.getStock();
-			Date startDate = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
-			Date endDate = targetStock.getEndDate();
-			int spanInDataPoints = QuotationsFactories.getFactory().nbDataPointsBetweenFor(stock, startDate, endDate, ValidityFilter.getFilterFor(this.getRequiredStockData()));
-			if (spanInDataPoints <= lagAmount) 
-				throw new NotEnoughDataException(stock, startDate, endDate, "Span is too small for the inherent lag of the operation: " + spanInDataPoints + "<=" + lagAmount, null);
+//			Stock stock = targetStock.getStock();
+//			Date startDate = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
+//			Date endDate = targetStock.getEndDate();
+//			int spanInDataPoints = QuotationsFactories.getFactory().nbDataPointsBetweenFor(stock, startDate, endDate, ValidityFilter.getFilterFor(this.getRequiredStockData()));
+//			if (spanInDataPoints <= lagAmount) 
+//				throw new NotEnoughDataException(stock, startDate, endDate, "Span is too small for the inherent lag of the operation: " + spanInDataPoints + "<=" + lagAmount, null);
 
 			int shift = deltaShiftFix(targetStock, thisOutputRequiredStartShiftFromParent, lagAmount);
 			return lagAmount + shift;

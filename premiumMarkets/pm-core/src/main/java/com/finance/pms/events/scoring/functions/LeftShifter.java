@@ -70,7 +70,7 @@ public class LeftShifter<T> {
 
 		List<Date> keyList = new ArrayList<Date>(data.keySet());
 		int j0 = (nbDaysAhead >= 0)? nbDaysAhead:0;
-		int jLast =  (nbDaysAhead >= 0)? keyList.size(): keyList.size()+nbDaysAhead;
+		int jLast =  (nbDaysAhead >= 0)? keyList.size(): keyList.size() + nbDaysAhead;
 		for (int j = j0; j < jLast; j++) {
 			shiftedOutput.put(keyList.get(j-nbDaysAhead), data.get(keyList.get(j)));
 		}
