@@ -41,6 +41,7 @@ import java.util.stream.IntStream;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -106,35 +107,39 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 		fullKeySet.addAll(firstOp.keySet());
 		fullKeySet.addAll(secondOp.keySet());
 
-		if (spanningShift == 0) spanningShift = 1;
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false);
-		SortedMap<Date, Double> rightShiftedFirstOp = rightShifter.shift(firstOp);
-		SortedMap<Date, Double> rightShiftedSecondOp = rightShifter.shift(secondOp);
-
 		BooleanMapValue outputs = new  BooleanMapValue();
+		
+		try {
+			if (spanningShift == 0) spanningShift = 1;
+			LeftShifter<Double> rightShifter = new LeftShifter<Double>(targetStock.getStock(), getRequiredStockData(), -spanningShift.intValue(), false);
+			SortedMap<Date, Double> rightShiftedFirstOp = rightShifter.shift(firstOp);
+			SortedMap<Date, Double> rightShiftedSecondOp = rightShifter.shift(secondOp);
 
-		Boolean isNotAdaptive = adaptationRate == 0;
-		for (Date date : fullKeySet) {
-			Double firstV = firstOp.get(date);
-			Double secondV = secondOp.get(date);
-			Double previousFirstV = rightShiftedFirstOp.get(date);
-			Double previousSecondV = rightShiftedSecondOp.get(date);
-			if (previousFirstV != null && !previousFirstV.isNaN() && previousSecondV != null && !previousSecondV.isNaN() && !firstV.isNaN() && !secondV.isNaN()) {
+			Boolean isNotAdaptive = adaptationRate == 0;
+			for (Date date : fullKeySet) {
+				Double firstV = firstOp.get(date);
+				Double secondV = secondOp.get(date);
+				Double previousFirstV = rightShiftedFirstOp.get(date);
+				Double previousSecondV = rightShiftedSecondOp.get(date);
+				if (previousFirstV != null && !previousFirstV.isNaN() && previousSecondV != null && !previousSecondV.isNaN() && !firstV.isNaN() && !secondV.isNaN()) {
 
-				Double alphaAdaptation = (isNotAdaptive)?0:calculateAlphaAdaptation(date, adaptationRate, adaptor);
+					Double alphaAdaptation = (isNotAdaptive)?0:calculateAlphaAdaptation(date, adaptationRate, adaptor);
 
-				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(previousFirstV, firstV, previousSecondV, secondV, epsilon, alphaAdaptation);
+					@SuppressWarnings("unchecked")
+					Boolean conditionCheck = conditionCheck(previousFirstV, firstV, previousSecondV, secondV, epsilon, alphaAdaptation);
 
-				if (conditionCheck != null) {
+					if (conditionCheck != null) {
 
-					if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
-						outputs.getValue(targetStock).put(date, conditionCheck);
+						if (overPeriod == 0 || outputs.getValue(targetStock).get(date) == null) {
+							outputs.getValue(targetStock).put(date, conditionCheck);
+						}
+
+						overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 					}
-
-					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
 				}
 			}
+		} catch (NotEnoughDataException e) {
+			LOGGER.error(e);
 		}
 
 		return outputs;

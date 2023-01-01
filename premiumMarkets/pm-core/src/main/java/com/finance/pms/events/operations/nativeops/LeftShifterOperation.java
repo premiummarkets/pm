@@ -68,7 +68,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
 
-			LeftShifter<Double> leftShifter = new LeftShifter<Double>(leftShiftSpan, true);
+			LeftShifter<Double> leftShifter = new LeftShifter<Double>(targetStock.getStock(), getRequiredStockData(), leftShiftSpan, true);
 			SortedMap<Date, Double> shifted = leftShifter.shift(data);
 			
 			//NaN complement
@@ -77,7 +77,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 			ret.getValue(targetStock).putAll(shifted);
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + ": " + e, e);
 		}
 		return ret;
 	}

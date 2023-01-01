@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
@@ -43,6 +44,8 @@ public class TargetStockDelegateOperation extends MapOperation {
 					stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
 			return (NumericableMapValue) operationClone.run(targetStockDelegate, addThisToStack(thisCallStack, thisStartShift, 0, targetStock), thisStartShift + 0);
 		} catch (WarningException e) {
+			LOGGER.error(this.getReference() + " : " + e, e);
+		} catch (NotEnoughDataException e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}
 		

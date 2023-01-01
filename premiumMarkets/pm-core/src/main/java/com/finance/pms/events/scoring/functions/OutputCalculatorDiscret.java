@@ -35,6 +35,7 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Date;
 
 //XXX
+@Deprecated
 public class OutputCalculatorDiscret implements OutputCalculator {
 
 	@Override

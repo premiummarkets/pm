@@ -76,8 +76,8 @@ public abstract class TalibIndicator extends Indicator {
 			rc = talibCall(startIdx, endIdx, inData, indicatorParams);
 
 		} catch (Exception e) {
-			LOGGER.error(this.getClass().getName()+" Calculation error for Quote :" + quotations.getStock(), e);
-			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + e + " for share : " + quotations.getStock(), e);
+			LOGGER.error(this.getClass().getName() + " Calculation error for Quote :" + quotations.getStock(), e);
+			throw new TalibException(this.getClass().getSimpleName() + " Calculation error : " + e + " for share : " + quotations.getStock(), e);
 		}
 
 		if (!rc.equals(RetCode.Success)) {

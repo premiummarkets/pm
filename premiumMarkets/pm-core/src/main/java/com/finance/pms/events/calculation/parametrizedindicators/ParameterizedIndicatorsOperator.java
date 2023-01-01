@@ -157,10 +157,10 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 					
 				}
 				if (!invalids.isEmpty()) {
-					throw new WarningException("Invalid event dates for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "' : " + invalids);
+					throw new WarningException("Invalid event dates for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + invalids);
 				}
 				if (!duplicates.isEmpty()) {
-					throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "' : " + duplicates);
+					throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + duplicates);
 				}
 			} catch (Exception e) {
 				throw new ErrorException(e.toString(), e);

@@ -32,12 +32,16 @@
 
 package com.finance.pms.events.scoring.functions;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class FlipNormalizer {
@@ -51,13 +55,13 @@ public class FlipNormalizer {
 	
 	
 
-	public FlipNormalizer(Date start, Date end, double minNorm, double maxNorm) {
+	public FlipNormalizer(Stock stock, Date start, Date end, double minNorm, double maxNorm) throws NotEnoughDataException {
 		super();
 		this.start = start;
 		
 		Calendar endCal = Calendar.getInstance();
 		endCal.setTime(end);
-		QuotationsFactories.getFactory().incrementDate(endCal, 1);
+		QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), endCal, 1);
 		this.end = endCal.getTime();
 
 		this.minNorm = minNorm;

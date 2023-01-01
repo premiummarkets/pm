@@ -100,11 +100,6 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	}
 
 	@Override
-	public Date getArbitraryStartDateForCalculation() {
-		return this.getArbitraryStartDateForChart();
-	}
-
-	@Override
 	public NumberFormat getNumberFormat() {
 		return numberFormat;
 	}

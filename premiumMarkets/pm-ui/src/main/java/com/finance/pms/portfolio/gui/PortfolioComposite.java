@@ -1317,7 +1317,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 											}
 										} else {
 											LOGGER.info("Loading in background quotations for "+pS.getStock().getFriendlyName());
-											QuotationsFactories.getFactory().getQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), today, true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
+											QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), today, true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
 										}
 									} catch (NoQuotationsException e) {
 										LOGGER.warn(e);
@@ -1928,7 +1928,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						String lastCloseDate = "NA";
 						String origin = selectedShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
 						try {
-							Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(selectedShare.getStock(), DateFactory.getNowEndDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+							Quotations quotationsInstance = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(selectedShare.getStock(), DateFactory.getNowEndDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 							if (quotationsInstance.hasQuotations()) {
 								lastClose = quotationsInstance.get(quotationsInstance.size()-1);
 								lastCloseDate = dateFormat.format(selectedShare.getStock().getLastQuote());
@@ -2150,7 +2150,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 			BigDecimal transactionPrice = BigDecimal.ZERO;
 			try {
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency(), ValidityFilter.CLOSE);
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency(), ValidityFilter.CLOSE);
 				transactionPrice = quotationsInstance.getClosestCloseSpForDate(newDate);
 			} catch (Exception e1) {
 				LOGGER.warn(e1);

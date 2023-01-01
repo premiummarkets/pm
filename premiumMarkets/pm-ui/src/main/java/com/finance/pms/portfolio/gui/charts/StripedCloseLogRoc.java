@@ -32,6 +32,7 @@ package com.finance.pms.portfolio.gui.charts;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -40,6 +41,10 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -130,10 +135,10 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 	}
 
 	@Override
-	public Date getArbitraryStartDateForCalculation() {
+	public Date getArbitraryStartDateForCalculation(Stock stock) throws NoQuotationsException, NotEnoughDataException {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(arbitraryStartDate);
-		return QuotationsFactories.getFactory().incrementDate(calendar, -period).getTime();
+		return QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), calendar, -period).getTime();
 	}
 
 	@Override

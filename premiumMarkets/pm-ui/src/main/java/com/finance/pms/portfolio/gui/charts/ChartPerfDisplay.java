@@ -472,7 +472,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	void loadRefereeQuotations(Stock stock) throws InvalidAlgorithmParameterException {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
-			refereeQuotations  = QuotationsFactories.getFactory().getQuotationsInstance(stock, ChartsComposite.DEFAULT_START_DATE, DateFactory.getNowEndDate(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+			refereeQuotations  = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, ChartsComposite.DEFAULT_START_DATE, DateFactory.getNowEndDate(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 			chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);

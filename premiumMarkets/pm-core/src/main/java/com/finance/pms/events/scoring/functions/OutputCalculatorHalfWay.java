@@ -38,6 +38,7 @@ import java.util.Date;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 //XXX
+@Deprecated
 public class OutputCalculatorHalfWay implements OutputCalculator {
 
 	@Override
@@ -46,7 +47,7 @@ public class OutputCalculatorHalfWay implements OutputCalculator {
 		int nbOpenDaysBetweenExtr = QuotationsFactories.getFactory().nbOpenIncrementBetween(prevExtremDate, nextExtremDate);
 		Calendar halfWayCal = Calendar.getInstance();
 		halfWayCal.setTime(prevExtremDate);
-		QuotationsFactories.getFactory().incrementDate(halfWayCal, nbOpenDaysBetweenExtr/2);
+		//FIXME QuotationsFactories.getFactory().incrementDate(halfWayCal, nbOpenDaysBetweenExtr/2);
 		
 		if (currentTime.before(halfWayCal.getTime())) {
 			return prevValue;

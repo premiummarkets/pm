@@ -29,14 +29,24 @@
  */
 package com.finance.pms.events.quotations;
 
+import java.util.Date;
+
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 
 
 public class CalculationQuotations extends Quotations {
+	
 
-	public CalculationQuotations(Stock stock, Currency targetCurrency, StripedQuotations striped, ValidityFilter quotationsValidityFiler) {
-		super(stock, new QuotationData(striped), targetCurrency, quotationsValidityFiler);
-		
-	}	
+//	public CalculationQuotations(Stock stock, Currency targetCurrency, StripedQuotations striped, ValidityFilter quotationsValidityFiler) {
+//		super(stock, new QuotationData(striped), targetCurrency, quotationsValidityFiler);
+//	}	
+
+	@Deprecated //?? FIXME 
+	protected CalculationQuotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter,
+			ValidityFilter... otherCacheFilters) throws NoQuotationsException {
+		super(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift, cacheFilter, otherCacheFilters);
+		// TODO Auto-generated constructor stub
+	}
+
 }

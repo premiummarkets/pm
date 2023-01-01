@@ -33,7 +33,7 @@ public class QuotationFixer {
 	public List<Optional<List<QuotationUnit>>> checkPennyPound(List<Stock> loadShares) {
 		List<Optional<List<QuotationUnit>>> map = loadShares.stream().map(stock -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
 				double cFactDelta = stock.getMarketValuation().getCurrencyFactor().doubleValue()*0.50; //This is assuming the currency factor is > qU*1.50 (arbitrary daily% return maximum)
 
 				List<QuotationUnit> match = IntStream

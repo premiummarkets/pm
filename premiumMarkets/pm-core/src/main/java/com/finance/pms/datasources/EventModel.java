@@ -450,7 +450,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 
 	}
 
-	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end, Set<EventInfo> notUpToDateEventInfos, Calendar minDate, EventInfo ...eventInfos) {
+	public Boolean cacheNeedsUpdateCheck(Stock stock, Date start, Date end, Set<EventInfo> notUpToDateEventInfos, Calendar minDate, EventInfo ...eventInfos) throws NotEnoughDataException {
 
 		if (eventInfos.length == 0) return false;
 
@@ -472,7 +472,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 			EventDefCacheEntry cacheEntry = cacheEntry4Stock.get(eventInfo);
 			if (cacheEntry == null || cacheEntry.getOutputMap() == null || cacheEntry.getUpdateStamp().isInvalid() || start.before(cacheEntry.getUpdateStamp().start) || end.after(cacheEntry.getUpdateStamp().end)) {
 				LOGGER.info(
-						"Events : " + eventInfo.getEventReadableDef() + " needs update : time stamp is " +
+						"Events: " + eventInfo.getEventReadableDef() + " needs update: time stamp is " +
 								( (cacheEntry == null || cacheEntry.getOutputMap() == null)?
 										"null": cacheEntry.getUpdateStamp().start + " to " + cacheEntry.getUpdateStamp().end + " and is " + cacheEntry.getUpdateStamp().getOutputState()
 								) +

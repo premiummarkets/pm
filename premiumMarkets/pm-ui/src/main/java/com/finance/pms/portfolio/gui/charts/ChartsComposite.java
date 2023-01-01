@@ -96,7 +96,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.portfolio.gui.PortfolioComposite;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
@@ -1081,7 +1080,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			synchronized (sliderEndDate) {
 				sliderSelection = false;
 				chartedEvtDefsTrends.stream()
-						.filter( ei -> (ei instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) ei).isDateSensitive()))
+						//.filter( ei -> (ei instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) ei).isDateSensitive()))
 						.forEach(dsEi -> EventModel.dirtyCacheFor(dsEi));
 				updateCharts(true);
 				portfolioComposite.slidingDateChange();

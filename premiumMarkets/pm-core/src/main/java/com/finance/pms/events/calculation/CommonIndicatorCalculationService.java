@@ -62,7 +62,6 @@ import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -108,15 +107,15 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		try {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(dateDeb);
-			Integer minDiff = Integer.valueOf("-"+MainPMScmd.getMyPrefs().get("talib.daysbackwardday","10"));
-			QuotationsFactories.getFactory().incrementDate(calendar, -minDiff);
+			Integer minDiff = Integer.valueOf("-" + MainPMScmd.getMyPrefs().get("talib.daysbackwardday", "10"));
+			//FIXME QuotationsFactories.getFactory().incrementDate(calendar, -minDiff);
 			dateDeb =  calendar.getTime();
 
 		} catch (NumberFormatException e) {
-			LOGGER.error("Invalid number of days backward : "+"-"+MainPMScmd.getMyPrefs().get("talib.daysbackwardday","10"),e);
+			LOGGER.error("Invalid number of days backward : " + "-" + MainPMScmd.getMyPrefs().get("talib.daysbackwardday", "10"), e);
 		}
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("Events calculation real date range : from "+dateDeb+" to "+dateFin);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Events calculation real date range: from " + dateDeb + " to " + dateFin);
 		return allEventsCalculation(symbols, dateDeb, dateFin, calculationCurrency, eventListName, passNumber, passOneCalcMode, observers);
 
 	}
@@ -143,7 +142,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		for (final Stock stock : stList) {
 
 			try {
-				LOGGER.guiInfo("Calculation requested : pass "+passNumber+" events for stock "+stock.toString()+ " between "+dateFormat.format(startDate)+" and "+dateFormat.format(endDate));
+				LOGGER.guiInfo("Calculation requested : pass " + passNumber + " events for stock " + stock.toString() +  " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 
 				final Queue eventQueue = this.eventQueue;
 				final JmsTemplate jmsTemplate = this.jmsTemplate;
@@ -156,24 +155,24 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 				if (adjustedStartDate.before(startDate) || adjustedStartDate.equals(startDate)) {
 					adjustedStartDate = startDate;
 				} else {
-					LOGGER.info("Start date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " is now starting on "+adjustedStartDate);
+					LOGGER.info("Start date calculation adjusted : pass " + passNumber + " events for stock " + stock.toString() +  " is now starting on " + adjustedStartDate);
 				}
 				if (adjustedStartDate.after(endDate) || adjustedStartDate.equals(endDate)) {
-					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+endDate);
+					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass " + passNumber + " events for stock " + stock.toString() +  " between " + adjustedStartDate + " and " + endDate);
 					continue;
 				}
 				Date adjustedEndDate = TunedConfMgr.getInstance().maximumEndDate(stock);
 				if (adjustedEndDate.after(endDate) || adjustedEndDate.equals(endDate)) {
 					adjustedEndDate = endDate;
 				} else {
-					LOGGER.info("End Date calculation adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " is now ending on  "+adjustedEndDate);
+					LOGGER.info("End Date calculation adjusted : pass " + passNumber + " events for stock " + stock.toString() +  " is now ending on  " + adjustedEndDate);
 				}
 				if (adjustedEndDate.before(adjustedStartDate) || adjustedEndDate.equals(adjustedStartDate)) {
-					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass "+passNumber+" events for stock "+stock.toString()+ " between "+adjustedStartDate+" and "+adjustedEndDate);
+					LOGGER.warn("Not enough quotations to calculate (invalid date bounds) : pass " + passNumber + " events for stock " + stock.toString() +  " between " + adjustedStartDate + " and " + adjustedEndDate);
 					continue;
 				}
 
-				LOGGER.info("Final dates adjusted : pass "+passNumber+" events for stock "+stock.toString()+ " are now from "+adjustedStartDate+" to "+adjustedEndDate);
+				LOGGER.info("Final dates adjusted : pass " + passNumber + " events for stock " + stock.toString() +  " are now from " + adjustedStartDate + " to " + adjustedEndDate);
 				//Calculations
 				if (passNumber == 1) {//pass 1
 
@@ -261,9 +260,9 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 						sep = ",";
 						nbEvents = nbEvents + se.getSortedDataResultList().size();
 					}
-					String stocksHint = (allEvents.size() > 1)?allEvents.size()+ " stocks":stocksNames;
-					LOGGER.info("Storing pass "+passNumber+" for "+stocksHint+", analysis "+ eventListName+ ", event defs (in SymbolEvents.getEventDefList())"+ eventDefs +", from "+startDate+" to "+endDate);
-					LOGGER.guiInfo("Storing pass "+passNumber+" ("+nbEvents + " events for "+stocksHint+"), from "+dateFormat.format(startDate)+" to "+dateFormat.format(endDate));
+					String stocksHint = (allEvents.size() > 1)?allEvents.size() +  " stocks":stocksNames;
+					LOGGER.info("Storing pass " + passNumber + " for " + stocksHint + ", analysis " +  eventListName + ", event defs (in SymbolEvents.getEventDefList())" + eventDefs + ", from " + startDate + " to " + endDate);
+					LOGGER.guiInfo("Storing pass " + passNumber + " (" + nbEvents  + " events for " + stocksHint + "), from " + dateFormat.format(startDate) + " to " + dateFormat.format(endDate));
 				} catch (Throwable e) {
 					e.printStackTrace();
 				}
@@ -279,7 +278,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 			isDataSetComplete = false;
 
 			if (e.getCause() != null && (e.getCause() instanceof SQLIntegrityConstraintViolationException || e.getCause() instanceof BatchUpdateException)) {
-				LOGGER.warn("Intercepted : "+e+" -> IncompleteDataset");
+				LOGGER.warn("Intercepted : " + e + " -> IncompleteDataset");
 			} else {
 				LOGGER.error(e,e);
 			}
@@ -287,7 +286,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		}
 
 		if (!isDataSetComplete) {
-			throw new IncompleteDataSetException(failingStocks, allEvents, calculatedOutputReturn, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : "+failingStocks);
+			throw new IncompleteDataSetException(failingStocks, allEvents, calculatedOutputReturn, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : " + failingStocks);
 		}
 
 		return calculatedOutputReturn;

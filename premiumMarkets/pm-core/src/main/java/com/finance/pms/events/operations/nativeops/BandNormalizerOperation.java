@@ -89,7 +89,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 			trimmerSlidingPeriod=251;
 			SortedMap<Date, Double> trimmed = data.get(0).getValue(targetStock);
 			if (!Double.isNaN(trimFactor)) {
-				Trimmer trimmer = new Trimmer(trimmerSlidingPeriod, trimFactor.intValue(), trimmed.firstKey(), trimmed.lastKey());
+				Trimmer trimmer = new Trimmer(targetStock.getStock(), getRequiredStockData(), trimmerSlidingPeriod, trimFactor.intValue(), trimmed.firstKey(), trimmed.lastKey());
 				trimmed = trimmer.sTrimmed(trimmed);
 			}
 			

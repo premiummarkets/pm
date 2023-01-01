@@ -63,10 +63,10 @@ public class VolatilityOperation extends PMWithDataOperation {
 		int returnCalculationNbPeriods = ((NumberValue)inputs.get(1)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(DATA_IDX)).getValue(targetStock);
 
-		Date startDateShift = targetStock.getStartDate(thisStartShift);
-
 		//Calc
 		try {
+			
+			Date startDateShift = targetStock.getStartDate(thisStartShift);
 
 			HistoricalVolatilityCalculator calculator = new HistoricalVolatilityCalculator(data, basicPeriod, returnCalculationNbPeriods, false);
 

@@ -223,7 +223,7 @@ public class ObvDivergence_old extends TalibIndicatorsOperator {
 		this.sma.calculateIndicator(quotations);
 		this.chaikinLine.calculateIndicator(quotations);
 	
-		this.obvSma.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), obv.indicatorStrip(quotations), obv.quotationValidity()));
+		//FIXME this.obvSma.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), obv.indicatorStrip(quotations), obv.quotationValidity()));
 		
 	}
 

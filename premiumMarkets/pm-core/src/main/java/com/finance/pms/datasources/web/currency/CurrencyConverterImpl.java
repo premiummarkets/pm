@@ -37,6 +37,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -62,7 +63,9 @@ import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.HttpSourceExchange;
 import com.finance.pms.datasources.web.MyBeanFactoryAware;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.LastUpdateStampChecker;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAware {
@@ -120,7 +123,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 					lastCurrencyRateDate = fetchLastRateDate(dbRates);
 					Calendar fiveDaysAgo = Calendar.getInstance();
 					fiveDaysAgo.setTime(today);
-					boolean onlyFiveDaysMissing = lastCurrencyRateDate.after(QuotationsFactories.getFactory().incrementDate(fiveDaysAgo,-5).getTime());
+					boolean onlyFiveDaysMissing = lastCurrencyRateDate.after(QuotationsFactories.getFactory().incrementDate(currencyStock,  Arrays.asList(QuotationDataType.CLOSE), fiveDaysAgo, -5).getTime());
 
 					//Complete 5 days missing
 					if (onlyFiveDaysMissing) {
@@ -142,6 +145,8 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			LOGGER.error("", e);
 		} catch (InvalidAlgorithmParameterException e1) {
 			LOGGER.error("", e1);
+		} catch (NotEnoughDataException e) {
+			LOGGER.error("", e);
 		} finally {
 			currencyDBAccessSemaphore.release();
 		}
@@ -185,11 +190,11 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			webRates.addAll(fetcher.getRatesForPeriod(fromCurrency, toCurrency, lastCurrencyRateDate, today));
 			currencyDao.storeCurrencyRates(webRates);
 		} catch (LockAcquisitionException e) {
-			LOGGER.warn("",e);
+			LOGGER.warn("", e);
 		} catch (HttpException e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		} catch (InterruptedException e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return webRates;
 	}

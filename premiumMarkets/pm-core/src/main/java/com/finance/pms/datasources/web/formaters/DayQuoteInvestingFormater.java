@@ -91,7 +91,7 @@ public class DayQuoteInvestingFormater extends LineFormater {
 					break;
 				case 5 :
 					if (fit.find()) {
-						System.out.println("Volume : "+line+" at cpt : "+cpt);
+						System.out.println("Volume : " + line + " at cpt : " + cpt);
 						volume = Long.valueOf(fit.group(1));
 						LinkedList<Comparable<?>> mainQuery = new LinkedList<Comparable<?>>();
 						Calendar calendar = Calendar.getInstance();

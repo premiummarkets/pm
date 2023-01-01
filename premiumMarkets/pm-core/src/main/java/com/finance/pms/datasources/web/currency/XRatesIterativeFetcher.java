@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.HttpException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -43,7 +44,6 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.web.HttpSourceExchange;
 import com.finance.pms.datasources.web.formaters.CurrencyXRatesDailyFormater;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class XRatesIterativeFetcher implements ExchangeRatesFetcher {
 	
@@ -78,7 +78,8 @@ public class XRatesIterativeFetcher implements ExchangeRatesFetcher {
 						List<Validatable> readURL = httpSource.readURL(new CurrencyXRatesDailyFormater(fromCurrency, toCurrency, currentCal.getTime(), xRatesHistoryUrl));
 						LOGGER.info("Found : " + readURL);
 						rates.addAll(readURL);
-						QuotationsFactories.getFactory().incrementDate(currentCal, 1);
+						//QuotationsFactories.getFactory().incrementDate(currentCal, 1);
+						currentCal.setTime(DateUtils.addDays(currentCal.getTime(), 1));
 					}
 					
 				} catch (HttpException e) {

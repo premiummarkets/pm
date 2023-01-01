@@ -77,7 +77,7 @@ public class ChartImageBuilder {
 			requieredStockDataTypes = ((EventInfoOpsCompoOperation) eventInfo).getRequiredStockData();
 		}
         Quotations quotations = QuotationsFactories.getFactory()
-        		.getQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 100, ValidityFilter.getFilterFor(requieredStockDataTypes));
+        		.getSpliFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 100, ValidityFilter.getFilterFor(requieredStockDataTypes));
         SortedMap<Date, Double> quotationMap = QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx());
 
         String chartFile;

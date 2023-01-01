@@ -33,6 +33,9 @@ import java.text.NumberFormat;
 import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
@@ -93,7 +96,9 @@ public abstract class StripedCloseFunction {
 		return arbitraryStartDate;
 	}
 
-	public abstract Date getArbitraryStartDateForCalculation();
+	public Date getArbitraryStartDateForCalculation(Stock stock) throws NoQuotationsException, NotEnoughDataException {
+		return this.getArbitraryStartDateForChart();
+	}
 
 	public Date getArbitraryEndDate() {
 		return arbitraryEndDate;

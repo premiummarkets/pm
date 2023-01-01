@@ -77,7 +77,11 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 						iterSliderStart.setTime(startDate);
 					} else {
 						iterSliderStart.setTime(k);
-						QuotationsFactories.getFactory().incrementDate(iterSliderStart,-periodRangeSpan.intValue()*periodAvgLength.intValue());
+						try {
+							QuotationsFactories.getFactory().incrementDate(targetStock.getStock(),targetStock.getQuotationsDataTypes(),iterSliderStart,-periodRangeSpan.intValue()*periodAvgLength.intValue());
+						} catch (NotEnoughDataException e1) {
+							throw new RuntimeException(e1);
+						}
 					}
 					
 					Calendar iterSliderEnd = Calendar.getInstance();

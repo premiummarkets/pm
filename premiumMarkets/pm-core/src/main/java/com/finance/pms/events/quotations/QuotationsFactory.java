@@ -30,6 +30,7 @@
 package com.finance.pms.events.quotations;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.SortedMap;
 
@@ -52,16 +53,54 @@ public interface QuotationsFactory {
 
     public abstract int largeIncrementGap(Calendar firstDate, Calendar secondDate);
 
+    @Deprecated //FIXME use incrementDate instead
     public abstract Calendar incrementDateExtraLarge(Calendar calendar, int amount);
 
+    @Deprecated //FIXME use incrementDate instead
     public abstract Calendar incrementDateLarge(Calendar calendar, int amount);
 
-    public abstract Calendar incrementDate(Calendar calendar, int amount);
+    public abstract Calendar incrementDate(Stock stock, Collection<QuotationDataType> dataTypes, Calendar calendar, int amount) throws NotEnoughDataException;
 
-    public abstract Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency,  ValidityFilter validityFilter) throws NoQuotationsException;
+    /**
+     * Always brings back the latest value when out of range n the right.
+     * This is done using a firstIndexShift of value 1.
+     * It also is split free.
+     * @param stock
+     * @param endDate
+     * @param keepCache
+     * @param targetCurrency
+     * @param validityFilter
+     * @return
+     * @throws NoQuotationsException
+     */
+    public abstract Quotations getBoundSafeQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException;
+    
+    /**
+     * Split free
+     * @param stock
+     * @param firstDate
+     * @param lastDate
+     * @param keepCache
+     * @param targetCurrency
+     * @param firstIndexShift
+     * @param validityFilter
+     * @return
+     * @throws NoQuotationsException
+     */
+    public abstract Quotations getSpliFreeQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
 
-    public abstract Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
-
+    /**
+     * As stored (no split checks)
+     * @param stock
+     * @param firstDate
+     * @param lastDate
+     * @param keepCache
+     * @param targetCurrency
+     * @param firstIndexShift
+     * @param validityFilter
+     * @return
+     * @throws NoQuotationsException
+     */
     public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
     
     public abstract int nbDataPointsBetweenFor(Stock stock, Date firstDate, Date secondDate, ValidityFilter validityFilter) throws NoQuotationsException, NotEnoughDataException;
@@ -72,14 +111,6 @@ public interface QuotationsFactory {
 
     public abstract Boolean isInOpenHours(Date lastDate);
 
-    /**
-     * @deprecated use ExactMaps
-     * @param quotations
-     * @return
-     * @throws NotEnoughDataException
-     */
-    @Deprecated
-    SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException;
 
     default SortedMap<Date, double[]> buildExactMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
         throw new NotImplementedException("TODO");
@@ -88,28 +119,10 @@ public interface QuotationsFactory {
     default SortedMap<Date, double[]> buildExactMapFromQuotations(Quotations quotations, int from, int toInclusive, QuotationDataType... quotationDataTypes) throws NotEnoughDataException{
         throw new NotImplementedException("TODO");
     }
-
-    /**
-     * @deprecated use ExactMaps
-     * @param quotations
-     * @return
-     * @throws NotEnoughDataException
-     */
-    @Deprecated
-    SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException;
     
     SortedMap<Date, Number> buildExactBMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int toInclusive) throws NotEnoughDataException;
 
     public abstract LastUpdateStampChecker checkLastQuotationUpdateFor();
-
-    /**
-     * @deprecated use ExactMaps
-     * @param quotations
-     * @return
-     * @throws NotEnoughDataException
-     */
-    @Deprecated
-    SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException;
 
     SortedMap<Date, Double> buildExactSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int toInclusive) throws NotEnoughDataException;
 

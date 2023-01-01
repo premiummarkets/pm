@@ -33,6 +33,7 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -45,6 +46,9 @@ import java.util.TreeSet;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public abstract class CurvesComparatorOldBase implements CurvesComparator {
@@ -57,28 +61,29 @@ public abstract class CurvesComparatorOldBase implements CurvesComparator {
 
 	/**
 	 * Compare two input and gives the stdev
-	 *
+	 * @param stock TODO
 	 * @param start 
 	 * @param end 
 	 * @param maxShift 
+	 * @throws NotEnoughDataException 
 	 */
-	public CurvesComparatorOldBase(Date start, Date end, int maxShift) {
+	public CurvesComparatorOldBase(Stock stock, Date start, Date end, int maxShift) throws NotEnoughDataException {
 		super();
 		this.maxShift = maxShift;
 
 		Calendar startCal = Calendar.getInstance();
 		startCal.setTime(start);
-		QuotationsFactories.getFactory().incrementDate(startCal, maxShift);
+		QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), startCal, maxShift);
 		this.cmpStart = startCal.getTime();
 		
 		Calendar endCal = Calendar.getInstance();
 		endCal.setTime(end);
-		QuotationsFactories.getFactory().incrementDate(endCal, -maxShift);
+		QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), endCal, -maxShift);
 		this.cmpEnd = endCal.getTime();
 		
 		this.start = start;
 		endCal.setTime(end);
-		QuotationsFactories.getFactory().incrementDate(endCal, +1);
+		QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), endCal, +1);
 		this.end = endCal.getTime();
 	}
 

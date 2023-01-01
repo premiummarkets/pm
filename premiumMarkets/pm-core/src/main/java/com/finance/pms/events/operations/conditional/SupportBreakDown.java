@@ -7,6 +7,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.function.Function;
 
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.scoring.functions.Line;
@@ -46,8 +47,8 @@ public class SupportBreakDown extends HighsAndLowsCondition implements SupportBr
 	protected Line<Integer, Double> confirmationReduction(
 			TargetStockInfo targetStock,
 			SortedMap<Date, ArrayList<Line<Integer, Double>>> realRowTangents, Integer overPeriodRemanence,
-			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
-		Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(realRowTangents, overPeriodRemanence, actualTangent, actualDate, actualData, tolerance);
+			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) throws NotEnoughDataException {
+		Line<Integer, Double> reducedTangent = reduceRawOutputConfirmation(targetStock, realRowTangents, overPeriodRemanence, actualTangent, actualDate, actualData, tolerance);
 		//TODO fill in remaining remanance period??
 		return reducedTangent;
 	}

@@ -168,7 +168,7 @@ public class Portfolio extends AbstractSharesList {
 
 		BigDecimal valueAtDate = BigDecimal.ZERO;
 		if (quantity.compareTo(BigDecimal.ZERO) > 0) {
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			valueAtDate = quotations.getClosestCloseForDate(currentDate);
 		}
 
@@ -178,7 +178,7 @@ public class Portfolio extends AbstractSharesList {
 	public PortfolioShare addOrUpdateShareForAmount(Stock stock, BigDecimal unitAmount, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException {
 
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			BigDecimal valueAtDate = quotations.getClosestCloseForDate(currentDate);
 			BigDecimal quantity = unitAmount.divide(valueAtDate, 10, RoundingMode.HALF_EVEN);
 
@@ -610,9 +610,9 @@ public class Portfolio extends AbstractSharesList {
 				BigDecimal convertedClosePrice = BigDecimal.ZERO;
 				BigDecimal convertionRate = BigDecimal.ONE;
 				try {
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+					Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(currentStock, te.getDate(), true, currentStock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 					closePrice = quotations.getClosestCloseForDate(te.getDate());
-					Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(currentStock, te.getDate(), true, targetCurrency, ValidityFilter.CLOSE);
+					Quotations convertedQuotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(currentStock, te.getDate(), true, targetCurrency, ValidityFilter.CLOSE);
 					convertedClosePrice = convertedQuotations.getClosestCloseForDate(te.getDate());
 					convertionRate = currencyConverter.convert(currentStock.getMarketValuation(), targetCurrency, BigDecimal.ONE, te.getDate());
 				} catch (Exception e) {
@@ -677,9 +677,9 @@ public class Portfolio extends AbstractSharesList {
 				PortfolioShare ps = getShareForStock(stock);
 				try {
 
-					Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, endDate, true, stock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+					Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(stock, endDate, true, stock.getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 					BigDecimal lastClosePrice = quotations.getClosestCloseForDate(endDate);
-					Quotations convertedQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, endDate, true, targetCurrency, ValidityFilter.CLOSE);
+					Quotations convertedQuotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(stock, endDate, true, targetCurrency, ValidityFilter.CLOSE);
 					BigDecimal lastConvertedClosePrice = convertedQuotations.getClosestCloseForDate(endDate);
 					BigDecimal lastConvertionRate = currencyConverter.convert(stock.getMarketValuation(), targetCurrency, BigDecimal.ONE, endDate);
 

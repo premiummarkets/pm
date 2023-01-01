@@ -185,7 +185,7 @@ public class SelectedIndicatorsCalculationService {
 		return allEvents;
 	}
 
-	private QuotesBounds adjustCalculationDatesToQuotations(Stock stock, Date startDate, Date endDate) {
+	private QuotesBounds adjustCalculationDatesToQuotations(Stock stock, Date startDate, Date endDate) throws NotEnoughDataException {
 
 		//Adjust calculation date to available quotes
 		Date minimumStartDate = TunedConfMgr.getInstance().minimumStartDate(stock);

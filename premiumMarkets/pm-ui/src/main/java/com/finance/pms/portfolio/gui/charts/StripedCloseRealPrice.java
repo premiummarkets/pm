@@ -86,11 +86,6 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 	}
 
 	@Override
-	public Date getArbitraryStartDateForCalculation() {
-		return this.getArbitraryStartDateForChart();
-	}
-
-	@Override
 	public NumberFormat getNumberFormat() {
 		return numberFormat;
 	}

@@ -43,6 +43,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -103,39 +104,43 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 
 		if (overPeriod > 0 && forPeriod > 0) throw new UnsupportedOperationException("Setting both Over Period "+overPeriod+" and For Period "+forPeriod+" is not supported.");
 
-		if (spanningShift == 0) spanningShift = 1;
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false);
-		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
-
-		SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
 		BooleanMapValue outputs = new  BooleanMapValue();
-		if (Double.isNaN(threshold)) return outputs;
+		try {
+			if (spanningShift == 0) spanningShift = 1;
+			LeftShifter<Double> rightShifter = new LeftShifter<Double>(targetStock.getStock(), getRequiredStockData(), -spanningShift.intValue(), false);
+			SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 
-		BooleanMapValue realRowOutputs = new BooleanMapValue();
+			SortedSet<Date> fullKeySet = new TreeSet<>(data.keySet());
+			if (Double.isNaN(threshold)) return outputs;
 
-		for (Date date : fullKeySet) {
-			Double current = data.get(date);
-			Double previous = rightShiftedData.get(date);
-			if (previous != null && !previous.isNaN() && !current.isNaN()) {
-				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck(previous, current, threshold, epsilon);
-				if (conditionCheck != null) {
+			BooleanMapValue realRowOutputs = new BooleanMapValue();
 
-					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-						conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
+			for (Date date : fullKeySet) {
+				Double current = data.get(date);
+				Double previous = rightShiftedData.get(date);
+				if (previous != null && !previous.isNaN() && !current.isNaN()) {
+					@SuppressWarnings("unchecked")
+					Boolean conditionCheck = conditionCheck(previous, current, threshold, epsilon);
+					if (conditionCheck != null) {
+
+						if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
+							conditionCheck = forPeriodReduction(targetStock, fullKeySet, realRowOutputs, forPeriod, date, conditionCheck, outputs);
+						}
+
+						overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
+
 					}
-
-					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
-
 				}
 			}
-		}
 
-		if (LOGGER.isDebugEnabled()) {
-			SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
-			LOGGER.info(
-					"Condition '" + this.getReference() + "' returns this map \n" +
-					outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).get());
+			if (LOGGER.isDebugEnabled()) {
+				SortedMap<Date, Boolean> outputValues = outputs.getValue(targetStock);
+				LOGGER.info(
+						"Condition '" + this.getReference() + "' returns this map \n" +
+						outputValues.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "\n" + b).get());
+			}
+		} catch (NotEnoughDataException e) {
+			LOGGER.error(e);
 		}
 
 		return outputs;

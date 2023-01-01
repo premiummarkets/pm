@@ -2,6 +2,7 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -12,12 +13,23 @@ import java.util.stream.Collectors;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class RocSmoother extends Smoother {
 	
 	Integer reSeedingPeriod = 254;
+	private Stock stock;
+	private Collection<QuotationDataType> quotationsDataTypes;
+	
+	public RocSmoother(Stock stock, Collection<QuotationDataType> quotationsDataTypes) {
+		super();
+		this.stock = stock;
+		this.quotationsDataTypes = quotationsDataTypes;
+	}
 
 	@Override
 	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixBias) {
@@ -49,11 +61,15 @@ public class RocSmoother extends Smoother {
 	}
 
 	private Date getNextReSeedingDate(Date currentDate) {
-		Calendar reSeedDateCal = Calendar.getInstance();
-		reSeedDateCal.setTime(currentDate);
-		QuotationsFactories.getFactory().incrementDate(reSeedDateCal, reSeedingPeriod);
-		Date reSeedDate = reSeedDateCal.getTime();
-		return reSeedDate;
+		try {
+			Calendar reSeedDateCal = Calendar.getInstance();
+			reSeedDateCal.setTime(currentDate);
+			QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, reSeedDateCal, reSeedingPeriod);
+			Date reSeedDate = reSeedDateCal.getTime();
+			return reSeedDate;
+		} catch (NotEnoughDataException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private List<Double> rocsFor(SortedMap<Date, double[]> data, Boolean fixBias) {

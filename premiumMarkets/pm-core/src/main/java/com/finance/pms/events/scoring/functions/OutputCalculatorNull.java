@@ -36,6 +36,7 @@ import java.util.Date;
 
 import com.finance.pms.events.scoring.functions.SectorCurveTransformator.Extremity;
 
+@Deprecated
 public class OutputCalculatorNull implements OutputCalculator {
 
 	public int noticablePeriodBand;
@@ -50,12 +51,12 @@ public class OutputCalculatorNull implements OutputCalculator {
 
 		if (currentTime.compareTo(prevExtremDate) == 0) {
 			return prevValue;
-		} else 
-			if (currentTime.compareTo(nextExtremDate) == 0) {
-				return nextValue;
-			} else {
-				return Extremity.UNKNOWN.getExValue();
-			}
+		} else if (currentTime.compareTo(nextExtremDate) == 0) {
+			return nextValue;
+		} else {
+			return Extremity.UNKNOWN.getExValue();
+		}
+		
 	}
 
 }

@@ -119,7 +119,7 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 			Stock stock = targetStock.getStock();
 			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
 			Quotations quotations  = QuotationsFactories.getFactory()
-					.getQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
+					.getSpliFreeQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
 			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 			this.eventData = eventData.entrySet().stream().filter(e -> exactMapFromQuotations.containsKey(e.getKey().getDate())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
 

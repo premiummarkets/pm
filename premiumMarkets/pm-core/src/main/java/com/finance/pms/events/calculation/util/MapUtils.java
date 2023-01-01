@@ -1,11 +1,12 @@
 package com.finance.pms.events.calculation.util;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
@@ -55,20 +56,17 @@ public class MapUtils {
 
 	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats) {
 
-		Function<Date, Date> startWindowKFunc = k -> new Date(k.getTime() - ((long) period) * (1000l * 60l * 60l * 24l));
-
-		//Bypassing the potential from restrictive range
-		Date startFrom = (map.firstKey().compareTo(startDate) > 0)? map.firstKey(): startDate;
-		Date endFrom = new Date(startFrom.getTime() + ((long) period) * (1000l * 60l * 60l * 24l));
+		ArrayList<Date> keySet = new ArrayList<Date>(map.keySet());
 
 		final TreeMap<Date, Double> movingStats =
-				map.tailMap(endFrom).keySet().stream()
+				IntStream.range(period, keySet.size())
+				.mapToObj(i -> i)
 				.collect(Collectors.toMap(
-						endWindowK -> endWindowK,
-						endWindowK -> {
-							Date startWindowK = startWindowKFunc.apply(endWindowK);
+						endWindow -> keySet.get(endWindow),
+						endWindow -> {
+							Integer startWindow = endWindow - period;
 							SortedMap<Date,Double> values =
-									MapUtils.subMapInclusive(map, startWindowK, endWindowK).keySet()
+									MapUtils.subMapInclusive(map, keySet.get(startWindow), keySet.get(endWindow)).keySet()
 									.stream()
 									.filter(k -> !Double.isNaN(map.get(k)))
 									.collect(Collectors.toMap(k -> k, k -> map.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
@@ -76,14 +74,13 @@ public class MapUtils {
 						},
 						(a, b) -> a, TreeMap<Date,Double>::new));
 
-		//Date firstValidResult = DateFactory.incrementDateWraper(map.firstKey(), period);
-		Date firstValidResult = endFrom;
 
 		TreeMap<Date, Double> noNaNMovingStats = movingStats.keySet()
 				.stream()
 				.filter(k -> !Double.isNaN(movingStats.get(k)))
 				.collect(Collectors.toMap(k -> k, k -> movingStats.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
 		
+		Date firstValidResult = keySet.get(period);
 		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
 	}
 

@@ -196,8 +196,8 @@ public class VolatilityClassifier {
 		
 		Predicate<Stock> ohlcPredicate = stock -> {
 			try {
-				Quotations ohlcQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLC);
-				Quotations closeQuotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+				Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLC);
+				Quotations closeQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 				double ratio = 0.80;
 				boolean match = (double)ohlcQuotations.size()/(double)closeQuotations.size() >= ratio;
 				if (!match) {
@@ -215,7 +215,7 @@ public class VolatilityClassifier {
 		
 		Predicate<Stock> splitMergePredicate = stock -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 				
 				double mergeMax = 100d;
 				double splitMax = 100d;
@@ -282,7 +282,7 @@ public class VolatilityClassifier {
 
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations);
 				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());

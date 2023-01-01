@@ -38,6 +38,7 @@ import java.util.Date;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.SectorCurveTransformator.Extremity;
 
+@Deprecated
 public class OutputCalculatorAround implements OutputCalculator {
 
 	private Integer noticablePeriodBand;
@@ -53,18 +54,18 @@ public class OutputCalculatorAround implements OutputCalculator {
 		
 		Calendar nextDateShift = Calendar.getInstance();
 		nextDateShift.setTime(nextExtremDate);
-		QuotationsFactories.getFactory().incrementDate(nextDateShift, -2*noticablePeriodBand);
+		//FIXME QuotationsFactories.getFactory().incrementDate(nextDateShift, -2*noticablePeriodBand);
 		
 		if (prevExtremDate.after(nextDateShift.getTime())) {//fix prev, next over lap
 			int nbOpenIncrementBetween = QuotationsFactories.getFactory().nbOpenIncrementBetween(prevExtremDate, nextExtremDate);
 			nextDateShift.setTime(nextExtremDate);
-			QuotationsFactories.getFactory().incrementDate(nextDateShift, nbOpenIncrementBetween/2);
+			//FIXME QuotationsFactories.getFactory().incrementDate(nextDateShift, nbOpenIncrementBetween/2);
 		}
 		
 		if (currentTime.compareTo(prevExtremDate) == 0) {
 			return prevValue;
 		} else 
-			if (currentTime.after(nextDateShift.getTime()) && ( currentTime.before(nextExtremDate) ||  currentTime.compareTo(nextExtremDate)  == 0)) {
+			if (currentTime.after(nextDateShift.getTime()) && ( currentTime.before(nextExtremDate) || currentTime.compareTo(nextExtremDate) == 0)) {
 				return nextValue;
 			} else {
 				return Extremity.UNKNOWN.getExValue();

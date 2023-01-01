@@ -35,11 +35,15 @@ package com.finance.pms.events.calculation;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.TradingMode;
+import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class DateFactory {
@@ -142,14 +146,16 @@ public class DateFactory {
 	}
 	
 	/**
-	 * TODO incrementDateWraper the increment date wrapper has to match the quotation data points availabilities
+	 * IncrementDateWraper the increment date wrapper has to match the quotation data points availabilities
 	 * 	- For Non stop this 7/7
 	 * 	- For continuous this is 5/7. i.e calendar days = data point amount * 7/5
+	 * @throws NotEnoughDataException 
+	 * @throws NoQuotationsException 
 	 */
-	public static Date incrementDateWraper(Date startDate, int dataPointsAmount) {
+	public static Date incrementDateWraper(Stock stock, Collection<QuotationDataType> dataTypes, Date startDate, int dataPointsAmount) throws NotEnoughDataException {
 		Calendar startCal = Calendar.getInstance();
 		startCal.setTime(startDate);
-		QuotationsFactories.getFactory().incrementDate(startCal, dataPointsAmount);
+		QuotationsFactories.getFactory().incrementDate(stock, dataTypes, startCal, dataPointsAmount);
 		return startCal.getTime();
 	}
 	

@@ -49,6 +49,8 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 //TODO 
@@ -170,17 +172,17 @@ public class TunedConfMgr {
 	}
 
 	//TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
-	public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Date dateDeb, Date dateFin, Integer tuneFreq) {
-		PeriodSpliter periodSpliter = new PeriodSpliter();
+	public Stack<OnTheFlyRevesreCalcPeriod> onTheFlyReverseCalcDatesStack(Stock stock, Date dateDeb, Date dateFin, Integer tuneFreq) throws NotEnoughDataException {
+		PeriodSpliter periodSpliter = new PeriodSpliter(stock, Arrays.asList(QuotationDataType.CLOSE));
 		return periodSpliter.splitBackward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
 	}
 
-	public Date minimumStartDate(Stock stock) {//200 days after first quotation available
+	public Date minimumStartDate(Stock stock) throws NotEnoughDataException {//200 days after first quotation available
 		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(firstQuotationDateFromQuotations);
 		int adjustmentAmount = 0;
-		QuotationsFactories.getFactory().incrementDate(adjustedStartCal, adjustmentAmount);
+		QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), adjustedStartCal, adjustmentAmount);
 		Date adjustedStartDate = adjustedStartCal.getTime();
 		return adjustedStartDate;
 	}

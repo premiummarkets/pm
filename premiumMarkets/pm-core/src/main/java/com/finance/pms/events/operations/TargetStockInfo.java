@@ -47,6 +47,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -64,6 +65,7 @@ import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.quotations.QuotationDataType;
 
 public class TargetStockInfo {
 
@@ -205,11 +207,8 @@ public class TargetStockInfo {
 	 * @param startShift
 	 * @return
 	 */
-	public Date getStartDate(int startShift) {
-		double dataPointToCalendarDaysConversionFactor = getStock().getTradingMode().getDataPointFactor();
-		int plusOne = (int) (1 * Math.signum(startShift));
-		startShift = (int) (startShift * dataPointToCalendarDaysConversionFactor * 5/7) + plusOne; //Data points conversion fix for non stop quotations
-		Date incStartDate = DateFactory.incrementDateWraper(startDate, -startShift);
+	public Date getStartDate(int startShift) throws NotEnoughDataException {
+		Date incStartDate = DateFactory.incrementDateWraper(stock, getQuotationsDataTypes(), startDate, -startShift);
 		return incStartDate;
 	}
 
@@ -456,6 +455,10 @@ public class TargetStockInfo {
 
 	public EventInfoOpsCompoOperation getEventInfoOpsCompoOperation() {
 		return eventInfoOpsCompoOperation;
+	}
+	
+	public Set<QuotationDataType> getQuotationsDataTypes() {
+		return eventInfoOpsCompoOperation.getRequiredStockData();
 	}
 
 	public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {

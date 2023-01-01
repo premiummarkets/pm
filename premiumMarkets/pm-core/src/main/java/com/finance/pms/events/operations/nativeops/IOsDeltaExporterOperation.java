@@ -51,10 +51,11 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  */
 public class IOsDeltaExporterOperation extends StringerOperation implements CachableOperation {
 	
-	private static final int APPEND_IDX = 3;
+	private static MyLogger LOGGER = MyLogger.getLogger(IOsDeltaExporterOperation.class);
+	
+	private static final int IS_APPEND_IDX = 3;
 	private static final int DELTA_FILE_IDX = 1;
 	private static final int FIRST_INPUT = 4;
-	private static MyLogger LOGGER = MyLogger.getLogger(IOsDeltaExporterOperation.class);
 	
 	
 	public IOsDeltaExporterOperation(String reference, String description, Operation... operands) {
@@ -85,12 +86,12 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		
 		Boolean append;
-		String appedString = ((StringValue) inputs.get(APPEND_IDX)).getValue(targetStock);
-		if	("INIT".equals(appedString)) {
+		String isAppendString = ((StringValue) inputs.get(IS_APPEND_IDX)).getValue(targetStock);
+		if	("INIT".equals(isAppendString)) {
 			append = false;
-			getOperands().get(APPEND_IDX).setParameter(new StringValue(Boolean.TRUE.toString()));
+			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue(Boolean.TRUE.toString()));
 		} else {
-			append = Boolean.valueOf(appedString);
+			append = Boolean.valueOf(isAppendString);
 		}
 		
 		try {
@@ -133,7 +134,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		return new StringValue("NONE");
 	}
 
-	private String createDeltaFile(TargetStockInfo targetStock, int parentRequiredStartShift, String baseFilePath) throws IOException, ParseException, FileNotFoundException {
+	private String createDeltaFile(TargetStockInfo targetStock, int parentRequiredStartShift, String baseFilePath) throws IOException, ParseException, FileNotFoundException, NotEnoughDataException {
 		//Return the delta: from parentStartShift 
 		Date startDate = targetStock.getStartDate(parentRequiredStartShift);
 		Date endDate = targetStock.getEndDate();
@@ -201,7 +202,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 
 	}
 
-	private int deltaShiftFix(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent, int lagAmount) throws FileNotFoundException, IOException, ParseException {
+	private int deltaShiftFix(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent, int lagAmount) throws FileNotFoundException, IOException, ParseException, NotEnoughDataException {
 		
 		SimpleDateFormat dflog = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -215,7 +216,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).getParameter();
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
-		if (Boolean.valueOf(((StringValue) getOperands().get(APPEND_IDX).getParameter()).getValue(targetStock))) {
+		if (Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getParameter()).getValue(targetStock))) {
 			
 			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 			
@@ -325,7 +326,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 				LOGGER.warn("Reinitialisation is " + isInit + ". Previous file does not exist: " + e);
 			}
 			
-			getOperands().get(APPEND_IDX).setParameter(new StringValue("INIT"));
+			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("INIT"));
 			leftShiftGapDataPoints = (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
 			
 			LOGGER.info("NOT APPENDING. Append was requested but is NOT POSSIBLE as the file is empty, inexistent or corrupted. " +

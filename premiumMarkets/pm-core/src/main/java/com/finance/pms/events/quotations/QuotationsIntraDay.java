@@ -44,14 +44,15 @@ public abstract class QuotationsIntraDay extends Quotations {
 		super(stock, firstDate, lastDate, true, targetCurrency, firstIndexShift, validityFilter, otherValidityFilters);
 	}
 
-	QuotationsIntraDay(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
-		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
-	}
+	//FIXME
+//	QuotationsIntraDay(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
+//		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
+//	}
 	
 	@Override
 	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
 	
-		QuotationData quotationData = Quotations.getCashedStock(stock);
+		QuotationData quotationData = Quotations.getCachedStock(stock, ValidityFilter.ALLVALID.name());
 		
 		if (quotationData == null || quotationData.size() == 0) {
 			return null;

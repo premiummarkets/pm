@@ -45,7 +45,6 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.quotations.CalculationQuotations;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -204,8 +203,11 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsOperator 
         this.priceSma65.calculateIndicator(quotations);
         this.priceSma20.calculateIndicator(quotations);
 
-        this.chaikinSma65.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
-        this.chaikinSma20.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
+        //FIXME Why the strip??
+//        this.chaikinSma65.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
+//        this.chaikinSma20.calculateIndicator(new CalculationQuotations(quotations.getStock(), quotations.getTargetCurrency(), chaikin.indicatorStrip(quotations), chaikin.quotationValidity()));
+        this.chaikinSma65.calculateIndicator(quotations);
+        this.chaikinSma20.calculateIndicator(quotations);
 
     }
 

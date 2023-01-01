@@ -53,7 +53,11 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 		
 		List<String> columnRefs = new ArrayList<String>();
 		SortedMap<Date, double[]> calculationResults = new TreeMap<Date, double[]>();
+		Date startDate = null;
 		try {
+			
+			startDate =  targetStock.getStartDate(thisStartShift);
+			
 			CsvImportExport<Date> csvImporter = new MapCsvImportExport();
 			List<String> headers = new ArrayList<>();
 			SortedMap<Date, double[]> importedData = csvImporter.importData(new File(filePath), headers);
@@ -63,24 +67,25 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 			}
 
 			columnRefs = includedIndexes.stream()
-					.map(columnIndex -> {
-						String key = (headers.isEmpty())? "Column" + columnIndex : headers.get(columnIndex);
-						return key;
-					})
-					.collect(Collectors.toList());
+						.map(columnIndex -> {
+							String key = (headers.isEmpty())? "Column" + columnIndex : headers.get(columnIndex);
+							return key;
+						})
+						.collect(Collectors.toList());
 			calculationResults =
 					importedData.entrySet().stream()
-					.map(e -> {
-						double[] nuOutput = new double[includedIndexes.size()];
-						IntStream.range(0, nuOutput.length).forEach(i -> nuOutput[i] = e.getValue()[includedIndexes.get(i)-1]);
-						return new AbstractMap.SimpleImmutableEntry<>(e.getKey(), nuOutput);
-					})
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+						.map(e -> {
+							double[] nuOutput = new double[includedIndexes.size()];
+							IntStream.range(0, nuOutput.length).forEach(i -> nuOutput[i] = e.getValue()[includedIndexes.get(i)-1]);
+							return new AbstractMap.SimpleImmutableEntry<>(e.getKey(), nuOutput);
+						})
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
-			SortedMap<Date, double[]> subMapInclusiveResults = MapUtils.subMapInclusive(calculationResults, targetStock.getStartDate(thisStartShift), targetStock.getEndDate());			
+			SortedMap<Date, double[]> subMapInclusiveResults = MapUtils.subMapInclusive(calculationResults, startDate, targetStock.getEndDate());			
 			return new DoubleArrayMapValue(subMapInclusiveResults, columnRefs, includedIndexes.indexOf(mainIndex));
+			
 		} catch (Exception e) {
-			LOGGER.error("Unreadable file for period " + targetStock.getStartDate(thisStartShift) + " - " + targetStock.getEndDate() + ": "+ filePath, e);
+			LOGGER.error("Unreadable file for period " + startDate + " - " + targetStock.getEndDate() + ": "+ filePath, e);
 			return new DoubleArrayMapValue(calculationResults, columnRefs, includedIndexes.indexOf(mainIndex));
 		}
 

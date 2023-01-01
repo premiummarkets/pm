@@ -92,7 +92,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 				LOGGER.error(e,e);
 			}
 
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 1, ValidityFilter.CLOSE);
+			Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 1, ValidityFilter.CLOSE);
 			LOGGER.info(
 					"Alerts on threshold calculation span for "+portfolioShare.getStock()+": start "+startDate+", end "+endDate+"\n"+
 					"Quotations idx : from "+quotations.getFirstDateShiftedIdx()+" to "+quotations.getLastDateIdx()+ " with size "+quotations.size() + "\n"+

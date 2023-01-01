@@ -66,7 +66,10 @@ public class StatsOperation extends PMWithDataOperation {
 
 	public StatsOperation() {
 		super("stat", "Moving statistics",
-				new NumberOperation("number", "movingPeriod", "Moving period in data points (= calendar days (apply *5/7 if not NON STOP trading), independent of effective available data. 'NaN' means window == data set size", new NumberValue(21.0)),
+				new NumberOperation(
+						"number", "movingPeriod", 
+						"Moving period in data points (= calendar days (apply *5/7 if not NON STOP trading), independent of effective available data. 'NaN' means window == data set size", 
+						new NumberValue(21.0)),
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm"})));
 	}
@@ -78,7 +81,9 @@ public class StatsOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftFromParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(
+			TargetStockInfo targetStock, String thisCallStack, 
+			int thisOutputRequiredStartShiftFromParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		Double period = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
@@ -144,8 +149,11 @@ public class StatsOperation extends PMWithDataOperation {
 				};
 				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, thisOutputRequiredStartShiftFromParent, innerCalcFunc, numericableMapValue);
 			} else {
+				Date startDate = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis);
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
-					SortedMap<Date, Double> movingStat = MapUtils.movingStat(data.get(0).getValue(targetStock), targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis), period.intValue(), statFunction);
+					SortedMap<Date, Double> movingStat = MapUtils.movingStat(
+															data.get(0).getValue(targetStock), 
+															startDate, period.intValue(), statFunction);
 					return new DoubleMapValue(movingStat);
 				};
 				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, thisOutputRequiredStartShiftFromParent, innerCalcFunc, numericableMapValue);

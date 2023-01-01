@@ -32,7 +32,6 @@
 
 package com.finance.pms.events.scoring.functions;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -40,7 +39,7 @@ import java.util.TreeMap;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.calculation.util.MapUtils;
 
 public class Normalizer<T> {
 
@@ -60,11 +59,7 @@ public class Normalizer<T> {
 		this.genType = genType;
 
 		this.start = start;
-
-		Calendar endCal = Calendar.getInstance();
-		endCal.setTime(end);
-		QuotationsFactories.getFactory().incrementDate(endCal, 1);
-		this.end = endCal.getTime();
+		this.end = end;
 
 		this.minNorm = minNorm;
 		this.maxNorm = maxNorm;
@@ -81,7 +76,7 @@ public class Normalizer<T> {
 
 		SortedMap<Date, T> ret = new TreeMap<Date, T>();
 
-		SortedMap<Date, T> subD = data.subMap(start, end);
+		SortedMap<Date, T> subD = MapUtils.subMapInclusive(data, start, end);
 		double[] calculatedMinMax = calculateMinMax(subD);
 		double min = calculatedMinMax[0];
 		double max = calculatedMinMax[1];

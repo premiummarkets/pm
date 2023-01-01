@@ -76,7 +76,7 @@ public class PMMightyChaikinOperation extends PMDataFreeOperation {
 		try {
 			ChaikinOscillatorDivergence_old mChaikin = new ChaikinOscillatorDivergence_old(fastPeriod, slowPeriod);
 
-			Quotations quotationsInstance = QuotationsFactories.getFactory().getQuotationsInstance(
+			Quotations quotationsInstance = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(
 					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), 
 					true, targetStock.getStock().getMarketValuation().getCurrency(),
 					mChaikin.getStartShift(), mChaikin.quotationsValidity());

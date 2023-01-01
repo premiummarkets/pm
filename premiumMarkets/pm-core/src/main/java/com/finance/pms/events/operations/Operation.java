@@ -56,6 +56,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
@@ -198,16 +199,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftFromParent);
 		int thisInputOperandsRequiredshiftFromThis = thisOutputRequiredStartShiftFromParent + thisOperationOperandsStartShift;
 		
-		String thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftFromParent, thisOperationOperandsStartShift, targetStock);
-		
-		//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
-		//LOGGER.info(thisCallStack);
-		
-		int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
-		boolean isInChart = isDisplay && thisCallStack.split("=>").length <= maxDepth;
-		
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		try {
+			String thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftFromParent, thisOperationOperandsStartShift, targetStock);
+			//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
+			//LOGGER.info(thisCallStack);
+			
+			int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
+			boolean isInChart = isDisplay && thisCallStack.split("=>").length <= maxDepth;
 			
 			Value<?> alreadyCalculated = null;
 			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOutputRequiredStartShiftFromParent)) != null) {
@@ -312,8 +311,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * @param operationOperandsRequiredStartShift: this operation required operands input shift for 0 lag
 	 * @param targetStock
 	 * @return
+	 * @throws NotEnoughDataException 
 	 */
-	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) {
+	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) throws NotEnoughDataException {
 		int stackDepth = parentCallStack.split("=>").length  + 1;
 		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
@@ -733,7 +733,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands.stream().reduce(0, (max, operand) -> {
 			int operandShift = operand.operandsRequiredStartShift(targetStock, thisOperationStartShift);
 			int operandOperandsShift = operand.operandsRequiredStartShiftRecursive(targetStock, operandShift);
-			if (operandShift != 0) LOGGER.info(operand.getReference() + " operand shift: " + operandShift + ", operands' operand shift:" + operandOperandsShift + " = " + (operandShift + operandOperandsShift));
+			if (operandShift != 0) 
+				LOGGER.info(operand.getReference() + " operand shift: " + operandShift + ", operands' operand shift:" + operandOperandsShift + " = " + (operandShift + operandOperandsShift));
 			return Math.max(max, operandShift + operandOperandsShift);
 		}, (a, b) -> Math.max(a, b));
 	}
@@ -790,7 +791,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	public void interrupt() throws Exception {
-		operands.stream().forEach(
+		operands.stream()
+			.forEach(
 				o -> {
 					if (!o.getOperands().isEmpty()) {
 						try {

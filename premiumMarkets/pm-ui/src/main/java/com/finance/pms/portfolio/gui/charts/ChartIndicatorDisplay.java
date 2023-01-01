@@ -85,7 +85,7 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartBarUtils;
@@ -441,15 +441,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			SortedMap<Date, double[]> subMap = new TreeMap<Date, double[]>();
 			if (outputCache != null && !outputCache.isEmpty()) {
 
-				Calendar instance = Calendar.getInstance();
-				instance.setTime(chartTarget.getSlidingEndDate());
-				QuotationsFactories.getFactory().incrementDate(instance, 1);
-				Date endPlus1 = instance.getTime();
-
-				if (endPlus1.after(outputCache.lastKey())) {
+				Date end = chartTarget.getSlidingEndDate();
+				if (end.compareTo(outputCache.lastKey()) >= 0) {
 					subMap = outputCache.tailMap(this.chartTarget.getSlidingStartDate());
 				} else {
-					subMap = outputCache.subMap(this.chartTarget.getSlidingStartDate(), endPlus1);
+					subMap = MapUtils.subMapInclusive(outputCache, this.chartTarget.getSlidingStartDate(), end);
 				}
 
 				eventsSeries.put(eventInfo, subMap);

@@ -30,6 +30,7 @@
 package com.finance.pms.events.scoring.chartUtils;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -44,6 +45,8 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
@@ -79,9 +82,9 @@ public class ChartBarUtils {
 
 							Date currEvtDate = eventKey.getDate();
 							if (eventInfo.getIsContinous()) {
-								cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, 1);
+								cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, 1);
 							} else {
-								cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, barSettings.getMaxFill());
+								cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, barSettings.getMaxFill());
 							}
 
 						}
@@ -92,7 +95,7 @@ public class ChartBarUtils {
 
 				//Filling up to the end only for non continuous events
 				if (prevEventValue != null && !eventInfo.getIsContinous()) {
-					cheesyFillBarChart(yValueFactor, sellS, buyS, indeterS, prevEventValue, end,  barSettings.getMaxFill());
+					cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, prevEventValue, end,  barSettings.getMaxFill());
 				}
 
 				int gradiant = (barSettings.getIsGradient()) ? serieIdx/3 : 1;
@@ -148,9 +151,9 @@ public class ChartBarUtils {
 
 	//nbMaxFill = 0 means no filling limit
 	private static void cheesyFillBarChart(
-			double yValue, 
+			Stock stock, double yValue, 
 			SortedMap<Date, BarChart> sellS, SortedMap<Date, BarChart> buyS, SortedMap<Date, BarChart> undeterS, 
-			EventValue prevEventValue, Date currEvtDate, int nbMaxFill) {
+			EventValue prevEventValue, Date currEvtDate, int nbMaxFill) throws NotEnoughDataException {
 
 		Calendar prevDateCal = Calendar.getInstance();
 		prevDateCal.setTime(prevEventValue.getDate());
@@ -161,14 +164,14 @@ public class ChartBarUtils {
 		if ( prevEventValue.getEventType().equals(EventType.BULLISH)) {
 			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
 				buyS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
-				QuotationsFactories.getFactory().incrementDate(prevDateCal, +1);
+				QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), prevDateCal, +1);
 				nbFill++;
 			}
 		}
 		else if (prevEventValue.getEventType().equals(EventType.BEARISH)) {
 			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
 				sellS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
-				QuotationsFactories.getFactory().incrementDate(prevDateCal, +1);
+				QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), prevDateCal, +1);
 				nbFill++;
 			}
 		}

@@ -109,6 +109,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
@@ -134,7 +135,7 @@ public class ChartMain extends Chart {
 
 	public static final DateFormat DATE_FORMAT = DateFormat.getTimeInstance();
 	public static final DecimalFormat PERCENTAGE_FORMAT = new DecimalFormat("#0.00%");
-	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#0.00");
+	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#0.0000000000");
 	private static final Integer CHARTS_TOTAL_WEIGHT = 100;
 
 	private BarChartDisplayStrategy barChartDisplayStrategy;
@@ -197,7 +198,7 @@ public class ChartMain extends Chart {
 			if (kthPs.getDisplayOnChart()) {
 
 				try {
-					Date startDate = stripedCloseFunction.getArbitraryStartDateForCalculation();
+					Date startDate = stripedCloseFunction.getArbitraryStartDateForCalculation(kthPs.getStock());
 					Date endDate = stripedCloseFunction.getArbitraryEndDate();
 					final Quotations quotations = getQuotationsClose(kthPs.getStock(), kthPs.getTransactionCurrency(), startDate, endDate);
 					lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs);
@@ -282,8 +283,8 @@ public class ChartMain extends Chart {
 					renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
 					renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
 
-				} catch (NoQuotationsException e) {
-					LOGGER.warn(kthPs + " has no quotation available and won't be displayed");
+				} catch (NoQuotationsException | NotEnoughDataException e) {
+					LOGGER.warn(kthPs + " has no or not enough quotations available and won't be displayed");
 					lineSerie = new TimeSeries(kthPs.getName());
 				} catch (Exception e) {
 					LOGGER.warn(kthPs + " error building line series ", e);
@@ -689,7 +690,7 @@ public class ChartMain extends Chart {
 		
 		try {
 			transactCurrency = (Currency.NAN.equals(transactCurrency))?stock.getMarketValuation().getCurrency():transactCurrency;
-			Quotations bdQuotes = QuotationsFactories.getFactory().getQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
+			Quotations bdQuotes = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
 			return bdQuotes;
 		} catch (NoQuotationsException e) {
 			throw e;

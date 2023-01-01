@@ -48,6 +48,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.datasources.ComparableSortedMap;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
@@ -165,88 +166,97 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 		SortedMap<Date, ArrayList<Line<Integer, Double>>> realRowTangents = new TreeMap<>();
 		for (Date date : fullKeyArray) {
 
-			Calendar currentDate = Calendar.getInstance();
-			currentDate.setTime(date);
-			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -lookBackNbDays).getTime();
+			try {
+				Calendar currentDate = Calendar.getInstance();
+				currentDate.setTime(date);
+				Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(targetStock.getStock(),targetStock.getQuotationsDataTypes(), currentDate, -lookBackNbDays).getTime();
 
-			if ( lookBackPeriodStart.after(dataFirstKey) ) {
+				if ( lookBackPeriodStart.after(dataFirstKey) ) {
 
-				if (MapUtils.subMapInclusive(data, lookBackPeriodStart, date).size() < 4) continue;
+					if (MapUtils.subMapInclusive(data, lookBackPeriodStart, date).size() < 4) continue;
 
-				Comparable dataLookBackTimeCmp =
-						new ComparableSortedMap<>(
-								MapUtils
-								.subMapInclusive(fullDataDayNumIndexedMap, Integer.valueOf((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), Integer.valueOf((int) (date.getTime()/DAY_IN_MILLI)))
-								);
-				Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
-				Comparable minimumSurfaceOfChangeCmp = minimumSurfaceOfChange;
-				Comparable greedCmp = greed;
-				Comparable _higherHighsCmp = new ComparableSortedMap<Integer, Double>();
-				Comparable _expertTangentCmp = new ComparableArray<Line<Integer, Double>>();
-				Comparable lowestStartCmp = lowestStart;
-				Comparable highestStartCmp = highestStart;
-				Comparable lowestEndCmp = lowestEnd;
-				Comparable highestEndCmp = highestEnd;
-				Comparable minSlopeCmp = minSlope;
-				Comparable maxSlopeCmp = maxSlope;
-				Comparable toleranceCmp = tolerance;
-				Comparable highLowSolverTypeCmp = highLowSolverType;
+					Comparable dataLookBackTimeCmp =
+							new ComparableSortedMap<>(
+									MapUtils
+									.subMapInclusive(fullDataDayNumIndexedMap, Integer.valueOf((int) (lookBackPeriodStart.getTime()/DAY_IN_MILLI)), Integer.valueOf((int) (date.getTime()/DAY_IN_MILLI)))
+									);
+					Comparable lookBackSmoothingPeriodCmp = lookBackSmoothingPeriod;
+					Comparable minimumSurfaceOfChangeCmp = minimumSurfaceOfChange;
+					Comparable greedCmp = greed;
+					Comparable _higherHighsCmp = new ComparableSortedMap<Integer, Double>();
+					Comparable _expertTangentCmp = new ComparableArray<Line<Integer, Double>>();
+					Comparable lowestStartCmp = lowestStart;
+					Comparable highestStartCmp = highestStart;
+					Comparable lowestEndCmp = lowestEnd;
+					Comparable highestEndCmp = highestEnd;
+					Comparable minSlopeCmp = minSlope;
+					Comparable maxSlopeCmp = maxSlope;
+					Comparable toleranceCmp = tolerance;
+					Comparable highLowSolverTypeCmp = highLowSolverType;
 
-				Boolean conditionCheck = conditionCheck(
-						dataLookBackTimeCmp,
-						lookBackSmoothingPeriodCmp, minimumSurfaceOfChangeCmp, greedCmp,
-						_higherHighsCmp, _expertTangentCmp,
-						lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp,
-						minSlopeCmp, maxSlopeCmp, toleranceCmp,
-						highLowSolverTypeCmp);
+					Boolean conditionCheck = conditionCheck(
+							dataLookBackTimeCmp,
+							lookBackSmoothingPeriodCmp, minimumSurfaceOfChangeCmp, greedCmp,
+							_higherHighsCmp, _expertTangentCmp,
+							lowestStartCmp, highestStartCmp, lowestEndCmp, highestEndCmp,
+							minSlopeCmp, maxSlopeCmp, toleranceCmp,
+							highLowSolverTypeCmp);
 
-				if (conditionCheck != null) {
+					if (conditionCheck != null) {
 
-					ArrayList<Line<Integer, Double>> expertTangents = (ArrayList<Line<Integer, Double>>) _expertTangentCmp;
+						ArrayList<Line<Integer, Double>> expertTangents = (ArrayList<Line<Integer, Double>>) _expertTangentCmp;
 
-					conditionCheck = expertTangents.stream().map( expertTangent -> {
-						//Has it been already found as row tangent
-						ArrayList<Line<Integer, Double>> realRawTgtsAtDate = realRowTangents.get(date);
-						boolean alreadyFoundTangent = realRawTgtsAtDate != null && realRawTgtsAtDate.contains(expertTangent);
-						if (expertTangent.isSet() && !alreadyFoundTangent) {
-							if (realRawTgtsAtDate == null) realRawTgtsAtDate = new ArrayList<>();
-							realRawTgtsAtDate.add(expertTangent);
-							realRowTangents.put(date, realRawTgtsAtDate);
-						}
+						conditionCheck = expertTangents.stream()
+						.map( expertTangent -> {
+							//Has it been already found as row tangent
+							ArrayList<Line<Integer, Double>> realRawTgtsAtDate = realRowTangents.get(date);
+							boolean alreadyFoundTangent = realRawTgtsAtDate != null && realRawTgtsAtDate.contains(expertTangent);
+							if (expertTangent.isSet() && !alreadyFoundTangent) {
+								if (realRawTgtsAtDate == null) realRawTgtsAtDate = new ArrayList<>();
+								realRawTgtsAtDate.add(expertTangent);
+								realRowTangents.put(date, realRawTgtsAtDate);
+							}
 
-						//We don't have a 'for' reduction here as 'for' is actually the surface of change to the tangent.
-						//However we may want a confirmation reduction. The latter is check against the 'overPeriodRemanence' history of positive expertTangent and the latest actual one. 
-						expertTangent = confirmationReduction(targetStock, realRowTangents, overPeriodRemanence, expertTangent, date, data.get(date), tolerance);
-						boolean alreadyFoundReduced = expertTangentsStore.containsKey(expertTangent);
+							//We don't have a 'for' reduction here as 'for' is actually the surface of change to the tangent.
+							//However we may want a confirmation reduction. The latter is check against the 'overPeriodRemanence' history of positive expertTangent and the latest actual one. 
+							try {
+								expertTangent = confirmationReduction(targetStock, realRowTangents, overPeriodRemanence, expertTangent, date, data.get(date), tolerance);
+							} catch (NotEnoughDataException e1) {
+								throw new RuntimeException(e1);
+							}
+							boolean alreadyFoundReduced = expertTangentsStore.containsKey(expertTangent);
 
-						//Update output if no overPeriodRemanence is running.
-						Boolean outputAtDate = outputs.getValue(targetStock).get(date);
-						if ( !alreadyFoundReduced && (outputAtDate == null || !outputAtDate ) ) {
-							outputs.getValue(targetStock).put(date, expertTangent.isSet());
-						}
+							//Update output if no overPeriodRemanence is running.
+							Boolean outputAtDate = outputs.getValue(targetStock).get(date);
+							if ( !alreadyFoundReduced && (outputAtDate == null || !outputAtDate ) ) {
+								outputs.getValue(targetStock).put(date, expertTangent.isSet());
+							}
 
-						//Tangent output (may have been reduced by confirmation so we check now in the output set of tangents if it has been seen already)
-						Boolean inConditionCheck = expertTangent.isSet() && !alreadyFoundReduced;
-						if (inConditionCheck) {
-							String currentLabel =
-									expertTangentLabel +
-									" at " + dateFormat.format(date) +
-									" of " + this.getOperands().get(MAIN_POSITION).getReference() +
-									" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence +
-									//Test
-									" / intersect " + expertTangent.getIntersect() +
-									" / extremes " + expertTangent.getLowKnot() + "l, " + expertTangent.getHighKnot() + "h, " + expertTangent.getRelativeDifference() + "rd, "+
-									" / surface " + expertTangent.getSurfaceOfChange();
-							expertTangentsStore.put(expertTangent, new TangentElement(expertTangent, currentLabel));
-						}
-						return inConditionCheck;
-					})
-					.reduce((r, e) -> e || r).orElse(false);
+							//Tangent output (may have been reduced by confirmation so we check now in the output set of tangents if it has been seen already)
+							Boolean inConditionCheck = expertTangent.isSet() && !alreadyFoundReduced;
+							if (inConditionCheck) {
+								String currentLabel =
+										expertTangentLabel +
+										" at " + dateFormat.format(date) +
+										" of " + this.getOperands().get(MAIN_POSITION).getReference() +
+										" / slope " + expertTangent.getSlope() + " / afterglow " + overPeriodRemanence +
+										//Test
+										" / intersect " + expertTangent.getIntersect() +
+										" / extremes " + expertTangent.getLowKnot() + "l, " + expertTangent.getHighKnot() + "h, " + expertTangent.getRelativeDifference() + "rd, "+
+										" / surface " + expertTangent.getSurfaceOfChange();
+								expertTangentsStore.put(expertTangent, new TangentElement(expertTangent, currentLabel));
+							}
+							return inConditionCheck;
+						})
+						.reduce((r, e) -> e || r).orElse(false);
 
-					overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, conditionCheck, outputs);
+						overPeriodFilling(targetStock, fullKeySet, overPeriodRemanence, date, conditionCheck, outputs);
+
+					}
 
 				}
-
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e);
 			}
 
 		}
@@ -262,7 +272,11 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 				Calendar endOverPeriodCal = Calendar.getInstance();
 				int endDateIndex = fullDataDayNumArray.indexOf(e.getValue().getLine().getxEnd()) + 1 + 1; //+1 for inclusion +1 for detection lag
 				endOverPeriodCal.setTime(fullKeyArray.get((endDateIndex < fullKeyArray.size())?endDateIndex:fullKeyArray.size()-1));
-				QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriodRemanence);
+				try {
+					QuotationsFactories.getFactory().incrementDate(targetStock.getStock(),targetStock.getQuotationsDataTypes(), endOverPeriodCal, +overPeriodRemanence);
+				} catch (NotEnoughDataException e1) {
+					throw new RuntimeException(e1);
+				}
 				Date endOverPeriod = endOverPeriodCal.getTime();
 				Integer toElement = fullDataDayNumArray.indexOf(MapUtils.subMapInclusive(fullDataDayNumIndexedMap, 0, Integer.valueOf((int) (endOverPeriod.getTime()/DAY_IN_MILLI))).lastKey());
 
@@ -285,7 +299,7 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 	protected Line<Integer, Double> confirmationReduction(
 			TargetStockInfo targetStock,
 			SortedMap<Date, ArrayList<Line<Integer, Double>>> realRowTangents, Integer overPeriodRemanence,
-			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
+			Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) throws NotEnoughDataException {
 		return actualTangent;
 	}
 

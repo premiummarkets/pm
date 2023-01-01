@@ -88,12 +88,12 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 					value.entrySet().stream()
 					.collect(Collectors.toMap(
 							e -> e.getKey(), 
-							e ->  ((e.getValue() - actualCenter)/distanceToActualCenter)* distanceToNewCenter + newCenter, 
+							e ->  ((e.getValue() - actualCenter)/distanceToActualCenter) * distanceToNewCenter + newCenter, 
 							(a,b) -> a, TreeMap::new));
 			doubleMapValue.getValue(targetStock).putAll(normalized);
 			
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + ": " + e, e);
 		}
 		return doubleMapValue;
 	}

@@ -34,12 +34,16 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 /**
@@ -53,6 +57,8 @@ public class LeftShifterGapFree<T> {
 	
 	private int nbDaysLeftSide;
 	private Boolean noDataLoss;
+	private Collection<QuotationDataType> quotationDataTypes;
+	private Stock stock;
 	
 	public LeftShifterGapFree(int nbDaysAhead, Boolean noDataLoss) {
 		super();
@@ -61,7 +67,7 @@ public class LeftShifterGapFree<T> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public SortedMap<Date, T> shift(SortedMap<Date, T> data) {
+	public SortedMap<Date, T> shift(SortedMap<Date, T> data) throws NotEnoughDataException {
 		TreeMap<Date, double[]> dataTodouble;
 		boolean isTaDoubleArray = data.get(data.firstKey()) instanceof double[];
 		if (isTaDoubleArray) {
@@ -77,7 +83,7 @@ public class LeftShifterGapFree<T> {
 		}
 	}
 
-	private SortedMap<Date, double[]> internalShift(SortedMap<Date, double[]> data) {
+	private SortedMap<Date, double[]> internalShift(SortedMap<Date, double[]> data) throws NotEnoughDataException {
 
 		SortedMap<Date, double[]> shiftedOuptput = new TreeMap<Date, double[]>();
 		List<Date> dataKeyDates = new ArrayList<Date>(data.keySet());
@@ -135,13 +141,13 @@ public class LeftShifterGapFree<T> {
 			if (nbDaysLeftSide > 0) {
 				calendar.setTime(shiftedOuptput.firstKey());
 				for (int i = 1; i <= nbMissingDays; i++) {
-					QuotationsFactories.getFactory().incrementDate(calendar, -1);
+					QuotationsFactories.getFactory().incrementDate(stock, quotationDataTypes, calendar, -1);
 					shiftedOuptput.put(calendar.getTime(), shiftedOuptput.get(dataKeyDates.get(jFirst-i)));
 				}
 			} else {
 				calendar.setTime(shiftedOuptput.lastKey());
 				for (int i = 0; i < nbMissingDays; i++) {
-					QuotationsFactories.getFactory().incrementDate(calendar, +1);
+					QuotationsFactories.getFactory().incrementDate(stock, quotationDataTypes, calendar, +1);
 					shiftedOuptput.put(calendar.getTime(), shiftedOuptput.get(dataKeyDates.get(jLast+i)));
 				}
 			}

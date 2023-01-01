@@ -102,7 +102,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 			Date lastWebDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
 			
 			Quotations lastQuotations = 
-					QuotationsFactories.getFactory().getQuotationsInstance(stock, start, end, false, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
+					QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, start, end, false, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
 			List<QuotationUnit> usersDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
 					.filter(qu -> ORIGIN.USER.equals(qu.getOrigin()))
 					.collect(Collectors.toList());

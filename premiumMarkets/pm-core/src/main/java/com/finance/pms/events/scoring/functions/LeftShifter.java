@@ -34,11 +34,15 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 /**
  * 
@@ -57,14 +61,18 @@ public class LeftShifter<T> {
 	
 	private int nbDaysAhead;
 	private Boolean noDataLoss;
+	private Stock stock;
+	private Collection<QuotationDataType> quotationsDataTypes;
 	
-	public LeftShifter(int nbDaysAhead, Boolean noDataLoss) {
+	public LeftShifter(Stock stock, Collection<QuotationDataType> quotationsDataTypes, int nbDaysAhead, Boolean noDataLoss) {
 		super();
+		this.stock = stock;
+		this.quotationsDataTypes = quotationsDataTypes;
 		this.nbDaysAhead = nbDaysAhead;
 		this.noDataLoss = noDataLoss;
 	}
 
-	public SortedMap<Date, T> shift(SortedMap<Date, T> data) {
+	public SortedMap<Date, T> shift(SortedMap<Date, T> data) throws NotEnoughDataException {
 
 		SortedMap<Date, T> shiftedOutput = new TreeMap<Date, T>();
 
@@ -82,13 +90,13 @@ public class LeftShifter<T> {
 			if (nbDaysAhead > 0) {
 				calendar.setTime(shiftedOutput.firstKey());
 				for (int i = 1; i <= nbMissingDays; i++) {
-					QuotationsFactories.getFactory().incrementDate(calendar, -1);
+					QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, calendar, -1);
 					shiftedOutput.put(calendar.getTime(), data.get(keyList.get(j0-i)));
 				}
 			} else {
 				calendar.setTime(shiftedOutput.lastKey());
 				for (int i = 0; i < nbMissingDays; i++) {
-					QuotationsFactories.getFactory().incrementDate(calendar, +1);
+					QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, calendar, +1);
 					shiftedOutput.put(calendar.getTime(), data.get(keyList.get(jLast+i)));
 				}
 			}

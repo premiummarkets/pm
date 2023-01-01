@@ -35,10 +35,13 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Date;
 import java.util.SortedMap;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+
 public class CurvesHouseDevComparator extends CurvesComparatorOldBase {
 
-	public CurvesHouseDevComparator(Date start, Date end, int maxShift) {
-		super(start, end, maxShift);
+	public CurvesHouseDevComparator(Stock stock, Date start, Date end, int maxShift) throws NotEnoughDataException {
+		super(stock, start, end, maxShift);
 	}
 
 	@Override

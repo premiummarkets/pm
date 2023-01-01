@@ -151,7 +151,10 @@ public class ValueManipulator {
 		NumericableMapValue apply(List<NumericableMapValue> data);
 	}
 	
-	public static NumericableMapValue doubleArrayExpender(Operation operation, int dataInputIdx, TargetStockInfo targetStock, int parentRequiredStartShift, InnerCalcFunc innerCalcFunc, List<NumericableMapValue> numericableMapValues) {
+	public static NumericableMapValue doubleArrayExpender(
+			Operation operation, 
+			int dataInputIdx, TargetStockInfo targetStock, int parentRequiredStartShift, 
+			InnerCalcFunc innerCalcFunc, List<NumericableMapValue> numericableMapValues) {
 	
 		List<Map<String, NumericableMapValue>> allInputs = new ArrayList<Map<String,NumericableMapValue>>();
 		

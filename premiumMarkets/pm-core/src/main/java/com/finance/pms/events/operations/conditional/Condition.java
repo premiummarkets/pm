@@ -40,7 +40,9 @@ import java.util.SortedSet;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -85,6 +87,8 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 	ReverseCondition.class,
 	DiscreteLinearOutputsCondition.class})
 public class Condition<T> extends Operation {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(Condition.class);
 
 	protected Condition() {
 		super();
@@ -133,13 +137,17 @@ public class Condition<T> extends Operation {
 	 */
 	protected void overPeriodFilling(TargetStockInfo targetStock, SortedSet<Date> fullKeySet, Integer overPeriod, Date actualDate, Boolean conditionCheck, BooleanMapValue outputs) {
 		if (conditionCheck != null && conditionCheck && overPeriod > 0) {
-			Calendar endOverPeriodCal = Calendar.getInstance();
-			endOverPeriodCal.setTime(actualDate);
-			QuotationsFactories.getFactory().incrementDate(endOverPeriodCal, +overPeriod+1);
-			Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))?fullKeySet.last():endOverPeriodCal.getTime();
-			SortedSet<Date> overPeriodDates = fullKeySet.subSet(actualDate, endOverPeriod);
-			for (Date overPeriodDate : overPeriodDates) {
-				outputs.getValue(targetStock).put(overPeriodDate, true);
+			try {
+				Calendar endOverPeriodCal = Calendar.getInstance();
+				endOverPeriodCal.setTime(actualDate);
+				QuotationsFactories.getFactory().incrementDate(targetStock.getStock(), targetStock.getQuotationsDataTypes(), endOverPeriodCal, +overPeriod+1);
+				Date endOverPeriod = (endOverPeriodCal.after(fullKeySet.last()))?fullKeySet.last():endOverPeriodCal.getTime();
+				SortedSet<Date> overPeriodDates = fullKeySet.subSet(actualDate, endOverPeriod);
+				for (Date overPeriodDate : overPeriodDates) {
+					outputs.getValue(targetStock).put(overPeriodDate, true);
+				}
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e);
 			}
 		}
 	}
@@ -158,19 +166,23 @@ public class Condition<T> extends Operation {
 			TargetStockInfo targetStock, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Integer forPeriod, Date actualDate, Boolean conditionCheck) {
 		if (conditionCheck && forPeriod > 0) {
 
-			Calendar startForPeriodCal = Calendar.getInstance();
-			startForPeriodCal.setTime(actualDate);
-			QuotationsFactories.getFactory().incrementDate(startForPeriodCal, -forPeriod-1);
-			Date startForPeriod = startForPeriodCal.getTime();
+			try {
+				Calendar startForPeriodCal = Calendar.getInstance();
+				startForPeriodCal.setTime(actualDate);
+				QuotationsFactories.getFactory().incrementDate(targetStock.getStock(), targetStock.getQuotationsDataTypes(), startForPeriodCal, -forPeriod-1);
+				Date startForPeriod = startForPeriodCal.getTime();
 
-			SortedMap<Date, Boolean> previousForPeriodConditionChecks = realRowOutputs.getValue(targetStock).subMap(startForPeriod, actualDate);
-			if (startForPeriod.before(fullKeySet.first())) {
-				conditionCheck = null;
-			} else {
-				for (Boolean previousValue : previousForPeriodConditionChecks.values()) {
-					conditionCheck = conditionCheck && previousValue;
-					if (!previousValue) break;
+				SortedMap<Date, Boolean> previousForPeriodConditionChecks = realRowOutputs.getValue(targetStock).subMap(startForPeriod, actualDate);
+				if (startForPeriod.before(fullKeySet.first())) {
+					conditionCheck = null;
+				} else {
+					for (Boolean previousValue : previousForPeriodConditionChecks.values()) {
+						conditionCheck = conditionCheck && previousValue;
+						if (!previousValue) break;
+					}
 				}
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e);
 			}
 		}
 		return conditionCheck;

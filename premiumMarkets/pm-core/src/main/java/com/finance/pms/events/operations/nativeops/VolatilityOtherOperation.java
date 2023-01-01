@@ -46,7 +46,7 @@ public class VolatilityOtherOperation extends PMDataFreeOperation {
 		//Calc
 		try {
 
-			Quotations quotations = QuotationsFactories.getFactory().getQuotationsInstance(
+			Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(
 					targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(),
 					true, targetStock.getStock().getMarketValuation().getCurrency(), basicPeriod, ValidityFilter.CLOSE);
 			SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);

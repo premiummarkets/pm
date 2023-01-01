@@ -31,16 +31,29 @@ package com.finance.pms.events.scoring;
 
 import java.security.InvalidParameterException;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Stack;
 
 import com.finance.pms.datasources.events.OnTheFlyRevesreCalcPeriod;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class PeriodSpliter {
 	
-	public Stack<OnTheFlyRevesreCalcPeriod> splitBackward(Date dateDeb, Date dateFin, Integer periodLength, int calendarTimeUnit) {
+	private Stock stock;
+	private Collection<QuotationDataType> dataTypes;
+	
+	public PeriodSpliter(Stock stock, Collection<QuotationDataType> dataTypes) {
+		super();
+		this.stock = stock;
+		this.dataTypes = dataTypes;
+	}
+
+	public Stack<OnTheFlyRevesreCalcPeriod> splitBackward(Date dateDeb, Date dateFin, Integer periodLength, int calendarTimeUnit) throws NotEnoughDataException {
 
 		Calendar dateDebCal = Calendar.getInstance();
 		dateDebCal.setTime(DateFactory.midnithDate(dateDeb));
@@ -61,7 +74,7 @@ public class PeriodSpliter {
 
 				Date pEndDate = slidingDateFinCal.getTime();
 				if (calendarTimeUnit == Calendar.DAY_OF_YEAR) {
-					QuotationsFactories.getFactory().incrementDate(slidingDateFinCal, -periodLength);
+					QuotationsFactories.getFactory().incrementDate(stock, dataTypes, slidingDateFinCal, -periodLength);
 				} else {
 					QuotationsFactories.getFactory().incrementDateLarge(slidingDateFinCal, -periodLength);
 				}
@@ -77,7 +90,7 @@ public class PeriodSpliter {
 		return retuneDates;
 	}
 	
-	public Stack<OnTheFlyRevesreCalcPeriod> splitForward(Date dateDeb, Date dateFin, Integer periodLength, int calendarTimeUnit) {
+	public Stack<OnTheFlyRevesreCalcPeriod> splitForward(Date dateDeb, Date dateFin, Integer periodLength, int calendarTimeUnit) throws NotEnoughDataException {
 
 		Calendar dateDebCal = Calendar.getInstance();
 		dateDebCal.setTime(DateFactory.midnithDate(dateDeb));
@@ -101,7 +114,7 @@ public class PeriodSpliter {
 				if (calendarTimeUnit == Calendar.MONTH) {
 					QuotationsFactories.getFactory().incrementDateLarge(slidingDateDebCal, periodLength);
 				} else if (calendarTimeUnit == Calendar.DAY_OF_YEAR)  {
-					QuotationsFactories.getFactory().incrementDate(slidingDateDebCal, periodLength);
+					QuotationsFactories.getFactory().incrementDate(stock, dataTypes,slidingDateDebCal, periodLength);
 				} else {
 					throw new InvalidParameterException("calendarTimeUnit : "+calendarTimeUnit);
 				}

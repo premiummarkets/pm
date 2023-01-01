@@ -40,11 +40,18 @@ import java.util.stream.Collectors;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class Trimmer {
 
 //	private static MyLogger LOGGER = MyLogger.getLogger(Trimmer.class);
+	
+	private Stock stock;
+	private Collection<QuotationDataType> quotationsDataTypes;
 
 	private MyApacheStats stdev;
 	private MyApacheStats mean;
@@ -55,22 +62,22 @@ public class Trimmer {
 
 	private int slidingPeriod;
 
-	public Trimmer(int slidingPeriod, int trimFactor, Date start, Date end) {
+
+	public Trimmer(Stock stock, Collection<QuotationDataType> quotationsDataTypes, int slidingPeriod, int trimFactor, Date start, Date end) {
 		super();
+		this.stock = stock;
+		this.quotationsDataTypes = quotationsDataTypes;
+		
 		this.stdev = new MyApacheStats(new StandardDeviation());
 		this.mean = new MyApacheStats(new Mean());
 		
 		this.slidingPeriod = slidingPeriod;
 		this.trimFactor = trimFactor;
 		this.start = start;
-
-		Calendar endCal = Calendar.getInstance();
-		endCal.setTime(end);
-		QuotationsFactories.getFactory().incrementDate(endCal, 1);
-		this.end = endCal.getTime();
+		this.end = end;
 	}
 	
-	public  SortedMap<Date, Double> sTrimmed(SortedMap<Date, Double> data) {
+	public  SortedMap<Date, Double> sTrimmed(SortedMap<Date, Double> data) throws NotEnoughDataException {
 		SortedMap<Date, double[]> doubleArrayMap = data.entrySet().stream()
 			.map(e -> Map.<Date, double[]>entry(e.getKey(), new double[] {e.getValue()}))
 			.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap<Date,double[]>::new));
@@ -80,26 +87,25 @@ public class Trimmer {
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap<Date,Double>::new));
 	}
 
-	public SortedMap<Date, double[]> trimmed(SortedMap<Date, double[]> data) {
+	public SortedMap<Date, double[]> trimmed(SortedMap<Date, double[]> data) throws NotEnoughDataException {
 
 
 		Calendar startDateCal = Calendar.getInstance();
 		startDateCal.setTime(data.firstKey());
-		QuotationsFactories.getFactory().incrementDate(startDateCal, +slidingPeriod);
+		QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, startDateCal, +slidingPeriod);
 		Date startDate = (startDateCal.getTime().compareTo(start) > 0)? startDateCal.getTime():start;
-		SortedMap<Date, double[]> subMap = data.subMap(startDate, end);
+		SortedMap<Date, double[]> subMap = MapUtils.subMapInclusive(data, startDate, end);
 		
 		SortedMap<Date, double[]> trimedHouseTrend = new TreeMap<Date, double[]>();
-		//trimedHouseTrend.putAll(data.subMap(data.firstKey(), startDate));
 		
 		for (Date date : subMap.keySet()) {
 
 			Calendar currentDateCal = Calendar.getInstance();
 			currentDateCal.setTime(date);
-			QuotationsFactories.getFactory().incrementDate(currentDateCal, -slidingPeriod);
+			QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, currentDateCal, -slidingPeriod);
 			Date periodStart = currentDateCal.getTime();
 			currentDateCal.setTime(date);
-			QuotationsFactories.getFactory().incrementDate(currentDateCal, -1);
+			QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, currentDateCal, -1);
 			Date periodEnd = currentDateCal.getTime();
 			Collection<double[]> periodValues = data.subMap(periodStart, periodEnd).values();
 			double periodStdev = stdev.evaluate(periodValues);

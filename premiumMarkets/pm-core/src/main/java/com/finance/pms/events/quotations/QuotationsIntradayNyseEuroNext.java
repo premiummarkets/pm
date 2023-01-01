@@ -45,6 +45,8 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
@@ -55,9 +57,10 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 		super(stock, firstDate, lastDate, targetCurrency, firstIndexShift, validityFilter, otherValidityFilters);
 	}
 
-	public QuotationsIntradayNyseEuroNext(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
-		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
-	}
+	//FIXME
+//	public QuotationsIntradayNyseEuroNext(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters) {
+//		super(stock, quotationData, targetCurrency, validityFilter, otherValidityFilters);
+//	}
 
 	@Override
 	protected QuotationData retreiveQuotationsData(Date firstDate, Integer indexShiftBefore) {
@@ -126,7 +129,8 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 		while (currentTime.getTime().compareTo(lastDate) < 0) {
 			while (currentTime.compareTo(nextTime) < 0) {
 				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getCloseSplit(), currentQU.getVolumeSplit(), ORIGIN.WEB, BigDecimal.ONE));
-				QuotationsFactories.getFactory().incrementDate(currentTime, 1);
+				//QuotationsFactories.getFactory().incrementDate(currentTime, 1);
+				currentTime.setTime(DateUtils.addDays(currentTime.getTime(), 1));
 			} 
 			currentQU = nextQU;
 			if (iterator.hasNext()) {

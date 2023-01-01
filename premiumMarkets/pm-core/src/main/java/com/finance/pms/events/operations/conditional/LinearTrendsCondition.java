@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
@@ -70,45 +71,49 @@ public abstract class LinearTrendsCondition extends DiscreteLinearOutputsConditi
 		BooleanMultiMapValue outputs = new BooleanMultiMapValue();
 		for (Date date : fullKeySet) {
 
-			Calendar currentDate = Calendar.getInstance();
-			currentDate.setTime(date);
-			Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(currentDate, -forPeriod).getTime();
+			try {
+				Calendar currentDate = Calendar.getInstance();
+				currentDate.setTime(date);
+				Date lookBackPeriodStart = QuotationsFactories.getFactory().incrementDate(targetStock.getStock(), targetStock.getQuotationsDataTypes(), currentDate, -forPeriod).getTime();
 
-			//Calculating trends for each inputs
-			if (normInputsOps.stream().allMatch(in -> lookBackPeriodStart.after(in.firstKey()))) {
+				//Calculating trends for each inputs
+				if (normInputsOps.stream().allMatch(in -> lookBackPeriodStart.after(in.firstKey()))) {
 
-				List<SortedMap<Date, Double>> opLookBackMaps = normInputsOps.stream()
-						.map(in -> MapUtils.subMapInclusive(in, lookBackPeriodStart, date))
-						.collect(Collectors.toList());
-				List<Line<Integer, Double>> tangentLines = opLookBackMaps.stream()
-						.map(lkBkMap -> linearReg(lkBkMap))
-						.collect(Collectors.toList());
+					List<SortedMap<Date, Double>> opLookBackMaps = normInputsOps.stream()
+							.map(in -> MapUtils.subMapInclusive(in, lookBackPeriodStart, date))
+							.collect(Collectors.toList());
+					List<Line<Integer, Double>> tangentLines = opLookBackMaps.stream()
+							.map(lkBkMap -> linearReg(lkBkMap))
+							.collect(Collectors.toList());
 
-				List<Comparable> conditionCheckParams = tangentLines.stream().map(line -> line.getSlope()).collect(Collectors.toList());
-				conditionCheckParams.add(direction);
-				conditionCheckParams.add(epsilon);
-				@SuppressWarnings("unchecked")
-				Boolean conditionCheck = conditionCheck((Comparable[]) conditionCheckParams.toArray(new Comparable[conditionCheckParams.size()]));
-				if (conditionCheck != null) {
+					List<Comparable> conditionCheckParams = tangentLines.stream().map(line -> line.getSlope()).collect(Collectors.toList());
+					conditionCheckParams.add(direction);
+					conditionCheckParams.add(epsilon);
+					@SuppressWarnings("unchecked")
+					Boolean conditionCheck = conditionCheck((Comparable[]) conditionCheckParams.toArray(new Comparable[conditionCheckParams.size()]));
+					if (conditionCheck != null) {
 
-					if (conditionCheck) {
-						for (int i = 0; i < opLookBackMaps.size(); i++) {
-							String currentLabel =
-									expertTangentLabel +
-											" at " + dateFormat.format(date) +
-											" of " + getOperands().get(getFirstDataInputIndex()+i).getReference() +
-											" / slope " + tangentLines.get(i).getSlope() + " / afterglow " + overPeriod;
-							expertTangentsResult.put(tangentLines.get(i), new TangentElement(tangentLines.get(i), currentLabel));
+						if (conditionCheck) {
+							for (int i = 0; i < opLookBackMaps.size(); i++) {
+								String currentLabel =
+										expertTangentLabel +
+												" at " + dateFormat.format(date) +
+												" of " + getOperands().get(getFirstDataInputIndex()+i).getReference() +
+												" / slope " + tangentLines.get(i).getSlope() + " / afterglow " + overPeriod;
+								expertTangentsResult.put(tangentLines.get(i), new TangentElement(tangentLines.get(i), currentLabel));
+							}
 						}
+
+						if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
+							outputs.getValue(targetStock).put(date, conditionCheck); //We don't have a 'for' reduction here as 'for' is actually the lookBack period for linear regression.
+						}
+
+						overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
+
 					}
-
-					if ((overPeriod == 0 || outputs.getValue(targetStock).get(date) == null)) {
-						outputs.getValue(targetStock).put(date, conditionCheck); //We don't have a 'for' reduction here as 'for' is actually the lookBack period for linear regression.
-					}
-
-					overPeriodFilling(targetStock, fullKeySet, overPeriod, date, conditionCheck, outputs);
-
 				}
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e);
 			}
 
 		}

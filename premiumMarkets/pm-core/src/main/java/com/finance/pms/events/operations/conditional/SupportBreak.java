@@ -10,7 +10,9 @@ import java.util.SortedMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.Line;
 
@@ -24,13 +26,14 @@ public interface SupportBreak {
 	};
 
     default Line<Integer, Double> reduceRawOutputConfirmation(
+    		TargetStockInfo targetStock,
             SortedMap<Date, ArrayList<Line<Integer, Double>>> realRowTangents, Integer overPeriodRemanence,
-            Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) {
+            Line<Integer, Double> actualTangent, Date actualDate, Double actualData, Double tolerance) throws NotEnoughDataException {
         if (overPeriodRemanence > 0) {
 
             Calendar startRemananceCal = Calendar.getInstance();
             startRemananceCal.setTime(actualDate);
-            QuotationsFactories.getFactory().incrementDate(startRemananceCal, -overPeriodRemanence-1);
+            QuotationsFactories.getFactory().incrementDate(targetStock.getStock(), targetStock.getQuotationsDataTypes(), startRemananceCal, -overPeriodRemanence-1);
             Date startRemanance = startRemananceCal.getTime();
 
             SortedMap<Date, ArrayList<Line<Integer, Double>>> remananceLookBack = MapUtils.subMapInclusive(realRowTangents, startRemanance, actualDate);

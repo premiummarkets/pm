@@ -44,7 +44,7 @@ public class GetInflation {
 	private void init() {
 		try {
 			Stock inflationStock = ProvidersInflation.inflationStock();
-			this.inflationQs = QuotationsFactories.getFactory().getQuotationsInstance(inflationStock, DateFactory.dateAtZero(), DateFactory.getNowEndDate(), true, Currency.NAN, 1, Quotations.ValidityFilter.CLOSE);
+			this.inflationQs = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(inflationStock, DateFactory.dateAtZero(), DateFactory.getNowEndDate(), true, Currency.NAN, 1, Quotations.ValidityFilter.CLOSE);
 		} catch (NoQuotationsException e) {
 			LOGGER.error(e);
 		}

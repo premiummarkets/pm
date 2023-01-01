@@ -29,9 +29,10 @@
  */
 package com.finance.pms.events.quotations;
 
-import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -48,17 +49,17 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 	@Override
-	public Quotations getQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(1, firstIndexShift), ValidityFilter.SPLITFREE, validityFilter);
+	public Quotations getSpliFreeQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), ValidityFilter.SPLITFREE, validityFilter);
 	}
 
 	@Override
 	public Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(1, firstIndexShift), validityFilter);
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), validityFilter);
 	}
 
 	@Override
-	public Quotations getQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
+	public Quotations getBoundSafeQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
 		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
 	
@@ -73,11 +74,41 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return sndIndex - firstIndex;
 	}
 
-	public Calendar incrementDate(Calendar calendar, int amount) {
-		calendar.add(Calendar.DAY_OF_YEAR, noGapsAmount(amount));
-		fillEdgeGap(calendar, Math.signum(amount));
-		return calendar;
+	public Calendar incrementDate(Stock stock, Collection<QuotationDataType> dataTypes, Calendar from, int amount) throws NotEnoughDataException {
+
+		Date firstDate;
+		Date lastDate;
+		if (amount == 0) {
+			return from;
+		} else if (amount > 0) {
+			firstDate = from.getTime();
+			lastDate = DateFactory.getNowEndDate();
+		} else { //amount < 0
+			firstDate = DateFactory.dateAtZero();
+			lastDate = from.getTime();
+		}
+		try {
+			Quotations quotations = QuotationsFactories.getFactory()
+										.getSpliFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.getFilterFor(dataTypes));
+			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+			ArrayList<Date> quotationsKeySet = new ArrayList<Date>(exactMapFromQuotations.keySet());
+			
+			Date incrementedDate = null;
+			if (amount > 0) {
+				int index = Math.min(quotations.size()-1, amount);
+				incrementedDate = quotationsKeySet.get(index);
+			} else { //amount < 0
+				int index = Math.max(0, quotationsKeySet.size() + amount);
+				incrementedDate = quotationsKeySet.get(index);
+			}
+			
+			from.setTime(incrementedDate);
+			return from;
+		} catch (NoQuotationsException e) {
+			throw new NotEnoughDataException(stock, e.getMessage(), e);
+		}
 	}
+	
 	/**
 	 * amount * 7/5
 	 * @param amount
@@ -89,14 +120,15 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return  amount * 7/5;
 	}
 
-
+	
+	@Deprecated //FIXME use incrementDate instead
 	public Calendar incrementDateLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.MONTH, noGapsAmount(amount));
 		fillEdgeGap(calendar, Math.signum(amount));
 		return calendar;
 	}
 
-
+	@Deprecated //FIXME use incrementDate instead
 	public Calendar incrementDateExtraLarge(Calendar calendar, int amount) {
 		calendar.add(Calendar.YEAR, noGapsAmount(amount));
 		fillEdgeGap(calendar, Math.signum(amount));
@@ -194,31 +226,6 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 	/**
-	 * This using the binary search to retrieve quotations will fill in the missing gaps of quotations
-	 * This hence is not the quotations as stored in DB. For the actual stored quotations, use {@link #buildExactSMapFromQuotations(Quotations, QuotationDataType, int, int)}
-	 */
-	@Override
-	public SortedMap<Date, double[]> buildMapFromQuotationsClose(Quotations quotations) throws NotEnoughDataException {
-
-		try {
-			SortedMap<Date, double[]> fullRefSQuotationsMap = new TreeMap<Date, double[]>();
-			Date firstRefStockQuote = quotations.getDate(0);
-			Calendar current = Calendar.getInstance();
-			current.setTime(firstRefStockQuote);
-			Date lastRefStockQuote = quotations.getDate(quotations.size()-1);
-			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), new double[] {quotations.getClosestCloseSpForDate(current.getTime()).doubleValue()} );
-				QuotationsFactories.getFactory().incrementDate(current, 1);
-			}
-
-			return fullRefSQuotationsMap;
-
-		} catch (InvalidAlgorithmParameterException e) {
-			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
-		}
-	}
-
-	/**
 	 * Will return quotations as stored in the DB although potentially altered by a split fix.
 	 * @param quotations
 	 * @return
@@ -285,54 +292,6 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			fullRefSQuotationsMap.put(quotationUnit.getDate(), quotationUnit.getData(QuotationDataType.CLOSE).doubleValue());
 		}
 		return fullRefSQuotationsMap;
-	}
-
-	@Override
-	public SortedMap<Date, Double> buildSMapFromQuotationsClose(Quotations quotations, int from, int to) throws NotEnoughDataException {
-
-		try {
-			SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
-
-			Date firstRefStockQuote = quotations.getDate(from);
-			Calendar current = Calendar.getInstance();
-			current.setTime(firstRefStockQuote);
-
-			Date lastRefStockQuote = quotations.getDate(to);
-
-			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), quotations.getClosestCloseSpForDate(current.getTime()).doubleValue());
-				QuotationsFactories.getFactory().incrementDate(current, 1);
-			}
-
-			return fullRefSQuotationsMap;
-
-		} catch (InvalidAlgorithmParameterException e) {
-			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
-		}
-	}
-
-	@Override
-	public SortedMap<Date, Double> buildSMapFromQuotations(Quotations quotations, QuotationDataType field, int from, int to) throws NotEnoughDataException {
-
-		try {
-			SortedMap<Date, Double> fullRefSQuotationsMap = new TreeMap<Date, Double>();
-
-			Date firstRefStockQuote = quotations.getDate(from);
-			Calendar current = Calendar.getInstance();
-			current.setTime(firstRefStockQuote);
-
-			Date lastRefStockQuote = quotations.getDate(to);
-
-			while (current.getTime().before(lastRefStockQuote) || current.getTime().compareTo(lastRefStockQuote) == 0) {
-				fullRefSQuotationsMap.put(current.getTime(), quotations.getClosestFieldForDate(current.getTime(), field).doubleValue());
-				QuotationsFactories.getFactory().incrementDate(current, 1);
-			}
-
-			return fullRefSQuotationsMap;
-
-		} catch (InvalidAlgorithmParameterException e) {
-			throw new NotEnoughDataException(quotations.getStock(), e.getMessage(), e);
-		}
 	}
 
 	@Override

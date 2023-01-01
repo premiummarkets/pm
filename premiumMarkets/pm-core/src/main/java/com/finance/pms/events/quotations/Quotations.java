@@ -120,117 +120,166 @@ public class Quotations {
 	protected Stock stock;
 	private Currency targetCurrency;
 
-	private Map<String, QuotationData> quotationDataFilters;
-	private ValidityFilter cacheFilter;
-	private List<ValidityFilter> otherCacheFilters;
+	private Boolean keepCache;
+	private QuotationData thisCacheQuotationData;
+	
+	private ValidityFilter mainValidityFilter;
+	private List<ValidityFilter> otherValidityFilters;
 
 	private Date firstDateRequested;
-	private Integer firstIndexShiftRequested;
+	private Integer firstIndexLeftShiftRequested;
 	private Date lastDateRequested;
 
-	private Integer lastDateIndex;
-
 	//Called in indicator calculation and event composition calculations via Quotations Factory getQuotationsInstance
-	Quotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) throws NoQuotationsException {
+	Quotations(
+			Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexLeftShift, 
+			ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) throws NoQuotationsException {
+		
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;
-		this.cacheFilter = cacheFilter;
-		this.otherCacheFilters = Arrays.asList(otherCacheFilters);
+		
+		this.keepCache = keepCache;
+		this.mainValidityFilter = cacheFilter;
+		this.otherValidityFilters = Arrays.asList(otherCacheFilters);
 
-		this.firstIndexShiftRequested = firstIndexShift;
+		this.firstIndexLeftShiftRequested = firstIndexLeftShift;
 		this.firstDateRequested = firstDate;
 		this.lastDateRequested = lastDate;
-		synchronized (stock) {
-			init(stock, firstDate, lastDate, keepCache, firstIndexShift);
-		}
+	
+		init(stock, firstDate, lastDate, firstIndexLeftShift);
+		
 	}
 
-	//Called in CalculationQuotations (inheritance)
-	Quotations(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
-		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
+//	@Deprecated //?? FIXME
+//	//Called in CalculationQuotations (inheritance) 
+//	Quotations(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
+//		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
+//		this.stock = stock;
+//		this.targetCurrency = targetCurrency;
+//		this.cacheFilter = cacheFilter;
+//		this.otherCacheFilters = Arrays.asList(otherCacheFilters);
+//
+//		firstIndexShiftRequested = 0;
+//		firstDateRequested = quotationData.getDate(0);
+//		lastDateRequested = quotationData.getDate(quotationData.size() -1);
+//
+//		this.setUnfilteredQuotationData(quotationData);
+//	}
+
+	protected void init(Stock stock, Date firstDate, Date lastDate, Integer firstIndexShift) throws NoQuotationsException {
 		this.stock = stock;
-		this.targetCurrency = targetCurrency;
-		this.cacheFilter = cacheFilter;
-		this.otherCacheFilters = Arrays.asList(otherCacheFilters);
 
-		firstIndexShiftRequested = 0;
-		firstDateRequested = quotationData.getDate(0);
-		lastDateRequested = quotationData.getDate(quotationData.size() -1);
-
-		this.setUnfilteredQuotationData(quotationData);
-	}
-
-	protected void init(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Integer firstIndexShift) throws NoQuotationsException {
-		this.stock = stock;
-
-		if (otherCacheFilters.contains(ValidityFilter.NONEVALID)) {
-			setUnfilteredQuotationData(new QuotationData(new ArrayList<QuotationUnit>()));
+		if (otherValidityFilters.contains(ValidityFilter.NONEVALID)) {
 			return;
 		}
 
-		QuotationData requestedQuotationsData;
-		if (!keepCache) {
-			requestedQuotationsData = this.retreiveQuotationsData(firstDate, firstIndexShift);
-		} else {
-			synchronized(stock) {
-				requestedQuotationsData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
-				if (requestedQuotationsData == null) {
-
-					QuotationData existingQuotationData = Quotations.getCashedStock(stock);
-
+		//ALLVALID cache update
+		QuotationData allValidQuotationData;
+		if (keepCache) {
+			
+			synchronized (stock) {
+				allValidQuotationData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
+				if (allValidQuotationData == null) { //Update the cache from DB for ALLVALID
+					QuotationData existingAllValidQuotationData = Quotations.getCachedStock(stock, ValidityFilter.ALLVALID.name());
+					
+					//Remove potential other filters as they need update
+					Quotations.removeCachedStockKey(stock);
+	
 					//Retrieve first date point
-					Date lastCached;
-					Date cacheFillRetreiveStart = firstDate;
-					if ( existingQuotationData != null && !existingQuotationData.isEmpty() && (lastCached = existingQuotationData.get(existingQuotationData.size()-1).getDate()).before(firstDate) ) {
-						cacheFillRetreiveStart = lastCached;
+					Date lastCachedDate;
+					Date cacheFillRetrieveStart = firstDate;
+					if ( //Potential shift right for cache completion start
+							existingAllValidQuotationData != null && !existingAllValidQuotationData.isEmpty() && 
+							(lastCachedDate = existingAllValidQuotationData.get(existingAllValidQuotationData.size() - 1).getDate()).before(firstDate) 
+						) {
+						cacheFillRetrieveStart = lastCachedDate;
 					}
-
+	
 					//Load from DB
-					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(cacheFillRetreiveStart, firstIndexShift);//Retrieves from cacheFillRetreiveStart (<=firstDate) - firstIndexShift to the lastQuote 
-
-					//Update cache
-					if (existingQuotationData == null) {
-						requestedQuotationsData = retreivedQuotationsData;
-						Quotations.putCashedStock(stock, retreivedQuotationsData);
-					} else {
+					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(cacheFillRetrieveStart, firstIndexShift); //Retrieves from cacheFillRetreiveStart date (<=firstDate) - firstIndexShift to lastQuote date 
+	
+					//Update cache for all valid
+					if (existingAllValidQuotationData == null) { //Update cache from scratch
+						allValidQuotationData = retreivedQuotationsData;
+						Quotations.putCashedStock(stock, ValidityFilter.ALLVALID.name(), retreivedQuotationsData);
+					} else { //Update Cache completion 
 						SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
-						quotationUnits.addAll(existingQuotationData);
+						quotationUnits.addAll(existingAllValidQuotationData);
 						quotationUnits.addAll(retreivedQuotationsData);
-						requestedQuotationsData = new QuotationData(quotationUnits);
-						Quotations.putCashedStock(stock, requestedQuotationsData);
+						allValidQuotationData = new QuotationData(quotationUnits);
+						Quotations.putCashedStock(stock, ValidityFilter.ALLVALID.name(), allValidQuotationData);
 					}
-
 				}
 			}
+		
+		} else {
+			allValidQuotationData = this.retreiveQuotationsData(firstDate, firstIndexShift);
 		}
-
-		this.setUnfilteredQuotationData(requestedQuotationsData);
+		
+		//Filtered cache Update
+		QuotationData cachedStock = null;
+		if (keepCache) {
+			String validityFilterKey = buildFilterNameKey(mainValidityFilter, otherValidityFilters);
+			synchronized (stock) {
+				QuotationData cachedStockForFilter = Quotations.getCachedStock(stock, validityFilterKey);
+				if (cachedStockForFilter == null) {
+					cacheFilteredDataQuotationData(validityFilterKey, allValidQuotationData);
+				}
+				String filterName = buildFilterNameKey(mainValidityFilter, otherValidityFilters);
+				cachedStock = (mainValidityFilter.equals(ValidityFilter.ALLVALID))?Quotations.getCachedStock(stock, ValidityFilter.ALLVALID.name()):Quotations.getCachedStock(stock, filterName);
+			}
+			
+		} else {
+			if (mainValidityFilter.equals(ValidityFilter.ALLVALID)) {
+				cachedStock = allValidQuotationData;
+			} else {
+				cachedStock = buildQuotationDataFilter(allValidQuotationData, firstDateRequested, lastDateRequested, mainValidityFilter, otherValidityFilters);
+			}
+		}
+		
+		Integer firstIdx = Math.max(0, cachedStock.getClosestIndexBeforeOrAtDate(0, this.firstDateRequested) - firstIndexLeftShiftRequested);
+		Integer lastIdx = cachedStock.getClosestIndexBeforeOrAtDate(0, lastDateRequested) + 1;
+		thisCacheQuotationData = new QuotationData(cachedStock.subList(firstIdx, lastIdx));
 
 		if (!hasQuotations()) {
-			throw new NoQuotationsException("No quotation available for " + this.stock + " within " + firstDate + " and " + lastDate +  " and filters " + cacheFilter + ", " + otherCacheFilters);
+			throw new NoQuotationsException("No quotation available for " + this.stock + " within " + firstDate + " and " + lastDate +  " and filters " + mainValidityFilter + ", " + otherValidityFilters);
 		}
 	}
 
 
 	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
 
-		QuotationData cachedQuotationData = Quotations.getCashedStock(stock);
+		QuotationData maxRangeCachedQuotationData = Quotations.getCachedStock(stock, ValidityFilter.ALLVALID.name());
 
 		QuotationUnit lastQU;
 		Integer fdIdx = 0;
-		boolean isCached = //Quotations.QUOTATIONS_CACHE.containsKey(stock) &&
-				cachedQuotationData != null
-				&& !cachedQuotationData.isEmpty()
-				&& cachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0 
-				&& (//TODO first date in SHARES table
-						(cachedQuotationData.get((fdIdx = cachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate))).getDate().equals(firstDate) &&  fdIdx >= indexShift) ||
-						(cachedQuotationData.get(fdIdx).getDate().before(firstDate) && fdIdx >= indexShift-1)
+		boolean isCached =
+				maxRangeCachedQuotationData != null
+				&& !maxRangeCachedQuotationData.isEmpty()
+				&& //start is out of range or start cache - indexShift <= firstDate
+				(
+						DataSource.getInstance().getFirstQuotationDateFromQuotations(stock).compareTo(firstDate) >= 0 ||
+						(
+							maxRangeCachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0
+							&& (
+								(	maxRangeCachedQuotationData.get((fdIdx = maxRangeCachedQuotationData.getClosestIndexBeforeOrAtDate(0, firstDate))).getDate().equals(firstDate) && 
+									fdIdx >= indexShift
+								) ||
+								(	maxRangeCachedQuotationData.get(fdIdx).getDate().before(firstDate) &&
+									fdIdx >= indexShift-1
+								)
+							)
 						)
-				&& ( (lastQU = cachedQuotationData.get(cachedQuotationData.size()-1)).getDate().compareTo(lastDate) >= 0 || lastQU.getDate().compareTo(stock.getLastQuote()) == 0 );
+				)
+				&& //end is out of range or end cache >= lastDate
+				( 		(lastQU = maxRangeCachedQuotationData.get(maxRangeCachedQuotationData.size()-1)).getDate().compareTo(stock.getLastQuote()) == 0 ||
+						lastQU.getDate().compareTo(lastDate) >= 0
+				);
 
 		if (isCached) {
-			return cachedQuotationData;
+			return maxRangeCachedQuotationData;
 		} else {
+			LOGGER.info("Cache is not uptodate for " + firstDate + " - " + indexShift + " to " + lastDate + " and " + stock);
 			return null;
 		}
 
@@ -330,7 +379,7 @@ public class Quotations {
 	}
 
 	public Integer getLastDateIdx() {
-		return lastDateIndex;
+		return Math.max(0, getQuotationData().size()-1);
 	}
 
 
@@ -635,34 +684,21 @@ public class Quotations {
 	}
 
 
-	protected void setUnfilteredQuotationData(QuotationData unfilteredQuotationData) {
-		this.quotationDataFilters = new HashMap<String, QuotationData>();
-		this.quotationDataFilters.put(ValidityFilter.ALLVALID.name(), unfilteredQuotationData);
-		if (cacheFilter.equals(ValidityFilter.ALLVALID)) {
+	protected void cacheFilteredDataQuotationData(String validityFilterKey, QuotationData allValidQuotationData) {
+		if (mainValidityFilter.equals(ValidityFilter.ALLVALID)) {
 			return;
 		}
-		String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
-		quotationDataFilters.put(filterName, buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters));
+		putCashedStock(
+				stock, validityFilterKey, 
+				buildQuotationDataFilter(allValidQuotationData, allValidQuotationData.getDate(0), allValidQuotationData.getLastDate(), mainValidityFilter, otherValidityFilters));
 	}
 
 
 	protected QuotationData getQuotationData() {
-
-		if (cacheFilter.equals(ValidityFilter.ALLVALID)) {
-			return quotationDataFilters.get(ValidityFilter.ALLVALID.name());
-		} else {
-			String filterName = buildFilterNameKey(cacheFilter, otherCacheFilters);
-			QuotationData quotationData = quotationDataFilters.get(filterName);
-			if (quotationData == null) {
-				quotationData = buildQuotationDataFilter(firstDateRequested, lastDateRequested, cacheFilter, otherCacheFilters);
-				quotationDataFilters.put(filterName, quotationData);
-			}
-			return quotationData;
-		}
-
+		return thisCacheQuotationData;
 	}
 
-	private QuotationData buildQuotationDataFilter(Date firstDate, Date lastDate, ValidityFilter cacheFilter, List<ValidityFilter> otherCacheFilters) {
+	private QuotationData buildQuotationDataFilter(QuotationData allValidQuotationData, Date firstDate, Date lastDate, ValidityFilter cacheFilter, List<ValidityFilter> otherCacheFilters) {
 
 		ArrayList<ValidityFilter> filters = new ArrayList<Quotations.ValidityFilter>();
 		filters.add(cacheFilter);
@@ -673,7 +709,7 @@ public class Quotations {
 		boolean validVolume = ValidityFilter.isValidVolume(filters);
 		boolean splitFree = filters.contains(ValidityFilter.SPLITFREE);
 
-		QuotationData allQs = quotationDataFilters.get(ValidityFilter.ALLVALID.name());
+		QuotationData allQs = allValidQuotationData;
 		ArrayList<QuotationUnit> quotationsUnitOut = new ArrayList<QuotationUnit>();
 		ArrayList<QuotationUnit> quotationsUnitOutHead = new ArrayList<QuotationUnit>();
 		QuotationUnit qjm1 = null;
@@ -712,9 +748,9 @@ public class Quotations {
 				continue;
 			}
 
-			if ( qj.getDate().compareTo(firstDate) > 0 ) {
+			if ( qj.getDate().compareTo(firstDate) >= 0 ) {
 				if (quotationsUnitOut.isEmpty()) {
-					quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
+					quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexLeftShiftRequested), quotationsUnitOutHead.size()));
 				}
 				if (qj.getDate().compareTo(lastDate) <= 0) {
 					quotationsUnitOut.add(qj);
@@ -731,10 +767,8 @@ public class Quotations {
 		}
 
 		if (quotationsUnitOut.isEmpty() && !quotationsUnitOutHead.isEmpty()) {
-			quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexShiftRequested), quotationsUnitOutHead.size()));
+			quotationsUnitOut.addAll(quotationsUnitOutHead.subList(Math.max(0, quotationsUnitOutHead.size() - firstIndexLeftShiftRequested), quotationsUnitOutHead.size()));
 		}
-
-		lastDateIndex = Math.max(0, quotationsUnitOut.size()-1);
 
 		return new QuotationData(quotationsUnitOut);
 
@@ -742,10 +776,10 @@ public class Quotations {
 
 	private String buildFilterNameKey(ValidityFilter cacheFilter, List<ValidityFilter> otherCacheFilters) {
 		SortedSet<ValidityFilter> filterNameSet = new TreeSet<Quotations.ValidityFilter>();
-		if (cacheFilter == null) throw new NotImplementedException("Filters can't be null : " + cacheFilter + ", " + otherCacheFilters);
+		if (cacheFilter == null) throw new NotImplementedException("Filters can't be null: " + cacheFilter + ", " + otherCacheFilters);
 		filterNameSet.add(cacheFilter);
 		for (ValidityFilter filter : otherCacheFilters) {
-			if (filter == null) throw new NotImplementedException("Filters can't be null : " + cacheFilter + ", " + otherCacheFilters);
+			if (filter == null) throw new NotImplementedException("Filters can't be null: " + cacheFilter + ", " + otherCacheFilters);
 			filterNameSet.add(filter);
 		}
 		String filterName = "";
@@ -755,19 +789,21 @@ public class Quotations {
 		}
 		return filterName;
 	}
-
+	
+	//Update the key in case its isin and/or symbol has changed? 
 	public static void updateCachedStockKey(Stock stock) {
 
-		SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
-		if (softReference != null) {
-			Quotations.QUOTATIONS_CACHE.remove(stock);
-			Quotations.QUOTATIONS_CACHE.put(stock, softReference);
+		synchronized (stock) {
+			SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
+			if (softReference != null) {
+				Quotations.QUOTATIONS_CACHE.remove(stock);
+				Quotations.QUOTATIONS_CACHE.put(stock, softReference);
+			}
 		}
 
 	}
 
 	public static Date refreshCaches(Stock stock) {
-
 		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
 		stock.setLastQuote(lastQuote);
 		DataSource.getInstance().getShareDAO().saveOrUpdateStock(stock);
@@ -779,31 +815,48 @@ public class Quotations {
 
 	public static void removeCachedStockKey(Stock stock) {
 
-		SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
-		if (softReference != null) {
-			softReference.clear();
-			Quotations.QUOTATIONS_CACHE.remove(stock);
+		synchronized (stock) {
+			SoftReference<Map<String, QuotationData>> softReference = Quotations.QUOTATIONS_CACHE.get(stock);
+			if (softReference != null) {
+				softReference.clear();
+				Quotations.QUOTATIONS_CACHE.remove(stock);
+			}
 		}
+		
 	}
 
-	private static void putCashedStock(Stock stock, QuotationData quotationData) {
+	private static void putCashedStock(Stock stock, String validityFilterKey, QuotationData quotationData) {
 
-		Map<String, QuotationData> cachedMap = new HashMap<String, QuotationData>();
-		cachedMap.put(ValidityFilter.ALLVALID.name(), quotationData);
-		SoftReference<Map<String, QuotationData>> oldValue = Quotations.QUOTATIONS_CACHE.put(stock, new SoftReference<Map<String, QuotationData>>(cachedMap));
-		if (oldValue != null) {
-			oldValue.clear();
+		synchronized (stock) {
+			Map<String, QuotationData> cachedMap = null;
+			SoftReference<Map<String, QuotationData>> softRef = Quotations.QUOTATIONS_CACHE.get(stock);
+			if (softRef != null) {
+				cachedMap = softRef.get();
+			}
+			if (cachedMap == null) {
+				 cachedMap = new HashMap<String, QuotationData>();
+			}
+			cachedMap.put(validityFilterKey, quotationData);
+			
+			SoftReference<Map<String, QuotationData>> oldValue = Quotations.QUOTATIONS_CACHE.put(stock, new SoftReference<Map<String, QuotationData>>(cachedMap));
+			if (oldValue != null) {
+				oldValue.clear();
+			}
 		}
+		
 	}
 
-	protected static QuotationData getCashedStock(Stock stock) {//XXX Should be private
+	protected static QuotationData getCachedStock(Stock stock, String validityFilterKey) {
 
-		SoftReference<Map<String, QuotationData>> softRef = Quotations.QUOTATIONS_CACHE.get(stock);
-		if (softRef==null || softRef.get() == null) {
-			return null;
-		} else {
-			return softRef.get().get(ValidityFilter.ALLVALID.name());
+		synchronized (stock) {
+			SoftReference<Map<String, QuotationData>> softRef = Quotations.QUOTATIONS_CACHE.get(stock);
+			if (softRef == null || softRef.get() == null) {
+				return null;
+			} else {
+				return softRef.get().get(validityFilterKey);
+			}
 		}
+		
 	}
 
 	public static LastUpdateStampChecker checkLastQuotationUpdateFor() {

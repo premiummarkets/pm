@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.stream.IntStream;
 
+import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -55,6 +57,9 @@ import com.finance.pms.events.scoring.functions.LeftShifter;
  * 
  */
 public class ReverseCondition extends Condition<Boolean> implements UnaryCondition {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(ReverseCondition.class);
+
 
 	private static final int MAIN_POSITION = 3;
 
@@ -76,33 +81,39 @@ public class ReverseCondition extends Condition<Boolean> implements UnaryConditi
 		Integer spanningShift = ((NumberValue) inputs.get(2)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 
-		if (spanningShift == 0) spanningShift = 1;
-		LeftShifter<Double> rightShifter = new LeftShifter<Double>(-spanningShift.intValue(), false);
-		SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
 
 		BooleanMapValue outputs = new  BooleanMapValue();
-		Boolean isUp = null;
-		Boolean wasDown = null;
-		Boolean isDown = null;
-		Boolean wasUp = null;
-		for (Date date : data.keySet()) {
-			Double current = data.get(date);
-			Double previous = rightShiftedData.get(date);
-			if (previous != null && !previous.isNaN()) {
-				isUp = (current - previous)/Math.abs(previous) > changeRatio/100;
-				isDown = (current - previous)/Math.abs(previous) < -changeRatio/100;
-				if (wasDown != null) {
-					Boolean reversalUp = wasDown && isUp;
-					Boolean reversalDown = wasUp && isDown;
-					if ((direction >= 0)) {
-						outputs.getValue(targetStock).put(date, reversalUp);
-					} else {
-						outputs.getValue(targetStock).put(date, reversalDown);
+		
+		try {
+			if (spanningShift == 0) spanningShift = 1;
+			LeftShifter<Double> rightShifter = new LeftShifter<Double>(targetStock.getStock(), getRequiredStockData(), -spanningShift.intValue(), false);
+			SortedMap<Date, Double> rightShiftedData = rightShifter.shift(data);
+
+			Boolean isUp = null;
+			Boolean wasDown = null;
+			Boolean isDown = null;
+			Boolean wasUp = null;
+			for (Date date : data.keySet()) {
+				Double current = data.get(date);
+				Double previous = rightShiftedData.get(date);
+				if (previous != null && !previous.isNaN()) {
+					isUp = (current - previous)/Math.abs(previous) > changeRatio/100;
+					isDown = (current - previous)/Math.abs(previous) < -changeRatio/100;
+					if (wasDown != null) {
+						Boolean reversalUp = wasDown && isUp;
+						Boolean reversalDown = wasUp && isDown;
+						if ((direction >= 0)) {
+							outputs.getValue(targetStock).put(date, reversalUp);
+						} else {
+							outputs.getValue(targetStock).put(date, reversalDown);
+						}
 					}
+					wasDown = isDown;
+					wasUp = isUp;
 				}
-				wasDown = isDown;
-				wasUp = isUp;
 			}
+		} catch (NotEnoughDataException e) {
+			LOGGER.error(e);
 		}
 
 		return outputs;

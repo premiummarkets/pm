@@ -44,8 +44,9 @@ import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
+
+@Deprecated
 public class SectorCurveTransformator {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SectorCurveTransformator.class);
@@ -104,9 +105,10 @@ public class SectorCurveTransformator {
 			while (current.getTime().before(extremDate) || current.getTime().compareTo(extremDate) == 0) {
 				Double value = calculator.compute(prevExtremDate, extremsList.get(prevExtremDate).exValue, extremDate, extremsList.get(extremDate).exValue, current.getTime());
 				stockCurve.put(current.getTime(), new double[]{value});
-				QuotationsFactories.getFactory().incrementDate(current, 1);
+				//FIXME QuotationsFactories.getFactory().incrementDate(current, 1);
 			}
 			prevExtremDate = extremDate;
+			
 		}
 		
 		return stockCurve;
@@ -119,7 +121,7 @@ public class SectorCurveTransformator {
 
 		Calendar current = Calendar.getInstance();
 		current.setTime(smoothedData.firstKey());
-		QuotationsFactories.getFactory().incrementDate(current, +2*band);
+		//FIXME QuotationsFactories.getFactory().incrementDate(current, +2*band);
 
 		Date endCalculation = smoothedData.lastKey();
 		while (current.getTime().before(endCalculation) || current.getTime().compareTo(endCalculation) == 0) {
@@ -136,7 +138,7 @@ public class SectorCurveTransformator {
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Best output NA for " + sdf.format(current.getTime()) + " cause " + e.getMessage());
 			}
 
-			QuotationsFactories.getFactory().incrementDate(current, 1);
+			//FIXME QuotationsFactories.getFactory().incrementDate(current, 1);
 		}
 
 		//edges fix
@@ -155,16 +157,16 @@ public class SectorCurveTransformator {
 		
 		Calendar lowBandDate = Calendar.getInstance();
 		lowBandDate.setTime(date);
-		QuotationsFactories.getFactory().incrementDate(lowBandDate, -band);
+		//FIXME QuotationsFactories.getFactory().incrementDate(lowBandDate, -band);
 		Calendar highBandDate = Calendar.getInstance();
 		highBandDate.setTime(date);
-		QuotationsFactories.getFactory().incrementDate(highBandDate, +band);
+		//FIXME QuotationsFactories.getFactory().incrementDate(highBandDate, +band);
 		
 		Calendar prevHighBandDate =  Calendar.getInstance();
 		prevHighBandDate.setTime(date);
 		Calendar prevLowBandDate = Calendar.getInstance();
 		prevLowBandDate.setTime(lowBandDate.getTime());
-		QuotationsFactories.getFactory().incrementDate(prevLowBandDate, -band);
+		//FIXME QuotationsFactories.getFactory().incrementDate(prevLowBandDate, -band);
 		
 		Date firstDate = data.firstKey();
 		Date lastDate= data.lastKey();
