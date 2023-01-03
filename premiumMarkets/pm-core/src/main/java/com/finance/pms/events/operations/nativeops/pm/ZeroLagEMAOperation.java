@@ -102,6 +102,6 @@ public class ZeroLagEMAOperation extends PMWithDataOperation {
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue(); //*7/5;
+		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue();
 	}
 }

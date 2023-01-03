@@ -26,7 +26,6 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
-import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
@@ -89,68 +88,58 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 			constraintStdev = deviationCalc.evaluate(periods);
 		}
 		
+		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
+			
+		Date startDate = targetStock.getStartDate(thisStartShift);
+		Date endDate = targetStock.getEndDate();
+
+		int randomFirstEvtType = new SecureRandom().nextInt(2);
+		EventType[] eventTypeHolder = new EventType[1];
+		eventTypeHolder[0] = (randomFirstEvtType == 0)? EventType.BEARISH:EventType.BULLISH;
 		
-		//Init
-		try {
-			
-			SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
-				
-			Date startDate = targetStock.getStartDate(thisStartShift);
-			Date endDate = targetStock.getEndDate();
+		edata.put(
+				new ParameterizedEventKey(startDate, EventDefinition.RANDOM, eventTypeHolder[0]), 
+				new EventValue(startDate, EventDefinition.RANDOM, eventTypeHolder[0], targetStock.getAnalysisName()));
+		
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(startDate);
 
-			int randomFirstEvtType = new SecureRandom().nextInt(2);
-			EventType[] eventTypeHolder = new EventType[1];
-			eventTypeHolder[0] = (randomFirstEvtType == 0)? EventType.BEARISH:EventType.BULLISH;
-			
-			edata.put(
-					new ParameterizedEventKey(startDate, EventDefinition.RANDOM, eventTypeHolder[0]), 
-					new EventValue(startDate, EventDefinition.RANDOM, eventTypeHolder[0], targetStock.getAnalysisName()));
-			
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(startDate);
-
-			//Calculation
-			//DoubleStream randomDoubles = new SecureRandom().doubles(Math.log10(min)/Math.log10(gr), Math.log10(max)/Math.log10(gr));
-			DoubleStream randomDoubles = new SecureRandom().doubles(-1, 1);
-			//TODO nextGaussian()? new SecureRandom().nextGaussian()
-			final double constraintMeanF = constraintMean;
-			final double constraintStdevF = Math.min(constraintStdev, constraintMean -1);
-			LOGGER.info("constraintMean: " + constraintMeanF + ". constraintStdev: " + constraintStdev);
-			TreeMap<EventKey, EventValue> randomEvents = randomDoubles
-				.mapToObj(random -> {
-					int duration = 0;
-					if (!Double.isNaN(constraintMeanF) && constraintMeanF != 0) {
+		//Calculation
+		//DoubleStream randomDoubles = new SecureRandom().doubles(Math.log10(min)/Math.log10(gr), Math.log10(max)/Math.log10(gr));
+		DoubleStream randomDoubles = new SecureRandom().doubles(-1, 1);
+		//TODO nextGaussian()? new SecureRandom().nextGaussian()
+		final double constraintMeanF = constraintMean;
+		final double constraintStdevF = Math.min(constraintStdev, constraintMean -1);
+		LOGGER.info("constraintMean: " + constraintMeanF + ". constraintStdev: " + constraintStdev);
+		TreeMap<EventKey, EventValue> randomEvents = randomDoubles
+			.mapToObj(random -> {
+				int duration = 0;
+				if (!Double.isNaN(constraintMeanF) && constraintMeanF != 0) {
 //					final double delta = (2*random-1);
 //					duration = (int) Math.round(constraintMeanF + delta * constraintStdevF);
-						duration = (int) Math.round((constraintStdevF*random + constraintMeanF));
-						LOGGER.info("duration (constrained): " + duration + ". From random: " + random);
-					} else {
-						//x = log(1-u)/(-lambda)
-						//int duration = (int) Math.pow(gr, random);
-						//duration = 1 + (int) -(Math.log(random)); //FIXME stdev is too low (how to generate a random series with known mean and variance?)
-						duration = (int) Math.round((std*random + mean));
-						LOGGER.info("duration: " + duration + ". From random: " + random);
-					}
-					if (duration < 1) throw new RuntimeException("Duration must be >= 1");
-					calendar.add(Calendar.DAY_OF_YEAR, duration);
-					Date eventDate = calendar.getTime();
-					calendar.setTime(eventDate);
-					eventTypeHolder[0] = (eventTypeHolder[0].equals(EventType.BULLISH)) ? EventType.BEARISH : EventType.BULLISH;
-					return new ParameterizedEventKey(eventDate, EventDefinition.RANDOM, eventTypeHolder[0]);
-				})
-				.takeWhile(ek -> ek.getDate().compareTo(endDate) <= 0)
-				.collect(Collectors.toMap(ek -> ek, ek -> new EventValue(ek.getDate(), ek.getEventInfo(), ek.getEventType(), targetStock.getAnalysisName()), (a, b) -> a, TreeMap<EventKey, EventValue>::new));
-			edata.putAll(randomEvents);
+					duration = (int) Math.round((constraintStdevF*random + constraintMeanF));
+					LOGGER.info("duration (constrained): " + duration + ". From random: " + random);
+				} else {
+					//x = log(1-u)/(-lambda)
+					//int duration = (int) Math.pow(gr, random);
+					//duration = 1 + (int) -(Math.log(random)); //FIXME stdev is too low (how to generate a random series with known mean and variance?)
+					duration = (int) Math.round((std*random + mean));
+					LOGGER.info("duration: " + duration + ". From random: " + random);
+				}
+				if (duration < 1) throw new RuntimeException("Duration must be >= 1");
+				calendar.add(Calendar.DAY_OF_YEAR, duration);
+				Date eventDate = calendar.getTime();
+				calendar.setTime(eventDate);
+				eventTypeHolder[0] = (eventTypeHolder[0].equals(EventType.BULLISH)) ? EventType.BEARISH : EventType.BULLISH;
+				return new ParameterizedEventKey(eventDate, EventDefinition.RANDOM, eventTypeHolder[0]);
+			})
+			.takeWhile(ek -> ek.getDate().compareTo(endDate) <= 0)
+			.collect(Collectors.toMap(ek -> ek, ek -> new EventValue(ek.getDate(), ek.getEventInfo(), ek.getEventType(), targetStock.getAnalysisName()), (a, b) -> a, TreeMap<EventKey, EventValue>::new));
+		edata.putAll(randomEvents);
 
-			log(edata.keySet(), endDate);
-			
-			return new EventMapValue(edata, false);
-			
-		} catch (NotEnoughDataException e) {
-			LOGGER.error(e);
-		}
+		log(edata.keySet(), endDate);
 		
-		return new EventMapValue();
+		return new EventMapValue(edata, false);
 		
 	}
 	

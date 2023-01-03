@@ -174,7 +174,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 				.map(o -> ((NumberValue)o.getParameter()).getValue(null).intValue())
 				.reduce(0, (r, e) -> r + e);
 
-		return (thisOperationStartShift); //*7/5;
+		return (thisOperationStartShift);
 	}
 
 	@Override

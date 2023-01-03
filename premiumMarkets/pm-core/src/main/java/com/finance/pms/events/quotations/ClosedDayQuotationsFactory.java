@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.quotations;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -73,7 +72,9 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			throw new NotEnoughDataException(stock, firstDate, secondDate, "Invalid dates, outside the quotation range.", null);
 		return sndIndex - firstIndex;
 	}
-
+	/**
+	 * Based on the quotations in DB for data points to date conversions
+	 */
 	public Calendar incrementDate(Stock stock, Collection<QuotationDataType> dataTypes, Calendar from, int amount) throws NotEnoughDataException {
 
 		Date firstDate;
@@ -90,16 +91,15 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		try {
 			Quotations quotations = QuotationsFactories.getFactory()
 										.getSpliFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.getFilterFor(dataTypes));
-			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-			ArrayList<Date> quotationsKeySet = new ArrayList<Date>(exactMapFromQuotations.keySet());
+			Date[] quotationsKeySet = quotations.getDates();
 			
 			Date incrementedDate = null;
 			if (amount > 0) {
-				int index = Math.min(quotations.size()-1, amount);
-				incrementedDate = quotationsKeySet.get(index);
+				int index = Math.min(quotationsKeySet.length-1, amount);
+				incrementedDate = quotationsKeySet[index];
 			} else { //amount < 0
-				int index = Math.max(0, quotationsKeySet.size() + amount);
-				incrementedDate = quotationsKeySet.get(index);
+				int index = Math.max(0, quotationsKeySet.length + amount);
+				incrementedDate = quotationsKeySet[index];
 			}
 			
 			from.setTime(incrementedDate);
@@ -110,10 +110,12 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 	
 	/**
+	 * @deprecated : use incrementDate instead which is based on the quotations in DB for data points to date conversions
 	 * amount * 7/5
 	 * @param amount
 	 * @return
 	 */
+	@Deprecated
 	private int noGapsAmount(int amount) {
 //		int nbWeeksBaseOnOpenDays = amount / 5;
 //		int addedWeekends = 2 * nbWeeksBaseOnOpenDays;

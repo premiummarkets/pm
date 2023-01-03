@@ -103,7 +103,7 @@ public class ValueManipulator {
 						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
 					)
 				) { //Heading NaN
-				headingNaNInput.put(date, array); //Keeping this in case all is NaN ie trailing are also heading ..
+				headingNaNInput.put(date, array); //Keeping this in case all is NaN ie trailing NaNs are also heading NaNs..
 				continue;
 			}
 			

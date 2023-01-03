@@ -47,7 +47,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -207,7 +206,7 @@ public class TargetStockInfo {
 	 * @param startShift
 	 * @return
 	 */
-	public Date getStartDate(int startShift) throws NotEnoughDataException {
+	public Date getStartDate(int startShift) {
 		Date incStartDate = DateFactory.incrementDateWraper(stock, getQuotationsDataTypes(), startDate, -startShift);
 		return incStartDate;
 	}

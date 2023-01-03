@@ -45,8 +45,6 @@ import java.util.stream.Stream;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
-import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -55,7 +53,7 @@ import com.finance.pms.events.scoring.functions.MyApacheStats;
 
 public class RecursiveOperation extends DoubleMapOperation {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(RecursiveOperation.class);
+	//private static MyLogger LOGGER = MyLogger.getLogger(RecursiveOperation.class);
 
 	public RecursiveOperation() {
 		this("recursive_", "recursive operation Y0 = V and Yn = f(Yn-1)",
@@ -78,75 +76,68 @@ public class RecursiveOperation extends DoubleMapOperation {
 		SortedMap<Date, Double> seedingData = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 		@SuppressWarnings("rawtypes") List<? extends Value> paramsInputs = inputs.subList(1, inputs.size()); //The seed is included as the first data parameter by default
 		
-		
 
-		try {
-			Date startDateShift = targetStock.getStartDate(thisStartShift);
+		Date startDateShift = targetStock.getStartDate(thisStartShift);
 
-			//Build one inputs
-			SortedMap<Date, List<Double>> oneInputParams = new TreeMap<>();
-			for (Date date : ((NumericableMapValue) paramsInputs.get(0)).getDateKeys()) {
-				if (date.compareTo(startDateShift) >= 0) {
-					List<Double> valuesList = paramsInputs.stream()
-							.map(i -> ((NumericableMapValue)i).getValue(targetStock).get(date))
-							.collect(Collectors.toList());
-					if (valuesList.stream().noneMatch(v -> v == null)) {
-						oneInputParams.put(date, valuesList);
-					}
+		//Build one inputs
+		SortedMap<Date, List<Double>> oneInputParams = new TreeMap<>();
+		for (Date date : ((NumericableMapValue) paramsInputs.get(0)).getDateKeys()) {
+			if (date.compareTo(startDateShift) >= 0) {
+				List<Double> valuesList = paramsInputs.stream()
+						.map(i -> ((NumericableMapValue)i).getValue(targetStock).get(date))
+						.collect(Collectors.toList());
+				if (valuesList.stream().noneMatch(v -> v == null)) {
+					oneInputParams.put(date, valuesList);
 				}
 			}
-
-			//Recursive
-			final BiFunction<Double, List<Double>, Double> function;
-			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
-			if (outputSelector != null && outputSelector.equalsIgnoreCase("rates")) {
-				function = (y, params) -> y * (1 + params.get(1));
-			}
-			else if (outputSelector != null && outputSelector.equalsIgnoreCase("continuousRates")) {
-				function = (y, params) -> y * Math.exp(params.get(1));
-			}
-			else if (outputSelector != null && outputSelector.equalsIgnoreCase("EMA")) {
-				//TODO EMA = Price(t) * k + EMA(y) * (1 – k) where t = today, y = yesterday, N = number of days in EMA, k = 2/(N+1)
-				//TODO EMA seed : Add the closing prices for the first period days together and divide them by period. <= ok as below
-				//Param 0 (seed): data, Param 1: constant(period) => seed is param 0
-				throw new NotImplementedException();
-			} 
-			else {
-				function = (y, params) -> y; //Defaults to identity
-			}
-
-			//Seed
-			Date seedFrom = new Date(startDateShift.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
-			Collection<Double> seedValues = MapUtils
-					.subMapInclusive(seedingData, seedFrom, startDateShift)
-					.values()
-					.stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
-			Double seed = new MyApacheStats(new Mean()).sEvaluate(seedValues);
-			if (seed.isNaN()) seed = seedingData.get(seedingData.headMap(startDateShift).lastKey()); //When no seed because seedingData are outside [startDate - period, startDate]
-
-			//Calculus
-			List<Date> keys = new ArrayList<>(oneInputParams.keySet());
-			AtomicInteger i = new AtomicInteger(0);
-			Stream<Double> recursive = Stream.iterate(seed, u -> {
-				Date k = keys.get(i.incrementAndGet());
-				return function.apply(u, oneInputParams.get(k));
-			});
-
-			AtomicInteger ia = new AtomicInteger(0);
-			SortedMap<Date, Double> calculus = recursive
-					.limit(keys.size()-1)
-					.collect(Collectors.toMap(
-							v -> keys.get(ia.getAndIncrement()),
-							v -> v,
-							(a, b) -> a, TreeMap::new));
-
-			return new DoubleMapValue(calculus);
-			
-		} catch (NotEnoughDataException e) {
-			LOGGER.error(e);
 		}
-		
-		return new DoubleMapValue();
+
+		//Recursive
+		final BiFunction<Double, List<Double>, Double> function;
+		String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
+		if (outputSelector != null && outputSelector.equalsIgnoreCase("rates")) {
+			function = (y, params) -> y * (1 + params.get(1));
+		}
+		else if (outputSelector != null && outputSelector.equalsIgnoreCase("continuousRates")) {
+			function = (y, params) -> y * Math.exp(params.get(1));
+		}
+		else if (outputSelector != null && outputSelector.equalsIgnoreCase("EMA")) {
+			//TODO EMA = Price(t) * k + EMA(y) * (1 – k) where t = today, y = yesterday, N = number of days in EMA, k = 2/(N+1)
+			//TODO EMA seed : Add the closing prices for the first period days together and divide them by period. <= ok as below
+			//Param 0 (seed): data, Param 1: constant(period) => seed is param 0
+			throw new NotImplementedException();
+		} 
+		else {
+			function = (y, params) -> y; //Defaults to identity
+		}
+
+		//Seed
+		Date seedFrom = new Date(startDateShift.getTime() - ((long)(period*7d/5d)) * (1000l * 60l * 60l * 24l));
+		Collection<Double> seedValues = MapUtils
+				.subMapInclusive(seedingData, seedFrom, startDateShift)
+				.values()
+				.stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
+		Double seed = new MyApacheStats(new Mean()).sEvaluate(seedValues);
+		if (seed.isNaN()) seed = seedingData.get(seedingData.headMap(startDateShift).lastKey()); //When no seed because seedingData are outside [startDate - period, startDate]
+
+		//Calculus
+		List<Date> keys = new ArrayList<>(oneInputParams.keySet());
+		AtomicInteger i = new AtomicInteger(0);
+		Stream<Double> recursive = Stream.iterate(seed, u -> {
+			Date k = keys.get(i.incrementAndGet());
+			return function.apply(u, oneInputParams.get(k));
+		});
+
+		AtomicInteger ia = new AtomicInteger(0);
+		SortedMap<Date, Double> calculus = recursive
+				.limit(keys.size()-1)
+				.collect(Collectors.toMap(
+						v -> keys.get(ia.getAndIncrement()),
+						v -> v,
+						(a, b) -> a, TreeMap::new));
+
+		return new DoubleMapValue(calculus);
+
 	}
 
 	@Override

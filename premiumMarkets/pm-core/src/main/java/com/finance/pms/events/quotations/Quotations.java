@@ -258,7 +258,7 @@ public class Quotations {
 				&& !maxRangeCachedQuotationData.isEmpty()
 				&& //start is out of range or start cache - indexShift <= firstDate
 				(
-						DataSource.getInstance().getFirstQuotationDateFromQuotations(stock).compareTo(firstDate) >= 0 ||
+						DataSource.getInstance().getFirstQuotationDateFromQuotations(stock).compareTo(maxRangeCachedQuotationData.get(0).getDate()) == 0 ||
 						(
 							maxRangeCachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0
 							&& (
@@ -368,7 +368,7 @@ public class Quotations {
 	public Boolean hasQuotations() {
 		QuotationData quotationData = getQuotationData();
 		if (quotationData == null || quotationData.size() == 0) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("No Quotations for :" + this.stock + " !! ");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("No Quotations for:" + this.stock + " !! ");
 			return false;
 		}
 		return true;
@@ -484,6 +484,10 @@ public class Quotations {
 
 	public double[] getVolumes() {
 		return getQuotationData().getVolumeValues();
+	}
+	
+	public Date[] getDates() {
+		return getQuotationData().getDates();
 	}
 
 

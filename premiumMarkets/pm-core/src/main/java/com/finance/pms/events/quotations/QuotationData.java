@@ -30,12 +30,15 @@
 package com.finance.pms.events.quotations;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.SortedSet;
+
+import org.apache.commons.lang.NotImplementedException;
 
 /**
  * The Class QuotationData.
@@ -62,17 +65,11 @@ class QuotationData implements List<QuotationUnit> {
 	}
 
 	protected void init(Collection<QuotationUnit> sortedQuotationUnits) {
-		this.stripedQuotations = new StripedQuotations(sortedQuotationUnits.size());
-		this.addAll(sortedQuotationUnits);
-		int i = 0 ;
-		for (QuotationUnit quotationUnit : sortedQuotationUnits) {
-			this.stripedQuotations.addStripedValues(i, quotationUnit.getCloseSplit(), quotationUnit.getHighSplit(), quotationUnit.getLowSplit());
-			i++;
-		}
+		this.stripedQuotations = new StripedQuotations(sortedQuotationUnits);
 	}
 
 	public boolean remove(QuotationUnit o) {
-		return this.stripedQuotations.getBarList().remove(o);
+		throw new NotImplementedException();
 	}
 
 	public QuotationUnit get(int index) {
@@ -112,11 +109,9 @@ class QuotationData implements List<QuotationUnit> {
 			return midle;
 		if (midle.equals(start)) {
 			if (date.before(this.get(start).getDate())) {
-				//return start;
 				//return Math.min(0, start-1); //FIXME<= should be Math.max(0, start-1);
 				return start-1;
 			} else {
-				//return end;
 				if (date.before(this.get(end).getDate())) {
 					return midle;
 				} else {
@@ -133,25 +128,35 @@ class QuotationData implements List<QuotationUnit> {
 		}
 		return -1;
 	}
-
+	
+	public Date[] getDates() {
+		if (this.stripedQuotations.isStriped()) 
+			return this.stripedQuotations.getDates();
+		else {
+			Date[] values= new Date[this.size()];
+			for (int i = 0; i < this.size(); i++)
+				values[i] = this.get(i).getDate();
+			return values;
+		}
+	}
 
 	public double[] getCloseValues() {
 		if (this.stripedQuotations.isStriped()) 
-			return this.stripedQuotations.getCloseTrimedList();
+			return this.stripedQuotations.getCloseList();
 		else 
 			return this.getInput(QuotationDataType.CLOSE);
 	}
 
 	public double[] getLowValues() {
-		if (this.stripedQuotations.isStriped()) 
-			return this.stripedQuotations.getLowTrimedList();
+		if (this.stripedQuotations.isStriped())
+			return this.stripedQuotations.getLowList();
 		else 
 			return this.getInput(QuotationDataType.LOW);
 	}
 
 	public double[] getHighValues() {
 		if (this.stripedQuotations.isStriped()) 
-			return this.stripedQuotations.getHighTrimedList();
+			return this.stripedQuotations.getHighList();
 		else 
 			return this.getInput(QuotationDataType.HIGH);
 	}
@@ -190,27 +195,27 @@ class QuotationData implements List<QuotationUnit> {
 	}
 
 	public void add(int index, QuotationUnit element) {
-		this.stripedQuotations.getBarList().add(index,element);
+		throw new NotImplementedException();
 	}
 
 
 	public boolean add(QuotationUnit e) {
-		return this.stripedQuotations.getBarList().add(e);
+		throw new NotImplementedException();
 	}
 
 
 	public boolean addAll(Collection<? extends QuotationUnit> c) {
-		return this.stripedQuotations.getBarList().addAll(c);
+		throw new NotImplementedException();
 	}
 
 
 	public boolean addAll(int index, Collection<? extends QuotationUnit> c) {
-		return this.stripedQuotations.getBarList().addAll(index,c);
+		throw new NotImplementedException();
 	}
 
 
 	public void clear() {
-		this.stripedQuotations.getBarList().clear();
+		throw new NotImplementedException();
 	}
 
 
@@ -255,35 +260,35 @@ class QuotationData implements List<QuotationUnit> {
 
 
 	public QuotationUnit remove(int index) {
-		return this.stripedQuotations.getBarList().remove(index);
+		throw new NotImplementedException();
 	}
 
 
 	public boolean remove(Object o) {
-		return this.stripedQuotations.getBarList().remove(o);
+		throw new NotImplementedException();
 	}
 
 
 	public boolean removeAll(Collection<?> c) {
-		return this.stripedQuotations.getBarList().removeAll(c);
+		throw new NotImplementedException();
 	}
 
 
 	public boolean retainAll(Collection<?> c) {
-		return this.stripedQuotations.getBarList().retainAll(c);
+		throw new NotImplementedException();
 	}
 
 
 	public QuotationUnit set(int index, QuotationUnit element) {
-		return this.stripedQuotations.getBarList().set(index, element);
+		throw new NotImplementedException();
 	}
 
 
 	public List<QuotationUnit> subList(int fromIndex, int toIndex) {
-		return this.stripedQuotations.getBarList().subList(fromIndex, toIndex);
+		return new ArrayList<>(this.stripedQuotations.getBarList().subList(fromIndex, toIndex));
 	}
 
-
+	
 	public Object[] toArray() {
 		return this.stripedQuotations.getBarList().toArray();
 	}
@@ -292,10 +297,12 @@ class QuotationData implements List<QuotationUnit> {
 	public <T> T[] toArray(T[] a) {
 		return this.stripedQuotations.getBarList().toArray(a);
 	}
+	
 
 	public double getLastClose() throws InvalidAlgorithmParameterException {
 		return this.stripedQuotations.getNLastClosed(1)[0];
 	}
+	
 
 	public Date getLastDate() {
 		return this.stripedQuotations.getLast().getDate();

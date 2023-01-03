@@ -81,7 +81,7 @@ public abstract class TalibIndicator extends Indicator {
 		}
 
 		if (!rc.equals(RetCode.Success)) {
-			throw new TalibException(this.getClass().getSimpleName()+" Calculation error : " + rc + " for share :" + quotations.getStock(), new Throwable());
+			throw new TalibException(this.getClass().getSimpleName() + " Calculation error : " + rc + " for share :" + quotations.getStock(), new Throwable());
 		} else {
 			outBegDate = quotations.getDate(outBegIdx.value);
 		}
@@ -140,9 +140,12 @@ public abstract class TalibIndicator extends Indicator {
 	}
 
 	public StripedQuotations indicatorStrip(Quotations quotations) {
-		StripedQuotations striped = new StripedQuotations(quotations.getLastDateIdx() - this.getOutBegIdx().value - quotations.getFirstDateShiftedIdx() + 1);
-		for (int i = quotations.getFirstDateShiftedIdx(); i <= quotations.getLastDateIdx() - this.getOutBegIdx().value; i++) {
-			striped.addCloseOnlyBar(quotations.getStock(), i, quotations.get(i + this.getOutBegIdx().value).getDate(), this.getOutputData()[i]);
+		int firstDateShiftedIdx = quotations.getFirstDateShiftedIdx();
+		int lastDateIdx = quotations.getLastDateIdx();
+		int outBegIdx = this.getOutBegIdx().value;
+		StripedQuotations striped = new StripedQuotations(lastDateIdx - outBegIdx - firstDateShiftedIdx + 1);
+		for (int i = firstDateShiftedIdx; i <= lastDateIdx - outBegIdx; i++) {
+			striped.addCloseOnlyBar(quotations.getStock(), i, quotations.get(i + outBegIdx).getDate(), this.getOutputData()[i]);
 		}
 		return striped;
 	}

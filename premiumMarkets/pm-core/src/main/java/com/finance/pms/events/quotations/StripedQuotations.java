@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 import com.finance.pms.datasources.shares.Stock;
@@ -46,28 +47,41 @@ import com.finance.pms.datasources.shares.Stock;
 public class StripedQuotations {
 
 	private ArrayList<QuotationUnit> barList;
+	private Date[] dates;
 
 	private double[] closeList;
 	private double[] highList;
 	private double[] lowList;
-
-	//	public StripedQuotations() {
-	//		super();
-	//		this.barList = new ArrayList<QuotationUnit>();
-	//		this.closeList = new double[500];
-	//		this.highList = new double[500];
-	//		this.lowList =  new double[500];
-	//	}
-
-	public StripedQuotations(Integer limit) {
+	
+	public StripedQuotations(int limit) {
 		super();
-		this.barList = new ArrayList<QuotationUnit>();
+		this.barList = new ArrayList<>(limit);
+		this.dates = new Date[limit];
 		this.closeList = new double[limit];
 		this.highList = new double[limit];
 		this.lowList =  new double[limit];
 	}
 
+	public StripedQuotations(Collection<QuotationUnit> quotationUnits) {
+		super();
+		this.barList = new ArrayList<>(quotationUnits);
+		int limit = quotationUnits.size();
+		this.dates = new Date[limit];
+		this.closeList = new double[limit];
+		this.highList = new double[limit];
+		this.lowList =  new double[limit];
+		
+		int i = 0 ;
+		for (QuotationUnit quotationUnit : quotationUnits) {
+			this.addStripedValues(i, quotationUnit.getDate(), quotationUnit.getCloseSplit(), quotationUnit.getHighSplit(), quotationUnit.getLowSplit());
+			i++;
+		}
+	}
+
 	public void increaseArraySizeBy(Integer nbEle) {
+		Date[] dateListIncr = new Date[getDates().length + nbEle];
+		System.arraycopy(getDates(), 0, dateListIncr, 0, getDates().length);
+		dates = dateListIncr;
 		double[] closeListIncr = new double[getCloseList().length + nbEle];
 		System.arraycopy(getCloseList(), 0, closeListIncr, 0, getCloseList().length);
 		closeList = closeListIncr;
@@ -88,26 +102,33 @@ public class StripedQuotations {
 			throw new InvalidAlgorithmParameterException("Close values available for dates is " + getCloseList().length);
 		return Arrays.copyOfRange(getCloseList(), this.barList.size() - n, this.barList.size());
 	}
+	
+//	public Date[] getDatesTrimedList() {
+//		Date[] trimedDateList = new Date[this.barList.size()];
+//		System.arraycopy(this.dates, 0, trimedDateList, 0, this.barList.size());
+//		return trimedDateList;
+//	}
+//
+//	public double[] getCloseTrimedList() {
+//		double[] trimedCloseList = new double[this.barList.size()];
+//		System.arraycopy(this.closeList, 0, trimedCloseList, 0, this.barList.size());
+//		return trimedCloseList;
+//	}
+//
+//	public double[] getLowTrimedList() {
+//		double[] trimedLowList = new double[this.barList.size()];
+//		System.arraycopy(this.lowList, 0, trimedLowList, 0, this.barList.size());
+//		return trimedLowList;
+//	}
+//
+//	public double[] getHighTrimedList() {
+//		double[] highCloseList = new double[this.barList.size()];
+//		System.arraycopy(this.highList, 0, highCloseList, 0, this.barList.size());
+//		return highCloseList;
+//	}
 
-	public double[] getCloseTrimedList() {
-		double[] trimedCloseList = new double[this.barList.size()];
-		System.arraycopy(this.closeList, 0, trimedCloseList, 0, this.barList.size());
-		return trimedCloseList;
-	}
-
-	public double[] getLowTrimedList() {
-		double[] trimedLowList = new double[this.barList.size()];
-		System.arraycopy(this.lowList, 0, trimedLowList, 0, this.barList.size());
-		return trimedLowList;
-	}
-
-	public double[] getHighTrimedList() {
-		double[] highCloseList = new double[this.barList.size()];
-		System.arraycopy(this.highList, 0, highCloseList, 0, this.barList.size());
-		return highCloseList;
-	}
-
-	public void addStripedValues(int i,BigDecimal closeValue, BigDecimal highValue, BigDecimal lowValue) {		
+	private void addStripedValues(int i, Date date, BigDecimal closeValue, BigDecimal highValue, BigDecimal lowValue) {	
+		this.dates[i] = date;
 		this.closeList[i] = closeValue.doubleValue();
 		this.highList[i] = highValue.doubleValue();
 		this.lowList[i] = lowValue.doubleValue();
@@ -120,15 +141,27 @@ public class StripedQuotations {
 	public double[] getCloseList() {
 		return closeList;
 	}
+	
+	public Date[] getDates() {
+		return dates;
+	}
 
 	public void addCloseOnlyBar(Stock stock, int i, Date date, double close) {
 		QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), date, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(close), 0l, null, BigDecimal.ONE);
 		this.getBarList().add(quotationUnit);
+		this.dates[i] = date;
 		this.closeList[i] = close;
-
 	}
 
 	public QuotationUnit getLast() {
 		return this.getBarList().get(this.getBarList().size()-1);
+	}
+
+	public double[] getLowList() {
+		return lowList;
+	}
+
+	public double[] getHighList() {
+		return highList;
 	}	
 }

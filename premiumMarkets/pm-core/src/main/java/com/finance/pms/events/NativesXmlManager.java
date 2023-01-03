@@ -47,6 +47,7 @@ import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.BandRatioNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.ConcatStringOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
+import com.finance.pms.events.operations.nativeops.DataTypeCheckOperation;
 import com.finance.pms.events.operations.nativeops.Division;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
@@ -152,6 +153,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(profitOperation);
 		TargetStockDelegateOperation targetStockDelegateOperation = new TargetStockDelegateOperation();
 		nativeOperations.addOperation(targetStockDelegateOperation);
+		DataTypeCheckOperation dataTypeCheckOperation = new DataTypeCheckOperation();
+		nativeOperations.addOperation(dataTypeCheckOperation);
 
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();

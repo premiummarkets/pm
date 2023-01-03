@@ -600,7 +600,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>movingPeriod</referenceAsOperand>
-                    <description>Moving period in data points (calendar days*5/7), independent of effective available data. 'NaN' means window == data set size</description>
+                    <description>Moving period in data points. 'NaN' means window == data set size</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>21.0</numberValue>
                     </defaultValue>
@@ -1490,6 +1490,22 @@
                     <reference>data</reference>
                     <referenceAsOperand>datasets</referenceAsOperand>
                     <description>Datasets to assemble in one</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dataTypeCheckOperation">
+            <reference>dataTypeCheck</reference>
+            <description>dataTypeCheck</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>dataTypedInput</reference>
+                    <referenceAsOperand>dataTypedInput</referenceAsOperand>
+                    <description>An input that is typed with (ohlcv), the valitdity of which will reflect the output close.</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

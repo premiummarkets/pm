@@ -51,8 +51,10 @@ public enum TradingMode {
 	}
 	
 	/**
-	 *  data points factor to calendar days
+	 * @deprecated in favour of data point to days conversion based on the quotations present in DB.
+	 * Data points factor to calendar days
 	 */
+	@Deprecated
 	public double getDataPointFactor() {
 		return dataPointsFactor;
 	}

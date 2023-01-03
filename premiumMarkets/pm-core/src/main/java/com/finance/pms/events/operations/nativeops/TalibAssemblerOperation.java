@@ -128,7 +128,9 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					
 					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 					
-					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);//FIXME why do I need this shift here? The run should sort it out?
+					//FIXME why do I need this shift here? The run should sort it out?
+					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);
+					//int assembleeOperandStartShift = 0;
 					
 					LOGGER.info(
 							"Running assemblee: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 

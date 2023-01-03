@@ -67,7 +67,10 @@ public class MetaOperation extends Operation {
 			}
 
 			Operation operation = (Operation) parameterizedOperationBuilder.getCurrentOperations().get(operationNewId).clone();
-			int operationOperandsStartShift = operation.operandsRequiredStartShift(targetStock, thisStartShift);//FIXME why do I need this shift here? The run should sort it out?
+			
+			//FIXME why do I need this shift here? The run should sort it out?
+			int operationOperandsStartShift = operation.operandsRequiredStartShift(targetStock, thisStartShift);
+//			int operationOperandsStartShift = 0;
 			
 			LOGGER.info(
 					"Running meta: " + operation.getReference() + " with formulea: " + formula + 

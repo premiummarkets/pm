@@ -66,10 +66,7 @@ public class StatsOperation extends PMWithDataOperation {
 
 	public StatsOperation() {
 		super("stat", "Moving statistics",
-				new NumberOperation(
-						"number", "movingPeriod", 
-						"Moving period in data points (= calendar days (apply *5/7 if not NON STOP trading), independent of effective available data. 'NaN' means window == data set size", 
-						new NumberValue(21.0)),
+				new NumberOperation("number", "movingPeriod", "Moving period in data points. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm"})));
 	}
@@ -91,6 +88,7 @@ public class StatsOperation extends PMWithDataOperation {
 		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(1, 2);
 
 		try {
+			
 			final StatsFunction statFunction;
 			
 			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
@@ -173,7 +171,7 @@ public class StatsOperation extends PMWithDataOperation {
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
 					if (numberOperand instanceof NumberOperation) {
-						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue() *7/5; //FIXME review period to data points conversion
+						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
 					} else {
 						return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 					}
@@ -185,7 +183,7 @@ public class StatsOperation extends PMWithDataOperation {
 	public String toFormulaeShort() {
 		String thisShort = getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" + ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
 		String opsFormulaeShort = super.toFormulaeShort();
-		return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+		return thisShort + ((opsFormulaeShort.isEmpty())? "" : "_" + opsFormulaeShort);
 	}
 
 
