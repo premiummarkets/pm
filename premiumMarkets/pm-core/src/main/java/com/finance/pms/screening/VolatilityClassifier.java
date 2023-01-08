@@ -50,7 +50,7 @@ public class VolatilityClassifier {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(VolatilityClassifier.class);
 
-	private final String NEURAL_PATH = System.getProperty("installdir") + File.separator + "neural" + File.separator;
+	private final String EXPORT_PATH = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator;
 	private final String TMP_PATH = System.getProperty("installdir") + File.separator + "tmp" + File.separator;
 	private final String VOLATILITIES_CSV = "volatilities.csv";
 
@@ -114,7 +114,7 @@ public class VolatilityClassifier {
 	private void exportToFile(String title, String supportFilePath, List<Entry<Stock, Double[]>> subList) throws IOException {
 
 		String reduce = subList.stream().map(e -> e.getKey().getSymbol() + " " + e.getKey().getIsin()).reduce(title, (r, e) -> r + "," + e);
-		File supportsFile = new File(NEURAL_PATH + UUID.randomUUID() + "_" + supportFilePath);
+		File supportsFile = new File(EXPORT_PATH + UUID.randomUUID() + "_" + supportFilePath);
 		Files.write(supportsFile.toPath(), Arrays.asList(new String[]{reduce}), Charset.defaultCharset());
 	}
 
@@ -196,7 +196,7 @@ public class VolatilityClassifier {
 		
 		Predicate<Stock> ohlcPredicate = stock -> {
 			try {
-				Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLC);
+				Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				Quotations closeQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
 				double ratio = 0.80;
 				boolean match = (double)ohlcQuotations.size()/(double)closeQuotations.size() >= ratio;
@@ -289,10 +289,10 @@ public class VolatilityClassifier {
 				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.movingVolatiltityAt(closeQuotations.size()-1);
 				return new Double[]{averageAnnualisedVolatility, threeMonthAnnualisedVolatility};
 			} catch (NoQuotationsException e) {
-				LOGGER.warn(s +" volatility failed :" + e.toString());
+				LOGGER.warn(s + " volatility failed :" + e.toString());
 				return new Double[] {Double.NaN, Double.NaN};
 			} catch (NotEnoughDataException | IndexOutOfBoundsException e) {
-				LOGGER.warn(s +" volatility failed :" + e.toString());
+				LOGGER.warn(s + " volatility failed :" + e.toString());
 				return new Double[] {Double.NaN, Double.NaN};
 			}
 		}));
@@ -301,7 +301,7 @@ public class VolatilityClassifier {
 		List<Entry<Stock, Double[]>> sorted = sortVolatilities(stockVolatilities);
 
 		//Export to "volatilities.csv"
-		try (FileWriter fileWriter = new FileWriter(new File(NEURAL_PATH + UUID.randomUUID() + "_" + VOLATILITIES_CSV))) {
+		try (FileWriter fileWriter = new FileWriter(new File(EXPORT_PATH + UUID.randomUUID() + "_" + VOLATILITIES_CSV))) {
 			sorted.stream()
 			.forEach(e -> {
 				try {
@@ -310,7 +310,7 @@ public class VolatilityClassifier {
 							key.getSymbol() + ", " + key.getIsin() + ", " +
 									Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
 					//Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);
-					fileWriter.write(line+"\n");
+					fileWriter.write(line + "\n");
 				} catch (IOException e1) {
 					throw new RuntimeException(e1);
 				}

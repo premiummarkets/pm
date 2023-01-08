@@ -471,6 +471,7 @@ public class SpringContext extends GenericApplicationContext {
 			
 			//Chart
 			putInPrefs("chart.display", props);
+			putInPrefs("portofolio.hibernateonclose", props);
 
 			MainPMScmd.getMyPrefs().flushy();
 

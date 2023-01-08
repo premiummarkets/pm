@@ -62,7 +62,7 @@ public interface QuotationsFactory {
     public abstract Calendar incrementDate(Stock stock, Collection<QuotationDataType> dataTypes, Calendar calendar, int amount) throws NotEnoughDataException;
 
     /**
-     * Always brings back the latest value when out of range n the right.
+     * Always brings back the latest value at or before endDate, even when out of range on the right.
      * This is done using a firstIndexShift of value 1.
      * It also is split free.
      * @param stock
@@ -73,10 +73,11 @@ public interface QuotationsFactory {
      * @return
      * @throws NoQuotationsException
      */
-    public abstract Quotations getBoundSafeQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException;
+    public abstract Quotations getBoundSafeEndDateQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException;
     
     /**
      * Split free
+     * To prevent index out of bound when the lastDate falls after the last Quotation: firstIndexShift should bet set to 1 
      * @param stock
      * @param firstDate
      * @param lastDate

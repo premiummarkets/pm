@@ -237,8 +237,8 @@ public class AutoPortfolioDelegate {
 		//Check if already bought
 		PortfolioShare alreadyBoughtShare  = thisPortfolio.getListShares().get(symbolEvents.getStock());
 		if (	!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) &&
-				(alreadyBoughtShare != null && 
-				 alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) > 0)) {
+				(alreadyBoughtShare != null && alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) > 0)
+		) {
 			LOGGER.info("Won't buy at " + currentDate + " with " + symbolEvents.getSymbol() + ". Already bought (buy once policy).");
 			return null;
 		}
@@ -291,7 +291,7 @@ public class AutoPortfolioDelegate {
 		Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null) ? stock.getMarketValuation().getCurrency() : this.thisPortfolio.getPortfolioCurrency();
 
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			BigDecimal openPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.OPEN);
 			BigDecimal highPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.HIGH);
 			BigDecimal lowPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.LOW);
@@ -442,7 +442,7 @@ public class AutoPortfolioDelegate {
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal sellAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
 
 		try {
-			Quotations quotations =  QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
+			Quotations quotations =  QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
 
 			BigDecimal openPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.OPEN);
 			BigDecimal highPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.HIGH);

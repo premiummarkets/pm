@@ -63,7 +63,6 @@ import com.finance.pms.datasources.shares.TradingMode;
 import com.finance.pms.datasources.web.HttpSourceExchange;
 import com.finance.pms.datasources.web.MyBeanFactoryAware;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.LastUpdateStampChecker;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -123,7 +122,13 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 					lastCurrencyRateDate = fetchLastRateDate(dbRates);
 					Calendar fiveDaysAgo = Calendar.getInstance();
 					fiveDaysAgo.setTime(today);
-					boolean onlyFiveDaysMissing = lastCurrencyRateDate.after(QuotationsFactories.getFactory().incrementDate(currencyStock,  Arrays.asList(QuotationDataType.CLOSE), fiveDaysAgo, -5).getTime());
+					boolean onlyFiveDaysMissing;
+					try {
+						Calendar fiveDaysAgoDate = QuotationsFactories.getFactory().incrementDate(currencyStock, Arrays.asList(QuotationDataType.CLOSE), fiveDaysAgo, -5);
+						onlyFiveDaysMissing = lastCurrencyRateDate.after(fiveDaysAgoDate.getTime());
+					} catch (Exception e) {
+						onlyFiveDaysMissing = false;
+					}
 
 					//Complete 5 days missing
 					if (onlyFiveDaysMissing) {
@@ -145,8 +150,6 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 			LOGGER.error("", e);
 		} catch (InvalidAlgorithmParameterException e1) {
 			LOGGER.error("", e1);
-		} catch (NotEnoughDataException e) {
-			LOGGER.error("", e);
 		} finally {
 			currencyDBAccessSemaphore.release();
 		}
@@ -234,7 +237,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		try {
 			exchangeRate = extractRatefromCache(cache.get(fromCurrency).get(toCurrency), date);
 		} catch (Exception e) {
-			LOGGER.warn("Cant get rate for "+fromCurrency,e);
+			LOGGER.warn("Can't get rate for " + fromCurrency, e);
 			exchangeRate = BigDecimal.ONE;
 		}
 
@@ -250,7 +253,7 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 		try {
 			return cache.get(fromCurrency).get(toCurrency);
 		} catch (Exception e) {
-			LOGGER.warn("Cant get rate for " + fromCurrency, e);
+			LOGGER.warn("Can't get rate for " + fromCurrency, e);
 			return new ArrayList<CurrencyRate>();
 		}
 

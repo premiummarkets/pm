@@ -342,13 +342,17 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			}
 			LOGGER.info("All runnable messages are stopped.");
 
-			LOGGER.info("Saving auto portfolios.");
-			try {
-				PortfolioMgr.getInstance().hibStorePortfolio();
-			} catch (Exception e) {
-				LOGGER.error("Error while closing AnalysisClient",e);
+			Boolean hibOnClose = Boolean.valueOf(MainPMScmd.getMyPrefs().get("portofolio.hibernateonclose", "true"));
+			LOGGER.info("Saving portfolios on shutdown: " + hibOnClose);
+			if (hibOnClose) {
+				LOGGER.info("Saving auto portfolios.");
+				try {
+					PortfolioMgr.getInstance().hibStorePortfolio();
+				} catch (Exception e) {
+					LOGGER.error("Error while closing AnalysisClient",e);
+				}
+				LOGGER.info("Auto portfolios are saved.");
 			}
-			LOGGER.info("Auto portfolios are saved.");
 
 			LOGGER.info("Sending metrics.");
 			String metrics = scrapperMetrics.getMetrics(false);

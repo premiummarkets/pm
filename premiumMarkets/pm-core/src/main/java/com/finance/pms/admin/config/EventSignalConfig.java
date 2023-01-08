@@ -49,6 +49,7 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
@@ -112,6 +113,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	//Encog
 	private boolean isIterative = false;
+	private Collection<Stock> autoPortfolioMonitoredStocks;
 
 
 
@@ -724,6 +726,15 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public void setIterative(boolean isIterative) {
 		this.isIterative = isIterative;
+	}
+
+	public void setAutoPortfolioMonitoredStocks(Collection<Stock> monitoredStocks) {
+		this.autoPortfolioMonitoredStocks = monitoredStocks;
+		
+	}
+
+	public Collection<Stock> getAutoPortfolioMonitoredStocks() {
+		return autoPortfolioMonitoredStocks;
 	}
 
 }

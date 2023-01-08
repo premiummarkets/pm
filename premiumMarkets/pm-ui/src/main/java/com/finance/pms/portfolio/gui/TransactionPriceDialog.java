@@ -264,7 +264,7 @@ public class TransactionPriceDialog extends Dialog {
 							transaction.setDate(newTransactionDate);
 							BigDecimal close = null;
 							try {
-								Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(portfolioShare.getStock(), newTransactionDate, true, portfolioShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+								Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(portfolioShare.getStock(), newTransactionDate, true, portfolioShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 								close = quotations.getClosestCloseSpForDate(newTransactionDate);
 							} catch (Exception exc) {
 								LOGGER.warn(exc,exc);

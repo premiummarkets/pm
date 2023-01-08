@@ -974,6 +974,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	@Override
 	public void setCursor(Cursor cursor) {
+//		if (cursor == null) return;
+		
 		super.setCursor(cursor);
 
 		final java.awt.Cursor awtPredefinedCursor;
@@ -995,6 +997,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		Runnable runnable = new Runnable() {
 			public void run() {
 				frame.setCursor(awtPredefinedCursor);
+				mainChartPanel.setCursor(awtPredefinedCursor);
 				if (mainChartPanel.getComponents().length > 0) {
 					mainChartPanel.getComponent(0).setCursor(awtPredefinedCursor);
 				}

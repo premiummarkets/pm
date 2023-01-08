@@ -138,7 +138,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	private BigDecimal closeQuotationFor(Stock stock, Currency transactionCurrency, Date currentDate) {
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			return quotations.getClosestCloseForDate(currentDate);
 		} catch (InvalidAlgorithmParameterException e) {
 			LOGGER.warn("No quotations for " + stock);

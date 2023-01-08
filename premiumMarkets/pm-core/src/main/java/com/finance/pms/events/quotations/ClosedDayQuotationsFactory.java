@@ -58,7 +58,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 	@Override
-	public Quotations getBoundSafeQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
+	public Quotations getBoundSafeEndDateQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
 		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
 	}
 	

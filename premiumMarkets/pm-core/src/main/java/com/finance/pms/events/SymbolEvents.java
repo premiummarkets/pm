@@ -190,11 +190,11 @@ public class SymbolEvents implements Serializable {
 		retour.append(";");
 		retour.append(stock.getName());
 		retour.append(";");
-		retour.append(" triggering weight : " + getTriggeringFinalWeight());
+		retour.append(" triggering weight: " + getTriggeringFinalWeight());
 		retour.append(";");
-		retour.append(" buy triggering events : "+((getBuyTriggeringEvents() != null)?getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
+		retour.append(" buy triggering events: " + ((getBuyTriggeringEvents() != null)?getBuyTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
 		retour.append(";");
-		retour.append(" sell triggering events : "+((getSellTriggeringEvents() != null)?getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
+		retour.append(" sell triggering events: " + ((getSellTriggeringEvents() != null)?getSellTriggeringEvents().stream().map(e -> e.getEventDefinitionRef()).reduce((r, e) -> r + " " + e).orElse("none"):"none"));
 		retour.append(";[");
 		Collection<EventValue> drl = this.getSortedDataResultList();
 		Iterator<EventValue> drlIt = drl.iterator();
@@ -225,7 +225,7 @@ public class SymbolEvents implements Serializable {
 	public StringBuffer toExport(PonderationRule pr) {
 
 		StringBuffer retour = new StringBuffer();
-		Collection<EventValue> drl=this.getSortedDataResultList();
+		Collection<EventValue> drl = this.getSortedDataResultList();
 		if (drl.size() > 0 ) {
 			Iterator<EventValue> drlIt = drl.iterator();
 			while (drlIt.hasNext()) {

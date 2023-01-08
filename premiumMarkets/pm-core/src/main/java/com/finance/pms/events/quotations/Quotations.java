@@ -146,25 +146,14 @@ public class Quotations {
 		this.firstDateRequested = firstDate;
 		this.lastDateRequested = lastDate;
 	
-		init(stock, firstDate, lastDate, firstIndexLeftShift);
+		try {
+			init(stock, firstDate, lastDate, firstIndexLeftShift);
+		} catch (Exception e) {
+			LOGGER.error("Failed init quotations for: " + this, e);
+			throw e;
+		}
 		
 	}
-
-//	@Deprecated //?? FIXME
-//	//Called in CalculationQuotations (inheritance) 
-//	Quotations(Stock stock, QuotationData quotationData, Currency targetCurrency, ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) {
-//		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
-//		this.stock = stock;
-//		this.targetCurrency = targetCurrency;
-//		this.cacheFilter = cacheFilter;
-//		this.otherCacheFilters = Arrays.asList(otherCacheFilters);
-//
-//		firstIndexShiftRequested = 0;
-//		firstDateRequested = quotationData.getDate(0);
-//		lastDateRequested = quotationData.getDate(quotationData.size() -1);
-//
-//		this.setUnfilteredQuotationData(quotationData);
-//	}
 
 	protected void init(Stock stock, Date firstDate, Date lastDate, Integer firstIndexShift) throws NoQuotationsException {
 		this.stock = stock;
@@ -869,6 +858,13 @@ public class Quotations {
 
 	public Currency getTargetCurrency() {
 		return targetCurrency;
+	}
+	
+	@Override
+	public String toString() {
+		return "Quotations [stock=" + stock + ", firstDateRequested=" + firstDateRequested + ", firstIndexLeftShiftRequested=" + firstIndexLeftShiftRequested + ", lastDateRequested="
+				+ lastDateRequested + ", targetCurrency=" + targetCurrency + ", keepCache=" + keepCache + ", mainValidityFilter=" + mainValidityFilter + ", otherValidityFilters="
+				+ otherValidityFilters + "]";
 	}
 
 }

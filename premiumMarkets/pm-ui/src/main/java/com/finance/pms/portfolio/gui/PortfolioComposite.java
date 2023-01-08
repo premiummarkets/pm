@@ -122,6 +122,7 @@ import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.SpringContext;
@@ -727,7 +728,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		this.chartsComposite = chartsComposite;
 		this.chartsComposite.setComposite(this);
-
+		
 		this.addListener(SWT.Hide, new Listener() {
 
 			public void handleEvent(Event arg0) {
@@ -1928,7 +1929,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						String lastCloseDate = "NA";
 						String origin = selectedShare.getStock().getSymbolMarketQuotationProvider().getMarketQuotationProvider().getCmdParam();
 						try {
-							Quotations quotationsInstance = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(selectedShare.getStock(), DateFactory.getNowEndDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
+							Quotations quotationsInstance = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(selectedShare.getStock(), DateFactory.getNowEndDate(), true, selectedShare.getStock().getMarketValuation().getCurrency(), ValidityFilter.CLOSE);
 							if (quotationsInstance.hasQuotations()) {
 								lastClose = quotationsInstance.get(quotationsInstance.size()-1);
 								lastCloseDate = dateFormat.format(selectedShare.getStock().getLastQuote());
@@ -2150,7 +2151,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 			BigDecimal transactionPrice = BigDecimal.ZERO;
 			try {
-				Quotations quotationsInstance = QuotationsFactories.getFactory().getBoundSafeQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency(), ValidityFilter.CLOSE);
+				Quotations quotationsInstance = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(pstmp.getStock(), newDate, true, pstmp.getTransactionCurrency(), ValidityFilter.CLOSE);
 				transactionPrice = quotationsInstance.getClosestCloseSpForDate(newDate);
 			} catch (Exception e1) {
 				LOGGER.warn(e1);
@@ -2593,8 +2594,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 
 	private void handleRootShellClosed(Event evt) {
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("dialogShell.shellClosed, event="+evt);
-		hibernatePortfolios();
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("dialogShell.shellClosed, event=" + evt);
+		Boolean hibOnClose = Boolean.valueOf(MainPMScmd.getMyPrefs().get("portofolio.hibernateonclose", "true"));
+		LOGGER.info("Saving portfolios on UI close: " + hibOnClose);
+		if (hibOnClose) {
+			hibernatePortfolios();
+		}
 	}
 
 	private void hibernatePortfolios() {
@@ -2602,8 +2607,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		try {
 			PortfolioMgr.getInstance().hibStorePortfolio();
 		} catch (RuntimeException e) {
-			LOGGER.error("",e);
-			UserDialog inst = new UserDialog(getShell(), "Error While updating data base \n"+e,null);
+			LOGGER.error("", e);
+			UserDialog inst = new UserDialog(getShell(), "Error While updating data base \n" + e, null);
 			inst.open();
 		}
 

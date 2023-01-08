@@ -425,8 +425,8 @@ public class MainGui extends SashForm implements RefreshableView {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
 					ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
-							"Running a neural network forecast on technical analysis is not available in this version.\n"+
-									"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n", 
+									"Running a neural network forecast on technical analysis is not available in this version.\n" + 
+									"This feature is part of the advanced version including " + MainGui.APP_NAME + " Forecast engine.\n", 
 									null,
 									"Click here for more information and a workable demo",
 									new ActionDialogAction() {
@@ -872,10 +872,10 @@ public class MainGui extends SashForm implements RefreshableView {
 					try {
 						Properties pbuild = new Properties();
 						pbuild.load(ClassLoader.getSystemClassLoader().getResourceAsStream("pmsbuild.properties"));
-						UserDialog dialog = new UserDialog(getShell(),MainGui.APP_NAME+" is an automated stock market analysis system.\n"+
-								"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n"+
-								"See the new "+MainGui.APP_NAME+" FORECAST web portal at http://"+siteUrl+" for documentation and a free workable demo of the Forecast engine.\n\n\n\n"+
-								"\n"+MainGui.APP_NAME+"\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : "+pbuild.getProperty("application.buildtime")+"\n", null);
+						UserDialog dialog = new UserDialog(getShell(), MainGui.APP_NAME + " is an automated stock market analysis system.\n" + 
+								"It implements a graphical environment for monitoring stock market technical analysis major indicators, portfolio management and historical data charting.\n\n" + 
+								"See the new " + MainGui.APP_NAME + " FORECAST web portal at http://" + siteUrl + " for documentation and a free workable demo of the Forecast engine.\n\n\n\n" + 
+								"\n" + MainGui.APP_NAME + "\nCopyright (C) 2008-2014 Guillaume Thoreton, see <http://www.gnu.org/licenses/>\nBuild : " + pbuild.getProperty("application.buildtime") + "\n", null);
 						dialog.open();				
 
 					} catch (IOException e) {
@@ -1303,7 +1303,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		return winTable[0];
 	}
 
-	private void  closeButtonMouseDown(SelectionEvent evt) {
+	private void closeButtonMouseDown(SelectionEvent evt) {
 		closeMain();
 	}
 

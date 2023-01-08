@@ -92,7 +92,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 		try {
 
 			if (!stock.equals(ProvidersInflation.inflationStock())) {
-				String message = "Error : This should be used to retrieve inflation historical only, not : " + stock.toString();
+				String message = "Error: This should be used to retrieve inflation historical only, not: " + stock.toString();
 				LOGGER.error(message);
 				throw new RuntimeException(message);
 			}
