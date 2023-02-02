@@ -49,9 +49,10 @@ public class FilterOperation extends DoubleMapOperation {
 	public FilterOperation() {
 		this("filter_", "Filter",
 				new DoubleMapOperation("filtered series (given)"),
-				new DoubleMapOperation("filtering series on which applies the filter (where)"),
+				new DoubleMapOperation("filtering series on which applies the filter (where x eq/gt/lt .. than threshold)"),
 				new NumberOperation("number", "filterShade", "Filter shade value", new NumberValue(Double.NaN)),
-				new NumberOperation("number", "filterThreshold", "Filter threshold", new NumberValue(0.0)));
+				new NumberOperation("number", "filterThreshold", "Filter threshold", new NumberValue(0.0)),
+				new StringOperation("boolean", "fillGapsWithShade", "When TRUE the data points gaps in the filtered series are filled with the shade to match the filtering series in data points.", new StringValue("TRUE")));
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"eq", "gt", "lt"})));
 	}
 
@@ -66,6 +67,7 @@ public class FilterOperation extends DoubleMapOperation {
 		SortedMap<Date, Double> filteringData = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 		Double shade = ((NumberValue) inputs.get(2)).getValue(targetStock).doubleValue();
 		Double threshold = ((NumberValue) inputs.get(3)).getValue(targetStock).doubleValue();
+		Boolean fillGapsWithShade = Boolean.valueOf(((StringValue) inputs.get(4)).getValue(targetStock));
 
 		BiFunction<Double, Double, Boolean> func = (t,u) -> t == u;
 
@@ -80,9 +82,16 @@ public class FilterOperation extends DoubleMapOperation {
 			func = (t,u) -> t < u;
 		}
 
-		List<Date> filter = mapFilter(filteringData, threshold, func);
-		SortedMap<Date, Double> result = filteredData.keySet().stream()
-				.collect(Collectors.toMap(k -> k, k -> (filter.contains(k))?filteredData.get(k):shade, (a, b) -> a, TreeMap<Date,Double>::new));
+		List<Date> filterDates = mapFilter(filteringData, threshold, func);
+		SortedMap<Date, Double> result;
+		if (fillGapsWithShade) {
+			result = filterDates.stream()
+					.collect(Collectors.toMap(k -> k, k -> (filteredData.keySet().contains(k))?filteredData.get(k):shade, (a, b) -> a, TreeMap<Date,Double>::new));
+		} else {
+			result = filteredData.keySet().stream()
+					.collect(Collectors.toMap(k -> k, k -> (filterDates.contains(k))?filteredData.get(k):shade, (a, b) -> a, TreeMap<Date,Double>::new));
+		}
+		
 		return new DoubleMapValue(result);
 	}
 

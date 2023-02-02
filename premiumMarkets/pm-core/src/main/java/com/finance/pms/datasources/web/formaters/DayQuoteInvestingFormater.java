@@ -102,6 +102,7 @@ public class DayQuoteInvestingFormater extends LineFormater {
 						mainQuery.add(low);
 						mainQuery.add(close);
 						mainQuery.add(volume);
+						mainQuery.add(null); //Split
 						ret.add(new DailyQuotation(mainQuery, stock, stock.getMarketValuation().getCurrency().name()));
 						cpt=0;
 					}

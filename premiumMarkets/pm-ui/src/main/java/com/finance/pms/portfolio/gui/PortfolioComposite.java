@@ -401,7 +401,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[2], inDate),
 										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[3], inDate),
 										cC.convert(trCurrency, stockCurrency, (BigDecimal)actForm.values[4], inDate),
-										(Long)actForm.values[5], ORIGIN.USER, BigDecimal.ONE);
+										(Long)actForm.values[5], ORIGIN.USER, BigDecimal.ONE, null);
 								DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnit(quotationUnit);
 								Quotations.refreshCaches(stock);
 
@@ -975,7 +975,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						public void widgetSelected(SelectionEvent evt) {
 							if (indicatorMenuItem.getSelection()) {
 								chartsComposite.shutDownDisplay();
-								chartsComposite.setChartDisplayStrategy(new ChartIndicatorDisplay(chartsComposite));
+								chartsComposite.setChartDisplayStrategy(new ChartIndicatorDisplay(chartsComposite, logComposite));
 							}
 						}
 					});
@@ -1692,7 +1692,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 								final SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
 
-								final ActionDialogForm actForm = new ActionDialogForm(getShell(), "Reset", null, "Reset quotation for "+ss.getFriendlyName());
+								final ActionDialogForm actForm = new ActionDialogForm(getShell(), "Reset", null, "Reset quotation for " + ss.getFriendlyName());
 								final Button clearExisting = new Button(actForm.getParent(), SWT.CHECK);
 								clearExisting.setBackground(MainGui.pOPUP_BG);
 								clearExisting.setFont(MainGui.DEFAULTFONT);
@@ -1787,7 +1787,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									Object[] values = cumQu.get(cumDate);
 									BigDecimal tPrice = ((BigDecimal) values[0]).divide(new BigDecimal(values[1].toString()), 10, RoundingMode.HALF_EVEN);
 									if (tPrice.compareTo(BigDecimal.ZERO) != 0) {
-										QuotationUnit quotationUnit = new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), cumDate, tPrice, tPrice, tPrice, tPrice, 0l, ORIGIN.USER, BigDecimal.ONE);
+										QuotationUnit quotationUnit = new QuotationUnit(
+												stock, stock.getMarketValuation().getCurrency(), cumDate, tPrice, tPrice, tPrice, tPrice, 0l, ORIGIN.USER, BigDecimal.ONE, null);
 										quotationUnits.add(quotationUnit);
 									}
 								}
@@ -1940,20 +1941,20 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 
 						infoItems[0] = selectedShare.getFriendlyName();
-						infoItems[1] = "Last quotation date : " + lastCloseDate + " (Source : " + origin + ")";
+						infoItems[1] = "Last quotation date : " + lastCloseDate + " (Source: " + origin + ")";
 						infoItems[2] = "Actual quantity : " + quantiesFormat.format(selectedShare.getTodaysQuantity());
 						infoItems[3] = 
 								"Total Gain " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysGainTotal()) +
 								" / Real " +  signumRoundedFormat(moneysFormat, selectedShare.getTodaysGainReal()) +
 								" / Unreal " +  signumRoundedFormat(moneysFormat, selectedShare.getTodaysGainUnreal()) + " " + displayedCurrency;
 						infoItems[4] = 
-								"Cash flow : In " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysCashin()) + 
+								"Cash flow: In " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysCashin()) + 
 								" / Out " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysCashout()) + " " + displayedCurrency;
 						InOutWeighted weightedInvested = selectedShare.getTodaysWeightedInvested();
 						infoItems[5] = "Inflation Weighted " +
-								"Cash flow : In " + signumRoundedFormat(moneysFormat, weightedInvested.getIn()) + 
+								"Cash flow: In " + signumRoundedFormat(moneysFormat, weightedInvested.getIn()) + 
 								" / Out "+ signumRoundedFormat(moneysFormat, weightedInvested.getOut()) + " "+ displayedCurrency;
-						infoItems[6] = "Listed in : ";
+						infoItems[6] = "Listed in: ";
 
 						String shareInfo = infoItems[0] + "\n" + infoItems[1] + "\n" + infoItems[2] + "\n" + infoItems[3] + "\n" + infoItems[4]+ "\n" + infoItems[5]+"\n" + infoItems[6];
 

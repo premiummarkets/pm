@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -19,9 +18,12 @@ import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
-public class RocSmoother extends Smoother {
+//TODO period
+public class RocSmoother extends Smoother implements SSmoother {
 	
-	Integer reSeedingPeriod = 254;
+	@Deprecated
+	Integer reSeedingPeriod = null; //254; //Span after which the roc is recalculated from current date??
+	
 	private Stock stock;
 	private Collection<QuotationDataType> quotationsDataTypes;
 	
@@ -32,34 +34,18 @@ public class RocSmoother extends Smoother {
 	}
 
 	@Override
-	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixBias) {
-		
-		TreeMap<Date, double[]> collected = new TreeMap<>();
-		Iterator<Date> keyIterator = data.keySet().iterator();
-		Date currentDate = keyIterator.next();
-		Date reSeedDate = currentDate;
-		
-		while (reSeedDate.compareTo(data.lastKey()) <= 0) {
-			reSeedDate = getNextReSeedingDate(currentDate);
-			
-			List<Double> iterationRocs = rocsFor(MapUtils.subMapInclusive(data, currentDate, reSeedDate), fixBias);
-			double previousRocEnd = ((collected.size() > 0) ? collected.lastEntry().getValue()[0] : 0);
-			double rocAcc = 1; //Arbitrary value: Does imply that -1 < rocs < 1?
-			if (!iterationRocs.isEmpty()) {
-				for (int i = 0; i < iterationRocs.size(); i++) {
-					collected.put(currentDate, new double[] {previousRocEnd + rocAcc});
-					currentDate = keyIterator.next();
-					rocAcc = rocAcc + iterationRocs.get(i);
-				} 
-			} else {
-				currentDate = keyIterator.next();
-			}
-			collected.put(currentDate, new double[] {previousRocEnd + rocAcc});
-		}
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixBias) {
 
-		return collected;
+		Date startDate = data.firstKey();
+		Date endDate = data.lastKey();
+		
+		SortedMap<Date,Double> iterationRocs = rocsFor(MapUtils.subMapInclusive(data, startDate, endDate), fixBias);
+		
+		return iterationRocs;
 	}
 
+	@SuppressWarnings("unused")
+	@Deprecated
 	private Date getNextReSeedingDate(Date currentDate) {
 		try {
 			Calendar reSeedDateCal = Calendar.getInstance();
@@ -71,29 +57,35 @@ public class RocSmoother extends Smoother {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@Override
+	public SortedMap<Date, double[]> smooth(SortedMap<Date, double[]> data, Boolean fixLag) {
+		SortedMap<Date, Double> doubleMap = data.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e-> e.getValue()[0], (a, b) -> a, TreeMap::new));
+		SortedMap<Date, Double> result = sSmooth(doubleMap, fixLag);
+		return result.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a, b) -> a, TreeMap::new));
+	}
 
-	private List<Double> rocsFor(SortedMap<Date, double[]> data, Boolean fixBias) {
+	private SortedMap<Date, Double> rocsFor(SortedMap<Date, Double> data, Boolean fixBias) {
 		
-		List<double[]> values = new ArrayList<>(data.values());
-		List<Double> rocs = new ArrayList<>();
-		for(int i = 1; i < values.size(); i++) {
-			double roc = (values.get(i)[0] - values.get(i-1)[0])/values.get(i-1)[0];
-			rocs.add(roc);
+		SortedMap<Date, Double> rocs = new TreeMap<>();
+		List<Date> keys = new ArrayList<Date>(data.keySet());
+		for(int i = 1; i < keys.size(); i++) {
+			double prev = data.get(keys.get(i-1));
+			Date date = keys.get(i);
+			double roc = (data.get(date) - prev)/prev;
+			rocs.put(date, roc);
 		}
-		
-		List<Double> fixed = new ArrayList<>();
+
 		if (fixBias) {
 			MyApacheStats meanFunc = new MyApacheStats(new Mean());
-			double mean = meanFunc.sEvaluate(rocs);
+			double mean = meanFunc.sEvaluate(rocs.values());
 			MyApacheStats stdFunc = new MyApacheStats(new StandardDeviation());
-			double stdev = stdFunc.sEvaluate(rocs);
+			double stdev = stdFunc.sEvaluate(rocs.values());
 			
-			fixed = rocs.stream().map(r -> (r-mean)/stdev).collect(Collectors.toList());
-			
-		} else {
-			fixed = rocs;
-		}
-		return fixed;
+			rocs = rocs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> (e.getValue()-mean)/stdev, (a, b) -> a, TreeMap::new));	
+		} 
+		
+		return rocs;
 	}
 
 }

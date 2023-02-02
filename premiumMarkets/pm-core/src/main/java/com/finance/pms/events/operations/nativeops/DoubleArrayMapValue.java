@@ -127,7 +127,7 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
+		return this.getClass().getSimpleName() + ": size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
 	}
 
 	@SuppressWarnings("unchecked")

@@ -59,7 +59,7 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
+		return this.getClass().getSimpleName() + ": size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -67,7 +67,7 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 	public Object clone() {
 		try {
 			DoubleMapValue clone = (DoubleMapValue) super.clone();
-			clone.map = (SortedMap<Date, Double>) ((TreeMap<Date, Double>)this.map).clone();
+			clone.map = (SortedMap<Date, Double>) ((TreeMap<Date, Double>) this.map).clone();
 			clone.additionalOutputs = new HashMap<String, NumericableMapValue>();
 			for (String outputKey : additionalOutputs.keySet()) {
 				NumericableMapValue  addOutputClone = (NumericableMapValue) (additionalOutputs.get(outputKey)).clone();

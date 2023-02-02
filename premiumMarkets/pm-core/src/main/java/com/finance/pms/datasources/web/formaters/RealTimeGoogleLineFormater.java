@@ -111,7 +111,9 @@ public class RealTimeGoogleLineFormater extends LineFormater {
 		DateToMinutesOTDConverter firstDateTimeMinutesConverter = new DateToMinutesOTDConverter(quotationDate, this.openingMinute + minuteOTOpenD);
 		firstDateTimeMinutesConverter.minuteOfTheDayToTime();
 
-		return new QuotationUnit((Stock) params.get(0), ((Stock) params.get(0)).getMarketValuation().getCurrency(),quotationDate.getTime(), open, high, low, close, volume, ORIGIN.WEB, BigDecimal.ONE);
+		return new QuotationUnit(
+				(Stock) params.get(0), ((Stock) params.get(0)).getMarketValuation().getCurrency(), quotationDate.getTime(), 
+				open, high, low, close, volume, ORIGIN.WEB, BigDecimal.ONE, null);
 	}
 
 

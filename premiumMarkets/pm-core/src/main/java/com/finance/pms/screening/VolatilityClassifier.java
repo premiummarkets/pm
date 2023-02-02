@@ -19,15 +19,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.quotation.GetInflation;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Currency;
@@ -42,6 +46,7 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
+import com.finance.pms.events.scoring.functions.RocSmoother;
 import com.finance.pms.portfolio.IndepShareList;
 import com.finance.pms.portfolio.PortfolioDAO;
 
@@ -59,6 +64,19 @@ public class VolatilityClassifier {
 
 	@Autowired
 	PortfolioDAO portfolioDAO;
+	
+	//Predicates
+	private Boolean allowQuotesUpdate = false;
+	private int minDataInYears = 10;
+	private double minValidDataToTimeRatio = 0.80;
+	private double minOHLCToQuotesRatio = 0.80;
+	
+	//Splits and merges predicates
+	private double maxMergeValue = 100d;
+	private double maxSplitValue = 100d;
+	private double maxSplitPerYear = 1d;
+
+	
 
 	void generateFromFileLMHToDB(String volatiliesCsvPath, Currency currency, int nbRows) throws Exception {
 
@@ -104,7 +122,7 @@ public class VolatilityClassifier {
 		int i = 0;
 		Iterator<Entry<Stock, Double[]>> iterator = sorted.iterator();
 		while(iterator.hasNext() && !referenceStock.equals(iterator.next().getKey())) i++;
-		if (!referenceStock.equals(sorted.get(i).getKey())) throw new IOException(referenceStock+" not found in calculated volatilities. Please rerun generateNewCalculationFiltered?");
+		if (!referenceStock.equals(sorted.get(i).getKey())) throw new IOException(referenceStock + " not found in calculated volatilities. Please rerun generateNewCalculationFiltered?");
 
 		//SubList
 		return sorted.subList(Math.max(0, i - nbRows/2), Math.min(i + nbRows/2, sorted.size()));
@@ -158,53 +176,213 @@ public class VolatilityClassifier {
 
 	void generateNewCalculationFilteredToFile() throws Exception {
 		
-		Map<String, List<Stock>> invalidityAcc = new HashMap<>();
-		Map<Stock, double[]> splitTrace = new HashMap<>();
-		
-		Boolean allowQuotesUpdate = false;
+		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
+		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
 
+		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
+
+		UUID randomUUID = UUID.randomUUID();
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
+		
+		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator);
+		LOGGER.info("Split checks:\n"+
+		"stock, size, nbyears, split max, merge max\n" +
+				stockSplitsTracer.entrySet().stream()
+				.map(e -> e.getKey().getSymbol() + ", " + Arrays.toString(e.getValue()).substring(1, Arrays.toString(e.getValue()).length()-1) + "\n")
+				.reduce("", (a, e) -> a + e));
+		
+		Function<Stock, SortedMap<Date, Double>> quotationsWrapper = s -> {
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+				return closeQuotations;
+				} catch (NoQuotationsException e) {
+				LOGGER.warn(s + " volatility failed: " + e.toString());
+				return new TreeMap<>();
+			} catch (NotEnoughDataException | IndexOutOfBoundsException e) {
+				LOGGER.warn(s + " volatility failed: " + e.toString());
+				return new TreeMap<>();
+			}
+		};
+		
+		calculateFor(randomUUID.toString(), quotationsWrapper, filteredStocks);
+
+	}
+	
+	void generateInflatUnSkewedCalculationFilteredToFile() throws Exception {
+		
+		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
+		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
+
+		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
+
+		UUID randomUUID = UUID.randomUUID();
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
+		
+		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator);
+		LOGGER.info("Split checks:\n"+
+		"stock, size, nbyears, split max, merge max\n" +
+				stockSplitsTracer.entrySet().stream()
+				.map(e -> e.getKey().getSymbol() + ", " + Arrays.toString(e.getValue()).substring(1, Arrays.toString(e.getValue()).length()-1) + "\n")
+				.reduce("", (a, e) -> a + e));
+		
+		GetInflation getInflation = GetInflation.geInstance();
+		Function<Stock, SortedMap<Date, Double>> quotationsWrapper = s -> {
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+				Date firstKey = closeQuotations.firstKey();
+				TreeMap<Date, Double> unSkewedQuotations = closeQuotations.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
+					try {
+						Double inflationRate = getInflation.inflationRateWithinDateRange(firstKey, e.getKey()).doubleValue();
+						Double temperedValue = (e.getValue()) / (1 + inflationRate);
+						return temperedValue;
+					} catch (NotEnoughDataException e1) {
+						LOGGER.warn(e1);
+						return e.getValue();
+					}
+				}, (a, b) -> a, TreeMap::new));
+				return unSkewedQuotations;
+				} catch (NoQuotationsException e) {
+				LOGGER.warn(s + " volatility failed: " + e.toString());
+				return new TreeMap<>();
+			} catch (NotEnoughDataException | IndexOutOfBoundsException e) {
+				LOGGER.warn(s + " volatility failed: " + e.toString());
+				return new TreeMap<>();
+			}
+		};
+		
+		calculateFor(randomUUID + "_inflatRatio", quotationsWrapper, filteredStocks);
+
+	}
+	
+	void generateDJIUnSkewedCalculationFilteredToFile() throws Exception {
+		
+		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
+		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
+
+		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
+
+		UUID randomUUID = UUID.randomUUID();
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
+		
+		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator);
+		LOGGER.info("Split checks:\n"+
+		"stock, size, nbyears, split max, merge max\n" +
+				stockSplitsTracer.entrySet().stream()
+				.map(e -> e.getKey().getSymbol() + ", " + Arrays.toString(e.getValue()).substring(1, Arrays.toString(e.getValue()).length()-1) + "\n")
+				.reduce("", (a, e) -> a + e));
+		
+		Stock dji = DataSource.getInstance().loadStockBySymbol("DJI");
+		RocSmoother rocDJISmoother = new RocSmoother(dji, Arrays.asList(ValidityFilter.CLOSE.toQuotationDataType()));
+		Quotations djiQuotatations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(dji, DateFactory.dateAtZero(), new Date(), true, dji.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+		SortedMap<Date, double[]> djiClose = QuotationsFactories.getFactory().buildExactMapFromQuotations(djiQuotatations, 0, djiQuotatations.size()-1, QuotationDataType.CLOSE);
+		SortedMap<Date, double[]> djiRocs = rocDJISmoother.smooth(djiClose, false);
+		
+		Function<Stock, SortedMap<Date, Double>> quotationsWrapper = s -> {
+			try {
+				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+				TreeMap<Date, Double> unSkewedQuotations = closeQuotations.entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> {
+						if (djiRocs.containsKey(e.getKey())) {
+							Double roc = djiRocs.get(e.getKey())[0];
+							Double temperedValue = e.getValue() / (1 + roc);
+							return temperedValue;
+						} else {
+							return e.getValue();
+						}
+				}, (a, b) -> a, TreeMap::new));
+				return unSkewedQuotations;
+				} catch (NoQuotationsException e) {
+				LOGGER.warn(s + " volatility failed: " + e.toString());
+				return new TreeMap<>();
+			} catch (NotEnoughDataException | IndexOutOfBoundsException e) {
+				LOGGER.warn(s + " volatility failed: " + e.toString());
+				return new TreeMap<>();
+			}
+		};
+		
+		calculateFor(randomUUID + "_roc", quotationsWrapper, filteredStocks);
+
+	}
+
+	private List<Predicate<Stock>> buildPredicates(Map<String, List<Stock>> invalidStockAccumulator, Map<Stock, double[]> stockSplitsTracer) {
 		List<Predicate<Stock>> predicates = new ArrayList<Predicate<Stock>>();
 
 		//N years minimum length.
-		Predicate<Stock> nYearsPredicate = s -> {
-			int minYears = 9;
+		Predicate<Stock> nYearsPredicate = stock -> {
 			Boolean match = false;
 			for (int i = 0; !match && i <= 1; i++) {
-				Date lastQuotationDateFromShares = DataSource.getInstance().getLastQuotationDateFromShares(s);
-				Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations(s);
-				Duration diff = Duration.between(new Date(firstQuotationDateFromQuotations.getTime()).toInstant(), new Date(lastQuotationDateFromShares.getTime()).toInstant());
-				match = diff.toDays()/365 > minYears;
-				if (!allowQuotesUpdate) break;
+				try {
+					Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+					Date firstQuote = ohlcQuotations.getDate(0);
+					Date lastQuote = ohlcQuotations.getDate(ohlcQuotations.size()-1);
+					Duration diff = Duration.between(new Date(firstQuote.getTime()).toInstant(), new Date(lastQuote.getTime()).toInstant());
+					match = ((double)diff.toDays())/365d > minDataInYears;
+				} catch (NoQuotationsException e1) {
+					LOGGER.warn(stock + " has no quotations: " + e1);
+					match = false;
+				}
 				if (!match && i < 1) { //Quote updates and then retry
-					LOGGER.info(s + " may not be up to date for 'minimum length " + minYears + " years'. Will try again.");
+					LOGGER.info(stock + " may not be up to date for 'minimum length " + minDataInYears + " years'. Will update quotations and try again: " + allowQuotesUpdate);
 					try {
-						QuotationUpdate quotationUpdate = new QuotationUpdate();
-						quotationUpdate.getQuotesFor(s);
+						if (allowQuotesUpdate) {
+							QuotationUpdate quotationUpdate = new QuotationUpdate();
+							quotationUpdate.getQuotesFor(stock);
+						}
 					} catch (QuotationUpdateException e) {
-						LOGGER.warn("Can't update quotation for: " + s + " because " + e);
+						LOGGER.warn("Can't update quotation for: " + stock + " because " + e);
 					}
 				}
+				if (!allowQuotesUpdate) break;
 			}
 			if (!match) {
-				LOGGER.info(s + " does not match 'minimum length " + minYears + " years'.");
-				List<Stock> predicateAcc = invalidityAcc.getOrDefault("nYearsPredicate", new ArrayList<>());
-				predicateAcc.add(s);
-				invalidityAcc.put("nYearsPredicate", predicateAcc);
+				LOGGER.info(stock + " does not match 'minimum length " + minDataInYears + " years'.");
+				List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("nYearsPredicate", new ArrayList<>());
+				predicateAcc.add(stock);
+				invalidStockAccumulator.put("nYearsPredicate", predicateAcc);
 			}
 			return match;
 		};
 		
-		Predicate<Stock> ohlcPredicate = stock -> {
+		Predicate<Stock> maxQuotationsGapPredicate = stock -> {
 			try {
 				Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
-				Quotations closeQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
-				double ratio = 0.80;
-				boolean match = (double)ohlcQuotations.size()/(double)closeQuotations.size() >= ratio;
+				int nbOpenIncrementBetween = QuotationsFactories.getFactory().nbOpenIncrementBetween(
+						stock.getTradingMode().getDataPointFactor(), ohlcQuotations.get(0).getDate(), ohlcQuotations.get(ohlcQuotations.size()-1).getDate());
+				boolean match = (double)ohlcQuotations.size()/(double)nbOpenIncrementBetween >= minValidDataToTimeRatio;
 				if (!match) {
-					LOGGER.info(stock + " does not match 'ohlc validity >= " + ratio + "'.");
-					List<Stock> predicateAcc = invalidityAcc.getOrDefault("ohlcPredicate", new ArrayList<>());
+					LOGGER.info(stock + " does not match 'max Quotations Gap <= " + (1-minValidDataToTimeRatio) + "'.");
+					List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("maxQuotationsGapPredicate", new ArrayList<>());
 					predicateAcc.add(stock);
-					invalidityAcc.put("ohlcPredicate", predicateAcc);
+					invalidStockAccumulator.put("maxQuotationsGapPredicate", predicateAcc);
+				}
+				return match;
+				
+			} catch (Exception e) {
+				LOGGER.error(e);
+				return false;
+			}
+			
+		};
+		
+		Predicate<Stock> ohlcPredicate = stock -> {
+			try {
+				Currency currency = stock.getMarketValuation().getCurrency();
+				Quotations ohlcQuotations = QuotationsFactories.getFactory()
+						.getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, currency, 1, ValidityFilter.OHLCV);
+				Quotations closeQuotationsWithinRange = QuotationsFactories.getFactory()
+						.getSpliFreeQuotationsInstance(stock, ohlcQuotations.getDate(0), ohlcQuotations.getDate(ohlcQuotations.size()-1), true, currency, 1, ValidityFilter.CLOSE);
+				boolean match = (double) ohlcQuotations.size()/(double) closeQuotationsWithinRange.size() >= minOHLCToQuotesRatio;
+				if (!match) {
+					LOGGER.info(stock + " does not match 'ohlc validity >= " + minOHLCToQuotesRatio + "'.");
+					List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("ohlcPredicate", new ArrayList<>());
+					predicateAcc.add(stock);
+					invalidStockAccumulator.put("ohlcPredicate", predicateAcc);
 				}
 				return match;
 			} catch (Exception e) {
@@ -215,14 +393,11 @@ public class VolatilityClassifier {
 		
 		Predicate<Stock> splitMergePredicate = stock -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+				Quotations ohlcQuotations = QuotationsFactories.getFactory()
+						.getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				
-				double mergeMax = 100d;
-				double splitMax = 100d;
-				double maxSplitPerYear = 1d;
-				
-				List<QuotationUnit> quotationsData = quotations.getQuotationUnits(0, quotations.size()-1);
-				List<BigDecimal> splits = quotationsData.stream()
+				List<QuotationUnit> ohlcData = ohlcQuotations.getQuotationUnits(0, ohlcQuotations.size()-1);
+				List<BigDecimal> splits = ohlcData.stream()
 						.map(qu -> qu.getSplit())
 						.collect(ArrayList::new, (a, split) -> {
 							if (a.isEmpty() || split.compareTo(a.get(a.size()-1)) != 0) {
@@ -230,20 +405,20 @@ public class VolatilityClassifier {
 							}
 						}, (a,b) -> a.addAll(b));
 				double yearsSpan = ((double) java.time.temporal.ChronoUnit.DAYS.between(
-						new Date(quotationsData.get(0).getDate().getTime()).toInstant(),
-						new Date(quotationsData.get(quotationsData.size()-1).getDate().getTime()).toInstant()))/365d;
+						new Date(ohlcData.get(0).getDate().getTime()).toInstant(),
+						new Date(ohlcData.get(ohlcData.size()-1).getDate().getTime()).toInstant()))/365d;
 				Boolean doNotMatch = 
 						((double)splits.size())/yearsSpan > maxSplitPerYear || 
-						splits.stream().anyMatch( split -> split.compareTo(new BigDecimal(splitMax)) > 0 || 1d/split.doubleValue() > mergeMax );
+						splits.stream().anyMatch(split -> split.compareTo(new BigDecimal(maxSplitValue)) > 0 || 1d/split.doubleValue() > maxMergeValue);
 				if (doNotMatch) {
 					LOGGER.info(
 							stock + " with years span " + yearsSpan + " does not match 'splits constrains' " +
-							"maxSplitPerYear: " + maxSplitPerYear + ", splitMax:" + splitMax + ", mergeMin:" + 1d/mergeMax + " predicate. " + splits);
-					List<Stock> predicateAcc = invalidityAcc.getOrDefault("splitMergeValidity", new ArrayList<>());
+							"maxSplitPerYear: " + maxSplitPerYear + ", splitMax: " + maxSplitValue + ", mergeMin: " + 1d/maxMergeValue + " predicate. " + splits);
+					List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("splitMergeValidity", new ArrayList<>());
 					predicateAcc.add(stock);
-					invalidityAcc.put("splitMergeValidity", predicateAcc);
+					invalidStockAccumulator.put("splitMergeValidity", predicateAcc);
 				}
-				splitTrace.put(stock, new double[] {
+				stockSplitsTracer.put(stock, new double[] {
 							(double)splits.size(), yearsSpan, 
 							splits.stream().map(s -> s.doubleValue()).reduce(0d, (a, s) -> {if (s > a) return s; else return a;}),
 							splits.stream().map(s -> 1d/s.doubleValue()).reduce(0d, (a, s) -> {if (s > a) return s; else return a;})
@@ -259,41 +434,26 @@ public class VolatilityClassifier {
 		};
 //		predicates.add(Last quote was n years ago and minimum length is m years);
 		predicates.add(nYearsPredicate);
+		predicates.add(maxQuotationsGapPredicate);
 		predicates.add(ohlcPredicate);
 		predicates.add(splitMergePredicate);
 //		predicates.add(maxUpPredicate);
 //		predicates.add(maxDownPredicate);
-
-		Set<Stock> filteredStocks = filterStocks(predicates);
-		
-		LOGGER.info("Validitiy accounting: " + invalidityAcc.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
-		LOGGER.info("Validitiy accounting: " + invalidityAcc);
-		LOGGER.info("Split checks:\n"+
-		"stock, size, nbyears, split max, merge max\n" +
-				splitTrace.entrySet().stream()
-				.map(e -> e.getKey().getSymbol() + ", " + Arrays.toString(e.getValue()).substring(1, Arrays.toString(e.getValue()).length()-1) + "\n")
-				.reduce("", (a, e) -> a + e));
-		
-		calculateFor(filteredStocks, DateFactory.dateAtZero(), new Date());
-
+		return predicates;
 	}
 
-	List<Entry<Stock, Double[]>> calculateFor(Set<Stock> allStocks, Date start, Date end) throws Exception {
+	List<Entry<Stock, Double[]>> calculateFor(String randomUUID, Function<Stock, SortedMap<Date, Double>> quotationsWraper, Set<Stock> allStocks) throws Exception {
 
 		Map<Stock, Double[]> stockVolatilities = allStocks.stream().collect(Collectors.toMap(s -> s, s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, start, end, true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
-				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations);
-				Double averageAnnualisedVolatility = historicalVolatilityCalculator.averageAnnualisedVolatility(0, closeQuotations.size());
-				Double threeMonthAnnualisedVolatility = historicalVolatilityCalculator.movingVolatiltityAt(closeQuotations.size()-1);
-				return new Double[]{averageAnnualisedVolatility, threeMonthAnnualisedVolatility};
-			} catch (NoQuotationsException e) {
-				LOGGER.warn(s + " volatility failed :" + e.toString());
-				return new Double[] {Double.NaN, Double.NaN};
-			} catch (NotEnoughDataException | IndexOutOfBoundsException e) {
-				LOGGER.warn(s + " volatility failed :" + e.toString());
-				return new Double[] {Double.NaN, Double.NaN};
+				SortedMap<Date, Double> closeQuotations = quotationsWraper.apply(s);
+				HistoricalVolatilityCalculator historicalVolatilityCalculator = new HistoricalVolatilityCalculator(closeQuotations, 1, 63, true);
+				Double annualisedVolatilityAveragedAllDataSet = historicalVolatilityCalculator.averageVolatility(0, closeQuotations.size());
+				Double annualisedMeanOfReturnAveragedAllDataSet = historicalVolatilityCalculator.averageMeanOfReturns(0, closeQuotations.size());
+				Double annualisedVolatilityLastThreeMonth = historicalVolatilityCalculator.movingVolatiltityAt(closeQuotations.size()-1);
+				return new Double[]{annualisedVolatilityAveragedAllDataSet, annualisedVolatilityLastThreeMonth, annualisedMeanOfReturnAveragedAllDataSet};
+			} catch (Exception e) {
+				return new Double[] {Double.NaN,Double.NaN, Double.NaN};
 			}
 		}));
 
@@ -301,15 +461,13 @@ public class VolatilityClassifier {
 		List<Entry<Stock, Double[]>> sorted = sortVolatilities(stockVolatilities);
 
 		//Export to "volatilities.csv"
-		try (FileWriter fileWriter = new FileWriter(new File(EXPORT_PATH + UUID.randomUUID() + "_" + VOLATILITIES_CSV))) {
+		try (FileWriter fileWriter = new FileWriter(new File(EXPORT_PATH + randomUUID + "_" + VOLATILITIES_CSV))) {
+			fileWriter.write("Symbol, Isin, annualisedVolatilityAveragedAllDataSet, annualisedVolatilityLastThreeMonth, annualisedMeanOfReturnAveragedAllDataSet" + "\n");
 			sorted.stream()
 			.forEach(e -> {
 				try {
 					Stock key = e.getKey();
-					String line = 
-							key.getSymbol() + ", " + key.getIsin() + ", " +
-									Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
-					//Arrays.stream(e.getValue()).map(eOe -> eOe.toString()).reduce((r, eOe) -> r + ", " + eOe);
+					String line = key.getSymbol() + ", " + key.getIsin() + ", " + Arrays.toString(e.getValue()).replace("[", "").replace("]", "");
 					fileWriter.write(line + "\n");
 				} catch (IOException e1) {
 					throw new RuntimeException(e1);
@@ -325,8 +483,16 @@ public class VolatilityClassifier {
 
 	private List<Entry<Stock, Double[]>> sortVolatilities(Map<Stock, Double[]> stockVolatilities) {
 		List<Entry<Stock, Double[]>> sorted = stockVolatilities.entrySet().stream()
-				.filter(e -> !Double.isNaN(e.getValue()[0]))
-				.sorted((e0, e1) -> e0.getValue()[0].compareTo(e1.getValue()[0]))
+				.filter(e -> !Double.isNaN(e.getValue()[0]) && !Double.isNaN(e.getValue()[2]))
+				.sorted((e0, e1) -> {
+					Double roundE0 = Double.valueOf(Precision.round(e0.getValue()[2], 4, BigDecimal.ROUND_HALF_EVEN));
+					Double roundE1 = Double.valueOf(Precision.round(e1.getValue()[2], 4, BigDecimal.ROUND_HALF_EVEN));
+					if (roundE0.compareTo(roundE1) == 0) {
+						return e0.getValue()[0].compareTo(e1.getValue()[0]);
+					} else {
+						return roundE0.compareTo(roundE1);
+					}
+				})
 				.collect(Collectors.toList());
 		return sorted;
 	};
@@ -355,23 +521,23 @@ public class VolatilityClassifier {
 
 	}
 
-	private Set<Stock> filterStocks(List<Predicate<Stock>> predicates) {
+	private Set<Stock> filterStocks(UUID randomUUID, List<Predicate<Stock>> predicates) {
 
-		Set<Stock> allStocks = portfolioDAO.loadPortfolioSharesExUnknown().stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
+		Set<Stock> allStocks = portfolioDAO.loadSharesListContent(null, null).stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
 		//List<Stock> allStocks = shareDAO.loadAllStocks();
 
 		Set<Stock> filtered = allStocks.stream()
 				.filter(s -> predicates.stream().allMatch(p -> p.test(s)))
 				.collect(Collectors.toSet());
-		LOGGER.info("Valid stock filtered : " + filtered.size() + " out of " + allStocks.size());
+		LOGGER.info("Valid stock filtered: " + filtered.size() + " out of " + allStocks.size());
 		String validLines = filtered.stream()
 				.map(s -> s.toString())
 				.distinct()
 				.reduce((r, e) -> r + "\n" + e)
 				.orElse("None");
 		LOGGER.info("Valid stocks: \n" + validLines);
-		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + UUID.randomUUID() + "_validStocks.txt"))) {
-			fileWriter.write(validLines+"\n");
+		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + randomUUID + "_validStocks.txt"))) {
+			fileWriter.write(validLines + "\n");
 		} catch (IOException e) {
 			LOGGER.error(e, e);
 		}
@@ -379,15 +545,15 @@ public class VolatilityClassifier {
 		Set<Stock> rejected = allStocks.stream()
 				.filter(s -> !filtered.contains(s))
 				.collect(Collectors.toSet());
-		LOGGER.info("Invalid stocks : " + rejected.size() + " out of " + allStocks.size());
+		LOGGER.info("Invalid stocks: " + rejected.size() + " out of " + allStocks.size());
 		String invalidLines = rejected.stream()
 				.map(s -> s.toString())
 				.distinct()
 				.reduce((r, e) -> r + "\n" + e)
 				.orElse("None");
 		LOGGER.info("Affected stocks: \n" + invalidLines);
-		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + UUID.randomUUID() + "_invalidStocks.txt"))) {
-			fileWriter.write(invalidLines+"\n");
+		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + randomUUID + "_invalidStocks.txt"))) {
+			fileWriter.write(invalidLines + "\n");
 		} catch (IOException e) {
 			LOGGER.error(e, e);
 		}

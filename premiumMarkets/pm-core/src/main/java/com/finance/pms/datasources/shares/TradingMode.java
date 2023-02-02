@@ -31,10 +31,10 @@ package com.finance.pms.datasources.shares;
 
 public enum TradingMode {
 	
-	UNKNOWN ("Unknown", 7/5),
-	CONTINUOUS ("Continuous", 7/5),
-	DOUBLE_CALL_AUCTION("Double call auction", 7/5),
-	CALL_AUCTION ("Call auction", 7/5),
+	UNKNOWN ("Unknown", 7d/5d),
+	CONTINUOUS ("Continuous", 7d/5d),
+	DOUBLE_CALL_AUCTION("Double call auction", 7d/5d),
+	CALL_AUCTION ("Call auction", 7d/5d),
 	NON_STOP("Non Stop", 1);
 	
 	
@@ -51,10 +51,9 @@ public enum TradingMode {
 	}
 	
 	/**
-	 * @deprecated in favour of data point to days conversion based on the quotations present in DB.
+	 * This should not be used where possible in favour of data point to days conversion based on the quotations present in DB.
 	 * Data points factor to calendar days
 	 */
-	@Deprecated
 	public double getDataPointFactor() {
 		return dataPointsFactor;
 	}

@@ -316,7 +316,7 @@ public class OTFTuningFinalizer {
 
 		}
 
-		fileWriter.write("total , percent gain : "+tuningRes.getFollowProfit()+", price change : "+tuningRes.getStockPriceChange()+"\n");
+		fileWriter.write("total, percent gain (unreal): " + tuningRes.getForecastProfitUnReal() + ", price change: " + tuningRes.getStockPriceChange() + "\n");
 		tuningRes.setConfigRatingFile(fileName);
 
 		fileWriter.write("rating , "+calculatedRating);
@@ -360,15 +360,15 @@ public class OTFTuningFinalizer {
 		
 		//Info
 		private Double totPrcChgUsed;
-		private Double totFollowProfit;
+		private Double totForecastProfit;
 
 		//Resulting rating
 		private Validity ratingValidityScore;
 		private String cause;
 
-		public FinalRating(Double totFollowProfit, Double totPrcChgUsed, int nbSuccess, int nbFailure) {
+		public FinalRating(Double totForecastProfit, Double totPrcChgUsed, int nbSuccess, int nbFailure) {
 			super();
-			this.totFollowProfit = totFollowProfit;
+			this.totForecastProfit = totForecastProfit;
 			this.totPrcChgUsed = totPrcChgUsed;
 			this.nbSuccess = nbSuccess;
 			this.nbFailure = nbFailure;
@@ -405,14 +405,14 @@ public class OTFTuningFinalizer {
 
 		@Override
 		public String toString() {
-			return "Failure: " + nbFailure + ", Success: " + nbSuccess + ", TotFollowProfit: " + totFollowProfit + ", TotPrcChgUsed: " + totPrcChgUsed + 
+			return "Failure: " + nbFailure + ", Success: " + nbSuccess + ", TotForecastProfit (unReal): " + totForecastProfit + ", TotPrcChgUsed: " + totPrcChgUsed + 
 					", Legacy Rating: " + rating + ", Legacy Cause : " + cause +
 					", ratingValidityScore: " + ratingValidityScore + ", failureWeightAbs: " + failureWeightAbs + ", flog: " + flog;
 
 		}
 		
 		public String toCsv() {
-			return nbFailure + "," + nbSuccess + "," + totFollowProfit + "," + totPrcChgUsed + "," + rating + "," + cause + "," + ratingValidityScore + "," + failureWeightAbs + "," + flog;
+			return nbFailure + "," + nbSuccess + "," + totForecastProfit + "," + totPrcChgUsed + "," + rating + "," + cause + "," + ratingValidityScore + "," + failureWeightAbs + "," + flog;
 		}
 
 
@@ -503,10 +503,10 @@ public class OTFTuningFinalizer {
 			}
 		}
 		
-		FinalRating finalRating = new FinalRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
+		FinalRating finalRating = new FinalRating(tuningRes.getForecastProfitUnReal(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
 		
 		//Legacy
-		finalRating.applyLegacyRating(tuningRes.getFollowProfit(), tuningRes.getStockPriceChange());
+		finalRating.applyLegacyRating(tuningRes.getForecastProfitUnReal(), tuningRes.getStockPriceChange());
 		
 		//New
 		//FinalRating finalRating = new FinalRating(nbSuccess, nbFailure, tuningRes.getStockPriceChange());

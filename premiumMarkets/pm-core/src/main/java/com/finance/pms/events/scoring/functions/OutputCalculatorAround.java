@@ -35,7 +35,6 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.SectorCurveTransformator.Extremity;
 
 @Deprecated
@@ -57,7 +56,7 @@ public class OutputCalculatorAround implements OutputCalculator {
 		//FIXME QuotationsFactories.getFactory().incrementDate(nextDateShift, -2*noticablePeriodBand);
 		
 		if (prevExtremDate.after(nextDateShift.getTime())) {//fix prev, next over lap
-			int nbOpenIncrementBetween = QuotationsFactories.getFactory().nbOpenIncrementBetween(prevExtremDate, nextExtremDate);
+			//FIXME int nbOpenIncrementBetween = QuotationsFactories.getFactory().nbOpenIncrementBetween(stock.getTradingMode().getDataPointFactor(), prevExtremDate, nextExtremDate);
 			nextDateShift.setTime(nextExtremDate);
 			//FIXME QuotationsFactories.getFactory().incrementDate(nextDateShift, nbOpenIncrementBetween/2);
 		}

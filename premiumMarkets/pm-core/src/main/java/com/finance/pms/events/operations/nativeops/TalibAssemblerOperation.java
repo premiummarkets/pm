@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -20,6 +21,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.google.common.collect.Lists;
 
 public class TalibAssemblerOperation extends ArrayMapOperation {
@@ -162,10 +164,35 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		}).collect(Collectors.toList());
 		
 		try {
-			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, runsOutputs, false, true);
+			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, runsOutputs, false, true);
+			SortedMap<Date, double[]> factorisedInput = inputListToArray.get(InputToArrayReturn.RESULTS);
+			
+			//Logs and errors
+			if (!inputListToArray.get(InputToArrayReturn.TRAILINGNANS).isEmpty()) {
+				String orElse = inputListToArray.get(InputToArrayReturn.TRAILINGNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
+													.reduce((a, e) -> a + " " + e)
+													.orElse("");
+				throw new Exception("FIXME " + this.getReference() + ": " + this.toFormulae() + " has trailing NaNs " + 
+						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
+															.reduce((a, e) -> a + " " + e)
+															.orElse("") + ": " +
+						orElse.substring(0, Math.min(orElse.length(), 15000)));
+			}
+			if (!inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).isEmpty()) {
+				String orElse = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
+																								.reduce((a, e) -> a + " " + e)
+																								.orElse("");
+				LOGGER.warn("FIXME " + this.getReference() + ": " + this.toFormulae() + " has NaNs " + 
+						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
+															.reduce((a, e) -> a + " " + e)
+															.orElse("") + ": " +
+						orElse.substring(0, Math.min(orElse.length(), 15000)));
+			}
+			//
+			
 			return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
 		} catch (Exception e) {
-			LOGGER.error(this.getReference() + " : " + e, e);
+			LOGGER.error(this.getReference() + ": " + e, e);
 		}
 		
 		return new DoubleArrayMapValue();

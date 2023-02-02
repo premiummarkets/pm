@@ -8,12 +8,11 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
-import com.finance.pms.events.quotations.NoQuotationsException;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 
 public class TriggerPointJoiner extends PMWithDataOperation {
 	
@@ -45,7 +44,7 @@ public class TriggerPointJoiner extends PMWithDataOperation {
 			
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true);
+			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true).get(InputToArrayReturn.RESULTS);
 		
 			
 			Date previousDate = referenceDs.firstKey();
@@ -71,7 +70,7 @@ public class TriggerPointJoiner extends PMWithDataOperation {
 				previousDate = currentDate;
 			}
 			
-		} catch (NoQuotationsException | NotEnoughDataException e) {
+		} catch (Exception e) {
 			LOGGER.error(this.getReference() + " : " + e, e);
 		}
 		

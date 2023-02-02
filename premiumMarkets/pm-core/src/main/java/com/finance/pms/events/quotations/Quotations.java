@@ -42,6 +42,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,7 +66,7 @@ public class Quotations {
 	private static MyLogger LOGGER = MyLogger.getLogger(Quotations.class);
 
 	public static enum ValidityFilter {
-		ALLVALID, SPLITFREE, CLOSE, OHLC, VOLUME, OHLCV, NONEVALID; //NONEVALID doesn't return anything. ALLVALID should return all quotes as in the db.
+		ALLVALID, SPLITFREE, CALCULATEDSPLITFREEONLY, CLOSE, OHLC, VOLUME, OHLCV, NONEVALID; //NONEVALID doesn't return anything. ALLVALID should return all quotes as in the db.
 		
 		static ValidityFilter[] allActualFilters = EnumSet.<ValidityFilter>range(CLOSE, NONEVALID).toArray(new ValidityFilter[0]);
 		
@@ -114,7 +115,7 @@ public class Quotations {
 		}
 	}
 	
-	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(1000,0.90f);
+	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(100,0.90f);
 	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
 	
 	protected Stock stock;
@@ -133,14 +134,14 @@ public class Quotations {
 	//Called in indicator calculation and event composition calculations via Quotations Factory getQuotationsInstance
 	Quotations(
 			Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexLeftShift, 
-			ValidityFilter cacheFilter, ValidityFilter... otherCacheFilters) throws NoQuotationsException {
+			ValidityFilter mainFilter, ValidityFilter... otherFilters) throws NoQuotationsException {
 		
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;
 		
 		this.keepCache = keepCache;
-		this.mainValidityFilter = cacheFilter;
-		this.otherValidityFilters = Arrays.asList(otherCacheFilters);
+		this.mainValidityFilter = mainFilter;
+		this.otherValidityFilters = Arrays.asList(otherFilters);
 
 		this.firstIndexLeftShiftRequested = firstIndexLeftShift;
 		this.firstDateRequested = firstDate;
@@ -149,7 +150,7 @@ public class Quotations {
 		try {
 			init(stock, firstDate, lastDate, firstIndexLeftShift);
 		} catch (Exception e) {
-			LOGGER.error("Failed init quotations for: " + this, e);
+			LOGGER.warn("Failed init quotations: " + e + " for " + this);
 			throw e;
 		}
 		
@@ -188,13 +189,18 @@ public class Quotations {
 					QuotationData retreivedQuotationsData = this.retreiveQuotationsData(cacheFillRetrieveStart, firstIndexShift); //Retrieves from cacheFillRetreiveStart date (<=firstDate) - firstIndexShift to lastQuote date 
 	
 					//Update cache for all valid
+					//TODO the stock split calculation should be here before we cache
 					if (existingAllValidQuotationData == null) { //Update cache from scratch
 						allValidQuotationData = retreivedQuotationsData;
+						//TODO here : easy it applies to whole series
 						Quotations.putCashedStock(stock, ValidityFilter.ALLVALID.name(), retreivedQuotationsData);
 					} else { //Update Cache completion 
 						SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
 						quotationUnits.addAll(existingAllValidQuotationData);
 						quotationUnits.addAll(retreivedQuotationsData);
+						//TODO here:
+						// addition to the right: go through the right only  ]..] and apply to the whole series
+						// addition to the left: go through the left only  [..] and apply only to the left
 						allValidQuotationData = new QuotationData(quotationUnits);
 						Quotations.putCashedStock(stock, ValidityFilter.ALLVALID.name(), allValidQuotationData);
 					}
@@ -285,30 +291,36 @@ public class Quotations {
 		return new QuotationData(nStripedQuotationsBefore);
 	}
 
-	private void solveSplitBetween(QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitToJ) {
+	private void solveSplitBetween(boolean calculatedSplitFreeOnly, QuotationUnit qjm1, QuotationUnit qj, ArrayList<QuotationUnit> quotationsUnitToJ) {
 
 		Date jm1Date = qjm1.getDate();
 		double jm1Close = qjm1.getCloseSplit().doubleValue();
 		Date jDate = qj.getDate();
 		double jClose = qj.getCloseSplit().doubleValue();
 
-		SplitData splitData = calculateSplit(jm1Date, jm1Close, jDate, jClose);
-
-		if ( splitData.getSplitRate() >= 2 || splitData.getMergeRate() >= 2 ) { //price suddenly more than halved or doubled
-			Double roundedFactor = 1d;
-			if (splitData.getSplitRate() >= 2) {
-				roundedFactor = (double) splitData.getSplitRate(); 
-				LOGGER.warn(
-						"Split detected for " + this.stock.getFriendlyName()+ ": " + splitData +
-								" from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
-			} else if  (splitData.getMergeRate() >= 2) {
-				roundedFactor = 1d/((double) splitData.getMergeRate());
-				LOGGER.warn(
-						"Merge detected for " + this.stock.getFriendlyName()+ ": " + splitData +
-								" from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
+		Double roundedFactor = 1d;
+		if (calculatedSplitFreeOnly || qj.getDbStoredSplit() == null) {
+			SplitData splitData = calculateSplit(qjm1.getStock().getTradingMode().getDataPointFactor(), jm1Date, jm1Close, jDate, jClose);
+			if ( splitData.getSplitRate() >= 2 || splitData.getMergeRate() >= 2 ) { //price suddenly more than halved or doubled
+				if (splitData.getSplitRate() >= 2) {
+					roundedFactor = (double) splitData.getSplitRate(); 
+					LOGGER.warn(
+							"Split detected for " + this.stock.getFriendlyName()+ ": " + splitData +
+									" from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
+				} else if  (splitData.getMergeRate() >= 2) {
+					roundedFactor = 1d/((double) splitData.getMergeRate());
+					LOGGER.warn(
+							"Merge detected for " + this.stock.getFriendlyName()+ ": " + splitData +
+									" from " + jm1Close + " at " + jm1Date + " to " + jClose + " at " + jDate);
+				}
 			}
+		} else {
+			roundedFactor = qj.getDbStoredSplit().doubleValue();
+		}
+
+		if ( roundedFactor != 1d ) {
 			BigDecimal factor = new BigDecimal(roundedFactor, new MathContext(10, RoundingMode.HALF_EVEN));
-			for (int i = 0; i < quotationsUnitToJ.size()-1; i++) {
+			for (int i = 0; i < quotationsUnitToJ.size()-1; i++) { //Excluding J (last value)
 				QuotationUnit quotationUnit = quotationsUnitToJ.get(i);
 				quotationUnit.setSplit(quotationUnit.getSplit().multiply(factor, new MathContext(10, RoundingMode.HALF_EVEN)));
 			}
@@ -316,7 +328,7 @@ public class Quotations {
 		
 	}
 
-	public static SplitData calculateSplit(Date jm1Date, double jm1Close, Date jDate, double jClose) {
+	public static SplitData calculateSplit(double dataPointFactor, Date jm1Date, double jm1Close, Date jDate, double jClose) {
 	
 		double sessionAdjustmentDown = 0.13; //Hypotheses of a Circuit breaker at -13% per session
 		double spanAdjustmentDown = 1d;
@@ -326,7 +338,7 @@ public class Quotations {
 		double spanAdjustmentUp = 1d;
 		double merge = 1d;
 		
-		double span = Math.min(5, Math.abs(QuotationsFactories.getFactory().nbOpenIncrementBetween(jm1Date, jDate))); //1 <= span <= 5
+		double span = Math.min(5, Math.abs(QuotationsFactories.getFactory().nbOpenIncrementBetween(dataPointFactor, jm1Date, jDate))); //1 <= span <= 5
 		if (span < 3) { //if span is just one day or over a bank?
 			split = jm1Close/(jClose*(1d - sessionAdjustmentDown)); //We adjust the close price down to compensate a potential increase at j
 			//We can do this as no natural decrease over one session, say D, can be so that jClose*(1.0 - sessionAdjustmentDown - D) < jm1Close/2
@@ -373,7 +385,11 @@ public class Quotations {
 
 
 	public Date getDate(int x) {
-		return getQuotationData().getDate(x);
+		try {
+			return getQuotationData().getDate(x);
+		} catch (NoQuotationsException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
@@ -412,7 +428,8 @@ public class Quotations {
 				quotationUnit.getHighRaw().multiply(convertUnitFactor),
 				quotationUnit.getLowRaw().multiply(convertUnitFactor),
 				quotationUnit.getCloseRaw().multiply(convertUnitFactor),
-				quotationUnit.getVolumeRaw(), quotationUnit.getOrigin(), quotationUnit.getSplit());
+				quotationUnit.getVolumeRaw(), quotationUnit.getOrigin(), 
+				quotationUnit.getSplit(), quotationUnit.getDbStoredSplit());
 	}
 
 
@@ -468,7 +485,11 @@ public class Quotations {
 	}
 
 	public double[] getCloseValues() {
-		return convertArray(getQuotationData().getCloseValues());
+		try {
+			return convertArray(getQuotationData().getCloseValues());
+		} catch (NoQuotationsException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public double[] getVolumes() {
@@ -480,7 +501,7 @@ public class Quotations {
 	}
 
 
-	private double[] convertArray(double[] amountsArray) {
+	private double[] convertArray(double[] amountsArray) throws NoQuotationsException {
 
 		if (notToBeConverted()) {
 			return amountsArray;
@@ -668,16 +689,24 @@ public class Quotations {
 	}
 
 	public double[] getHighValues() {
-		return convertArray(getQuotationData().getHighValues());
+		try {
+			return convertArray(getQuotationData().getHighValues());
+		} catch (NoQuotationsException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
 	public double[] getLowValues() {
-		return convertArray(getQuotationData().getLowValues());
+		try {
+			return convertArray(getQuotationData().getLowValues());
+		} catch (NoQuotationsException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
-	protected void cacheFilteredDataQuotationData(String validityFilterKey, QuotationData allValidQuotationData) {
+	protected void cacheFilteredDataQuotationData(String validityFilterKey, QuotationData allValidQuotationData) throws NoQuotationsException {
 		if (mainValidityFilter.equals(ValidityFilter.ALLVALID)) {
 			return;
 		}
@@ -701,11 +730,12 @@ public class Quotations {
 		boolean validOhlc = ValidityFilter.isValidOhlc(filters);
 		boolean validVolume = ValidityFilter.isValidVolume(filters);
 		boolean splitFree = filters.contains(ValidityFilter.SPLITFREE);
+		boolean calculatedSplitFreeOnly = filters.contains(ValidityFilter.CALCULATEDSPLITFREEONLY);
 
 		QuotationData allQs = allValidQuotationData;
 		ArrayList<QuotationUnit> quotationsUnitOut = new ArrayList<QuotationUnit>();
 		ArrayList<QuotationUnit> quotationsUnitOutHead = new ArrayList<QuotationUnit>();
-		QuotationUnit qjm1 = null;
+		QuotationUnit filteredQjm1 = null;
 		for (int j = 0; j < allQs.size(); j++) {
 
 			QuotationUnit qj = allQs.get(j);
@@ -731,14 +761,22 @@ public class Quotations {
 				) {
 				continue;
 			}
-			if ( validVolume && 
-					(
-						qj.getVolumeSplit() == 0 
-						|| //Unrealistic variations (*10)
-						(qjm1 != null && (qj.getVolumeSplit()/qjm1.getVolumeSplit() > 10 || qjm1.getVolumeSplit()/qj.getVolumeSplit() > 10))
-					)
-				) {
-				continue;
+			if ( validVolume ) {
+					
+					// 0 volume
+					if (qj.getVolumeSplit() == 0 ) continue;
+					
+					//Unrealistic variations (*10)
+					OptionalDouble lastMonthMeanOptional = allQs.subList(Math.max(0, j-21), j).stream().mapToLong(q -> q.getVolumeSplit()).average();
+//					int filteredSize = quotationsUnitOut.size();
+//					OptionalDouble lastMonthMeanOptional = (quotationsUnitOut.isEmpty())?
+//							OptionalDouble.empty():
+//							quotationsUnitOut.subList(Math.max(0, filteredSize-21), filteredSize).stream().mapToLong(q -> q.getVolumeSplit()).average();
+					if (	lastMonthMeanOptional.isPresent() && 
+							(((double)qj.getVolumeSplit())/lastMonthMeanOptional.getAsDouble() > 10d || lastMonthMeanOptional.getAsDouble()/((double)qj.getVolumeSplit()) > 10d)) {
+						continue;
+					}
+					
 			}
 
 			if ( qj.getDate().compareTo(firstDate) >= 0 ) {
@@ -747,8 +785,8 @@ public class Quotations {
 				}
 				if (qj.getDate().compareTo(lastDate) <= 0) {
 					quotationsUnitOut.add(qj);
-					if (qjm1 != null && splitFree) {
-						solveSplitBetween(qjm1, qj, quotationsUnitOut);
+					if (filteredQjm1 != null && splitFree) {
+						solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, quotationsUnitOut);
 					}
 				}
 
@@ -756,7 +794,7 @@ public class Quotations {
 				quotationsUnitOutHead.add(qj);
 			}
 
-			qjm1 = qj;
+			filteredQjm1 = qj; //qj is not affected by the split free as it is the pivot in the split free operation
 		}
 
 		if (quotationsUnitOut.isEmpty() && !quotationsUnitOutHead.isEmpty()) {

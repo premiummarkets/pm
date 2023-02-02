@@ -132,7 +132,7 @@ public class StatsOperation extends PMWithDataOperation {
 				statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
 					@Override
 					public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
-						return values[begin+length-1];
+						return values[begin + length-1];
 					}
 					@Override
 					public UnivariateStatistic copy() {
@@ -149,9 +149,7 @@ public class StatsOperation extends PMWithDataOperation {
 			} else {
 				Date startDate = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis);
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
-					SortedMap<Date, Double> movingStat = MapUtils.movingStat(
-															data.get(0).getValue(targetStock), 
-															startDate, period.intValue(), statFunction);
+					SortedMap<Date, Double> movingStat = MapUtils.movingStat(data.get(0).getValue(targetStock), startDate, period.intValue(), statFunction);
 					return new DoubleMapValue(movingStat);
 				};
 				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, thisOutputRequiredStartShiftFromParent, innerCalcFunc, numericableMapValue);

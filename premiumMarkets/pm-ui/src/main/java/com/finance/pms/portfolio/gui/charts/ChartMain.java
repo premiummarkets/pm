@@ -232,7 +232,7 @@ public class ChartMain extends Chart {
 									LOGGER.warn(e);
 									closeForDate = new QuotationUnit(
 											slPShare.getStock(), slPShare.getTransactionCurrency(), date,
-											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER, BigDecimal.ONE);
+											BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0l, ORIGIN.USER, BigDecimal.ONE, null);
 								}
 
 								String variationAddInfo = "";
@@ -441,12 +441,13 @@ public class ChartMain extends Chart {
 						if (serieDef.isLabeled()) {
 							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-							String compoundP = pf.format(serieDef.getFollowProfit());
+							String compoundPReal = pf.format(serieDef.getForecastProfit());
+							String compoundPUnReal = pf.format(serieDef.getForecastProfitUnReal());
 							String priceChange = pf.format(serieDef.getStockPriceChange());
 							Double[] stats = serieDef.getStats();
 							String annotationTxt = serieDef.getEventDisplayeDef() + 
 									" ("
-									+ "r" + compoundP + " / u" + priceChange
+									+ "r" + compoundPReal + " / ur" + compoundPUnReal + " / b&h" + priceChange
 									+ " / avg" + pf.format(stats[0]) + " / fail" + pf.format(stats[1])
 									+ " / fwght" + pf.format(Math.abs(stats[2])) + " / flog" + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
 									+ " / min" + pf.format(stats[4]) + " / max" + pf.format(stats[5]) + " / std" + pf.format(Math.sqrt(stats[6])) 
@@ -457,7 +458,7 @@ public class ChartMain extends Chart {
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 							String annotationToolTip = "<html>" 
 								+ serieDef.getEventDisplayeDef() + "<br>"
-								+ "Compound: " + compoundP + " V. Price change: " + priceChange + "<br>"
+								+ "Compound: " + compoundPReal + "(r) " + compoundPUnReal + "(ur) V. Price change: " + priceChange + "<br>"
 								+ "Stats: Avg profit " + pf.format(stats[0]) + ", Failed buy ratio " + pf.format(stats[1]) 
 								+ ", Failure weight " + pf.format(Math.abs(stats[2])) 
 								+ ", failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
@@ -504,9 +505,10 @@ public class ChartMain extends Chart {
 											if (period == null) {
 												profitTip = "";
 											} else {
-												double compound = serieDef.getTuningRes().getFollowProfitAt(date);
+												double compoundReal = serieDef.getTuningRes().getForecastProfitAt(date);
+												double compoundUnReal = serieDef.getTuningRes().getForecastProfitAtUnReal(date);
 												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
-												profitTip =  period.toToolTip() + " ( cmpnd " + pf.format(compound) + " / b&h " + pf.format(priceChange) + " ) ";
+												profitTip =  period.toToolTip() + " ( cmpnd " + pf.format(compoundReal) + "(r) / " + pf.format(compoundUnReal) + "(ur) / b&h " + pf.format(priceChange) + " ) ";
 												LOGGER.info(((period.getTrend().equals(EventType.BEARISH.name()))?"Buy":"Sell") + " at " + date + " : " + profitTip);
 											}
 										} catch (Exception e) {
@@ -937,7 +939,7 @@ public class ChartMain extends Chart {
 				mainPlot.addRangeMarker(vRangeMarker);
 
 			} else {
-				for (int i= 0; i <indicPlot.getRangeAxisCount(); i++) {
+				for (int i= 0; i < indicPlot.getRangeAxisCount(); i++) {
 
 					Double value = chartYs.get(i);
 

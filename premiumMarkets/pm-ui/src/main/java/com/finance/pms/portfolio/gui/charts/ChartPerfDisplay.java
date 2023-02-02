@@ -315,19 +315,27 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							splitBut.setBackground(MainGui.pOPUP_BG);
 							splitBut.setFont(MainGui.DEFAULTFONT);
 							splitBut.setText("Disable split fix");
-							splitBut.setToolTipText("Disable split fix and show raw values.");
+							splitBut.setToolTipText("Disable split/merge fixes and show the raw values as stored in the database.");
 							splitBut.setSelection(false);
+							
+							final Button splitCalcOnlyBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
+							splitCalcOnlyBut.setBackground(MainGui.pOPUP_BG);
+							splitCalcOnlyBut.setFont(MainGui.DEFAULTFONT);
+							splitCalcOnlyBut.setText("Use calculated split fix only");
+							splitCalcOnlyBut.setToolTipText("Ignore the potential split indicators potentially stored with the raw values and infer the potential splits/merges");
+							splitCalcOnlyBut.setSelection(false);
 
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(splitBut.getSelection());
-									chartTarget.setStripedCloseFunction(new StripedCloseRealPrice((Boolean)actionDialogForm.values[0]));
+									actionDialogForm.values[1] = Boolean.valueOf(splitCalcOnlyBut.getSelection());
+									chartTarget.setStripedCloseFunction(new StripedCloseRealPrice((Boolean)actionDialogForm.values[0], (Boolean)actionDialogForm.values[1]));
 									chartTarget.updateCharts(false);
 								}
 							};
 
-							actionDialogForm.setControl(splitBut);
+							actionDialogForm.setControl(splitBut, splitCalcOnlyBut);
 							actionDialogForm.setAction(actionDialogAction);
 							actionDialogForm.open();
 

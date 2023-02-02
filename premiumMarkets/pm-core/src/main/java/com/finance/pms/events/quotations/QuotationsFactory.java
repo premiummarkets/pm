@@ -102,11 +102,11 @@ public interface QuotationsFactory {
      * @return
      * @throws NoQuotationsException
      */
-    public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException;
+    public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter... otherFilters) throws NoQuotationsException;
     
     public abstract int nbDataPointsBetweenFor(Stock stock, Date firstDate, Date secondDate, ValidityFilter validityFilter) throws NoQuotationsException, NotEnoughDataException;
 
-    int nbOpenIncrementBetween(Date firstDate, Date secondDate);
+    int nbOpenIncrementBetween(Double dataPointFactor, Date firstDate, Date secondDate);
 
     int minutesIncrement();
 
@@ -132,7 +132,5 @@ public interface QuotationsFactory {
 	}
 
 	SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations) throws NotEnoughDataException;
-
-
 
 }

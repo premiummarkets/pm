@@ -38,7 +38,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 public class Chart {
 
 	protected int domainTicksMultiple(Date arbitraryStartDate, Date arbitraryEndDate) {
-		int totalDays  = QuotationsFactories.getFactory().nbOpenIncrementBetween(arbitraryStartDate, arbitraryEndDate);
+		int totalDays  = QuotationsFactories.getFactory().nbOpenIncrementBetween(1.0, arbitraryStartDate, arbitraryEndDate);
 		int ret = Math.max(1, 14*totalDays/52);
 		return ret;
 	}

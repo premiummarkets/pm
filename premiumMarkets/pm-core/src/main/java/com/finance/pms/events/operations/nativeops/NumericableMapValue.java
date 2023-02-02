@@ -48,7 +48,7 @@ public abstract class NumericableMapValue extends MapValue<Double> implements Cl
 	@Override
 	public String toString() {
 		SortedMap<Date, Double> map = this.getValue(null);
-		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
+		return this.getClass().getSimpleName() + ": size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
 	}
 
 	@Override

@@ -241,11 +241,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 											}
 											Thread.sleep(10);
 										};
-											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredshiftFromThis);								
+											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredshiftFromThis);
+											output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredshiftFromThis, Operation.this);
 											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredshiftFromThis, isInChart);
 											return output;
 									} catch (Exception e) {
-										LOGGER.error("In " + thisCallStack, e);
+										LOGGER.error("In " + thisCallStack + "\n" + operand.toFormulae(), e);
 										return operand.emptyValue();
 									} finally {
 										synchronized (targetStock) {
@@ -272,7 +273,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						Future<Value<?>> future = futures.get(j);
 						if (future != null) {
 							Value<?> output = future.get();
-							output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredshiftFromThis, this);
 							operandsOutputs.set(j, output);
 						}
 					} catch (Exception e) {
@@ -291,8 +291,22 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				
 				Value<?> operationOutput = calculate(targetStock, thisCallStack, thisOutputRequiredStartShiftFromParent, thisInputOperandsRequiredshiftFromThis, operandsOutputs);
 				
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculation results " + this.getReference() + ((this.getOutputSelector() != null)?":" + this.getOutputSelector():"") + " returns " + operationOutput.toString());
-
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculation results " + this.getReference() + ((this.getOutputSelector() != null)?": " + this.getOutputSelector():"") + " returns " + operationOutput.toString());
+				
+				
+////				//DEBUG
+//				if (operationOutput != null && operationOutput instanceof NumericableMapValue) {
+//					Date parse = new SimpleDateFormat("yyyy-MM-dd").parse("2023-01-26");
+//					SortedMap<Date, Double> value = ((NumericableMapValue) operationOutput).getValue(targetStock);
+//					//if (!value.containsKey(parse) || value.get(parse) == null || Double.isNaN(value.get(parse))) {
+//					if (value.containsKey(parse)) {
+//						//throw new RuntimeException("Missing key or value at " + parse + " for " + this + ": " + value.get(parse));
+//						//LOGGER.error("Missing key or value at " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae() + ": " + value.get(parse));
+//						LOGGER.error("Added NaN key at " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae() + ": " + value.get(parse));
+//					}
+//				}
+////				//DEBUG
+				
 				return operationOutput;
 			}
 
@@ -802,6 +816,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						}
 					}
 				});
+		CalculateThreadExecutor.getExecutorInstance().shutdownNow();
 	}
 
 }

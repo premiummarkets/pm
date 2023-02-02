@@ -112,6 +112,7 @@ public class DayQuoteInflationFormater extends LineFormater {
 						mainQuery.add(BigDecimal.ZERO);
 						mainQuery.add(new BigDecimal(value));
 						mainQuery.add(Long.valueOf(0));
+						mainQuery.add(null); //Split
 						validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 					}
 				}

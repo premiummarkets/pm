@@ -127,7 +127,7 @@ public abstract class BooleanMapCondition extends Condition<Comparable<?>> {
 					outputs.getValue(targetStock).put(date, conditionCheck);
 				}
 			}
-
+			
 		}
 
 		if (LOGGER.isDebugEnabled()) {

@@ -60,6 +60,6 @@ public abstract class DayQuoteFormater extends LineFormater {
 		return ret;
 	}
 	
-	protected abstract  LinkedList<Comparable<?>> mainQuery(String line)  throws StopParseException ;
+	protected abstract LinkedList<Comparable<?>> mainQuery(String line)  throws StopParseException ;
 
 }

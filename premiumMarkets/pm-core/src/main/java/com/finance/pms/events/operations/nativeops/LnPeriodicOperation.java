@@ -46,7 +46,7 @@ import com.finance.pms.events.operations.Value;
 public class LnPeriodicOperation extends DoubleMapOperation {
 
 	public LnPeriodicOperation() {
-		this("periodicLn_", "ln(n/(n-p)) ~ House Trend in base 'e'", new NumberOperation("period","period", "Period", new NumberValue(1.0)), new DoubleMapOperation("data"));
+		this("periodicLn_", "ln(n/(n-p)) ~ House Trend in base 'e'", new NumberOperation("period", "period", "Period", new NumberValue(1.0)), new DoubleMapOperation("data"));
 	}
 
 	public LnPeriodicOperation(String reference, String description, Operation ...operands) {

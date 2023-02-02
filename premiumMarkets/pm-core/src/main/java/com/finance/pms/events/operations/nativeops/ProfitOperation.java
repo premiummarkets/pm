@@ -21,6 +21,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -48,6 +49,7 @@ public class ProfitOperation extends ArrayMapOperation implements MultiValuesOut
 
 	public ProfitOperation() {
 		this("profit", "Calculate the profits (the my way) of series of Events from Indicators",
+		new StringOperation("boolean", "unReal", "Add the un realised profit", new StringValue("TRUE")),
 		new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null)); 
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -55,7 +57,8 @@ public class ProfitOperation extends ArrayMapOperation implements MultiValuesOut
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		List<SortedMap<EventKey, EventValue>> buySellEventSeries = inputs.subList(0, inputs.size()).stream().map(v -> ((EventMapValue) v).getEventMap()).collect(Collectors.toList());
+		Boolean addUnReal = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
+		List<SortedMap<EventKey, EventValue>> buySellEventSeries = inputs.subList(1, inputs.size()).stream().map(v -> ((EventMapValue) v).getEventMap()).collect(Collectors.toList());
 
 		try {
 
@@ -88,14 +91,14 @@ public class ProfitOperation extends ArrayMapOperation implements MultiValuesOut
 				
 				qMap.keySet().stream().forEach(qDate -> {
 					if (qDate.compareTo(startDate) >= 0) {
-						Double profitAtDate = tuningRes.getFollowProfitAt(qDate);
+						Double profitAtDate = (addUnReal)?tuningRes.getForecastProfitAtUnReal(qDate):tuningRes.getForecastProfitAt(qDate);
 						currentResultMap.getValue(targetStock).put(qDate, profitAtDate);
 					}
 				});
 			
 			}
 
-			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, resultMaps, true, true);
+			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, resultMaps, true, true).get(InputToArrayReturn.RESULTS);
 			DoubleArrayMapValue result = new DoubleArrayMapValue(inputListToArray, headers, 0);
 			return result;
 			

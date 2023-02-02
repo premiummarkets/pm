@@ -80,8 +80,12 @@ class QuotationData implements List<QuotationUnit> {
 		return this.stripedQuotations.getBarList().size();
 	}
 
-	public Date getDate(int x) {
-		return get(x).getDate();
+	public Date getDate(int x) throws NoQuotationsException {
+		try {
+			return get(x).getDate();
+		} catch (Exception e) {
+			throw new NoQuotationsException(e.toString());
+		}
 	}
 
 	QuotationUnit getClosestQuotationBeforeOrAtDate(Date date) throws InvalidAlgorithmParameterException {

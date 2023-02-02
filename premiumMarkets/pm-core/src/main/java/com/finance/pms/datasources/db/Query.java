@@ -37,7 +37,7 @@ import java.util.List;
 
 public class Query {
 
-	private  List<Object>  valueList;
+	private  List<Object> valueList;
 	private  String query;
 	
 
@@ -47,7 +47,7 @@ public class Query {
 
 	public Query(String query) {
 	    valueList = new ArrayList<Object>();
-	    this.query= query;
+	    this.query = query;
 	    
 	}
 

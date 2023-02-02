@@ -80,7 +80,7 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 					.boxed()
 					.collect(Collectors.toList());
 			double[] periods = IntStream.range(1, filter.size())
-					.map(i -> QuotationsFactories.getFactory().nbOpenIncrementBetween(constraintDates.get(filter.get(i-1)), constraintDates.get(filter.get(i))))
+					.map(i -> QuotationsFactories.getFactory().nbOpenIncrementBetween(targetStock.getStock().getTradingMode().getDataPointFactor(), constraintDates.get(filter.get(i-1)), constraintDates.get(filter.get(i))))
 					.mapToDouble(i -> (double) i).toArray();
 			Mean meanCalc = new Mean();
 			constraintMean = meanCalc.evaluate(periods);

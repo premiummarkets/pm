@@ -64,10 +64,12 @@ public interface PortfolioDAO {
 	public void saveOrUpdatePortfolioShare(PortfolioShare portfolioShare);
 	public PortfolioShare loadPortfolioShare(String symbol, String isin, String portfolioName);
 	public List<PortfolioShare> loadPortfolioShareForStock(Stock stock);
-	public Set<PortfolioShare> loadPortfolioSharesExUnknown();
+	public Set<PortfolioShare> loadIndicesSharesListContentExUnknown();
+	Set<PortfolioShare> loadSharesListContent(String[] include, String[] exclude);
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
 	public IndepShareList loadIndepShareList(String shareListName);
 	public List<String> loadIndepShareListNames();
+
 
 }

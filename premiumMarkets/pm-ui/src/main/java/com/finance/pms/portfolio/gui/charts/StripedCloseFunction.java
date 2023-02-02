@@ -76,7 +76,7 @@ public abstract class StripedCloseFunction {
 	protected Date getStartDate(Quotations stockQuotations) {
 
 		Date startDate = this.arbitraryStartDate;
-		startDate = (startDate.before(stockQuotations.getDate(0)))?stockQuotations.getDate(0):startDate;
+		startDate = (startDate.before(stockQuotations.getDate(0)))? stockQuotations.getDate(0) : startDate;
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("The start date is : " + startDate);
 
 		return startDate;
@@ -86,8 +86,8 @@ public abstract class StripedCloseFunction {
 
 		Date endDate = this.arbitraryEndDate;
 		Integer lastQuoteI = stockQuotations.size()-1;
-		endDate = (endDate.after(stockQuotations.getDate(lastQuoteI)))?stockQuotations.getDate(lastQuoteI):endDate;
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("The end date is : "+endDate);
+		endDate = (endDate.after(stockQuotations.getDate(lastQuoteI)))? stockQuotations.getDate(lastQuoteI) : endDate;
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("The end date is : " + endDate);
 
 		return endDate;
 	}

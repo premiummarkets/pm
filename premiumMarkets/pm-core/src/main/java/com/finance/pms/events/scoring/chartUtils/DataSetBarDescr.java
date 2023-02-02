@@ -153,9 +153,14 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		return labeled;
 	}
 
-	public Double getFollowProfit() {
+	public Double getForecastProfit() {
 		if (tuningRes == null) return Double.NaN;
-		return tuningRes.getFollowProfit();
+		return tuningRes.getForecastProfit();
+	}
+	
+	public Double getForecastProfitUnReal() {
+		if (tuningRes == null) return Double.NaN;
+		return tuningRes.getForecastProfitUnReal();
 	}
 	
 	/**

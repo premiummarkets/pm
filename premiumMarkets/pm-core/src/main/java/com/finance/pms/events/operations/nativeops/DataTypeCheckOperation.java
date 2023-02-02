@@ -13,6 +13,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -49,10 +50,10 @@ public class DataTypeCheckOperation extends ArrayMapOperation {
 			SortedMap<Date, Double> close = QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotations, 0, quotations.size()-1);
 			
 			List<? extends NumericableMapValue> mapsList = Arrays.asList(new DoubleMapValue(filteredClose), new DoubleMapValue(close));
-			SortedMap<Date, double[]> arrayMap = ValueManipulator.inputListToArray(targetStock, mapsList, true, true);
+			SortedMap<Date, double[]> arrayMap = ValueManipulator.inputListToArray(targetStock, mapsList, true, true).get(InputToArrayReturn.RESULTS);
 			
 			List<String> columns = Arrays.asList("filtered", "close");
-			return new DoubleArrayMapValue(arrayMap, columns, 1);
+			return new DoubleArrayMapValue(arrayMap, columns, 0);
 			
 		} catch (Exception e) {
 			LOGGER.error(e, e);

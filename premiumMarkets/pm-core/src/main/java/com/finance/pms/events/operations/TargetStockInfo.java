@@ -31,9 +31,11 @@ package com.finance.pms.events.operations;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,7 +44,11 @@ import java.util.SortedMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.finance.pms.admin.config.Config;
+import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.quotation.QuotationUpdate;
+import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
@@ -65,6 +71,7 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.quotations.QuotationDataType;
+import com.finance.pms.threads.ConfigThreadLocal;
 
 public class TargetStockInfo {
 
@@ -160,6 +167,8 @@ public class TargetStockInfo {
 	private List<ChartedOutputGroup> chartedOutputGroups;
 
 	private Map<OutputReference, EventsAnalyser> outputAnalysers;
+	
+	private Set<Date> missingKeys = new HashSet<>();
 
 
 	public TargetStockInfo(
@@ -171,8 +180,17 @@ public class TargetStockInfo {
 		this.stock = stock;
 
 		Date lastQuote = stock.getLastQuote();
-		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate : " + stock.toString());
+		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate: " + stock.toString());
 		this.startDate = startDate;
+		if (lastQuote.before(endDate)) { //TODO init Event Config ..
+			try {
+				ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
+				QuotationUpdate quotationUpdate = new QuotationUpdate();
+				quotationUpdate.getQuotesFor(stock);
+			} catch (QuotationUpdateException e) {
+				LOGGER.warn(e);
+			}
+		}
 		this.endDate = endDate;
 
 		this.calculatedOutputsCache = new ConcurrentHashMap<>();
@@ -571,6 +589,15 @@ public class TargetStockInfo {
 				.findFirst()
 				.orElseThrow(() -> new RuntimeException("Multi Output Main group not found in " + getGatheredChartableOutputs())));
 		return indexOfMain;
+	}
+
+	public Set<Date> missingData() {
+		return this.missingKeys;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void addMissingData(Collection<?> keys) {
+		this.missingKeys.addAll((Collection<? extends Date>) keys);
 	}
 
 }

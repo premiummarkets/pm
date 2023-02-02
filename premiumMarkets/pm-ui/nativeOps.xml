@@ -374,6 +374,17 @@
             <reference>profit</reference>
             <description>Calculate the profits (the my way) of series of Events from Indicators</description>
             <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>unReal</referenceAsOperand>
+                    <description>Add the un realised profit</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>TRUE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="eventMapOperation">
                     <reference>data</reference>
                     <referenceAsOperand>indicatorsCompositioners</referenceAsOperand>
@@ -428,6 +439,7 @@
                 <availableOutputSelector>negativeAtDate</availableOutputSelector>
                 <availableOutputSelector>averageNegative</availableOutputSelector>
                 <availableOutputSelector>logRetnAtDate</availableOutputSelector>
+                <availableOutputSelector>all</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>atDate</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -763,8 +775,8 @@
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
-                    <reference>filtering series on which applies the filter (where)</reference>
-                    <description>filtering series on which applies the filter (where)</description>
+                    <reference>filtering series on which applies the filter (where x eq/gt/lt .. than threshold)</reference>
+                    <description>filtering series on which applies the filter (where x eq/gt/lt .. than threshold)</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
@@ -786,6 +798,17 @@
                     <description>Filter threshold</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>fillGapsWithShade</referenceAsOperand>
+                    <description>When TRUE the data points gaps in the filtered series are filled with the shade to match the filtering series in data points.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>TRUE</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -1505,7 +1528,7 @@
                 <operand xsi:type="doubleMapOperation">
                     <reference>dataTypedInput</reference>
                     <referenceAsOperand>dataTypedInput</referenceAsOperand>
-                    <description>An input that is typed with (ohlcv), the valitdity of which will reflect the output close.</description>
+                    <description>An input that is typed with (ohlcv), the validity of which will reflect the output close.</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
@@ -1594,6 +1617,7 @@
             <availableOutputSelectors>
                 <availableOutputSelector>exponential</availableOutputSelector>
                 <availableOutputSelector>naturalLogarithm</availableOutputSelector>
+                <availableOutputSelector>rocSinceStart</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>exponential</outputSelector>
             <isVarArgs>false</isVarArgs>

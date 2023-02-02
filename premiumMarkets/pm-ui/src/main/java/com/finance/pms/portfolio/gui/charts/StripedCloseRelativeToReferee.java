@@ -55,15 +55,15 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	NumberFormat numberFormat = new DecimalFormat("#0.00 %");
 
-	Quotations relativeQuotationsFull;
+	Quotations refereeQuotationsFull;
 
-	public StripedCloseRelativeToReferee(Quotations relativeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
+	public StripedCloseRelativeToReferee(Quotations refereeQuotations, Date arbitraryStartDate, Date arbitraryEndDate) throws InvalidAlgorithmParameterException {
 		super(arbitraryEndDate);
 
-		if (null == relativeQuotations || relativeQuotations.size() == 0) 
+		if (null == refereeQuotations || refereeQuotations.size() == 0) 
 			throw new  InvalidAlgorithmParameterException("Referee must have quotations!");
 
-		this.relativeQuotationsFull = relativeQuotations;
+		this.refereeQuotationsFull = refereeQuotations;
 		this.arbitraryStartDate = arbitraryStartDate;
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("The arbitrary date is : "+arbitraryStartDate);
 
@@ -73,11 +73,11 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
-		Integer startDateRelativeIndex = this.relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
+		Integer startDateRelativeIndex = this.refereeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 
 		Date endDate = getEndDate(stockQuotations);
-		Integer endDateRelativeIndex = this.relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(startDateRelativeIndex, endDate);
+		Integer endDateRelativeIndex = this.refereeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(startDateRelativeIndex, endDate);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
 		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, startDateRelativeIndex, endDateRelativeIndex);
@@ -87,21 +87,21 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 		ArrayList<BigDecimal>  retA = new ArrayList<>();
 
-		BigDecimal relativeQuotationsRoot =  relativeQuotationsFull.get(startDateRelativeIndex).getCloseSplit();
-		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
+		BigDecimal refereeQuotationsRoot =  refereeQuotationsFull.get(startDateRelativeIndex).getCloseSplit();
+		BigDecimal closeRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
 
-		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0 && relativeQuotationsRoot != null && relativeQuotationsRoot.compareTo(BigDecimal.ZERO) != 0 ) {
+		if (closeRoot != null && closeRoot.compareTo(BigDecimal.ZERO) != 0 && refereeQuotationsRoot != null && refereeQuotationsRoot.compareTo(BigDecimal.ZERO) != 0 ) {
 
 			for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 
 				Date dq = stockQuotations.get(i).getDate();
-				QuotationUnit relQuotationUnit = relativeQuotationsFull.get(relativeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, dq));
+				QuotationUnit refQuotationUnit = refereeQuotationsFull.get(refereeQuotationsFull.getClosestIndexBeforeOrAtDateOrIndexZero(0, dq));
 
-				BigDecimal relativeQuotation = (relQuotationUnit.getCloseSplit().subtract(relativeQuotationsRoot)).divide(relativeQuotationsRoot, 10, RoundingMode.HALF_EVEN);
-				BigDecimal quotation = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, RoundingMode.HALF_EVEN);
-				BigDecimal relatedCloseValue = quotation.subtract(relativeQuotation);
+				BigDecimal refereeRocFromRoot = (refQuotationUnit.getCloseSplit().subtract(refereeQuotationsRoot)).divide(refereeQuotationsRoot, 10, RoundingMode.HALF_EVEN);
+				BigDecimal quotationRocFromRoot = (stockQuotations.get(i).getCloseSplit().subtract(closeRoot)).divide(closeRoot, 10, RoundingMode.HALF_EVEN);
+				BigDecimal relativeChange = quotationRocFromRoot.subtract(refereeRocFromRoot);
 
-				retA.add(relatedCloseValue);
+				retA.add(relativeChange);
 
 			}
 
@@ -117,15 +117,15 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 	@Override
 	protected Date getStartDate(Quotations stockQuotations) {
 		Date startDate = super.getStartDate(stockQuotations);
-		startDate = (startDate.before(relativeQuotationsFull.getDate(0)))?relativeQuotationsFull.getDate(0):startDate;
+		startDate = (startDate.before(refereeQuotationsFull.getDate(0)))?refereeQuotationsFull.getDate(0):startDate;
 		return startDate;
 	}
 
 	@Override
 	protected Date getEndDate(Quotations stockQuotations) {
 		Date endDate = super.getEndDate(stockQuotations);
-		Integer lastQuoteI = relativeQuotationsFull.size()-1;
-		endDate = (endDate.after(relativeQuotationsFull.getDate(lastQuoteI)))?relativeQuotationsFull.getDate(lastQuoteI):endDate;
+		Integer lastQuoteI = refereeQuotationsFull.size()-1;
+		endDate = (endDate.after(refereeQuotationsFull.getDate(lastQuoteI)))?refereeQuotationsFull.getDate(lastQuoteI):endDate;
 		return endDate;
 	}
 
@@ -133,7 +133,7 @@ public class StripedCloseRelativeToReferee extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "change to referee ("+relativeQuotationsFull.getStock().getFriendlyName()+")";
+		return "change to referee ("+refereeQuotationsFull.getStock().getFriendlyName()+")";
 	}
 
 	@Override

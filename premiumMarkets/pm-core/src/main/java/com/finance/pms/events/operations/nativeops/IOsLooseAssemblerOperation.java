@@ -12,6 +12,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.NoQuotationsException;
 
 public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements MultiValuesOutput {
@@ -59,7 +60,7 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements
 			TargetStockInfo targetStock, 
 			List<String> inputsOperandsRefs, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN)
 			throws NoQuotationsException, NotEnoughDataException {
-		return ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true);
+		return ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true).get(InputToArrayReturn.RESULTS);
 	}
 	
 	@Override

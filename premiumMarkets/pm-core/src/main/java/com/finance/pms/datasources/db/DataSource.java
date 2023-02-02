@@ -67,6 +67,7 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.TradingMode;
+import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -123,6 +124,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		QUOTATIONS.DAY_HIGH_FIELD = MainPMScmd.getMyPrefs().get("high", "HIGH");
 		QUOTATIONS.DAY_LOW_FIELD = MainPMScmd.getMyPrefs().get("low", "LOW");
 		QUOTATIONS.DAY_VOLUME_FIELD = MainPMScmd.getMyPrefs().get("volume", "VOLUME");
+		QUOTATIONS.SPLIT_FIELD = MainPMScmd.getMyPrefs().get("split", "SPLIT");
 		QUOTATIONS.CURRENCY_FIELD = MainPMScmd.getMyPrefs().get("currency", "CURRENCY");
 		QUOTATIONS.ORIGIN_FIELD = MainPMScmd.getMyPrefs().get("origin", "ORIGIN");
 		SHARES.TABLE_NAME = MainPMScmd.getMyPrefs().get("shares", "SHARES");
@@ -154,7 +156,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		EVENTS.ANALYSE_NAME = MainPMScmd.getMyPrefs().get("events.type", "ANALYSENAME");
 
 		if (singleton == null) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of Long batch DB Threads :" + Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of Long batch DB Threads:" + Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10")));
 			threadPool = new PoolSemaphore((Integer.valueOf(MainPMScmd.getMyPrefs().get("db.poolsize", "10"))).intValue(), this, false);
 			singleton = this;
 		}
@@ -201,7 +203,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			((MyDBConnection) conn).getConn().commit();
 
 		} catch (SQLException e) {
-			LOGGER.error("ERROR releasing connection : ", e);
+			LOGGER.error("ERROR releasing connection: ", e);
 			if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getCause());
 			if (LOGGER.isDebugEnabled()) LOGGER.debug(e.getNextException());
 
@@ -246,7 +248,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 //				endConstraint = " AND "+QUOTATIONS.DATE_FIELD+ " <= '" + new SimpleDateFormat("yyyy-MM-dd").format(DateFactory.getNowEndDate())+ "' ";
 //			}
 //		} catch (IllegalArgumentException e) {
-//			if (LOGGER.isDebugEnabled()) LOGGER.debug("No test past end date specified because : "+e);
+//			if (LOGGER.isDebugEnabled()) LOGGER.debug("No test past end date specified because: "+e);
 //		}
 //
 //		return endConstraint;
@@ -283,15 +285,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 			if (date != null) {
 				retour = date;
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Last ticker date in data base for " + stock.getSymbol() + " : " + date.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Last ticker date in data base for " + stock.getSymbol() + ": " + date.toString());
 			} else {
 				retour = DateFactory.dateAtZero();
-				LOGGER.warn("No value in data base : " + stock + " is a new ticker");
+				LOGGER.warn("No value in data base: " + stock + " is a new ticker");
 			}
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
-			LOGGER.error("Query : " +  sqlQuery + "Param : " + stock,e);
+			LOGGER.error("Query: " +  sqlQuery + "Param: " + stock,e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -345,7 +347,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
-			LOGGER.error("Query : " + sqlQuery,e);
+			LOGGER.error("Query: " + sqlQuery,e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -362,11 +364,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			}
 		});
 		if (result.size() == 0) {
-			LOGGER.error("Could not load share value for :" + symbol);
+			LOGGER.error("Could not load share value for:" + symbol);
 			return null;
 		}
 		if (result.size() > 1) {
-			LOGGER.warn("WARN : multiple values in DB for share : " + symbol);
+			LOGGER.warn("WARN: multiple values in DB for share: " + symbol);
 		}
 		return result.get(0);
 	}
@@ -388,7 +390,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
 							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
 							rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
-							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD), ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], BigDecimal.ONE));
+							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD), ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], 
+							BigDecimal.ONE, rs.getBigDecimal(QUOTATIONS.SPLIT_FIELD)));
 				}
 			}
 		};
@@ -414,7 +417,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		Query query = new QuotationQuery("select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ?  AND "
-				+ QUOTATIONS.DATE_FIELD +infOrEqual+" ? order by date desc") {
+				+ QUOTATIONS.DATE_FIELD + infOrEqual + " ? order by date desc") {
 
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
@@ -425,7 +428,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							entryDate, rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
 							rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
 							rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD),
-							ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], BigDecimal.ONE));
+							ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], BigDecimal.ONE, rs.getBigDecimal(QUOTATIONS.SPLIT_FIELD)));
 				}
 
 			}
@@ -507,7 +510,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(startDate);
 		select.addValue(endDate);
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery()+" with startDate : "+startDate+ " and endDate :	"+endDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery() + " with startDate: " + startDate + " and endDate:	" + endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
 
 		return (List<SymbolEvents>) lret;
@@ -562,7 +565,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(stock.getSymbol());
 		select.addValue(stock.getIsin());
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery()+" with startDate :"+startDate+ " and endDate :	"+endDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery()+" with startDate:"+startDate+ " and endDate:	"+endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
 
 		if (lret.size() == 0) return  new SymbolEvents(stock, EventState.STATE_TERMINATED);
@@ -624,7 +627,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			sers.addEventResultElement(eventKey, eventValue, rs.getString(EVENTS.EVENTDEF_FIELD).trim());
 
 		} catch (NoSuchFieldException e) {
-			LOGGER.warn("Event definition not found in this configuration (db.properties and user calculators) : "+e);
+			LOGGER.warn("Event definition not found in this configuration (db.properties and user calculators): "+e);
 		}
 
 	}
@@ -670,7 +673,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							rs.getString(EVENTS.ANALYSE_NAME));
 					retour.add(eventValue);
 				} catch (NoSuchFieldException e) {
-					LOGGER.warn("Event definition not found in this configuration : "+e);
+					LOGGER.warn("Event definition not found in this configuration: "+e);
 				}
 			}
 
@@ -710,7 +713,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			Date d = (rs.next()) ? rs.getDate(1) : null;
 			if (d != null) {
 				retour = d;
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(minMax+" event date in data base : " + d.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(minMax+" event date in data base: " + d.toString());
 			} else {
 				DateFormat df = new SimpleDateFormat("yyyyMMdd");
 				retour = df.parse("19700101");
@@ -719,10 +722,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
-			LOGGER.error("Query : " + q,e);
+			LOGGER.error("Query: " + q,e);
 			retour = null;
 		} catch (ParseException e) {
-			LOGGER.error("Date formating ERROR while reading data base :" + e,e);
+			LOGGER.error("Date formating ERROR while reading data base:" + e,e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -743,7 +746,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			Date d = (rs.next()) ? rs.getDate(1) : null;
 			if (d != null) {
 				retour = d;
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Last event date in data base : " + d.toString());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Last event date in data base: " + d.toString());
 			} else {
 				DateFormat df = new SimpleDateFormat("yyyyMMdd");
 				retour = df.parse("19700101");
@@ -752,10 +755,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
-			LOGGER.error("Query : " + q,e);
+			LOGGER.error("Query: " + q,e);
 			retour = null;
 		} catch (ParseException e) {
-			LOGGER.error("Date formating ERROR while reading data base :" + e,e);
+			LOGGER.error("Date formating ERROR while reading data base:" + e,e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -778,7 +781,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			executeUpdate(iq, 1200);
 
 		} catch (SQLException e) {
-			LOGGER.warn("Ignoring deletion error : ",e);
+			LOGGER.warn("Ignoring deletion error: ",e);
 		}
 	}
 
@@ -828,10 +831,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		if (eventDefinitions.length == 0) {
 			return "";
 		} else {
-			String eventDefConstraint = " AND "+EVENTS.EVENTDEF_FIELD+" in ( ";
+			String eventDefConstraint = " AND " + EVENTS.EVENTDEF_FIELD + " in ( ";
 			String sep = " ";
 			for (EventInfo eventDefinition : eventDefinitions) {
-				eventDefConstraint += sep + "'" + eventDefinition.getEventDefinitionRef()+ "'";
+				eventDefConstraint += sep + "'" + eventDefinition.getEventDefinitionRef() + "'";
 				sep = " , ";
 			}
 			eventDefConstraint += " ) ";
@@ -846,8 +849,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	@SuppressWarnings("unchecked")
 	private <T> List<T> executeQuery(Query query, int maxRow) {
 
-		LOGGER.trace("Query : "+query.getQuery());
-		LOGGER.trace("Params : "+query.getParameterValues());
+		LOGGER.trace("Query: " + query.getQuery());
+		LOGGER.trace("Params: " + query.getParameterValues());
 		Long t0 = System.currentTimeMillis();
 
 		ArrayList<T> retour = new ArrayList<T>();
@@ -872,21 +875,21 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.close();
 
 		} catch (SQLException e) {
-			LOGGER.error("Query : " + sqlQueryString, e);
+			LOGGER.error("Query: " + sqlQueryString, e);
 			if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
 		} finally {
 			DataSource.realesePoolConnection(scnx);
 		}
 
-		LOGGER.trace("Execution time (s) : "+(System.currentTimeMillis()-t0)/1000);
+		LOGGER.trace("Execution time (s): " + (System.currentTimeMillis()-t0)/1000);
 
 		return retour;
 	}
 
 	public int executeUpdate(Query query, int queryTimeOutInSec) throws SQLException {
 
-		LOGGER.trace("Query : "+query.getQuery());
-		LOGGER.trace("Params : "+query.getParameterValues());
+		LOGGER.trace("Query: " + query.getQuery());
+		LOGGER.trace("Params: " + query.getParameterValues());
 		Long t0 = System.currentTimeMillis();
 
 		MyDBConnection scnx = this.getConnection(null);
@@ -910,13 +913,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.close();
 
 		} catch (SQLException e) {
-			LOGGER.error("Error in query :"+sqlQueryString, e);
+			LOGGER.error("Error in query:"+sqlQueryString, e);
 			throw e;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
 		}
 
-		LOGGER.trace("Execution time (s) : "+(System.currentTimeMillis()-t0)/1000);
+		LOGGER.trace("Execution time (s): "+(System.currentTimeMillis()-t0)/1000);
 
 		return rs;
 	}
@@ -930,7 +933,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			this.connectNotCommited.commit();
 		} catch (SQLException e) {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
-			throw new RuntimeException("Can't commit Query. Sorry. :" + e + "\n REASON : " + e.getNextException());
+			throw new RuntimeException("Can't commit Query:" + e + "\n REASON: " + e.getNextException());
 		}
 	}
 
@@ -939,7 +942,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			this.connectNotCommited.rollback();
 		} catch (SQLException e) {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("", e);
-			throw new RuntimeException("Can't roolback Query. Sorry. :" + e + "\n REASON : " + e.getNextException());
+			throw new RuntimeException("Can't roolback Query: " + e + "\n REASON: " + e.getNextException());
 		}
 	}
 
@@ -954,7 +957,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			conn.setAutoCommit(autocommit);
 			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Db connection isolation : " + conn.getTransactionIsolation() + ". Autocommit : " + conn.getAutoCommit());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Db connection isolation: " + conn.getTransactionIsolation() + ". Autocommit: " + conn.getAutoCommit());
 			StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 			String stackString = "";
 			if (LOGGER.isDebugEnabled()) {
@@ -962,13 +965,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					stackString = stackString + "\n"+ stackTraceElement.toString();
 				}
 			}
-			LOGGER.info("Db connexion 	url : " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx") + " -  Stack trace : " + stackString);
+			LOGGER.info("Db connexion 	url: " + connectionURL.replaceAll("password=[^&]*", "password=xxxxx") + " -  Stack trace: " + stackString);
 		} 
 
 		catch (SQLException e) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("SQL ERROR; Connection URL : " + connectionURL);
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Data Base not started !? :" + e);
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("cause : " + e.getCause() + "\n next : " + e.getNextException(),e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("SQL ERROR; Connection URL: " + connectionURL);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Data Base not started !?:" + e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("cause: " + e.getCause() + "\n next: " + e.getNextException(),e);
 			nbExceptions++;
 			if (nbExceptions < PoolSemaphore.NUMBER_OF_CONNEXION_TRY) {
 				throw new RestartServerException("Data Base not started or already in use.");
@@ -1008,7 +1011,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			PreparedStatement pst = sdbcnx.getConn().prepareStatement(preparedQuery);
 			Iterator<Validatable> qIt = qL.iterator();
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of query in batch: " + qL.size() + " for Statement: " + preparedQuery);
 			while (qIt.hasNext()) {
 				debug = "";
 				Query query = ((Validatable) qIt.next()).toDataBase();
@@ -1016,13 +1019,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					debug = debug + "," + query.getParameterValues().get(i);
 					this.setObject(query, pst, i);
 				}
-				LOGGER.trace("Parameters : " + debug);
+				LOGGER.trace("Parameters: " + debug);
 				pst.addBatch();
 			}
 			if (qL.size() > 0) resReq = pst.executeBatch();
 
 		} catch (SQLException e) {
-			LOGGER.error("Error while doing insert : " + debug, e);
+			LOGGER.error("Error while doing insert: " + debug, e);
 			throw e;
 		} finally {
 			DataSource.realesePoolConnection(sdbcnx);
@@ -1061,7 +1064,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 
 			Iterator<Validatable> qIt = qL.iterator();
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of query in batch :" + qL.size() + " for Statement :" + preparedQuery);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Number of query in batch:" + qL.size() + " for Statement:" + preparedQuery);
 			while (qIt.hasNext()) {
 				debug = "";
 				Query query = ((Validatable) qIt.next()).toDataBase();
@@ -1069,7 +1072,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					if (LOGGER.isDebugEnabled()) debug = debug + "," + query.getParameterValues().get(i);
 					this.setObjectWithTimeStamp(query, pst, i);
 				}
-				LOGGER.trace("Parameters : "+debug);
+				LOGGER.trace("Parameters: "+debug);
 				pst.addBatch();
 			}
 			if (qL.size() > 0) resReq = pst.executeBatch();
@@ -1137,7 +1140,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				if (!tablesLocked.get(i).getLockModeValue().equals(TableLocker.LockMode.NOLOCK)) {
 					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName()+" "+ tablesLocked.get(i).getLockModeValue().getLockMode());
 					tableLocked = true;
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Lock on table : " + tablesLocked.get(i).getTableName() + " : "+ tablesLocked.get(i).getLockModeValue().getLockMode());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Lock on table: " + tablesLocked.get(i).getTableName() + ": "+ tablesLocked.get(i).getLockModeValue().getLockMode());
 				}
 			}
 
@@ -1151,6 +1154,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 					@Override
 					public Query toDataBase() {
+						
+						
 
 						//set
 						Query qupdate = new Query();
@@ -1159,11 +1164,19 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 						qupdate.addValue(insertParams.get(3)); //Low
 						qupdate.addValue(insertParams.get(4)); //Close
 						qupdate.addValue(insertParams.get(5)); //Volume
-						qupdate.addValue(insertParams.get(6)); //Currency
+						
+						int idx = 5;
+						if (validatable instanceof YahooPyQuotation) {//Split
+							qupdate.addValue(insertParams.get(++idx));
+						} else {
+							qupdate.addValue(null);
+						}
+						
+						qupdate.addValue(insertParams.get(++idx)); //Currency
 
 						//where
-						qupdate.addValue(insertParams.get(7)); //Symbol
-						qupdate.addValue(insertParams.get(8)); //ISIN
+						qupdate.addValue(insertParams.get(++idx)); //Symbol
+						qupdate.addValue(insertParams.get(++idx)); //ISIN
 						qupdate.addValue(insertParams.get(0)); //Date
 
 						return qupdate;
@@ -1182,8 +1195,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 					@Override
 					public String toString() {
-						return "[" + insertParams.get(1) + "," + insertParams.get(2) + "," + insertParams.get(3) + "," + insertParams.get(4) + "," + insertParams.get(5) + "," +
-								insertParams.get(6) + "," + insertParams.get(7) + "," + insertParams.get(8) + "," + insertParams.get(0) + "]";
+						return insertParams.subList(1, insertParams.size()).toString().replace("]", ", ") + insertParams.get(0) + " ]";
 					}
 				};
 
@@ -1200,10 +1212,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		} catch (Exception e) {
 			LOGGER.error(
-					"Error updating quotations :\n" +
-							"Update request params :\n"+
+					"Error updating quotations:\n" +
+							"Update request params:\n"+
 							printHugeCollection(updateQueries)+"\n" +
-							"Insert request params :\n"+
+							"Insert request params:\n"+
 							printHugeCollection(remainingInserts)+"\n" +
 							"Update return was " +
 							Arrays.toString(updateRess)
@@ -1231,7 +1243,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		executeUpdate(iq, 0);
 
 		//		} catch (SQLException e) {
-		//			LOGGER.error("Error deleting quotations for "+stock+" (ignoring) : ", e);
+		//			LOGGER.error("Error deleting quotations for "+stock+" (ignoring): ", e);
 		//		}
 	}
 
@@ -1246,7 +1258,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return buffer.toString();
 	}
 
-
+	
+	// ALTER TABLE  QUOTATIONS ADD COLUMN SPLIT decimal(20,4) DEFAULT NULL;
 	public static class QUOTATIONS {
 
 		public static String TABLE_NAME;
@@ -1259,30 +1272,31 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String DAY_LOW_FIELD;
 		public static String DAY_VOLUME_FIELD;
 		public static String CURRENCY_FIELD;
+		public static String SPLIT_FIELD;
 		public static String ORIGIN_FIELD;
 
 
 		public static String getINSERT() {
 			return "INSERT INTO " + QUOTATIONS.TABLE_NAME + " ( "+ QUOTATIONS.DATE_FIELD + " , "
 					+ QUOTATIONS.DAY_OPEN_FIELD + " , " + QUOTATIONS.DAY_HIGH_FIELD + " , " + QUOTATIONS.DAY_LOW_FIELD + " , "
-					+ QUOTATIONS.DAY_CLOSE_FIELD + " , " + QUOTATIONS.DAY_VOLUME_FIELD + " , " + QUOTATIONS.CURRENCY_FIELD + " , "
-					+ QUOTATIONS.SYMBOL_FIELD + " , " + QUOTATIONS.ISIN_FIELD + " ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ QUOTATIONS.DAY_CLOSE_FIELD + " , " + QUOTATIONS.DAY_VOLUME_FIELD + " , " + QUOTATIONS.SPLIT_FIELD + " , " + QUOTATIONS.CURRENCY_FIELD + " , "
+					+ QUOTATIONS.SYMBOL_FIELD + " , " + QUOTATIONS.ISIN_FIELD + " ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		}
 
 		public static String getUPDATE() {
 			return "UPDATE " + QUOTATIONS.TABLE_NAME + 
 					" set " + 
 					QUOTATIONS.DAY_OPEN_FIELD + "= ? , " + QUOTATIONS.DAY_HIGH_FIELD + " =? , " + QUOTATIONS.DAY_LOW_FIELD + "=? , " + QUOTATIONS.DAY_CLOSE_FIELD + "=? , " +
-					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? " +
-					" where "+ QUOTATIONS.SYMBOL_FIELD + "= ? and " + QUOTATIONS.ISIN_FIELD + "= ? and "+ QUOTATIONS.DATE_FIELD + "= ? ";
+					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.SPLIT_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? " +
+					" where " + QUOTATIONS.SYMBOL_FIELD + "= ? and " + QUOTATIONS.ISIN_FIELD + "= ? and "+ QUOTATIONS.DATE_FIELD + "= ? ";
 		}
 
 		public static String getDELETE() {
-			return "DELETE FROM " + QUOTATIONS.TABLE_NAME + " where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD+ " = ? ";
+			return "DELETE FROM " + QUOTATIONS.TABLE_NAME + " where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? ";
 		}
 
 		public static String getUPDATEREFERENCE() {
-			return "UPDATE " + QUOTATIONS.TABLE_NAME + " set " + QUOTATIONS.SYMBOL_FIELD + " = ?  where " + QUOTATIONS.ISIN_FIELD+ " = ? ";
+			return "UPDATE " + QUOTATIONS.TABLE_NAME + " set " + QUOTATIONS.SYMBOL_FIELD + " = ? where " + QUOTATIONS.ISIN_FIELD + " = ? ";
 		}
 
 		public static Date getDateParam(Query q) {
@@ -1408,7 +1422,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 			((MyDBConnection) sourceClient).getConn().close();
 		} catch (SQLException e) {
-			LOGGER.warn("ERROR : couldn't close DB connection. Probably staled or alreday closed.");
+			LOGGER.warn("ERROR: couldn't close DB connection. Probably staled or alreday closed.");
 		}
 	}
 

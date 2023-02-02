@@ -50,9 +50,9 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(LogComposite.class);
 
-	public Label logDisplay;
-	public ProgressBar progressBar;
-	public Label progressBarLabel;
+	private Label logDisplay;
+	private ProgressBar progressBar;
+	private Label progressBarLabel;
 
 	private long startTime;
 	private Integer nbIterDone;
@@ -213,6 +213,10 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 
 			});
 		}	
+	}
+	
+	public Label getLogDisplay() {
+		return logDisplay;
 	}
 
 	@Override

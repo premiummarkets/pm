@@ -17,7 +17,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -38,6 +40,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -95,12 +98,23 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		}
 		
 		try {
-			//Append or over write
+				
+			//Check and transform
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			SortedMap<Date, double[]> factorisedInput = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, true);
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
+			Set<Date> knownMissingKeys = targetStock.missingData();
+			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, inputsOperandsRefs.size() -1);
+			SortedMap<Date, double[]> factorisedInput = inputListToArray.get(InputToArrayReturn.RESULTS);
+			
+			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {
+				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "): " + inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream()
+																							.filter(k -> !knownMissingKeys.contains(k))
+																							.collect(Collectors.toList()));
+			}
+			
+			//Append or over write
 			if (!Double.isNaN(rounding)) {
 				factorisedInput = factorisedInput.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
 					return Arrays.stream(e.getValue()).map(d -> Precision.round(d, rounding.intValue(), BigDecimal.ROUND_HALF_EVEN)).toArray();
@@ -123,10 +137,12 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 				deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
 			}
 			
-			InputFileChecker.checkInputAgainstQuotations(deltaFile, targetStock.getStock(), ValidityFilter.getFilterFor(this.getRequiredStockData()), 0, this.getLagAmount(getOperands()));
+			InputFileChecker.checkInputAgainstQuotations(
+					deltaFile, targetStock.getStock(), ValidityFilter.getFilterFor(this.getRequiredStockData()), 
+					0, this.getLagAmount(getOperands()), knownMissingKeys);
 			
 			return new StringValue(deltaFile);
-			
+
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + ": " + e, e);
 		}
@@ -228,7 +244,9 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 				try {
 					
 					ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
-					InputFileChecker.checkInputAgainstQuotations(baseFilePath, targetStock.getStock(), filterFor, 0, this.getLagAmount(getOperands()));
+					
+					//XXX Does this can work here as the delta is not calculated yet?
+					//InputFileChecker.checkInputAgainstQuotations(baseFilePath, targetStock.getStock(), filterFor, 0, this.getLagAmount(getOperands()), new HashSet<>());
 					
 					try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(baseFilePath))); 
 							ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {

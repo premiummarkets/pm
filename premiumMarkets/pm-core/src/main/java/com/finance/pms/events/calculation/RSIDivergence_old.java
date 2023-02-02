@@ -117,7 +117,7 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 
 
 	@Override
-	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException{
+	protected FormulatRes eventFormulaCalculation(QuotationUnit qU, Integer quotationIdx) throws InvalidAlgorithmParameterException {
 
 
 		FormulatRes res = new FormulatRes(getEventDefinition());

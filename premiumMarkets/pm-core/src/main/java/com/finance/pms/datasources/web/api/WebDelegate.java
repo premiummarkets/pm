@@ -153,7 +153,7 @@ public class WebDelegate {
 	    		PrintWriter out1 = new PrintWriter(outFile);
 	    ) {
     		if (getResponse.getStatusLine().getStatusCode() != 200) {
-    			LOGGER.warn("Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". It is assumed that the file " + fileNameBaseNameWOExt + " is no present in the server.");
+    			LOGGER.warn("Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". It is assumed that the file " + fileNameBaseNameWOExt + " is not present in the server.");
     		} else {
     			out1.append(EntityUtils.toString(getResponse.getEntity()));
     		}
@@ -185,7 +185,7 @@ public class WebDelegate {
 				WriterOutputStream outStream = new WriterOutputStream(writer);
 	    ) {
     		if (getResponse.getStatusLine().getStatusCode() != 200) {
-    			LOGGER.warn("Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". It is assumed that the file is no present in the server.");
+    			LOGGER.warn("Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". It is assumed that the file is not present in the server.");
     			LOGGER.warn(EntityUtils.toString(getResponse.getEntity()));
     		} else {
     			getResponse.getEntity().writeTo(outStream);

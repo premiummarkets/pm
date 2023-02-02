@@ -18,11 +18,14 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
+import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
-public class VolatilityOperation extends PMWithDataOperation {
+public class VolatilityOperation extends PMWithDataOperation implements MultiValuesOutput {
 
 	private static final int YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS = 254;
 
@@ -45,7 +48,7 @@ public class VolatilityOperation extends PMWithDataOperation {
 						"atDate","average",
 						"positiveAtDate","averagePosistive",
 						"negativeAtDate","averageNegative",
-						"logRetnAtDate"
+						"logRetnAtDate","all"
 				})));
 	}
 
@@ -93,7 +96,8 @@ public class VolatilityOperation extends PMWithDataOperation {
 				}
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("negativeAtDate")) {
 					selectorOutputs.put("negativeAtDate", new DoubleMapValue(sNegVolatilties));
-				} else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
+				} 
+				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("average")) {
 					SortedMap<Date, Double> averageVolatility = MapUtils.movingStat(sVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean);
 					selectorOutputs.put("average", new DoubleMapValue(averageVolatility));
 				}
@@ -108,8 +112,22 @@ public class VolatilityOperation extends PMWithDataOperation {
 				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("logRetnAtDate")) {
 					TreeMap<Date, Double> meanD2Dretrun = IntStream
 							.range(basicPeriod + returnCalculationNbPeriods, data.size())
-							.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingMeanAt(d)),TreeMap::putAll);
+							.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingMeanOfReturnsAt(d)),TreeMap::putAll);
 					selectorOutputs.put("logRetnAtDate", new DoubleMapValue(meanD2Dretrun));
+				}
+				else if (availOutputSelector != null && availOutputSelector.equalsIgnoreCase("all")) {
+					Map<String, NumericableMapValue> ouputs = new TreeMap<>();
+					ouputs.put("atDate", new DoubleMapValue(sVolatilties));
+					ouputs.put("positiveAtDate", new DoubleMapValue(sPosVolatilties));
+					ouputs.put("negativeAtDate", new DoubleMapValue(sNegVolatilties));
+					ouputs.put("average", new DoubleMapValue(MapUtils.movingStat(sVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean)));
+					ouputs.put("averagePosistive", new DoubleMapValue(MapUtils.movingStat(sPosVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean)));
+					ouputs.put("averageNegative", new DoubleMapValue(MapUtils.movingStat(sNegVolatilties, startDateShift, YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS, mean)));
+					ouputs.put("logRetnAtDate", new DoubleMapValue( IntStream
+							.range(basicPeriod + returnCalculationNbPeriods, data.size())
+							.collect(TreeMap::new, (r, d) -> r.put(keys.get(d), calculator.movingMeanOfReturnsAt(d)),TreeMap::putAll)));
+					SortedMap<Date, double[]> allMap = ValueManipulator.inputListToArray(targetStock, ouputs.values(), true, true).get(InputToArrayReturn.RESULTS);
+					selectorOutputs.put("all", new DoubleArrayMapValue(allMap, new ArrayList<>(ouputs.keySet()), 0));
 				}
 			}
 
@@ -135,6 +153,11 @@ public class VolatilityOperation extends PMWithDataOperation {
 				})
 				.reduce(0, (r, e) -> r + e);
 		return reducedShift + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;
+	}
+
+	@Override
+	public int mainInputPosition() {
+		return 0;
 	}
 
 }

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -66,8 +67,6 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 		@SuppressWarnings("unchecked")
 		List<NumericableMapValue> checkedInputs = (List<NumericableMapValue>) inputs;
 
-//		NumericableMapValue outputs = innerCalc(targetStock, checkedInputs, fullKeySet);
-//		return outputs;
 		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, data);
 		return ValueManipulator.doubleArrayExpender(this, 0, targetStock, parentRequiredStartShift, innerCalcFunc, checkedInputs);
 
@@ -81,14 +80,17 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 		}
 		
 		NumericableMapValue outputs = new DoubleMapValue();
+		SortedMap<Date, Double> valuesOp0 = checkedInputs.get(0).getValue(targetStock);
 		for (Date date : fullKeySet) {
-			Double leftOperand = checkedInputs.get(0).getValue(targetStock).get(date);
+			Double leftOperand = valuesOp0.get(date);
 			for (int i=1; i < checkedInputs.size(); i++) {
 				NumericableMapValue input = checkedInputs.get(i);
 				Double rightOperand = input.getValue(targetStock).get(date);
-				leftOperand = (( (leftOperand == null || leftOperand.isNaN()) || (rightOperand == null || rightOperand.isNaN()) ))?Double.NaN:twoOperandsOp(leftOperand, rightOperand);
+				leftOperand = ( (leftOperand == null || leftOperand.isNaN()) || (rightOperand == null || rightOperand.isNaN()) )?Double.NaN:twoOperandsOp(leftOperand, rightOperand);
 			}
-			outputs.getValue(targetStock).put(date, leftOperand);
+			if (!leftOperand.isNaN()) { //!lenient
+				outputs.getValue(targetStock).put(date, leftOperand);
+			}
 		}
 		return outputs;
 	}

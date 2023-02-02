@@ -259,16 +259,28 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 	}
 
 	@Override
-	public Set<PortfolioShare> loadPortfolioSharesExUnknown() {
+	public Set<PortfolioShare> loadIndicesSharesListContentExUnknown() {
 		List<String> shareListNames = loadShareListNames(null, new String[]{SharesListId.UNKNOWN.getSharesListCmdParam().toUpperCase()});
 		Set<PortfolioShare> marketStock = new HashSet<PortfolioShare>();
 		for (String listName : shareListNames) {
 			Set<Indice> indices = Indice.parseString(listName);
 			if (indices.size() == 1 ) {
-				LOGGER.info("Adding to global forecast share list : "+listName);
+				LOGGER.info("Adding share list: " + listName);
 				SharesList shareList = loadShareList(listName);
 				marketStock.addAll(shareList.getListShares().values());
 			}
+		}
+		return marketStock;
+	}
+	
+	@Override
+	public Set<PortfolioShare> loadSharesListContent(String[] include, String[] exclude) {
+		List<String> shareListNames = loadShareListNames(include, exclude);
+		Set<PortfolioShare> marketStock = new HashSet<PortfolioShare>();
+		for (String listName : shareListNames) {
+			LOGGER.info("Adding share list: " + listName);
+			SharesList shareList = loadShareList(listName);
+			marketStock.addAll(shareList.getListShares().values());
 		}
 		return marketStock;
 	}

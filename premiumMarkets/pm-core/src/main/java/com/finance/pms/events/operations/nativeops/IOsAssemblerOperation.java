@@ -19,6 +19,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.NoQuotationsException;
 
 public class IOsAssemblerOperation extends ArrayMapOperation {
@@ -39,7 +40,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		this("iosAssembler", "Assembles several inputs into one inputable array. Only trailing NaNs are optionnaly permitted.",
 				new StringOperation("string", "assemblerGroupName", "ios- Assembler group name", new StringValue("")),
 				new StringOperation("boolean", "isExportToFile", "If true, exports the result to a file.", new StringValue("FALSE")),
-				new StringOperation("boolean", "allowTrailingNaN", "If NaN are allowed at the end of the data set (usefull for targets)", new StringValue("FALSE")),
+				new StringOperation("boolean", "allowLastColumnTrailingNaN", "If NaN are allowed int the last column of the data set (usefull for targets)", new StringValue("FALSE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to assemble in one", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -57,12 +58,14 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName + "_";
 		
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
-		Boolean allowTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
+		Boolean allowLastColumnTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
 
-		return innerCalculation(targetStock, inputs, assemblerGroupName,  isExport, allowTrailingNaN);
+		return innerCalculation(targetStock, inputs, assemblerGroupName,  isExport, allowLastColumnTrailingNaN);
 	}
 
-	protected DoubleArrayMapValue innerCalculation(TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs, String assemblerGroupName, Boolean isExport, Boolean allowTrailingNaN) {
+	protected DoubleArrayMapValue innerCalculation(
+			TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs, 
+			String assemblerGroupName, Boolean isExport, Boolean allowLastColumnTrailingNaN) {
 		
 		try {
 			
@@ -70,7 +73,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(firstInputIdx(), inputs.size());
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(getOperands().subList(firstInputIdx(), getOperands().size()), developpedInputs);
 			
-			SortedMap<Date, double[]> factorisedInput = factoriseInput(targetStock, inputsOperandsRefs, developpedInputs, allowTrailingNaN);
+			SortedMap<Date, double[]> factorisedInput = factoriseInput(targetStock, inputsOperandsRefs, developpedInputs, allowLastColumnTrailingNaN);
 			
 			if (!factorisedInput.isEmpty()) {
 				if (inputsOperandsRefs.size() != factorisedInput.get(factorisedInput.firstKey()).length) {
@@ -92,7 +95,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 			return new DoubleArrayMapValue(factorisedInput, inputsOperandsRefs, 0);
 			
 		} catch (Exception e) {
-			LOGGER.error(this.getReference() + " failed: with " + targetStock + " and " + assemblerGroupName + " and " + allowTrailingNaN + " and " + inputs, e);
+			LOGGER.error(this.getReference() + " failed: with " + targetStock + " and " + assemblerGroupName + " and " + allowLastColumnTrailingNaN + " and " + inputs, e);
 		}
 		
 		return new DoubleArrayMapValue();
@@ -104,7 +107,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 
 	protected SortedMap<Date, double[]> factoriseInput(
 			TargetStockInfo targetStock, 
-			List<String> inputsOperandsRefs, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN)
+			List<String> inputsOperandsRefs, List<? extends NumericableMapValue> developpedInputs, Boolean allowLastColumnTrailingNaN)
 			throws NoQuotationsException, NotEnoughDataException {
 		
 		try {
@@ -113,7 +116,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 					throw new RuntimeException("No result yield: " + inputsOperandsRefs);
 				}
 			});
-			return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, allowTrailingNaN);
+			return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, inputsOperandsRefs.size()-1).get(InputToArrayReturn.RESULTS);
 		} catch (Exception e) {
 			throw new NotEnoughDataException(targetStock.getStock(), targetStock.getStartDate(0), targetStock.getEndDate(), e.toString(), e);
 		}

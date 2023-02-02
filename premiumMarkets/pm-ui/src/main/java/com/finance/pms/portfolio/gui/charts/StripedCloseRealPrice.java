@@ -35,7 +35,12 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.finance.pms.datasources.shares.Currency;
+import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
@@ -43,25 +48,38 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 
 	private NumberFormat numberFormat = new DecimalFormat("0.####");
 	private Boolean disableSplitFix;
+	private Boolean useCalculatedSplitFixOnly;
 
-	public StripedCloseRealPrice(Boolean disableSplitFix) {
+	public StripedCloseRealPrice(Boolean disableSplitFix, Boolean useCalculatedSplitFixOnly) {
 		this.disableSplitFix = disableSplitFix;
+		this.useCalculatedSplitFixOnly = useCalculatedSplitFixOnly;
 	}
 
 	@Override
 	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
-		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
-
 		Date endDate = getEndDate(stockQuotations);
+		
+		if (useCalculatedSplitFixOnly) {
+			Stock stock = stockQuotations.getStock();
+			Currency transactCurrency = (Currency.NAN.equals(ps.getTransactionCurrency()))?stock.getMarketValuation().getCurrency():ps.getTransactionCurrency();
+			try {
+				stockQuotations = QuotationsFactories.getFactory()
+						.getRawQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.SPLITFREE, ValidityFilter.CALCULATEDSPLITFREEONLY, ValidityFilter.CLOSE);
+			} catch (NoQuotationsException e) {
+				LOGGER.error(e, e);
+			}
+		}
+		
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
 		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
 	}
 
 	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
-
+		
 		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 			retA.add((disableSplitFix)?stockQuotations.get(i).getCloseRaw():stockQuotations.get(i).getCloseSplit());

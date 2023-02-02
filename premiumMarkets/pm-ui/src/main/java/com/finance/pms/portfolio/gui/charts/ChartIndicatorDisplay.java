@@ -60,11 +60,13 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
+import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
@@ -113,7 +115,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		@Override
 		public void run() {
-
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, configs.get(Config.INDICATOR_PARAMS_NAME));
 
@@ -129,6 +130,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	protected static final String TRENDBUTTXT = "Charted Trends ...";
 	private static final String INDICATORSBUTTXT = "Charted Calculator ...";
 	private static final String CALCULATOR_SETTINGS_TITLE = "Calculator settings ...";
+	
+	private LogComposite logComposite;
 
 	private Button calculatorSettingsButton;
 	private PopupMenu<OutputDescr> calculatorSettingsPopupMenu;
@@ -142,10 +145,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private Button recalculationButton;
 
 
-	public ChartIndicatorDisplay(ChartsComposite chartTarget) {
+	public ChartIndicatorDisplay(ChartsComposite chartTarget, LogComposite logComposite) {
 		super();
 
 		this.trendSettings = new BarSettings();
+		
+		this.logComposite = logComposite;
 
 		this.chartTarget = chartTarget;
 		populatePopups(chartTarget.getPopusGroup());
@@ -159,7 +164,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			);
 
 
-		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice(false));
+		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice(false, false));
 
 		resetChart(true);
 
@@ -173,11 +178,21 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 
 		LOGGER.info("highLight(Integer " + idx + ", Stock " + selectedShare + ", Boolean " + recalculationGranted + ", PopupType... " + Arrays.toString(popupTypes));
+		
+		Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+            	logComposite.getLogDisplay().setText("");
+            }
+        });
 
 		try {
 
-			this.chartTarget.getShell().setEnabled(false);
-			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+//			Display.getDefault().asyncExec(new Runnable() {
+//	            public void run() {
+	            	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(false);
+	            	ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+//	            }
+//	        });
 
 			chartTarget.getMainChartWraper().setMainYAxisLabel("");
 			if (idx == null || selectedShare == null ) {
@@ -247,10 +262,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 
 		} finally {
-
-			this.chartTarget.getShell().setEnabled(true);
-			this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-
+//			Display.getDefault().asyncExec(new Runnable() {
+//	            public void run() {
+	            	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(true);
+	            	ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+//	            }
+//			});
 		}
 
 	}
@@ -341,7 +358,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				final Set<EventInfo> noDataTrends = new HashSet<EventInfo>();
 				SymbolEvents ses = (SymbolEvents) arg;
-
+	
 				if (arg == null || ((SymbolEvents) arg).getDataResultMap().isEmpty()) {//No events found
 
 					if (!recalculationGranted) {//No events found despite recalculation
@@ -357,7 +374,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 						TuningResDTO tuningResDTO = null;
 						try {
-							SortedMap<EventKey, EventValue> evtDefEvents = ses.getDataResultMap().entrySet().stream().filter(e -> e.getKey().getEventInfo().equals(eventDefinition)).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> b, TreeMap::new));
+							SortedMap<EventKey, EventValue> evtDefEvents = ses.getDataResultMap().entrySet().stream().filter(e -> e.getKey().getEventInfo().equals(eventDefinition))
+									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> b, TreeMap::new));
 							tuningResDTO = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, evtDefEvents, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
 						} catch (Exception e) {
 							LOGGER.warn("No event results were found for " + eventDefinition + ". Calculation needed. " + e);
@@ -369,7 +387,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						}
 
 					}
-					
+
 //					//Generate png test
 //					try {
 //						Map<EventInfo, SortedMap<Date, double[]>> eventsOutputs = 
@@ -384,40 +402,49 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					Runnable runnable = new Runnable() {
 						public void run() {
 							try {
-								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData =
-										ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, trendSettings);
+								
+								Display.getDefault().asyncExec(new Runnable() {
+						            public void run() {
+						            	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(false);
+										ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
+						            }
+						        });
+								
+								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(),
+										chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, trendSettings);
 								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {
-								LOGGER.error(
-										"arg : " + arg +
-										", chartTarget.getMainChartWraper() : " + chartTarget.getMainChartWraper() +
-										", chartTarget.getHighligtedId() : " + chartTarget.getHighligtedId() +
-										", barChartSettings : " + trendSettings +
-										", chartTarget.getPlotChartDimensions() : " + chartTarget.getPlotChartDimensions(), e);
+								LOGGER.error("arg : " + arg + ", chartTarget.getMainChartWraper(): " + chartTarget.getMainChartWraper() + ", chartTarget.getHighligtedId(): "
+										+ chartTarget.getHighligtedId() + ", barChartSettings: " + trendSettings + ", chartTarget.getPlotChartDimensions(): "
+										+ chartTarget.getPlotChartDimensions(), e);
+								
+							} finally {
+								Display.getDefault().asyncExec(new Runnable() {
+						            public void run() {
+						            	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(true);
+										ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+						            }
+						        });
 							}
 						}
 					};
 					try {
 						EventQueue.invokeAndWait(runnable);
 					} catch (Exception e) {
-						LOGGER.error(e,e);
+						LOGGER.error(e, e);
 					}
 
 				}
-
 				//Missing bars
 				if (!outputDataNeedsUpdate && !noDataTrends.isEmpty()) {
 					String chartedEvtStr = EventDefinition.getReadableEventDefSetAsString(", ", noDataTrends);
-					String errMsg =
-							"No events are available for : " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n" +
-									"If you just cleared the calculation results, you may want to Force and Update the calculations.";
-					String addMsg =
-							"This may also happen if calculations failed or if there is not enough quotations for the period.\n" +
-									//+ "Check the selected Trends in " + TRENDBUTTXT + " as well as the date boundaries against the available quotations.\n"
-									"You may want to check the date boundaries against the available quotations.\n" +
-									"Also note that some calculators need full OLHC and Volume in order to be calculated.\n" +
-									"If '" + chartedEvtStr + "' is one of your calculators you may also want to check its formula.";
-					showPopupDialog(errMsg, "Ok", addMsg, null);
+					String errMsg = "No events are available for " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n"
+							+ "You may want to check the date boundaries, the formulae, the OHLCV available and Force Update the calculations.";
+					Display.getDefault().asyncExec(new Runnable() {
+						public void run() {
+							logComposite.getLogDisplay().setText(errMsg);
+						}
+					});
 				}
 
 			}
@@ -456,16 +483,20 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		if (eventsSeries.isEmpty()) {
 
 			if (!recalculationGranted && !outputDataNeedsUpdate) {//No indic found despite recalc
-				String errMsg = 
-						"No output data are available for display within the period you have selected share " + selectedShare.getFriendlyName() + " and selected calculators.\n" +
-								"If you just cleared the calculations results by editing a calculator or an operation, you may want to Force/Update calculations.";
-				String addMsg = 
-						"This error may happen if calculations failed, there is not enough quotations for the period or a lack of memory to hold the entirety of the calculations.\n" +
-								"If the selected calculators were created by you, you may also want to check their formulae." +
-								"You may want to check the date boundaries choosen against the available quotations.\n" +
-								"You may want to lighten your simultaneous calculations.\n" +
-								"Also note that some calculators need full OLHC and Volume in order to be calculated.\n";
-				showPopupDialog(errMsg, "Ok", addMsg, null);
+				String chartedEvtStr = EventDefinition.getReadableEventDefSetAsString(", ", chartTarget.getChartedEvtDefsTrends());
+				String errMsg = "No events are available for " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n" +
+				"You may want to check the date boundaries, the formulae, the OHLCV available and Force Update the calculations.";
+				Display.getDefault().asyncExec(new Runnable() {
+                    public void run() {
+                    	logComposite.getLogDisplay().setText(errMsg);
+                    }
+                });
+			} else if (recalculationGranted && outputDataNeedsUpdate) {
+				Display.getDefault().asyncExec(new Runnable() {
+                    public void run() {
+                    	logComposite.getLogDisplay().setText("No output data is available and may have been cleared up from the memory cache.");
+                    }
+                });
 			}
 
 		} else { //Thats all, some date is good to display

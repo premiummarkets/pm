@@ -152,7 +152,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 				quotationUpdate.getQuotes(new StockList(listStock));
 				perfDisplay.loadRefereeQuotations(newReferree);
 				try {
-					MainPMScmd.getMyPrefs().put("charts.referee", newReferree.getSymbol()+"||-||"+newReferree.getIsin());
+					MainPMScmd.getMyPrefs().put("charts.referee", newReferree.getSymbol() + "||-||" + newReferree.getIsin());
 					MainPMScmd.getMyPrefs().flushy();
 				} catch (Exception e) {
 					LOGGER.warn(e,e);
@@ -160,7 +160,7 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 
 			} catch (Exception e) {
 
-				UserDialog inst = new UserDialog(getParent().getShell(), "Sorry. Invalid referee : "+newReferree.getFriendlyName()+"\n"+e, null);
+				UserDialog inst = new UserDialog(getParent().getShell(), "Sorry. Invalid referee: " + newReferree.getFriendlyName() + "\n" + e, null);
 				inst.open();
 				
 			} finally {
@@ -180,11 +180,11 @@ public class NewRefereeDialog extends NewPortfolioItemDialog {
 				
 				if (relativeToRefereeSetting != null) {
 					((ChartsComposite)caller).updateCharts(false);
-					UserDialog inst = new UserDialog(getParent().getShell(), "Added referee : "+((newReferree != null)?newReferree.getFriendlyName():"None"), null);
+					UserDialog inst = new UserDialog(getParent().getShell(), "Added referee: " + ((newReferree != null)?newReferree.getFriendlyName():"None"), null);
 					inst.open();
 				}
 				else {
-					UserDialog inst = new UserDialog(((ChartsComposite)caller).getShell(), "Referee unknown or no quotations available : "+newReferree.getFriendlyName(), null);
+					UserDialog inst = new UserDialog(((ChartsComposite)caller).getShell(), "Referee unknown or no quotations available: " + newReferree.getFriendlyName(), null);
 					inst.open();
 				}
 				

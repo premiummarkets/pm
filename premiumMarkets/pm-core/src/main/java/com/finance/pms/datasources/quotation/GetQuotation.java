@@ -141,7 +141,7 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 				} else {//No Update : already done today
 
 					ret.isSuccessfulUpdate = null;
-					LOGGER.info(stock.getSymbol() + ": Ungranted quotation update from " + df.format(updateStart) + " to " + df.format(endDate) );
+					LOGGER.info(stock.getSymbol() + ": Ungranted quotation update from " + df.format(updateStart) + " to " + df.format(endDate));
 
 				}
 

@@ -1,9 +1,7 @@
 package com.finance.pms.datasources.web;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -56,19 +54,14 @@ public class ProvidersYahooPythonLocal extends ProvidersYahooPython {
 	}
     
 	protected InputStream readInput(String symbol, Date start, Date end) throws IOException {
+		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
+		LOGGER.info(String.format("Running Yahoo py: %s %s %s %s %s", pythonExec, python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end)));
 		ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end));
+		pb.redirectErrorStream(true);
 		Process process = pb.start();
 		InputStream processInputStream = process.getInputStream();
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getErrorStream()));) {
-			String line = null;
-			while ((line = in.readLine()) != null) {
-				LOGGER.error(line);
-			}
-		} catch (Exception e) {
-			LOGGER.error(e, e);
-		}
 		return processInputStream;
 	}
     

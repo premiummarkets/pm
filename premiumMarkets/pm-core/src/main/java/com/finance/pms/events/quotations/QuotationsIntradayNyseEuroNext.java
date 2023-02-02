@@ -95,7 +95,9 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 						dayCal.set(Calendar.MINUTE, minutesCal.get(Calendar.MINUTE));
 						dayCal.set(Calendar.SECOND, minutesCal.get(Calendar.SECOND));
 
-						quotationUnitsStack.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), Long.valueOf(split[3]), ORIGIN.WEB, BigDecimal.ONE));
+						quotationUnitsStack.add(new QuotationUnit(
+								stock, stock.getMarketValuation().getCurrency(), dayCal.getTime(), 
+								BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(split[2]), Long.valueOf(split[3]), ORIGIN.WEB, BigDecimal.ONE, null));
 
 					} catch (ParseException e) {
 						LOGGER.info("Ignored line :"+line);
@@ -128,7 +130,9 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 
 		while (currentTime.getTime().compareTo(lastDate) < 0) {
 			while (currentTime.compareTo(nextTime) < 0) {
-				normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getCloseSplit(), currentQU.getVolumeSplit(), ORIGIN.WEB, BigDecimal.ONE));
+				normalizedQU.add(new QuotationUnit(
+						stock, stock.getMarketValuation().getCurrency(), currentTime.getTime(), 
+						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, currentQU.getCloseSplit(), currentQU.getVolumeSplit(), ORIGIN.WEB, BigDecimal.ONE, null));
 				//QuotationsFactories.getFactory().incrementDate(currentTime, 1);
 				currentTime.setTime(DateUtils.addDays(currentTime.getTime(), 1));
 			} 
@@ -140,7 +144,9 @@ public class QuotationsIntradayNyseEuroNext extends QuotationsIntraDay {
 				nextTime.setTime(lastDate);
 			}
 		}
-		normalizedQU.add(new QuotationUnit(stock, stock.getMarketValuation().getCurrency(), lastDate, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getCloseSplit(), nextQU.getVolumeSplit(), ORIGIN.WEB, BigDecimal.ONE));
+		normalizedQU.add(new QuotationUnit(
+				stock, stock.getMarketValuation().getCurrency(), lastDate, 
+				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, nextQU.getCloseSplit(), nextQU.getVolumeSplit(), ORIGIN.WEB, BigDecimal.ONE, null));
 		return new QuotationData(normalizedQU);
 	}
 

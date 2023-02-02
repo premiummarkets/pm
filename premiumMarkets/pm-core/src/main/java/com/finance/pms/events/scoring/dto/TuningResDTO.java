@@ -91,8 +91,12 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return calculationEndPrice/calculationStartPrice -1;
 	}
 
-	public Double getFollowProfit() {
-		return getFollowProfitAt(calculationEnd);
+	public Double getForecastProfit() {
+		return getForecastProfitAt(calculationEnd);
+	}
+	
+	public Double getForecastProfitUnReal() {
+		return getForecastProfitAtUnReal(calculationEnd);
 	}
 	
 	/**
@@ -237,7 +241,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return new Double[]{avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance};
 	}
 
-	public Double getFollowProfitAt(Date date) {
+	private Double getForecastProfitAt(Date date, boolean unReal) {
 		Double trendFollowProfit = 1.00;
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();
 		PeriodRatingDTO currentPeriod = null;
@@ -248,7 +252,22 @@ public class TuningResDTO implements Serializable, IsSerializable {
 				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
 			}
 		}
+		if (unReal && currentPeriod.getTo().compareTo(date) <= 0) { //Adding last unrealised if bullish
+			if (!currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {
+				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
+				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
+			}
+		}
 		return trendFollowProfit - 1;
+	}
+	
+	public Double getForecastProfitAt(Date date) {
+		return getForecastProfitAt(date, false);
+	}
+	
+	public Double getForecastProfitAtUnReal(Date date) {
+		return getForecastProfitAt(date, true);
 	}
 	
 	/**
@@ -257,7 +276,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	 * @param to
 	 * @return
 	 */
-	public Double getFollowProfitBetween(Date from, Date to) {
+	private Double getForecastProfitBetween(Date from, Date to, Boolean unReal) {
 		Double trendFollowProfit = 1.00;
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();
 		PeriodRatingDTO currentPeriod = null;
@@ -269,8 +288,24 @@ public class TuningResDTO implements Serializable, IsSerializable {
 				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
 			}
 		}
+		if (unReal && currentPeriod.getFrom().compareTo(from) >= 0 && currentPeriod.getTo().compareTo(to) <= 0) { //Adding last unrealised if bullish
+			if (!currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {
+				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
+				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
+			}
+		}
 		return trendFollowProfit - 1;
 	}
+	
+	public Double getForecastProfitBetween(Date from, Date to) {
+		return getForecastProfitBetween(from, to, false);
+	}
+	
+	public Double getForecastProfitBetweenUnReal(Date from, Date to) {
+		return getForecastProfitBetween(from, to, true);
+	}
+	
 
 	public Double getPriceChangeAt(Date periodToDate) {
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();

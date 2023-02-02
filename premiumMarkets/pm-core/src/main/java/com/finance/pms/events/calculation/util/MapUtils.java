@@ -56,7 +56,7 @@ public class MapUtils {
 
 	public static SortedMap<Date, Double> movingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats) {
 
-		ArrayList<Date> keySet = new ArrayList<Date>(map.keySet());
+		ArrayList<Date> keySet = new ArrayList<Date>(map.tailMap(startDate).keySet());
 
 		final TreeMap<Date, Double> movingStats =
 				IntStream.range(period, keySet.size())

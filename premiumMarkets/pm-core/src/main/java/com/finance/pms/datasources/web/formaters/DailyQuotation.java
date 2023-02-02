@@ -69,7 +69,7 @@ public class DailyQuotation extends Stock implements ValidatableDated {
 	
 	@Override
 	public String toString() {
-		return super.toString() + "; Quotation date :" + quoteDate + "; " + mainQuery;
+		return super.toString() + "; Quotation date: " + quoteDate + "; " + mainQuery;
 	}
 	
 	public Date getQuoteDate() {

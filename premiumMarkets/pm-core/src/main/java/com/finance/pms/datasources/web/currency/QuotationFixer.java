@@ -26,6 +26,7 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.quotations.SplitData;
 
+
 public class QuotationFixer {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(QuotationFixer.class);
@@ -111,7 +112,8 @@ public class QuotationFixer {
 									qU.getLowRaw().multiply(cF),
 									qU.getCloseRaw().multiply(cF),
 									qU.getVolumeRaw(),
-									ORIGIN.USER, BigDecimal.ONE);
+									ORIGIN.USER, 
+									BigDecimal.ONE, null);
 							return nqU;
 						})
 						.collect(Collectors.toList());
@@ -133,6 +135,7 @@ public class QuotationFixer {
 	 * @return
 	 */
 	@Deprecated //FIXME This should use the SplitData.mergeRate() value
+	@SuppressWarnings("all")
 	public List<Optional<List<QuotationUnit>>> checkCounterSplit(List<Stock> loadShares, double deltaUnit) {
 
 		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
@@ -146,7 +149,7 @@ public class QuotationFixer {
 						.mapToObj(i -> {
 							QuotationUnit qIm1 = quotations.get(i-1);
 							QuotationUnit qI = quotations.get(i);
-							SplitData counterSplitData = Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
+							SplitData counterSplitData = null; //FIXME Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
 							long counterSplit = counterSplitData.getSplitRate();
 
 							List<QuotationUnit> adjacents = new ArrayList<>();
@@ -196,6 +199,7 @@ public class QuotationFixer {
 	}
 
 	@Deprecated //FIXME This should use the SplitData.mergeRate() value
+	@SuppressWarnings("all")
 	public List<Optional<List<QuotationUnit>>> checkCounterSplitFailFast(List<Stock> loadShares, double deltaUnit) {
 
 		List<Optional<List<QuotationUnit>>> collected = loadShares.stream().map(stock -> {
@@ -209,7 +213,7 @@ public class QuotationFixer {
 						.mapToObj(i -> {
 							QuotationUnit qIm1 = quotations.get(i-1);
 							QuotationUnit qI = quotations.get(i);
-							SplitData counterSplitData = Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
+							SplitData counterSplitData = null; //FIXME Quotations.calculateSplit(qI.getDate(), qI.getCloseRaw().doubleValue(), qIm1.getDate(), qIm1.getCloseRaw().doubleValue());
 							long counterSplit = counterSplitData.getSplitRate();
 							List<QuotationUnit> adjacents = new ArrayList<>();
 							if ( counterSplit > 2 ) {
@@ -269,7 +273,8 @@ public class QuotationFixer {
 									qU.getLowRaw(),
 									qU.getCloseRaw(),
 									qU.getVolumeRaw(),
-									ORIGIN.DEL, BigDecimal.ONE);
+									ORIGIN.DEL, 
+									BigDecimal.ONE, null);
 							return delQU;
 						})
 						.collect(Collectors.toList());

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,9 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,8 @@ import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooPythonFormater;
+import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -61,6 +64,8 @@ public class YahooPythonQuotationFixer {
 	
 	public void fixQuotations() {
 		
+		LOGGER.info("Entering fixer for: " + stock + " from " + start + " to " + end);
+		
 		try {
 			//File validity checks
 			String fileRootPath = getPmFileFixFolder();
@@ -70,59 +75,81 @@ public class YahooPythonQuotationFixer {
 			}
 			
 			//Retrieve
-			String webFilePathName = retreiveWebData(fileRootPath);
-			if (webFilePathName == null || webFilePathName.isEmpty()) {
-				LOGGER.info("Fix has laready been applied. Ignoring yahoo fix.");
+			String webFilePathName = fileRootPath + File.separator + stock.getSymbol() + "_quotes.csv";
+			Boolean fileExists = fileExists(webFilePathName);
+			if (fileExists) {
+				LOGGER.info("Fix has already been applied. Ignoring yahoo fix.");
 				return;
+			} else {
+				retreiveWebData(webFilePathName);
 			}
 			
-			//Compare and update
-			Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, start, end, false, Currency.NAN, 0, ValidityFilter.SPLITFREE);
-			SortedMap<Date, double[]> dbData = QuotationsFactories.getFactory().buildExactMapFromQuotationsOHLCV(quotations);
-
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			
-			TreeSet<ValidatableDated> validatables = new TreeSet<ValidatableDated>();
+			//Build webData maps
 			DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
 			
-			SortedMap<Date, double[]> webData = new TreeMap<>();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");			
+			List<ValidatableDated> webValidatables = new ArrayList<ValidatableDated>();
 			try (BufferedReader in = new BufferedReader(new FileReader(new File(webFilePathName)));) {
 				
 				String line = in.readLine(); //header
 				while ((line = in.readLine()) != null) {
 					if (line.isEmpty()) continue;
-					String[] split = line.split(",");
 					try {
-						Date date = dateFormat.parse(split[0]);
-						//skipping 1rst and last columns
-						double[] value = Arrays.asList(split).subList(1, split.length-1).stream().mapToDouble(s -> Double.valueOf(s)).toArray();
-						webData.put(date, value);
-						
-						double[] dbValue = dbData.get(date);
-						List<ValidatableDated> formatLine = dsf.formatLine(line).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-						if (dbValue == null) {
-							LOGGER.warn("Missing date in db: " + dateFormat.format(date));
-							validatables.addAll(formatLine);
-						} else {
-							for(int i = 0; i < dbValue.length; i++) {
-								if (Precision.round(value[i], 4) != dbValue[i]) {
-									LOGGER.warn("Inconstistent " + i + " at " + dateFormat.format(date) + ": web " + value[i] + " V db " + dbValue[i]);
-									validatables.addAll(formatLine);
-									break;
-								}
-							}
+						List<ValidatableDated> lineValidatables = dsf.formatLine(line).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+						YahooPyQuotation yq;
+						if (lineValidatables.size() > 0 && (yq = (YahooPyQuotation)lineValidatables.get(0)).getSplit() != 1d) {
+							webValidatables = webValidatables.stream()
+									.map(v -> ((YahooPyQuotation) v).reverseSplit(yq.getSplit()))
+									.collect(Collectors.toList());
 						}
+						webValidatables.addAll(lineValidatables);
 					} catch (Exception e) {
 						LOGGER.warn("Error reading line: " + line + " for " + stock.getSymbol() + ", from " + start + " to " + end + ". " + e.toString());
 					}
 				}
 			}
 			
-			LOGGER.info("Count of descrepencies in db: " + validatables.size());
-			if (LOGGER.isDebugEnabled()) LOGGER.debug(validatables);
+			//Compare with db
+			Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, start, end, false, Currency.NAN, 0, ValidityFilter.CLOSE);
+			SortedMap<Date, double[]> dbData = QuotationsFactories.getFactory().buildExactMapFromQuotationsOHLCV(quotations);
 			
-			List<ValidatableDated> ohlcvValids = validatables.stream().filter(ohlcv -> !ohlcv.getDate().after(end)).collect(Collectors.toList());
-			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(ohlcvValids), new ArrayList<>());
+			TreeSet<ValidatableDated> fixedValidatables = new TreeSet<ValidatableDated>();
+			Iterator<ValidatableDated> iterator = webValidatables.iterator();
+			while (iterator.hasNext()) {
+				ValidatableDated webValid = iterator.next();
+				Date date = webValid.getDate();
+				double[] dbValue = dbData.get(date);
+				if (dbValue == null) {
+					LOGGER.warn("Missing date in db: " + dateFormat.format(date));
+					fixedValidatables.add(webValid);
+				} else {
+					List<Comparable<?>> webValue = ((YahooPyQuotation) webValid).getOHLCV();
+					Boolean inconsistent = false;
+					for(int i = 0; i < dbValue.length; i++) {
+						double doubleValue = (i<dbValue.length-1)?((BigDecimal) webValue.get(i)).doubleValue():((Long) webValue.get(i)).doubleValue();
+						if (Precision.round(doubleValue, 4) != dbValue[i]) {
+							LOGGER.warn("Inconstistent " + i + " at " + dateFormat.format(date) + ": web " + webValue.get(i) + " V db " + dbValue[i]);
+							fixedValidatables.add(webValid);
+							inconsistent = true;
+							break;
+						}
+					}
+					if (!inconsistent) { //check if split is set
+						Integer closestIndexBeforeOrAtDateOrIndexZero = quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, date);
+						QuotationUnit quotationUnit = quotations.get(closestIndexBeforeOrAtDateOrIndexZero);
+						if (quotationUnit.getDbStoredSplit() == null) {
+							LOGGER.warn("Split not set at " + dateFormat.format(date) + ": web " + webValid + " V db " + quotationUnit + "(" + Arrays.toString(dbValue) + ")");
+							fixedValidatables.add(webValid);
+						}
+					}
+				}
+			}
+			
+			LOGGER.info("Count of descrepencies in db: " + fixedValidatables.size());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug(fixedValidatables);
+			
+			List<ValidatableDated> ohlcvsValids = fixedValidatables.stream().filter(ohlcvs -> !ohlcvs.getDate().after(end)).collect(Collectors.toList());
+			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(ohlcvsValids), new ArrayList<>());
 			
 		} catch (Exception e) {
 			LOGGER.error(e, e);
@@ -130,15 +157,7 @@ public class YahooPythonQuotationFixer {
 		
 	}
 
-	private String retreiveWebData(String fileRootPath) throws IOException {
-		
-		//File exists checks
-		String webQuotesPathname = fileRootPath + File.separator + stock.getSymbol() + "_quotes.csv";
-		Path path = Path.of(URI.create("file://" + webQuotesPathname));
-		if (Files.exists(path)) {
-			LOGGER.warn("File " + webQuotesPathname + " already exists. Please move/delete. Adjust dates, and append");
-			return null;
-		}
+	private String retreiveWebData(String webQuotesPathname) throws IOException {
     	
 		//Web call
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -161,6 +180,16 @@ public class YahooPythonQuotationFixer {
 		}
 		
 		return webQuotesPathname;
+	}
+
+	private Boolean fileExists(String webQuotesPathname) {
+		//File exists checks
+		Path path = Path.of(URI.create("file://" + webQuotesPathname));
+		if (Files.exists(path)) {
+			LOGGER.warn("File " + webQuotesPathname + " already exists. Please move/delete. Adjust dates, and append");
+			return true;
+		}
+		return false;
 	}
 	
 	private Date fixStart() {

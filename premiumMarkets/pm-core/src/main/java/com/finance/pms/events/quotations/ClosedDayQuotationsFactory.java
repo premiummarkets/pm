@@ -53,8 +53,8 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 
 	@Override
-	public Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), validityFilter);
+	public Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter... otherFilters) throws NoQuotationsException {
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), validityFilter, otherFilters);
 	}
 
 	@Override
@@ -206,15 +206,18 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		return DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);
 	}
 
-	//If firstDate > secondDate, a negative value is returned
-	public int nbOpenIncrementBetween(Date firstDate, Date secondDate) {
-		long im = secondDate.getTime() - firstDate.getTime();
-		long id = im / DateFactory.DAYINMILLI;
-		if (-1 < id && id < 1) return 0;
-		if (-2 < id && id < 2) return (int) (1*Math.signum(id));
+	/**
+	 * OpenIncrement == dataPoints
+	 * If firstDate > secondDate, a negative value is returned
+	 */
+	public int nbOpenIncrementBetween(Double dataPointFactor, Date firstDate, Date secondDate) {
+		long intervalMilli = secondDate.getTime() - firstDate.getTime();
+		long intervalDays = intervalMilli / DateFactory.DAYINMILLI;
+		if (-1 < intervalDays && intervalDays < 1) return 0; //first date is less then 1 day after or before second date
+		if (-2 < intervalDays && intervalDays < 2) return (int) (1*Math.signum(intervalDays)); //first date is less then 2 days after or before second date
 
-		double wf = 5d/7d;
-		return (int) (id * wf);
+		double weekendsFactor = 1/dataPointFactor;
+		return (int) (intervalDays * weekendsFactor);
 	}
 
 
@@ -243,7 +246,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	
 	@Override
 	public SortedMap<Date, double[]> buildExactMapFromQuotations(Quotations quotations, int from, int to, QuotationDataType... quotationDataTypes) {
-		return quotations.getQuotationData().subList(from, to+1).stream().collect(
+		return quotations.getQuotationData().subList(from, to + 1).stream().collect(
 				TreeMap::new,
 				(result, qU) -> {
 					double[] value = Arrays.stream(quotationDataTypes).map(qt -> qU.getData(qt).doubleValue()).mapToDouble(d -> d).toArray();

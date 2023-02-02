@@ -106,7 +106,7 @@ public class QuotationFixerTest {
 		//List<Stock> loadShares = loadStocksUK();
 		//loadShares = loadShares.subList(0, 50); //Test
 		//List<Stock> loadShares = DataSource.getInstance().getShareDAO().loadAllStocks();
-		List<Stock> loadShares = ((PortfolioDAO) springContext.getBean("portfolioDAO")).loadPortfolioSharesExUnknown().stream().map(ps -> ps.getStock()).collect(Collectors.toList());
+		List<Stock> loadShares = ((PortfolioDAO) springContext.getBean("portfolioDAO")).loadIndicesSharesListContentExUnknown().stream().map(ps -> ps.getStock()).collect(Collectors.toList());
 		currencyFixer.checkCounterSplitFailFast(loadShares, 0.5);
 	}
 

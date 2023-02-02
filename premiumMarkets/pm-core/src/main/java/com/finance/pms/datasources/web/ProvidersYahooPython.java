@@ -57,6 +57,7 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooPythonFormater;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
+import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.SharesList;
 
@@ -126,7 +127,18 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 			while ((line = in.readLine()) != null) {
 				try {
 					LOGGER.info("line: " + line);
-					validatables.addAll(dsf.formatLine(line));
+					List<Validatable> lineValidatables = dsf.formatLine(line);
+					
+					if (lineValidatables.size() > 1) throw new Exception("Invalid DailyQuotation line: " + line);
+					
+					YahooPyQuotation yq;
+					if (lineValidatables.size() > 0 && (yq = (YahooPyQuotation)lineValidatables.get(0)).getSplit() != 1d) {
+						validatables = validatables.stream()
+								.map(v -> ((YahooPyQuotation) v).reverseSplit(yq.getSplit()))
+								.collect(Collectors.toList());
+					}
+					
+					validatables.addAll(lineValidatables);
 				} catch (StopParseErrorException e) {
 					LOGGER.warn(e, e);
 					throw new IOException(

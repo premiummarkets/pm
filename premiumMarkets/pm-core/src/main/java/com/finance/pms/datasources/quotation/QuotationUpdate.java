@@ -231,7 +231,7 @@ public class QuotationUpdate {
 	 */
 	public void getQuotes(StockList stockList, Boolean forceReset, Boolean forceUpdate) throws QuotationUpdateException {
 
-		Iterator<Stock> stlIt = stockList.iterator();
+		Iterator<Stock> stockListIterator = stockList.iterator();
 
 		dlance = System.currentTimeMillis();
 		for (Observer observer : observers) {
@@ -240,9 +240,9 @@ public class QuotationUpdate {
 
 		ExecutorService executor = Executors.newFixedThreadPool((Integer.valueOf(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.nbthread", "20"))));
 		List<Future<GetQuotationResult>> getQuoteRess = new ArrayList<Future<GetQuotationResult>>();
-		while (stlIt.hasNext()) {
+		while (stockListIterator.hasNext()) {
 
-			Stock stock = stlIt.next();
+			Stock stock = stockListIterator.next();
 
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Fetching quotations for Ticker: " + stock);
 			GetQuotation command = new GetQuotation(DateFactory.getNowEndTime(), stock, forceReset, forceUpdate);

@@ -19,6 +19,7 @@ public class CalculateThreadExecutor {
 	}
 
 	public ExecutorService getExecutor() {
+		if (executor.isShutdown()) executor = Executors.newCachedThreadPool();
 		return executor;
 	}
 	

@@ -40,7 +40,7 @@ public class Subtraction extends ArithmeticOperation {
 
 
 	public Subtraction() {
-		super("subtraction_", "Subtraction of two historical data series (a,b) -> a - b",new DoubleMapOperation("minuend"), new DoubleMapOperation("subtrahend"));
+		super("subtraction_", "Subtraction of two historical data series (a,b) -> a - b", new DoubleMapOperation("minuend"), new DoubleMapOperation("subtrahend"));
 	}
 
 	public Subtraction(ArrayList<Operation> operands, String outputSelector) {

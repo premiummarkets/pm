@@ -76,6 +76,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	private ORIGIN origin;
 
 	private BigDecimal split;
+	private BigDecimal dbStoredSplit;
 
 	//Hib
 	@SuppressWarnings("unused")
@@ -85,9 +86,9 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 
 	public QuotationUnit(Stock stock, Currency currency, 
 			Date date, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume, 
-			ORIGIN origin, BigDecimal split) {
+			ORIGIN origin, BigDecimal split, BigDecimal dbStoredSplit) {
 		this.stock = stock;
-		this.currency=currency;
+		this.currency = currency;
 		this.date = date;
 		this.open = open;
 		this.high = high;
@@ -95,6 +96,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 		this.close = close;
 		this.volume = volume;
 		this.origin = origin;
+		this.dbStoredSplit = dbStoredSplit;
 		this.setSplit(split);
 	}
 
@@ -185,13 +187,13 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@Transient
 	public long getVolumeSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getVolumeRaw();
-		return volume*(split.longValue());
+		return volume * (split.longValue());
 //		return getVolumeRaw();
 	}
 
 	/**
 	 * Valid for split and merge
-	 * @return
+	 * 
 	 */
 	@Transient
 	public BigDecimal getSplit() {
@@ -201,6 +203,16 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	public void setSplit(BigDecimal split) {
 		this.split = split;
 	}
+	
+	@Column(name="SPLIT")
+	public BigDecimal getDbStoredSplit() {
+		return dbStoredSplit;
+	}
+	@SuppressWarnings("unused")
+	private void setDbStoredSplit(BigDecimal dbStoredSplit) {
+		this.dbStoredSplit = dbStoredSplit;
+	}
+	
 
 	@Override
 	public int hashCode() {
@@ -232,7 +244,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	public QuotationUnit clone(Date newDate) {
-		return new QuotationUnit(this.stock, this.currency, newDate, this.open, this.high, this.low, this.close, this.volume, this.origin, this.split);
+		return new QuotationUnit(this.stock, this.currency, newDate, this.open, this.high, this.low, this.close, this.volume, this.origin, this.split, this.dbStoredSplit);
 	}
 
 	@Id
@@ -290,7 +302,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	public String toString() {
 		return "QuotationUnit [stock=" + stock.getFriendlyName() +
 				", currency=" + currency + ", date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close +
-				", volume=" + volume + ", origin=" + origin + ", split=" + split + "]";
+				", volume=" + volume + ", origin=" + origin + ", split=" + split + ", dbStoredSplit=" + dbStoredSplit + "]";
 	}
 
 }

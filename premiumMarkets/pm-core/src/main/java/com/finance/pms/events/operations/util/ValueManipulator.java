@@ -3,10 +3,12 @@ package com.finance.pms.events.operations.util;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -17,13 +19,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.quotations.NoQuotationsException;
 import com.google.common.collect.Lists;
 
 public class ValueManipulator {
@@ -52,11 +52,11 @@ public class ValueManipulator {
 		List<String> inputsOperandsRefs = new ArrayList<String>();
 		IntStream.range(0, operands.size())
 				.forEach(i -> {
+					String fShort = operands.get(i).toFormulaeShort();
 					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
 						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
-							.forEach(cRef -> inputsOperandsRefs.add(cRef + ((inputsOperandsRefs.contains(cRef))? "_N" + Integer.toString(i):"")));
+							.forEach(cRef -> inputsOperandsRefs.add(fShort + "_" + cRef + ((inputsOperandsRefs.contains(cRef))? "_N" + Integer.toString(i):"")));
 					} else {
-						String fShort = operands.get(i).toFormulaeShort();
 						inputsOperandsRefs.add(fShort + ((inputsOperandsRefs.contains(fShort))? "_N" + Integer.toString(i):""));
 					}
 				});
@@ -64,16 +64,22 @@ public class ValueManipulator {
 	}
 
 
-	public static SortedMap<Date, double[]> inputListToArray(TargetStockInfo targetStock, List<? extends NumericableMapValue> developpedInputs, Boolean allowAnyNaN, Boolean allowTrailingNaN) 
-					throws NoQuotationsException, NotEnoughDataException {
+	public enum InputToArrayReturn {
+		RESULTS, HEADINGNANS, TRAILINGNANS, OTHERUNEXPECTEDNANS
+	}
+	public static Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray(
+			TargetStockInfo targetStock, Collection<? extends NumericableMapValue> developpedInputs, 
+			Boolean keepAnyNaN, Boolean keepAllTrailingNaN, Integer... trailingNaNsColIdsToKeep) {
+		
+		
 		
 		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
 				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))
 				.reduce(new ConcurrentSkipListSet<>(), (a, e) -> { a.addAll(e); return a; });
 		
 		SortedMap<Date, double[]> factorisedInput = new TreeMap<>();
-		SortedMap<Date, double[]> trailingNaNInput = new TreeMap<>();
-		SortedMap<Date, double[]> headingNaNInput = new TreeMap<>();
+		NavigableMap<Date, double[]> notHeadingNaNs = new TreeMap<>();
+		SortedMap<Date, double[]> headingNaNs = new TreeMap<>();
 		for (Date date : allDates) {
 
 			//Values at date can neither be Double, double[] or null. There will be one value per input at date
@@ -97,45 +103,65 @@ public class ValueManipulator {
 					.flatMapToDouble(Arrays::stream) //Transforms double[]s to DoubleStream
 					.toArray();
 
-			if (!allowAnyNaN && factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch(
+			if (!keepAnyNaN && factorisedInput.isEmpty() && valuesAtDate.stream().anyMatch( //This is heading NaNs as factorisedInput.isEmpty()
 						v -> v == null ||
 						(v instanceof Double && Double.isNaN((double) v)) ||
 						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
 					)
 				) { //Heading NaN
-				headingNaNInput.put(date, array); //Keeping this in case all is NaN ie trailing NaNs are also heading NaNs..
-				continue;
+				headingNaNs.put(date, array); //Keeping this in case all is NaN ie trailing NaNs are also heading NaNs..
 			}
-			
-			if (allowAnyNaN || valuesAtDate.stream().noneMatch(
+			else if (keepAnyNaN || valuesAtDate.stream().noneMatch( //This not heading as !factorisedInput.isEmpty(): could be trailing or in the middle?
 						v -> v == null || 
 						(v instanceof Double && Double.isNaN((double) v)) ||
 						(v instanceof double[] && Arrays.stream((double[]) v).anyMatch(vPrim -> Double.isNaN((double) vPrim)))
 					) 
 				) { //Don't add NaN in this loop if allowAnyNaN is false
 				factorisedInput.put(date, array);
-			} else { //Only for trailingNaN (this is useful to create dataSet where future training targets are not present).
-				trailingNaNInput.put(date, array);
+			} 
+			else { //Only for trailingNaN (this is useful to create dataSet where future training targets are not present).
+				notHeadingNaNs.put(date, array);
 			}
 
 		}
 		
-		Boolean hasTrailing = !trailingNaNInput.isEmpty();
-		if (allowTrailingNaN) { //Adding potential trailing with NaN
-			if (!factorisedInput.isEmpty()) {
-				Date factorisedLastKey = factorisedInput.lastKey();
-				factorisedInput.putAll(trailingNaNInput.tailMap(factorisedLastKey));
-				hasTrailing = !trailingNaNInput.headMap(factorisedLastKey).isEmpty(); //Unexpected NaNs not trailing??
-			} 
-			else if (headingNaNInput.size() == allDates.size()) { //all data contain NaN and trailingNaN is authorised so we add them.
-				LOGGER.warn("All data has NaN in series: " + headingNaNInput);
-				factorisedInput.putAll(headingNaNInput);
-			}
+		Map<InputToArrayReturn, SortedMap<Date, double[]>> result = new HashMap<>();
+		result.put(InputToArrayReturn.OTHERUNEXPECTEDNANS, new TreeMap<>());
+		
+		//Heading
+		result.put(InputToArrayReturn.HEADINGNANS, headingNaNs);
+		
+		//Not Heading
+		Boolean keepTrailingNaN = keepAllTrailingNaN || trailingNaNsColIdsToKeep.length != 0;
+
+		SortedMap<Date, double[]> trailingNaNs;
+		if (!factorisedInput.isEmpty()) {
+			Date factorisedLastKey = factorisedInput.lastKey();
+			trailingNaNs = notHeadingNaNs.tailMap(factorisedLastKey, false);
+			result.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).putAll(notHeadingNaNs.headMap(factorisedLastKey, true)); //Unexpected NaNs not trailing nor heading!!
+		} 
+		else if (headingNaNs.size() == allDates.size()) { //factorisedInput.isEmpty(): all data contain NaN and trailingNaN is authorised so we add them.
+			LOGGER.warn("All data is NaN in this series or the series is empty: " + headingNaNs);
+			trailingNaNs = headingNaNs;
+		} 
+		else {
+			throw new RuntimeException("Should not be here!! Either we have factorised data or all data is NaN");
 		}
-		if (hasTrailing) {
-			LOGGER.warn("Non unexpected NaN data in series: " + trailingNaNInput);
+		
+		if (!keepAllTrailingNaN) {//Check trailing NaNs columns to keep
+			List<Integer> allowedCIndexesList = Arrays.asList(trailingNaNsColIdsToKeep);
+			SortedMap<Date, double[]> unExpectedTrailingNaNs = trailingNaNs.entrySet().stream() //Unexpected NaNs trailing!!
+					.filter(e -> IntStream.range(0, e.getValue().length).anyMatch(i -> !allowedCIndexesList.contains(i) && Double.isNaN(e.getValue()[i])))
+					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+			unExpectedTrailingNaNs.keySet().stream().forEach(u -> trailingNaNs.remove(u));
+			result.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).putAll(unExpectedTrailingNaNs);  //Unexpected NaNs (unauthorised column) trailing!!
 		}
-		return factorisedInput;
+		
+		result.put(InputToArrayReturn.TRAILINGNANS, trailingNaNs);
+		if (keepTrailingNaN) factorisedInput.putAll(trailingNaNs); //Adding potential trailing with NaN in the result
+		
+		result.put(InputToArrayReturn.RESULTS, factorisedInput);
+		return result;
 	}
 	
 	public static double[] valueToDoubleArray(Object value) {
@@ -243,10 +269,10 @@ public class ValueManipulator {
 		
 		//To Array
 		try {
-			SortedMap<Date, double[]> factorisedOuputs = ValueManipulator.inputListToArray(targetStock, allOutputs, true, true);
+			SortedMap<Date, double[]> factorisedOuputs = ValueManipulator.inputListToArray(targetStock, allOutputs, true, true).get(InputToArrayReturn.RESULTS);
 			return new DoubleArrayMapValue(factorisedOuputs, outputsOperandsRefs, 0);
 		} catch (Exception e) {
-			LOGGER.error(operation.getReference() + " : " + e, e);
+			LOGGER.error(operation.getReference() + ": " + e, e);
 		}
 		
 		return new DoubleArrayMapValue();

@@ -12,6 +12,7 @@ import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 /**
  * 
  * @author guil
@@ -28,19 +29,16 @@ public class HistoricalVolatilityCalculator {
 	private int returnCalculationNbPeriods; //Usually 21 or 63
 	private List<Double> closeValues;
 
-	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations) {
-		this(closeQuotations, 1, 63, true);
-	}
-
-	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations, int basicPeriodLength, int returnCalculationNbPeriods, boolean annualise) {
+	public HistoricalVolatilityCalculator(SortedMap<Date, Double> closeQuotations, int basicPeriodLength, int returnCalculationNbPeriods, boolean annualise) throws NotEnoughDataException {
 		super();
 		this.basicPeriodLength = basicPeriodLength;
 		this.returnCalculationNbPeriods = returnCalculationNbPeriods;
+		if (closeQuotations.size() < basicPeriodLength + returnCalculationNbPeriods) throw new NotEnoughDataException(null, null, null);
 		this.closeValues = new ArrayList<>(closeQuotations.values());
 		this.annualise = annualise;
 	}
 
-	public Double averageAnnualisedVolatility(int from, int to) throws IndexOutOfBoundsException {
+	public Double averageVolatility(int from, int to) throws IndexOutOfBoundsException {
 		if (to < basicPeriodLength + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriodLength + returnCalculationNbPeriods));
 		return IntStream
 				.range(from + basicPeriodLength + returnCalculationNbPeriods, to)
@@ -48,8 +46,17 @@ public class HistoricalVolatilityCalculator {
 				.average()
 				.getAsDouble();
 	}
+	
+	public Double averageMeanOfReturns(int from, int to) throws IndexOutOfBoundsException {
+		if (to < basicPeriodLength + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriodLength + returnCalculationNbPeriods));
+		return IntStream
+				.range(from + basicPeriodLength + returnCalculationNbPeriods, to)
+				.mapToDouble(d -> movingMeanOfReturnsAt(d))
+				.average()
+				.getAsDouble();
+	}
 
-	public Double averageAnnualisedSignedVolatility(int from, int to, int sign) throws IndexOutOfBoundsException {
+	public Double averageSignedVolatility(int from, int to, int sign) throws IndexOutOfBoundsException {
 		if (to < basicPeriodLength + returnCalculationNbPeriods) throw new IndexOutOfBoundsException(to + "!>=" + (basicPeriodLength + returnCalculationNbPeriods));
 		return IntStream
 				.range(from + basicPeriodLength + returnCalculationNbPeriods, to)
@@ -63,7 +70,7 @@ public class HistoricalVolatilityCalculator {
 		return stdOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
 	}
 	
-	public Double movingMeanAt(int d) {
+	public Double movingMeanOfReturnsAt(int d) {
 		Double meanOfD2DReturns = meanOfReturnsAt(d);
 		return meanOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
 	}
@@ -73,7 +80,7 @@ public class HistoricalVolatilityCalculator {
 		return stdOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
 	}
 
-	public Double movingSignedMeanAt(int d, int sign) {
+	public Double movingSignedMeanOfReturnsAt(int d, int sign) {
 		Double meanOfD2DReturns = meanOfReturnsSignedAt(d, sign);
 		return meanOfD2DReturns * ((annualise)?Math.sqrt(YEAR_LENGTH/basicPeriodLength):1d);
 	}
@@ -183,7 +190,7 @@ public class HistoricalVolatilityCalculator {
 		Double negativeFnMean = Math.abs(mean.sEvaluate(negativeFns));
 
 		Double ratio = negativeFnMean/positiveFnMean;
-		LOGGER.info("Skew : from " + from + " to " + to + " is "+ ratio);
+		LOGGER.info("Skew: from " + from + " to " + to + " is "+ ratio);
 		if (Double.isNaN(ratio)) return 1d;
 		return ratio;
 	}

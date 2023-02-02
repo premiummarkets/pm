@@ -15,7 +15,8 @@
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
 	<test>false</test>
 	<pm.buildtime>${timestamp}</pm.buildtime>
-	<swt.version>4.3</swt.version>
+	<!--<swt.version>4.3</swt.version>-->
+	<swt.version>3.122.0</swt.version>
   </properties>
   <dependencies>
     <dependency>
@@ -110,11 +111,17 @@
 <!-- 		<artifactId>org.eclipse.swt.gtk.linux.x86</artifactId> -->
 <!-- 		<version>${swt.version}</version> -->
 <!-- 	</dependency> -->
-	<dependency>
+<!--	<dependency>
 		<groupId>org.eclipse.swt</groupId>
 		<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
 		<version>${swt.version}</version>
+	</dependency>-->
+	<dependency>
+	    <groupId>org.eclipse.platform</groupId>
+	    <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
+	    <version>3.122.0</version>
 	</dependency>
+	
 <!--  	<dependency>
  		<groupId>org.eclipse.swt</groupId>
  		<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>

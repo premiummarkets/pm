@@ -58,7 +58,7 @@ public class Provider1818 extends Providers implements QuotationProvider {
 		queries.addAll(filterToEndDate(end, readPage));
 
 		//https://protect.wealthmanagement.natixis.com/phoenix/infosMarcheValeur/detache?page=cours&valeur=LU1829221024,25,814
-		LOGGER.guiInfo("Last quotes  for " + stock.getSymbol() +". Number of new quotations:" + queries.size() + ", request: " + url);
+		LOGGER.guiInfo("Last quotes  for " + stock.getSymbol() + ". Number of new quotations:" + queries.size() + ", request: " + url);
 
 		try {
 			ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();

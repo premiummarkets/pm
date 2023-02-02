@@ -165,7 +165,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 			GetInflation inflationInterpoler = GetInflation.geInstance();
 
 			BigDecimal inflationRateWithinDateRange = inflationInterpoler.inflationRateWithinDateRange(lastDate, end);
-			int a = QuotationsFactories.getFactory().nbOpenIncrementBetween(lastDate, end);
+			int a = QuotationsFactories.getFactory().nbOpenIncrementBetween(stock.getTradingMode().getDataPointFactor(), lastDate, end);
 			Double endClose = lastClose.doubleValue() + ((double) a) * inflationRateWithinDateRange.doubleValue();
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(end);
@@ -182,7 +182,8 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 					BigDecimal.ZERO,
 					new BigDecimal(endClose),
 					Long.valueOf(0),
-					ORIGIN.USER, BigDecimal.ONE);
+					ORIGIN.USER, 
+					BigDecimal.ONE, null);
 			
 			//Clean up interpolations between start and end
 			DataSource.getInstance().getShareDAO().deleteQuotationUnits(usersQ); 

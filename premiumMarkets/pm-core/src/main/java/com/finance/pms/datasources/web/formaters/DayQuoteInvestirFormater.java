@@ -207,6 +207,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			mainQuery.add(low);
 			mainQuery.add(close);
 			mainQuery.add(volume);
+			mainQuery.add(null); //Split
 			validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 		}
 	}

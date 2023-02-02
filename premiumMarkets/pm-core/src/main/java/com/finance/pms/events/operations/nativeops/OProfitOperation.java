@@ -23,6 +23,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -187,7 +188,7 @@ public class OProfitOperation extends ArrayMapOperation {
 				}
 			}
 
-			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, resultMaps, true, true);
+			SortedMap<Date, double[]> inputListToArray = ValueManipulator.inputListToArray(targetStock, resultMaps, true, true).get(InputToArrayReturn.RESULTS);
 			DoubleArrayMapValue result = new DoubleArrayMapValue(inputListToArray, headers, 0);
 			return result;
 			
