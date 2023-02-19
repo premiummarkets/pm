@@ -87,7 +87,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		this.calculationStartPrice = calculationStartPrice;
 	}
 
-	public Double getStockPriceChange() {
+	public Double getBuyNHoldProfit() {
 		return calculationEndPrice/calculationStartPrice -1;
 	}
 
@@ -242,24 +242,24 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 
 	private Double getForecastProfitAt(Date date, boolean unReal) {
-		Double trendFollowProfit = 1.00;
+		Double trendProfit = 1.00;
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();
 		PeriodRatingDTO currentPeriod = null;
 		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(date) <= 0) {
 			if (currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {	//End of bullish (exclusive).
-				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
-				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
-				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
+				Double priceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
+				trendProfit = trendProfit * (1 + priceRateOfChange);
 			}
 		}
 		if (unReal && currentPeriod.getTo().compareTo(date) <= 0) { //Adding last unrealised if bullish
 			if (!currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {
-				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
-				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
-				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
+				Double priceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
+				trendProfit = trendProfit * (1 + priceRateOfChange);
 			}
 		}
-		return trendFollowProfit - 1;
+		return trendProfit - 1;
 	}
 	
 	public Double getForecastProfitAt(Date date) {

@@ -102,8 +102,8 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 			Date lastWebDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
 			
 			Quotations lastQuotations = 
-					QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, start, end, false, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
-			List<QuotationUnit> usersDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
+					QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, start, end, false, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+			List<QuotationUnit> formerUsersDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
 					.filter(qu -> ORIGIN.USER.equals(qu.getOrigin()))
 					.collect(Collectors.toList());
 			List<QuotationUnit> webDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
@@ -114,7 +114,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 			
 			boolean isLastLessThan2AndHalfMonthOld = lastWebDate.getTime() + twoMonthAndHalf >= end.getTime();
 			if (isLastLessThan2AndHalfMonthOld) {//Inflation can be updated monthly only
-				lastQuoteInterpolation(stock, lastClose, lastDate, end, usersDbQ);
+				lastQuoteInterpolation(stock, lastClose, lastDate, end, formerUsersDbQ);
 				throw new HttpException(
 					"Inflation data can only be updated once in " + twoMonthAndHalf/(31.0*DateFactory.DAYINMILLI) + " months.\n" +
 					"You already updated up to " + sdf.format(lastWebDate)
@@ -137,7 +137,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				}
 
 				//Update with new Web quotations
-				LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " : " + queries.size());
+				LOGGER.guiInfo("Getting last quotes: Number of new quotations for " + stock.getSymbol() + ": " + queries.size());
 				ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
 				tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 				DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
@@ -149,7 +149,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				
 			}
 
-			lastQuoteInterpolation(stock, lastClose, lastDate, end, usersDbQ);
+			lastQuoteInterpolation(stock, lastClose, lastDate, end, formerUsersDbQ);
 
 		} catch (NoQuotationsException e) {
 			LOGGER.error(e);

@@ -137,7 +137,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals(0.0, res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
         
@@ -195,7 +195,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
     }
@@ -254,7 +254,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
     }
@@ -315,7 +315,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 
@@ -377,7 +377,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 
@@ -466,7 +466,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 
@@ -523,7 +523,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 
@@ -586,7 +586,7 @@ public class OTFTuningFinalizerTest {
         assertEquals(EventType.BEARISH.name(), res.getLastTrend());
         assertEquals((next1.getPriceAtTo()-next1.getPriceAtFrom())/next1.getPriceAtFrom(), res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 
@@ -658,7 +658,7 @@ public class OTFTuningFinalizerTest {
         double C2 = C1* ( 1 + (next4.getPriceAtTo()-next4.getPriceAtFrom())/next4.getPriceAtFrom());
         assertEquals(C2 -1, res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 
@@ -738,7 +738,7 @@ public class OTFTuningFinalizerTest {
         double C3 = C2* (1 + (next6.getPriceAtTo()-next6.getPriceAtFrom())/next6.getPriceAtFrom());
         assertEquals(C3 -1, res.getForecastProfit(), 0.0001);
         Double closestCloseForDate = quotations.getClosestCloseSpForDate(endDate).doubleValue();
-        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getStockPriceChange(), 0.0001);
+        assertEquals((closestCloseForDate-next.getPriceAtFrom())/next.getPriceAtFrom(), res.getBuyNHoldProfit(), 0.0001);
         assertEquals(startDate, res.getCalculatedStart());
         assertEquals(endDate, res.getCalculatedEnd());
 

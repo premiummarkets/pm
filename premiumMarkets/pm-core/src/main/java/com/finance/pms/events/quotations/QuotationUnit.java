@@ -68,13 +68,18 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	private Stock stock;
 	private Currency currency;
 	private Date date;
+	
+	//These must be raw values as in db
 	private BigDecimal open;
 	private BigDecimal high;
 	private BigDecimal low;
 	private BigDecimal close;
 	private Long volume;
+	
+	
 	private ORIGIN origin;
-
+	
+	//The split is used on the fly when grabbing the value
 	private BigDecimal split;
 	private BigDecimal dbStoredSplit;
 
@@ -82,6 +87,20 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@SuppressWarnings("unused")
 	private QuotationUnit() {
 		super();
+	}
+	
+	protected QuotationUnit(QuotationUnit qUnit) {
+		this.stock = qUnit.stock;
+		this.currency = qUnit.currency;
+		this.date = qUnit.date;
+		this.open = qUnit.open;
+		this.high = qUnit.high;
+		this.low = qUnit.low;
+		this.close = qUnit.close;
+		this.volume = qUnit.volume;
+		this.origin = qUnit.origin;
+		this.dbStoredSplit = qUnit.dbStoredSplit;
+		this.split = qUnit.split;
 	}
 
 	public QuotationUnit(Stock stock, Currency currency, 
@@ -187,8 +206,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	@Transient
 	public long getVolumeSplit() {
 		if (split.compareTo(BigDecimal.ONE) == 0) return getVolumeRaw();
-		return volume * (split.longValue());
-//		return getVolumeRaw();
+		return (long) (volume * (split.doubleValue()));
 	}
 
 	/**

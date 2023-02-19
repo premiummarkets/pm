@@ -252,7 +252,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 											@Override
 											public void action() {
-												//Program.launch("http://"+siteUrl+"/html/PremiumMarkets.jnlp");
+												//Program.launch("http://" + siteUrl + "/html/PremiumMarkets.jnlp");
 												Program.launch("http://" + siteUrl + "/html/swtui.html#Download");
 												rootShellClosedRequested(null);
 											}
@@ -293,7 +293,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 		DateFormat jnlpDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z");
 
-		LOGGER.info("Found pattern in : "+line);
+		LOGGER.info("Found pattern in : " + line);
 		String versionNumber = fit.group(1).replaceAll("[ /:]", ".");
 		Date lastReleaseDate = jnlpDateFormat.parse(fit.group(1));
 		Calendar lastReleaseCal = Calendar.getInstance();
@@ -307,8 +307,8 @@ public class MainGui extends SashForm implements RefreshableView {
 		currentBuildCal.set(Calendar.MILLISECOND, 0);
 		currentBuildCal.set(Calendar.SECOND, 0);
 
-		LOGGER.info("Latest version is : "+versionNumber+" released on "+jnlpDateFormat.format(lastReleaseDate)+" +- 10 minutes.");
-		LOGGER.info("Your version was released on the "+jnlpDateFormat.format(currentBuildDate));
+		LOGGER.info("Latest version is : " + versionNumber + " released on " + jnlpDateFormat.format(lastReleaseDate) + " +- 10 minutes.");
+		LOGGER.info("Your version was released on the " + jnlpDateFormat.format(currentBuildDate));
 		return  (lastReleaseCal.getTime().after(currentBuildCal.getTime()));
 
 	}
@@ -318,7 +318,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		try {
 
 			try {
-				FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons"+File.separator+MainGui.ICONNAME));
+				FileInputStream iconImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons" + File.separator + MainGui.ICONNAME));
 				getShell().setImage(new Image(getDisplay(),iconImg));
 			} catch (Exception e1) {
 				LOGGER.warn(e1);
@@ -351,7 +351,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					settingsSubMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 					settingsSubMenuItem.setText("Settings");
 					try {
-						FileInputStream toolImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/tool.png"));
+						FileInputStream toolImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/tool.png"));
 						settingsSubMenuItem.setImage(new Image(getDisplay(),toolImg));
 					} catch (Exception e) {
 						LOGGER.warn(e);
@@ -398,7 +398,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		eventsMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 		eventsMenuItem.setText("Events");
 		try {
-			FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/bell.png"));
+			FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/bell.png"));
 			eventsMenuItem.setImage(new Image(getDisplay(), bellImg));
 		} catch (Exception e) {
 			LOGGER.warn(e);
@@ -479,7 +479,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			MenuItem chartMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 			chartMenuItem.setText("Charts");
 			try {
-				FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/chart.png"));
+				FileInputStream bellImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/chart.png"));
 				chartMenuItem.setImage(new Image(getDisplay(), bellImg));
 			} catch (Exception e) {
 				LOGGER.warn(e);
@@ -503,7 +503,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		quotationMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 		quotationMenuItem.setText("Quotations");
 		try {
-			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/port.png"));
 			quotationMenuItem.setImage(new Image(getDisplay(), portImg));
 		} catch (Exception e) {
 			LOGGER.warn(e);
@@ -583,7 +583,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		portfolioMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 		portfolioMenuItem.setText("Portfolios");
 		try {
-			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/port.png"));
 			portfolioMenuItem.setImage(new Image(getDisplay(),portImg));
 		} catch (Exception e) {
 			LOGGER.warn(e);
@@ -726,7 +726,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		stockMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 		stockMenuItem.setText("Stocks and Markets");
 		try {
-			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/port.png"));
+			FileInputStream portImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/port.png"));
 			stockMenuItem.setImage(new Image(getDisplay(), portImg));
 		} catch (Exception e) {
 			LOGGER.warn(e);
@@ -748,15 +748,15 @@ public class MainGui extends SashForm implements RefreshableView {
 						@Override
 						public void widgetSelected(SelectionEvent evt) {
 							ActionDialog actionDialog = new ActionDialog(getShell(), "Info",
-									"Web recommendation and advice feature is not available in this open source version.\n"+ 
-											"This feature is part of the advanced version including "+MainGui.APP_NAME+" Forecast engine.\n",
+									"Web recommendation and advice feature is not available in this open source version.\n" +  
+											"This feature is part of the advanced version including " + MainGui.APP_NAME + " Forecast engine.\n",
 											null,
 											"Click here for more information and a workable demo",
 											new ActionDialogAction() {
 
 								@Override
 								public void action() {
-									Program.launch("http://"+siteUrl);
+									Program.launch("http://" + siteUrl);
 								}
 							});
 							actionDialog.open();
@@ -839,7 +839,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		fileMenuItem = new MenuItem(mainMenu, SWT.CASCADE);
 		fileMenuItem.setText(MainGui.APP_NAME);
 		try {
-			FileInputStream exitImg = new FileInputStream(new File (System.getProperty("installdir")+File.separator+"icons/exit.png"));
+			FileInputStream exitImg = new FileInputStream(new File (System.getProperty("installdir") + File.separator + "icons/exit.png"));
 			Image exitImage = new Image(getDisplay(), exitImg);
 			fileMenuItem.setImage(new Image(getDisplay(), exitImage.getImageData()));
 		} catch (Exception e) {
@@ -893,7 +893,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			doc.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
-					Program.launch("http://"+siteUrl+"/html/swtui.html");
+					Program.launch("http://" + siteUrl + "/html/swtui.html");
 				}
 			});
 		}
@@ -906,7 +906,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			forecast.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
-					Program.launch("http://"+siteUrl+"");
+					Program.launch("http://" + siteUrl + "");
 				}
 			});
 		}
@@ -971,10 +971,10 @@ public class MainGui extends SashForm implements RefreshableView {
 				try {
 					if (!display.readAndDispatch()) display.sleep();
 				} catch (java.lang.IllegalArgumentException | IllegalStateException e1) {
-					//LOGGER.warn("Error in Main Gui : "+ e1.getMessage(), e1);
+					//LOGGER.warn("Error in Main Gui : " + e1.getMessage(), e1);
 				} catch (Throwable e) {
 					try {
-						LOGGER.error("Error in Main Gui : "+ e.getMessage(), e);
+						LOGGER.error("Error in Main Gui : " + e.getMessage(), e);
 						inst.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 						UserDialog dialog = new UserDialog(inst.getShell(),"An Error occurred.", e.getMessage());
 						dialog.open();
@@ -985,7 +985,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			}
 
 		} catch (IllegalArgumentException | IllegalStateException e1) {
-			//LOGGER.warn("Error in Main Gui : "+ e1.getMessage(), e1);
+			//LOGGER.warn("Error in Main Gui : " + e1.getMessage(), e1);
 		} catch (Throwable e) {
 
 			System.out.println("Unhandled error running the ui : " + e);
@@ -1061,7 +1061,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			Point logCompositeSize = inst.logComposite.computeSize(mainBounds.width, Math.max(10,logPrefSize.y));
 			inst.logComposite.setSize(logCompositeSize);
 			Rectangle logBounds = inst.logComposite.getBounds();
-			int xLog = 100*logBounds.height/mainBounds.height +1;
+			int xLog = 100*logBounds.height/mainBounds.height + 1;
 			if ((100 -xLog) < 97) {
 				xLog=3;
 			}
@@ -1111,7 +1111,7 @@ public class MainGui extends SashForm implements RefreshableView {
 			e1.printStackTrace();
 			Frame frame = new JFrame();
 			String report = 
-					"It may be that "+MainGui.APP_NAME+" is already running on this computer. You can run only one instance at a time.\n" +
+					"It may be that " + MainGui.APP_NAME + " is already running on this computer. You can run only one instance at a time.\n" +
 							"Make sure to close all other instances before starting a new one.\n" +
 							"If the process is running in the back ground and is not showing in a window, you will have to kill it. \n" +
 							"Use the tools and commands provided by your OS to do so.\n" +
@@ -1149,7 +1149,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				System.out.println(" _______________________Uncaught_______________________ "+e.toString());
+				System.out.println(" _______________________Uncaught_______________________ " + e.toString());
 				e.printStackTrace();
 			}
 		});
@@ -1163,7 +1163,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						"Double check that the installation has run successfully.\n" +
 						"Check your OS file system attributes and anti viruses as these may prevent the application to fully install.\n" +
 						"If you need to reinstall, it is recommended to install in a new folder fresh and free of any older version.\n" +
-						"Type "+MainGui.APP_NAME+" FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
+						"Type " + MainGui.APP_NAME + " FORECAST in your favourite search engine or use http://sourceforge.net/projects/pmsqueak/ for support.";
 		CustomDialog customDialog = new CustomDialog(frame, report, e.getMessage(), "Error Report", false);
 		customDialog.pack();
 		customDialog.setVisible(true);
@@ -1206,16 +1206,16 @@ public class MainGui extends SashForm implements RefreshableView {
 		if (LOGGER.isTraceEnabled()) {
 			FontData[] myDefFont = shell.getDisplay().getFontList(myDefFontName, true);
 			if (myDefFont != null && myDefFont.length > 0) {
-				System.out.println(myDefFontName+" is available.");
+				System.out.println(myDefFontName + " is available.");
 			} else {
-				System.out.println(myDefFontName+" not available.");
+				System.out.println(myDefFontName + " not available.");
 			}
 
 			FontData[] myContentDefFont = shell.getDisplay().getFontList(myContentFontName, true);
 			if (myContentFontName != null && myContentDefFont.length > 0) {
-				System.out.println(myContentFontName+" is available.");
+				System.out.println(myContentFontName + " is available.");
 			} else {
-				System.out.println(myContentFontName+" not available.");
+				System.out.println(myContentFontName + " not available.");
 			}
 		}
 
@@ -1364,10 +1364,10 @@ public class MainGui extends SashForm implements RefreshableView {
 				URI uriMailTo = new URI("mailto", messageHead + messageBody, null);
 				Program.launch(uriMailTo.toString());
 			} catch (URISyntaxException e) {
-				LOGGER.error("Can't send email : "+e.getMessage(),e);
+				LOGGER.error("Can't send email : " + e.getMessage(),e);
 			} 
 			catch (Exception e) {
-				LOGGER.error("Can't send email : "+e.getMessage(),e);
+				LOGGER.error("Can't send email : " + e.getMessage(),e);
 			}
 
 			MainPMScmd.getMyPrefs().put("email.hint",(++hintNumber).toString());
@@ -1394,13 +1394,17 @@ public class MainGui extends SashForm implements RefreshableView {
 
 			if (cursor != null && (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {
 				cursorCpt++;
+				LOGGER.info("Cursor count +: " + cursorCpt);
 			} else {
-				cursorCpt --;
+				cursorCpt--;
+				LOGGER.info("Cursor count -: " + cursorCpt);
 				if (cursorCpt > 0) {
+					LOGGER.info("Cursor count return: " + cursor.toString());
 					return;
 				} 
 			}
-
+			
+			LOGGER.info("Cursor count apply: " + cursor.toString());
 			for (Control control : winTable) {
 				if (control != null && !control.isDisposed()) {
 					control.setCursor(cursor);
@@ -1451,7 +1455,7 @@ public class MainGui extends SashForm implements RefreshableView {
 						}
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
-							"Force request", exception +" has already been fulfilled sometime today.", 
+							"Force request", exception + " has already been fulfilled sometime today.", 
 							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
 							"Reset previous request", action);
 					exceptions.clear();
@@ -1462,8 +1466,8 @@ public class MainGui extends SashForm implements RefreshableView {
 
 			if (!exceptions.isEmpty()) {
 				UserDialog dialog = new UserDialog(getShell(), 
-						"A slight problem occurred while running your last request. "+
-								((allStocksEventModel.getViewParamRoot() != null)? allStocksEventModel.getViewParamRoot().iterator().next():"")+"\n", exceptions.toString());
+						"A slight problem occurred while running your last request. " +
+								((allStocksEventModel.getViewParamRoot() != null)? allStocksEventModel.getViewParamRoot().iterator().next():"") + "\n", exceptions.toString());
 				dialog.open();
 			}
 		}

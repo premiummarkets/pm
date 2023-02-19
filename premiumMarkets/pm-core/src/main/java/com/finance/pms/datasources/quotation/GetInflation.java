@@ -58,13 +58,13 @@ public class GetInflation {
 		QuotationUnit secondQs = inflationQs.get(secondDateQsIdx);
 		Integer firstDateQsIdx = inflationQs.getClosestIndexBeforeOrAtDateOrIndexZero(0, firstDate);
 		QuotationUnit firstQs;
-		if (firstDateQsIdx < secondDateQsIdx) {
+		if (0 < firstDateQsIdx && firstDateQsIdx < secondDateQsIdx) {
 			firstQs = inflationQs.get(firstDateQsIdx);
-		} else
-		if (0 < firstDateQsIdx && firstDateQsIdx.equals(secondDateQsIdx)) {
+		} 
+		else if (0 < firstDateQsIdx && firstDateQsIdx.equals(secondDateQsIdx)) {
 			firstQs = inflationQs.get(--firstDateQsIdx);
 		} else {
-			throw new NotEnoughDataException(inflationQs.getStock(), "No inflation data between : " + firstDate + " and " + secondDate + ": ! " + firstDateQsIdx + "==" + secondDateQsIdx + " && " + firstDateQsIdx + "> 0", null);
+			throw new NotEnoughDataException(inflationQs.getStock(), "No inflation data between: " + firstDate + " and " + secondDate + ": ! " + firstDateQsIdx + "==" + secondDateQsIdx + " && " + firstDateQsIdx + "> 0", null);
 		}
 
 		BigDecimal inflationAtFirst = firstQs.getCloseSplit();

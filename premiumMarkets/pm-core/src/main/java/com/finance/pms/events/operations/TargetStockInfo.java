@@ -44,11 +44,7 @@ import java.util.SortedMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.finance.pms.admin.config.Config;
-import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.quotation.QuotationUpdate;
-import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
@@ -71,7 +67,6 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.quotations.QuotationDataType;
-import com.finance.pms.threads.ConfigThreadLocal;
 
 public class TargetStockInfo {
 
@@ -178,20 +173,20 @@ public class TargetStockInfo {
 		this.analysisName = analysisName;
 		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperationHolder;
 		this.stock = stock;
-
-		Date lastQuote = stock.getLastQuote();
-		if (lastQuote.before(startDate)) throw new WarningException("No enough quotations to calculate: " + stock.toString());
-		this.startDate = startDate;
-		if (lastQuote.before(endDate)) { //TODO init Event Config ..
-			try {
-				ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
-				QuotationUpdate quotationUpdate = new QuotationUpdate();
-				quotationUpdate.getQuotesFor(stock);
-			} catch (QuotationUpdateException e) {
-				LOGGER.warn(e);
-			}
-		}
+		
+//		if (stock.getLastQuote().before(endDate)) { //FIXME this can create problems if a quotation map has been initialised before an operation is ran as the quotations map may then be made out of date
+//			try {
+//				ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
+//				QuotationUpdate quotationUpdate = new QuotationUpdate();
+//				quotationUpdate.getQuotesFor(stock);
+//			} catch (QuotationUpdateException e) {
+//				LOGGER.warn(e);
+//			}
+//		}
 		this.endDate = endDate;
+
+		if (stock.getLastQuote().before(startDate)) throw new WarningException("No enough quotations to calculate: " + stock.toString());
+		this.startDate = startDate;
 
 		this.calculatedOutputsCache = new ConcurrentHashMap<>();
 		this.calculatingOutputsFutures = Collections.synchronizedList(new ArrayList<>());

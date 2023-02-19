@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,13 +68,13 @@ public class VolatilityClassifier {
 	
 	//Predicates
 	private Boolean allowQuotesUpdate = false;
-	private int minDataInYears = 10;
+	private int minDataInYears = 8;
 	private double minValidDataToTimeRatio = 0.80;
 	private double minOHLCToQuotesRatio = 0.80;
 	
 	//Splits and merges predicates
-	private double maxMergeValue = 100d;
-	private double maxSplitValue = 100d;
+	private double maxMergeValue = 10d;
+	private double maxSplitValue = 10d;
 	private double maxSplitPerYear = 1d;
 
 	
@@ -87,6 +88,18 @@ public class VolatilityClassifier {
 			List<Entry<Stock, Double[]>> entries = filterSubListSameCurrency(currency, sorted);
 			LOGGER.info("Nb of entries for currency " + currency + ": " + entries.size());
 			exportToLowMedHighVolsShareLists(currency.name(), nbRows, entries);
+		}
+
+	}
+	
+	void generateFromFileToDB(String volatiliesCsvPath) throws Exception {
+
+		File volatilitiesCsv = new File(volatiliesCsvPath);
+		boolean existsCsvFile = volatilitiesCsv.exists();
+		if (existsCsvFile) {
+			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
+			//Create Indep Portfolios
+			createOnePortfolioShareList(sorted, 0, sorted.size(), "VOLATILITY,ALLVOLATILITY:" + "MISCELLANEOUS");
 		}
 
 	}
@@ -157,14 +170,14 @@ public class VolatilityClassifier {
 
 		try(BufferedReader fileReader = new BufferedReader(new FileReader(volatilitiesCsv))) {
 
-			String line = null;
+			String line = fileReader.readLine(); //header
 			while((line = fileReader.readLine()) != null) {
 				String[] lineSplit = line.split(",");
 				String symbol = lineSplit[0].trim();
 				String isin = lineSplit[1].trim();
 				Stock stock = shareDAO.loadStockBy(symbol, isin);
-				LOGGER.info("Adding " + stock + " with velocities " + lineSplit[2] + " and " + lineSplit[3]);
-				stockVolatilities.put(stock, new Double[]{Double.valueOf(lineSplit[2].trim()), Double.valueOf(lineSplit[3].trim())});
+				LOGGER.info("Adding " + stock + " with velocities " + lineSplit[2] + " and " + lineSplit[3]  + " and " + lineSplit[4]);
+				stockVolatilities.put(stock, new Double[]{Double.valueOf(lineSplit[2].trim()), Double.valueOf(lineSplit[3].trim()),  Double.valueOf(lineSplit[4].trim())});
 			}
 
 		} catch (Exception e1) {
@@ -407,13 +420,17 @@ public class VolatilityClassifier {
 				double yearsSpan = ((double) java.time.temporal.ChronoUnit.DAYS.between(
 						new Date(ohlcData.get(0).getDate().getTime()).toInstant(),
 						new Date(ohlcData.get(ohlcData.size()-1).getDate().getTime()).toInstant()))/365d;
+				double[] flatSplits = IntStream
+							.range(0, splits.size())
+							.mapToDouble(i -> splits.get(i).doubleValue()/((i < splits.size()-1)?splits.get(i+1).doubleValue():1d))
+							.toArray();
 				Boolean doNotMatch = 
-						((double)splits.size())/yearsSpan > maxSplitPerYear || 
-						splits.stream().anyMatch(split -> split.compareTo(new BigDecimal(maxSplitValue)) > 0 || 1d/split.doubleValue() > maxMergeValue);
+						((double) splits.size())/yearsSpan > maxSplitPerYear || 
+						Arrays.stream(flatSplits).anyMatch(split -> split > maxSplitValue || 1d/split > maxMergeValue);
 				if (doNotMatch) {
 					LOGGER.info(
 							stock + " with years span " + yearsSpan + " does not match 'splits constrains' " +
-							"maxSplitPerYear: " + maxSplitPerYear + ", splitMax: " + maxSplitValue + ", mergeMin: " + 1d/maxMergeValue + " predicate. " + splits);
+							"maxSplitPerYear: " + maxSplitPerYear + ", splitMax: " + maxSplitValue + ", mergeMin: " + 1d/maxMergeValue + " predicate. " + flatSplits);
 					List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("splitMergeValidity", new ArrayList<>());
 					predicateAcc.add(stock);
 					invalidStockAccumulator.put("splitMergeValidity", predicateAcc);

@@ -22,6 +22,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.SplitOption;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.quotations.SplitData;
@@ -142,7 +143,7 @@ public class QuotationFixer {
 
 			List<QuotationUnit> collect = null;
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, SplitOption.RAW, ValidityFilter.CLOSE);
 
 				collect = IntStream
 						.range(1, quotations.size())
@@ -206,7 +207,7 @@ public class QuotationFixer {
 
 			List<QuotationUnit> collect = null;
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
+				Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, SplitOption.RAW, ValidityFilter.CLOSE);
 
 				collect = IntStream
 						.range(1, quotations.size())

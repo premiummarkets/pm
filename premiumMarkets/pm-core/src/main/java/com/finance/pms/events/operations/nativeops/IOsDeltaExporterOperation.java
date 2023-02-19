@@ -109,9 +109,15 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 			SortedMap<Date, double[]> factorisedInput = inputListToArray.get(InputToArrayReturn.RESULTS);
 			
 			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {
-				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "): " + inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream()
-																							.filter(k -> !knownMissingKeys.contains(k))
-																							.collect(Collectors.toList()));
+				String nansLines = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream()
+																			.map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
+																			.reduce((a, e) -> a + " " + e)
+																			.orElse("");
+				List<Date> nansDates = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().filter(k -> !knownMissingKeys.contains(k)).collect(Collectors.toList());
+				String nansResultSummary = inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size()).reduce((a, e) -> a + " " + e).orElse("");
+				String nansDetails = nansResultSummary + ". Unexpected: " + nansLines.substring(0, Math.min(nansLines.length(), 15000));
+				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
+				//LOGGER.error("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
 			}
 			
 			//Append or over write
@@ -150,18 +156,24 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		return new StringValue("NONE");
 	}
 
+	//Should return the delta: starting from required parentStartShift 
 	private String createDeltaFile(TargetStockInfo targetStock, int parentRequiredStartShift, String baseFilePath) throws IOException, ParseException, FileNotFoundException, NotEnoughDataException {
-		//Return the delta: from parentStartShift 
+		
 		Date startDate = targetStock.getStartDate(parentRequiredStartShift);
 		Date endDate = targetStock.getEndDate();
+		
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		LOGGER.info("Extracting delta of " + baseFilePath + ", from " + simpleDateFormat.format(startDate) + " to " + simpleDateFormat.format(endDate));
+		
 		List<String> reversedContent = new ArrayList<>();
 		try (ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(new File(baseFilePath))) {
 			Date date = DateFactory.getNowEndDate();
-			String dateStr = new SimpleDateFormat("dd/MM/yyyy").format(date);
+			
+			String dateStr = simpleDateFormat.format(date);
 			do {
 				String readLine = reversedLinesFileReader.readLine();
 				dateStr = readLine.split(",")[0];
-				if (!"date".equals(dateStr.trim()) && (date = new SimpleDateFormat("dd/MM/yyyy").parse(dateStr)).compareTo(endDate) <= 0) {
+				if (!"date".equals(dateStr.trim()) && (date = simpleDateFormat.parse(dateStr)).compareTo(endDate) <= 0) {
 					reversedContent.add(readLine);
 				}
 			} while (!"date".equals(dateStr.trim()) && date.compareTo(startDate) > 0);

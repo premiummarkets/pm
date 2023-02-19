@@ -40,8 +40,9 @@ public abstract class QuotationsIntraDay extends Quotations {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(QuotationsIntraDay.class);
 
+	//FIXME
 	QuotationsIntraDay(Stock stock, Date firstDate, Date lastDate, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter ... otherValidityFilters ) throws NoQuotationsException {
-		super(stock, firstDate, lastDate, true, targetCurrency, firstIndexShift, validityFilter, otherValidityFilters);
+		super(stock, firstDate, lastDate, true, targetCurrency, firstIndexShift, SplitOption.RAW, otherValidityFilters);
 	}
 
 	//FIXME
@@ -52,7 +53,7 @@ public abstract class QuotationsIntraDay extends Quotations {
 	@Override
 	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
 	
-		QuotationData quotationData = Quotations.getCachedStock(stock, ValidityFilter.ALLVALID.name());
+		QuotationData quotationData = Quotations.getCachedStock(stock, SplitOption.RAW, ValidityFilter.ALLVALID.name()); //FIXME is the filter correct?
 		
 		if (quotationData == null || quotationData.size() == 0) {
 			return null;

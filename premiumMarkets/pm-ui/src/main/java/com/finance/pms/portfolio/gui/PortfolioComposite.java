@@ -1568,7 +1568,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									try {
 										selectedEventDefs.add(EventDefinition.valueOfEventInfo(alertOnEvent.getEventInfoReference()));
 									} catch (NoSuchFieldException e) {
-										LOGGER.warn("Event definition not found in this configuration : "+e);
+										LOGGER.warn("Event definition not found in this configuration: " + e);
 									}
 								}
 

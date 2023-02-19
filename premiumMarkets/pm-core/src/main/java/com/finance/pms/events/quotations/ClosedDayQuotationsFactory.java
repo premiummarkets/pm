@@ -43,28 +43,29 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.Quotations.SplitOption;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 	@Override
 	public Quotations getSpliFreeQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), ValidityFilter.SPLITFREE, validityFilter);
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), SplitOption.SPLITFREE, validityFilter);
 	}
 
 	@Override
-	public Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter... otherFilters) throws NoQuotationsException {
-		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), validityFilter, otherFilters);
+	public Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, SplitOption splitOption, ValidityFilter... otherFilters) throws NoQuotationsException {
+		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), splitOption, otherFilters);
 	}
 
 	@Override
 	public Quotations getBoundSafeEndDateQuotationsInstance(Stock stock, Date endDate, Boolean keepCache, Currency targetCurrency, ValidityFilter validityFilter) throws NoQuotationsException {
-		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, ValidityFilter.SPLITFREE, validityFilter);
+		return new Quotations(stock, endDate, endDate, keepCache, targetCurrency, 1, SplitOption.SPLITFREE, validityFilter);
 	}
 	
 	@Override
 	public int nbDataPointsBetweenFor(Stock stock, Date firstDate, Date secondDate, ValidityFilter validityFilter) throws NoQuotationsException, NotEnoughDataException {
-		Quotations quotations = new Quotations(stock, firstDate, secondDate, true, null, 1, validityFilter);
+		Quotations quotations = new Quotations(stock, firstDate, secondDate, true, null, 1, SplitOption.SPLITFREE, validityFilter);
 		Integer firstIndex = quotations.getQuotationData().getClosestIndexBeforeOrAtDate(0, firstDate);
 		if (firstIndex == -1) firstIndex = 0;
 		Integer sndIndex = quotations.getQuotationData().getClosestIndexBeforeOrAtDate(0, secondDate);

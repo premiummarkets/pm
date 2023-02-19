@@ -39,6 +39,7 @@ import org.apache.commons.lang.NotImplementedException;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.quotations.Quotations.SplitOption;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 
 public interface QuotationsFactory {
@@ -62,7 +63,7 @@ public interface QuotationsFactory {
     public abstract Calendar incrementDate(Stock stock, Collection<QuotationDataType> dataTypes, Calendar calendar, int amount) throws NotEnoughDataException;
 
     /**
-     * Always brings back the latest value at or before endDate, even when out of range on the right.
+     * Always brings back the latest value at or before endDate, even when fisrtDate is out of range on the right.
      * This is done using a firstIndexShift of value 1.
      * It also is split free.
      * @param stock
@@ -77,7 +78,7 @@ public interface QuotationsFactory {
     
     /**
      * Split free
-     * To prevent index out of bound when the lastDate falls after the last Quotation: firstIndexShift should bet set to 1 
+     * To prevent index out of bound when the fisrtDate falls after the last Quotation: firstIndexShift should bet set to 1 
      * @param stock
      * @param firstDate
      * @param lastDate
@@ -102,7 +103,7 @@ public interface QuotationsFactory {
      * @return
      * @throws NoQuotationsException
      */
-    public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter, ValidityFilter... otherFilters) throws NoQuotationsException;
+    public abstract Quotations getRawQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, SplitOption splitOption, ValidityFilter... otherFilters) throws NoQuotationsException;
     
     public abstract int nbDataPointsBetweenFor(Stock stock, Date firstDate, Date secondDate, ValidityFilter validityFilter) throws NoQuotationsException, NotEnoughDataException;
 

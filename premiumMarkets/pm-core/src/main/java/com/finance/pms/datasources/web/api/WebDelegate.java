@@ -10,7 +10,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.http.HttpEntity;
@@ -116,10 +115,12 @@ public class WebDelegate {
 		String[] split = fileName.split(".+?" + File.separator + "(?=[^" + File.separator + "]+$)"); //".+?/(?=[^/]+$)"
 		String fileNameBaseName = split[split.length-1];
 		
-		String fileNameBaseNameWOExt = Optional.ofNullable(fileNameBaseName)
-							      				.filter(f -> f.contains("."))
-							      				.map(f -> f.substring(0, fileNameBaseName.lastIndexOf(".")))
-							      				.orElse(fileNameBaseName);
+//		String fileNameBaseNameWOExt = Optional.ofNullable(fileNameBaseName)
+//							      				.filter(f -> f.contains("."))
+//							      				.map(f -> f.substring(0, fileNameBaseName.lastIndexOf(".")))
+//							      				.orElse(fileNameBaseName);
+		String fileNameBaseNameWOExt = fileNameBaseName.endsWith(".csv")?fileNameBaseName.replaceAll(".csv$", ""):fileNameBaseName;
+		
 		
 		String localFileCopyName = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + fileNameBaseNameWOExt + ".csv";
 		

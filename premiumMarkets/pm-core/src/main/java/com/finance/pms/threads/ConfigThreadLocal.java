@@ -47,7 +47,7 @@ public class ConfigThreadLocal {
    
     public static Config get(String configName)  {
     	if (null != configs.get().get(configName)) return configs.get().get(configName);
-        throw new IllegalArgumentException("The config name has not been initialised : "+configName);
+        throw new IllegalArgumentException("The config name has not been initialised : " + configName);
     }
     
 	public static Map<String, Config> get(String configName, String ...configNames) {

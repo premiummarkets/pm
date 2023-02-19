@@ -29,10 +29,12 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooPythonFormater;
 import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.SplitOption;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -110,7 +112,7 @@ public class YahooPythonQuotationFixer {
 			}
 			
 			//Compare with db
-			Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, start, end, false, Currency.NAN, 0, ValidityFilter.CLOSE);
+			Quotations quotations = QuotationsFactories.getFactory().getRawQuotationsInstance(stock, start, end, false, Currency.NAN, 0, SplitOption.SPLITFREE, ValidityFilter.CLOSE);
 			SortedMap<Date, double[]> dbData = QuotationsFactories.getFactory().buildExactMapFromQuotationsOHLCV(quotations);
 			
 			TreeSet<ValidatableDated> fixedValidatables = new TreeSet<ValidatableDated>();
@@ -161,7 +163,11 @@ public class YahooPythonQuotationFixer {
     	
 		//Web call
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), stock.getSymbol(), dateFormat.format(start), dateFormat.format(end));
+		
+		String symbol = stock.getSymbol();
+		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^" + symbol;
+		
+		ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString(), symbol, dateFormat.format(start), dateFormat.format(end));
 		Process p = pb.start();
 		
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(new File(webQuotesPathname)));

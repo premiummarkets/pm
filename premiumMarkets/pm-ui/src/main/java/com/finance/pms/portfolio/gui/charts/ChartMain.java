@@ -31,8 +31,10 @@ package com.finance.pms.portfolio.gui.charts;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Point;
@@ -66,6 +68,7 @@ import java.util.TreeSet;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTextAnnotation;
@@ -114,6 +117,7 @@ import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.SplitOption;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.chartUtils.BarChart;
@@ -138,7 +142,11 @@ public class ChartMain extends Chart {
 	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#0.0000000000");
 	private static final Integer CHARTS_TOTAL_WEIGHT = 100;
 
+	private ChartPanel chartPanel;
 	private BarChartDisplayStrategy barChartDisplayStrategy;
+
+	private Boolean disableSplitFix = false;
+	private Boolean useCalculatedSplitFixOnly = false;
 
 	private JFreeChartTimePeriod jFreeTimePeriod;
 	private JFreeChart jFreeChart;
@@ -153,6 +161,9 @@ public class ChartMain extends Chart {
 	private Map<Long, XYTextAnnotation> lineAnnotations;
 	private ValueMarker axisMarker;
 
+	private Frame chartFrame;
+
+	
 	public ChartMain(Date startDate, JFreeChartTimePeriod jFreeTimePeriod) {
 		super();
 
@@ -200,8 +211,10 @@ public class ChartMain extends Chart {
 				try {
 					Date startDate = stripedCloseFunction.getArbitraryStartDateForCalculation(kthPs.getStock());
 					Date endDate = stripedCloseFunction.getArbitraryEndDate();
-					final Quotations quotations = getQuotationsClose(kthPs.getStock(), kthPs.getTransactionCurrency(), startDate, endDate);
-					lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs);
+					final Quotations quotations = getQuotationUnitsAllClose(kthPs.getStock(), kthPs.getTransactionCurrency(), startDate, endDate);
+					//FIXME reflect the split selection in the context menu...
+					//FIXME move the responsibility of the the quotations init inside the StripedClose Function and use its return here??
+					lineSerie = buildLineSeries(stripedCloseFunction, quotations, kthPs); 
 
 					Paint paint = java.awt.Color.BLACK;
 					if (applyColors) {
@@ -382,6 +395,8 @@ public class ChartMain extends Chart {
 			public void run() {
 
 				try {
+					
+					setCursor(java.awt.Cursor.WAIT_CURSOR);
 
 					TimeSeriesCollection barDataSets = new TimeSeriesCollection();
 
@@ -575,6 +590,8 @@ public class ChartMain extends Chart {
 
 				} catch (Exception e) {
 					LOGGER.error(e,e);
+				} finally {
+					setCursor(java.awt.Cursor.DEFAULT_CURSOR);
 				}
 			}
 
@@ -592,13 +609,15 @@ public class ChartMain extends Chart {
 		Runnable runnable = new Runnable() {
 
 			public void run() {
-
+				
 				XYDataset dataSet = buildLineDataSet(stripedCloseFunction, listShares, applyColors);
 				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDateForChart();
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
 				xAxis.setRange(arbitraryStartDate, arbitraryEndDate);
 				try {
+					setCursor(java.awt.Cursor.WAIT_CURSOR);
+					
 					mainPlot.setDataset(dataSet);
 
 					if (axisMarker != null ) {
@@ -615,6 +634,8 @@ public class ChartMain extends Chart {
 					resetBarChart();
 					resetIndicChart();
 					updateLineDataSet(listShares, stripedCloseFunction, applyColors, plotArea);
+				}  finally {
+					setCursor(java.awt.Cursor.DEFAULT_CURSOR);
 				}
 
 				resetVerticalLines(plotArea);
@@ -632,6 +653,9 @@ public class ChartMain extends Chart {
 			public void run() {
 
 				try {
+					
+					setCursor(java.awt.Cursor.WAIT_CURSOR);
+					
 					//Display empty message
 					CombinedDomainXYPlot combinedDomainXYPlot = (CombinedDomainXYPlot) jFreeChart.getXYPlot();
 
@@ -649,7 +673,7 @@ public class ChartMain extends Chart {
 					}
 					
 					//Domain WE fix
-					Quotations quotations = getQuotationsClose(selectedShare, Currency.NAN, slideStart, slideEnd);
+					Quotations quotations = getQuotationUnitsAllClose(selectedShare, Currency.NAN, slideStart, slideEnd);
 					SortedMap<Date, double[]> quotationsMap = QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations);
 					boolean includeWeekends = quotationsMap.keySet().stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
 					LOGGER.info("Including weekends - continous quotations: " + includeWeekends);
@@ -680,6 +704,8 @@ public class ChartMain extends Chart {
 
 				} catch (Exception e) {
 					LOGGER.warn("Can't refresh indicator chart : "+ e, e);
+				} finally {
+					setCursor(java.awt.Cursor.DEFAULT_CURSOR);
 				}
 			}
 
@@ -687,12 +713,35 @@ public class ChartMain extends Chart {
 
 		EventQueue.invokeLater(runnable);
 	}
+	
+	public void setChartPanel(ChartPanel chartPanel) {
+		this.chartPanel = chartPanel;
+	}
+	
+	private void setCursor(int cursor) {
+		Cursor awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(cursor);
+		chartFrame.setCursor(awtPredefinedCursor);
+		chartPanel.setCursor(awtPredefinedCursor);
+		if (chartPanel.getComponents().length > 0) {
+			chartPanel.getComponent(0).setCursor(awtPredefinedCursor);
+		}
+	}
 
-	private Quotations getQuotationsClose(Stock stock, Currency transactCurrency, Date startDate, Date endDate) throws NoQuotationsException {
+	private Quotations getQuotationUnitsAllClose(Stock stock, Currency transactCurrency, Date startDate, Date endDate) throws NoQuotationsException {
 		
 		try {
+			
 			transactCurrency = (Currency.NAN.equals(transactCurrency))?stock.getMarketValuation().getCurrency():transactCurrency;
-			Quotations bdQuotes = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
+			Quotations bdQuotes;
+			if (disableSplitFix) {
+				bdQuotes = QuotationsFactories.getFactory()
+									.getRawQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, SplitOption.RAW, ValidityFilter.CLOSE);
+			} else if (useCalculatedSplitFixOnly) {
+				bdQuotes = QuotationsFactories.getFactory()
+									.getRawQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, SplitOption.SPLITFREE_CALCULATEDONLY, ValidityFilter.CLOSE);
+			} else {
+				bdQuotes = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
+			}
 			return bdQuotes;
 		} catch (NoQuotationsException e) {
 			throw e;
@@ -1175,6 +1224,19 @@ public class ChartMain extends Chart {
 			}
 		}
 
+	}
+	
+	public void setDisableSplitFix(Boolean disableSplitFix) {
+		this.disableSplitFix = disableSplitFix;
+	}
+
+	public void setUseCalculatedSplitFixOnly(Boolean useCalculatedSplitFixOnly) {
+		this.useCalculatedSplitFixOnly = useCalculatedSplitFixOnly;
+	}
+	
+	public void setFrame(Frame chartFrame) {
+		this.chartFrame = chartFrame;
+		
 	}
 
 }

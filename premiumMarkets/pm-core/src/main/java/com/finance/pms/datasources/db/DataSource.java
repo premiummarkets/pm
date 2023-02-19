@@ -67,7 +67,6 @@ import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.shares.SymbolMarketQuotationProvider;
 import com.finance.pms.datasources.shares.TradingMode;
-import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
 import com.finance.pms.events.AlertEventKey;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -1138,9 +1137,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 			for (int i = 0; i < tablesLocked.size(); i++) {
 				if (!tablesLocked.get(i).getLockModeValue().equals(TableLocker.LockMode.NOLOCK)) {
-					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName()+" "+ tablesLocked.get(i).getLockModeValue().getLockMode());
+					s.execute("LOCK TABLE " + tablesLocked.get(i).getTableName() + " " + tablesLocked.get(i).getLockModeValue().getLockMode());
 					tableLocked = true;
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Lock on table: " + tablesLocked.get(i).getTableName() + ": "+ tablesLocked.get(i).getLockModeValue().getLockMode());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Lock on table: " + tablesLocked.get(i).getTableName() + ": " + tablesLocked.get(i).getLockModeValue().getLockMode());
 				}
 			}
 
@@ -1166,12 +1165,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 						qupdate.addValue(insertParams.get(5)); //Volume
 						
 						int idx = 5;
-						if (validatable instanceof YahooPyQuotation) {//Split
-							qupdate.addValue(insertParams.get(++idx));
-						} else {
-							qupdate.addValue(null);
-						}
-						
+						qupdate.addValue(insertParams.get(++idx));//Split
+
 						qupdate.addValue(insertParams.get(++idx)); //Currency
 
 						//where

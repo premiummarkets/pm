@@ -79,7 +79,7 @@ public class OTFTuningFinalizer {
 		LOGGER.info("Building Tuning res for " + stock.getFriendlyName() + " and " + evtDef.info() + " and analysis " + analyseName + " between " + startDate + " and " + endDate);
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MM dd");
-		String noResMsg = "No estimate is available for " + stock.getName() + " between " + dateFormat.format(startDate) + " and "+ dateFormat.format(endDate) + " with " + evtDef + ".\n";
+		String noResMsg = "No estimate is available for " + stock.getName() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate) + " with " + evtDef + ".\n";
 		try {
 
 			//Grab calculated events and make sure they are ordered by date
@@ -195,12 +195,13 @@ public class OTFTuningFinalizer {
 			if (endDate.compareTo(qMap.firstKey()) >= 0) { //End date is within the available quotations map start
 				SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), endDate);
 				qUnitDateBeforeOrAtEndDate = subMapInclusive.lastKey();
-			} else {
+			} else { //End is before quotation map start?
 				qUnitDateBeforeOrAtEndDate = qMap.firstKey();
 			}
 			Number qUnitDateValueBeforeOrAtEndDate = qMap.get(qUnitDateBeforeOrAtEndDate);
 
-			if (qUnitDateBeforeOrAtEndDate.before(period.getFrom())) throw new RuntimeException();
+			if (qUnitDateBeforeOrAtEndDate.before(period.getFrom())) 
+				throw new RuntimeException("Last quotation date " + qUnitDateBeforeOrAtEndDate + " is before last period start " + period.getFrom() + " for " + stock);
 			period.setTo(qUnitDateBeforeOrAtEndDate);
 			period.setPriceAtTo(qUnitDateValueBeforeOrAtEndDate.doubleValue());
 			period.setRealised(false);
@@ -261,7 +262,7 @@ public class OTFTuningFinalizer {
 			PeriodRatingDTO lastP = periods.get(periods.size() - 1);
 			print = print + "\nb&h:\n" +
 					dateFormat.format(firstP.getFrom()) + "," + firstP.getPriceAtFrom() + "," + 
-					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + "," + buildResOnValidPeriods.getStockPriceChange() +
+					dateFormat.format(lastP.getTo()) + "," + lastP.getPriceAtTo() + "," + buildResOnValidPeriods.getBuyNHoldProfit() +
 					"\n";
 		}
 		return print;
@@ -316,7 +317,7 @@ public class OTFTuningFinalizer {
 
 		}
 
-		fileWriter.write("total, percent gain (unreal): " + tuningRes.getForecastProfitUnReal() + ", price change: " + tuningRes.getStockPriceChange() + "\n");
+		fileWriter.write("total, percent gain (unreal): " + tuningRes.getForecastProfitUnReal() + ", price change: " + tuningRes.getBuyNHoldProfit() + "\n");
 		tuningRes.setConfigRatingFile(fileName);
 
 		fileWriter.write("rating , "+calculatedRating);
@@ -494,7 +495,7 @@ public class OTFTuningFinalizer {
 		int nbSuccess = 0;
 		int nbFailure = 0;
 		for (PeriodRatingDTO periodRatingDTO : tuningRes.getPeriods()) {
-			Validity periodValidity = smoothedPeriodValidity(periodRatingDTO, tuningRes.getStockPriceChange());
+			Validity periodValidity = smoothedPeriodValidity(periodRatingDTO, tuningRes.getBuyNHoldProfit());
 
 			//nbSuccess = nbSuccess + ((periodValidity.equals(Validity.SUCCESS))?1:0);
 			if (periodRatingDTO.getTrend().equals(EventType.BULLISH.toString())) {//we tally only the bullish failures and success
@@ -503,10 +504,10 @@ public class OTFTuningFinalizer {
 			}
 		}
 		
-		FinalRating finalRating = new FinalRating(tuningRes.getForecastProfitUnReal(), tuningRes.getStockPriceChange(), nbSuccess, nbFailure);
+		FinalRating finalRating = new FinalRating(tuningRes.getForecastProfitUnReal(), tuningRes.getBuyNHoldProfit(), nbSuccess, nbFailure);
 		
 		//Legacy
-		finalRating.applyLegacyRating(tuningRes.getForecastProfitUnReal(), tuningRes.getStockPriceChange());
+		finalRating.applyLegacyRating(tuningRes.getForecastProfitUnReal(), tuningRes.getBuyNHoldProfit());
 		
 		//New
 		//FinalRating finalRating = new FinalRating(nbSuccess, nbFailure, tuningRes.getStockPriceChange());

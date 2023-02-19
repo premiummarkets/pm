@@ -15,6 +15,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.SplitOption;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -40,13 +41,13 @@ public class DataTypeCheckOperation extends ArrayMapOperation {
 			Quotations quotationsFilteredClose = 
 					QuotationsFactories.getFactory().getRawQuotationsInstance(
 							targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true,
-							targetStock.getStock().getMarketValuation().getCurrency(), 0, ValidityFilter.getFilterFor(getRequiredStockData()));
+							targetStock.getStock().getMarketValuation().getCurrency(), 0, SplitOption.SPLITFREE, ValidityFilter.getFilterFor(getRequiredStockData()));
 			SortedMap<Date, Double> filteredClose = QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotationsFilteredClose, 0, quotationsFilteredClose.size()-1);
 			
 			Quotations quotations = 
 					QuotationsFactories.getFactory().getRawQuotationsInstance(
 							targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true,
-							targetStock.getStock().getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
+							targetStock.getStock().getMarketValuation().getCurrency(), 0, SplitOption.SPLITFREE, ValidityFilter.CLOSE);
 			SortedMap<Date, Double> close = QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotations, 0, quotations.size()-1);
 			
 			List<? extends NumericableMapValue> mapsList = Arrays.asList(new DoubleMapValue(filteredClose), new DoubleMapValue(close));

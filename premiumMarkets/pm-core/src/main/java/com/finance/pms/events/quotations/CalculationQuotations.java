@@ -43,7 +43,7 @@ public class CalculationQuotations extends Quotations {
 //	}	
 
 	@Deprecated //?? FIXME 
-	protected CalculationQuotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter cacheFilter,
+	protected CalculationQuotations(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, SplitOption cacheFilter,
 			ValidityFilter... otherCacheFilters) throws NoQuotationsException {
 		super(stock, firstDate, lastDate, keepCache, targetCurrency, firstIndexShift, cacheFilter, otherCacheFilters);
 		// TODO Auto-generated constructor stub

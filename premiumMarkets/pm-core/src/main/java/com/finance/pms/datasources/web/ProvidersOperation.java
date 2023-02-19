@@ -19,6 +19,8 @@ import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
+@Deprecated
+
 public class ProvidersOperation extends Providers implements QuotationProvider {
 	
 	private static final String QUOTE_UPDATE = "QuoteUpdate";
@@ -27,6 +29,9 @@ public class ProvidersOperation extends Providers implements QuotationProvider {
 	
 	private ParameterizedOperationBuilder parameterizedOperationBuilder;
 	
+	/**
+	 * @deprecated ?? What is this supposed to used for?
+	 */
 	protected ProvidersOperation(String pathToProps, ParameterizedOperationBuilder parameterizedOperationBuilder) {
 		super();
 		this.parameterizedOperationBuilder =  parameterizedOperationBuilder;

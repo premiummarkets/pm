@@ -42,6 +42,7 @@ import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
@@ -73,9 +74,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	private Quotations refereeQuotations;
 	private Boolean isShutDown;
 
-	private Button closeFunctionBut;
+	private Button comparisonModeBut;
 	private String cmpModeToolTipRoot;
-
 
 	public ChartPerfDisplay(ChartsComposite chartTarget) {
 		super();
@@ -154,13 +154,72 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	public void populatePopups(final Composite popupButtonsGroup) {
 
 		cleanPopupButtonsGroup(popupButtonsGroup);
+		
+		{
+			Group chartSettingsGroup = new Group(popupButtonsGroup, SWT.NONE);
+			RowLayout chartSettingsGroupGroupL = new RowLayout(SWT.VERTICAL);
+			chartSettingsGroupGroupL.justify = true;
+			chartSettingsGroupGroupL.fill=true;
+			chartSettingsGroupGroupL.wrap=false;
+			chartSettingsGroupGroupL.marginHeight=0;
+			chartSettingsGroup.setLayout(chartSettingsGroupGroupL);
+			{
+				final Button splitBut =  new Button(chartSettingsGroup, SWT.CHECK | SWT.LEAD);
+				splitBut.setFont(MainGui.DEFAULTFONT);
+				splitBut.setText("Disable split fix");
+				splitBut.setToolTipText("Disable split/merge fixes and show the raw values as stored in the database.");
+				splitBut.setSelection(false);
+				splitBut.addSelectionListener(new SelectionListener() {
 
-		cmpModeToolTipRoot = "This is to set the comparison mode between several stocks.\nUse the 'Hide / Show stock' button to display several stock on the chart.\n";
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						disableSplit();
+					}
+
+					private void disableSplit() {
+						chartTarget.getMainChartWraper().setDisableSplitFix(splitBut.getSelection());
+						chartTarget.updateCharts(false);
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						disableSplit();
+					}
+				});
+			}
+			
+			{
+				final Button splitCalcOnlyBut =  new Button(chartSettingsGroup, SWT.CHECK | SWT.LEAD);
+				splitCalcOnlyBut.setFont(MainGui.DEFAULTFONT);
+				splitCalcOnlyBut.setText("Use calculated split fix only");
+				splitCalcOnlyBut.setToolTipText("Ignore the potential split indicators potentially stored with the raw values and infer the potential splits/merges");
+				splitCalcOnlyBut.setSelection(false);
+				
+				splitCalcOnlyBut.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						useCalculatedSplitFixOnly();
+					}
+
+					private void useCalculatedSplitFixOnly() {
+						chartTarget.getMainChartWraper().setUseCalculatedSplitFixOnly(splitCalcOnlyBut.getSelection());
+						chartTarget.updateCharts(false);
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						useCalculatedSplitFixOnly();
+					}
+				});
+			}
+		}
 
 		{
-			closeFunctionBut = new Button(popupButtonsGroup, SWT.PUSH);
-			closeFunctionBut.setFont(MainGui.DEFAULTFONT);
-			closeFunctionBut.setText("Comparison mode ...");
+			cmpModeToolTipRoot = "This is to set the comparison mode between several stocks.\nUse the 'Hide / Show stock' button to display several stock on the chart.\n";
+			comparisonModeBut = new Button(popupButtonsGroup, SWT.PUSH);
+			comparisonModeBut.setFont(MainGui.DEFAULTFONT);
+			comparisonModeBut.setText("Comparison mode ...");
 
 			final Set<TransfoInfo> transfos = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
 
@@ -311,31 +370,15 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						public void action() {
 
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Real Price Settings");
-							final Button splitBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
-							splitBut.setBackground(MainGui.pOPUP_BG);
-							splitBut.setFont(MainGui.DEFAULTFONT);
-							splitBut.setText("Disable split fix");
-							splitBut.setToolTipText("Disable split/merge fixes and show the raw values as stored in the database.");
-							splitBut.setSelection(false);
-							
-							final Button splitCalcOnlyBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
-							splitCalcOnlyBut.setBackground(MainGui.pOPUP_BG);
-							splitCalcOnlyBut.setFont(MainGui.DEFAULTFONT);
-							splitCalcOnlyBut.setText("Use calculated split fix only");
-							splitCalcOnlyBut.setToolTipText("Ignore the potential split indicators potentially stored with the raw values and infer the potential splits/merges");
-							splitCalcOnlyBut.setSelection(false);
-
+					
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
+
 								@Override
 								public void action() {
-									actionDialogForm.values[0] = Boolean.valueOf(splitBut.getSelection());
-									actionDialogForm.values[1] = Boolean.valueOf(splitCalcOnlyBut.getSelection());
-									chartTarget.setStripedCloseFunction(new StripedCloseRealPrice((Boolean)actionDialogForm.values[0], (Boolean)actionDialogForm.values[1]));
+									chartTarget.setStripedCloseFunction(new StripedCloseRealPrice());
 									chartTarget.updateCharts(false);
 								}
 							};
-
-							actionDialogForm.setControl(splitBut, splitCalcOnlyBut);
 							actionDialogForm.setAction(actionDialogAction);
 							actionDialogForm.open();
 
@@ -343,11 +386,11 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					})
 			}));
 
-			closeFunctionBut.addSelectionListener(new SelectionListener() {
+			comparisonModeBut.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					selectComparisonMode(closeFunctionBut, transfos);
+					selectComparisonMode(comparisonModeBut, transfos);
 				}
 
 				private void selectComparisonMode(final Button closeFunctionBut, final Set<TransfoInfo> transfos) {
@@ -376,7 +419,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					selectComparisonMode(closeFunctionBut, transfos);
+					selectComparisonMode(comparisonModeBut, transfos);
 				}
 			});
 
@@ -537,8 +580,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	public void updateButtonsToolTips() {
 
 		if (!isShutDown) {
-			closeFunctionBut.setText("Comparison mode ...");
-			closeFunctionBut.setToolTipText(cmpModeToolTipRoot +"The current comparison mode is '"+chartTarget.getStripedCloseFunction().lineToolTip()+"'");
+			comparisonModeBut.setText("Comparison mode ...");
+			comparisonModeBut.setToolTipText(cmpModeToolTipRoot + "The current comparison mode is '" + chartTarget.getStripedCloseFunction().lineToolTip() + "'");
 			chartTarget.chartBoutonsGroup.setSize(chartTarget.chartBoutonsGroup.getBounds().width, chartTarget.chartBoutonsGroup.getBounds().height);
 			chartTarget.chartBoutonsGroup.layout();
 		}

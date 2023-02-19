@@ -52,16 +52,16 @@ public abstract class StripedCloseFunction {
 	protected Date arbitraryStartDate;
 	protected Date arbitraryEndDate;
 
-	public StripedCloseFunction() {
+	protected StripedCloseFunction() {
 		super();
 	}
 
-	public StripedCloseFunction(Date arbitraryEndDate) {
+	protected StripedCloseFunction(Date arbitraryEndDate) {
 		super();
 		this.arbitraryEndDate = arbitraryEndDate;
 	}
 
-	public abstract Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
+	public abstract Number[] targetShareData(SlidingPortfolioShare ps, Quotations splitFreeQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
 
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;

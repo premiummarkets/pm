@@ -164,7 +164,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			);
 
 
-		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice(false, false));
+		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice());
 
 		resetChart(true);
 
@@ -187,12 +187,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		try {
 
-//			Display.getDefault().asyncExec(new Runnable() {
-//	            public void run() {
-	            	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(false);
-	            	ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-//	            }
-//	        });
+        	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(false);
+        	ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 
 			chartTarget.getMainChartWraper().setMainYAxisLabel("");
 			if (idx == null || selectedShare == null ) {
@@ -262,12 +258,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 
 		} finally {
-//			Display.getDefault().asyncExec(new Runnable() {
-//	            public void run() {
-	            	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(true);
-	            	ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-//	            }
-//			});
+        	ChartIndicatorDisplay.this.chartTarget.getShell().setEnabled(true);
+        	ChartIndicatorDisplay.this.chartTarget.getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 		}
 
 	}
@@ -429,7 +421,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						}
 					};
 					try {
-						EventQueue.invokeAndWait(runnable);
+						//EventQueue.invokeAndWait(runnable);
+						Thread t = new Thread(runnable);
+						t.start();
 					} catch (Exception e) {
 						LOGGER.error(e, e);
 					}

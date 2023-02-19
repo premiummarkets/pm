@@ -173,7 +173,7 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 
 	public Double getStockPriceChange() {
 		if (tuningRes == null) return Double.NaN;
-		return tuningRes.getStockPriceChange();
+		return tuningRes.getBuyNHoldProfit();
 	}
 	
 	public Date[] getDateRange() {

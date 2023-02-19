@@ -139,6 +139,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private SortedSet<EventInfo> chartedEvtDefsTrends;
 
 	public Group chartBoutonsGroup;
+	
 	private Group popusGroup;
 
 	private Group slidingGroup;
@@ -314,6 +315,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						// Do nothing (disable mouse left drag zoom)
 					}           
 				};
+				mainChartWraper.setChartPanel(mainChartPanel);
+				mainChartWraper.setFrame(chartFrame);
+				
 				mainChartPanel.setMouseZoomable(false, false);
 				mainChartPanel.setMinimumDrawWidth(0);
 				mainChartPanel.setMinimumDrawHeight(0);
@@ -580,7 +584,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				GridData portfolioInfosGroupData = new GridData(GridData.FILL_HORIZONTAL);
 				chartBoutonsGroup.setLayoutData(portfolioInfosGroupData);
 
-				chartBoutonsGroup.setText("Portfolios charting : ");
+				chartBoutonsGroup.setText("Portfolios charting: ");
 				chartBoutonsGroup.setFont(MainGui.DEFAULTFONT);
 				chartBoutonsGroup.setBackground(innerBgColor);
 
@@ -1019,14 +1023,16 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	@Override
 	public void setCursor(Cursor cursor) {
-//		if (cursor == null) return;
-		
-		super.setCursor(cursor);
+
+        super.setCursor(cursor);
 
 		final java.awt.Cursor awtPredefinedCursor;
-//		boolean invokeAndWait = false;
-		if (cursor != null && ( cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS)) )) {
+		if (cursor != null && ( 
+				cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS))
+				)
+			) {
 
+			LOGGER.info("Cursor charts count +:");
 			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
 			} else if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS))) {
@@ -1034,10 +1040,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			} else {
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
 			}
-			
-//			invokeAndWait = true;
 
 		} else {
+			LOGGER.info("Cursor charts count -:");
 			awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR);
 		}
 
@@ -1052,16 +1057,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			}
 		};
 		
-//		if (invokeAndWait) {
-//			try {
-//				EventQueue.invokeAndWait(runnable);
-//			} catch (Exception e) {
-//				LOGGER.error(e, e);
-//			}
-//		} else {
-			EventQueue.invokeLater(runnable);
-//		}
-
+		//EventQueue.invokeLater(runnable);
+		try {
+			EventQueue.invokeAndWait(runnable);
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+		}
 
 	}
 
@@ -1202,7 +1203,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 	public void setStripedCloseFunction(StripedCloseFunction stripedCloseFunction) {
-
 		this.stripedCloseFunction = stripedCloseFunction;
 		updateButtonsToolTips(this.chartDisplayStrategy);
 	}
@@ -1228,7 +1228,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		}
 
 	}
-
 
 	public Group getPopusGroup() {
 		return popusGroup;

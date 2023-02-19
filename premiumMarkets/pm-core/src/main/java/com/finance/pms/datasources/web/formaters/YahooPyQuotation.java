@@ -39,7 +39,7 @@ public class YahooPyQuotation extends DailyQuotation {
 				mainQuery.set(j, ((BigDecimal) mainQuery.get(j)).multiply(splitBigD).setScale(10, RoundingMode.HALF_EVEN)); 
 			}
 			Long volume = (Long) mainQuery.get(5);
-			mainQuery.set(5, Long.valueOf((long) ( volume * split))); //volume
+			mainQuery.set(5, Long.valueOf((long) ( volume / split))); //volume
 		}
 		return this;
 	}
