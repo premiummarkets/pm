@@ -266,13 +266,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				final Currency stockCurrency = stock.getMarketValuation().getCurrency();
 				final Currency trCurrency = ss.getTransactionCurrency();
 
-				final ActionDialogForm actForm = new ActionDialogForm(getShell(), "Add", null, "Add a quotation for "+ss.getFriendlyName());
+				final ActionDialogForm actForm = new ActionDialogForm(getShell(), "Add", null, "Add a quotation for " + ss.getFriendlyName());
 				final SimpleDateFormat displayDF = new SimpleDateFormat("yyyy-MM-dd");
 
 				final Text warning = new Text(actForm.getParent(), SWT.WRAP);
 				warning.setBackground(MainGui.pOPUP_BG);
 				warning.setFont(MainGui.DEFAULTFONT);
-				warning.setText("Fill in your values for " + stock.getFriendlyName()+"\n");
+				warning.setText("Fill in your values for " + stock.getFriendlyName() + "\n");
 
 				Group insertManualGroup = new Group(actForm.getParent(), SWT.NONE);
 				insertManualGroup.setLayout(new GridLayout(4, true));

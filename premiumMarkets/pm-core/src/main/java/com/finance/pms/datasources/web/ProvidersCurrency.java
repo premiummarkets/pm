@@ -94,6 +94,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 							mainQuery.add(getRate());
 							mainQuery.add(getRate());
 							mainQuery.add(Long.valueOf(0));
+							mainQuery.add(null); //split
 							
 							Query iq = new Query();
 							iq.addValuesList(mainQuery);

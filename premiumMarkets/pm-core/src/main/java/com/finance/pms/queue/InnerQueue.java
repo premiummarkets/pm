@@ -87,8 +87,10 @@ public class InnerQueue extends Observable implements Queue {
 		Message nextMess;
 		synchronized (myQueue) {
 			nextMess = myQueue.poll();
-			myQueueSize--;
-			inProcessQueue.put(((IdentifiedObjecMessage) nextMess).getMessageKey(),(IdentifiedObjecMessage) nextMess);
+			if (nextMess != null) {
+				myQueueSize--;
+				inProcessQueue.put(((IdentifiedObjecMessage) nextMess).getMessageKey(),(IdentifiedObjecMessage) nextMess);
+			}
 		}
 
 		return nextMess;

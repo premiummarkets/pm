@@ -357,7 +357,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					@Override
 					public void singleClick(final MouseEvent event) {
 
-						Display.getDefault().syncExec(new Runnable() {
+						Display.getDefault().asyncExec(new Runnable() {
 							@Override
 							public void run() {
 								Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, event.getPoint().y);
@@ -1027,10 +1027,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
         super.setCursor(cursor);
 
 		final java.awt.Cursor awtPredefinedCursor;
-		if (cursor != null && ( 
-				cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS))
-				)
-			) {
+		boolean isNotDefault = isNotDefault(cursor);
+		if (cursor != null && isNotDefault) {
 
 			LOGGER.info("Cursor charts count +:");
 			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
@@ -1042,7 +1040,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			}
 
 		} else {
-			LOGGER.info("Cursor charts count -:");
+			super.getCursor();
+			if (isNotDefault(super.getCursor())) LOGGER.info("Cursor charts count -:");
 			awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR);
 		}
 
@@ -1057,13 +1056,18 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			}
 		};
 		
-		//EventQueue.invokeLater(runnable);
-		try {
-			EventQueue.invokeAndWait(runnable);
-		} catch (Exception e) {
-			LOGGER.error(e, e);
-		}
+		EventQueue.invokeLater(runnable);
+//		try {
+//			EventQueue.invokeAndWait(runnable);
+//		} catch (Exception e) {
+//			LOGGER.error(e, e);
+//		}
 
+	}
+
+
+	private boolean isNotDefault(Cursor cursor) {
+		return cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS));
 	}
 
 	public Date getSlidingStartDate() {

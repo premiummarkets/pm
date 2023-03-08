@@ -44,6 +44,7 @@ import com.finance.pms.datasources.web.MyUrl;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class DayQuoteYahooCrumbFormater extends DayQuoteFormater {
 
 

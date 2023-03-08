@@ -139,13 +139,15 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 					deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
 				}
 			} else {
-				baseFilePath = SeriesPrinter.printo(baseFilePath, headersPrefixes, series);
-				deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
+				synchronized (LOGGER) {
+					baseFilePath = SeriesPrinter.printo(baseFilePath, headersPrefixes, series);
+					deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
+				}
 			}
 			
 			InputFileChecker.checkInputAgainstQuotations(
 					deltaFile, targetStock.getStock(), ValidityFilter.getFilterFor(this.getRequiredStockData()), 
-					0, this.getLagAmount(getOperands()), knownMissingKeys);
+					0, this.getLagAmount(targetStock, getOperands()), knownMissingKeys);
 			
 			return new StringValue(deltaFile);
 
@@ -208,7 +210,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	 */
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent) {
 		
-		int lagAmount = getLagAmount(getOperands());
+		int lagAmount = getLagAmount(targetStock, getOperands());
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
 		
 		try {
@@ -374,10 +376,16 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		return shift;
 	}
 	
-	private int getLagAmount(List<Operation> operations) {
+	private int getLagAmount( TargetStockInfo targetStock, List<Operation> operations) {
 		if (operations.isEmpty()) return 0;
 		return operations.stream()
-			.map(o -> Math.max((o instanceof LaggingOperation)?((LaggingOperation) o).rightLagAmount():0, getLagAmount(o.getOperands())))
+			.map(o -> {
+				int rightLagAmount = 0;
+				if ((o instanceof LaggingOperation)) {
+					rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock);
+				}
+				return Math.max(rightLagAmount, getLagAmount(targetStock, o.getOperands()));
+			})
 			.reduce(0, (a, e) -> Math.max(a, e));
 	}
 

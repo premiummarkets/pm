@@ -964,7 +964,7 @@ public class Quotations {
 
 		synchronized (stock) {
 			SoftReference<Map<String, QuotationData>> softRef = Quotations.QUOTATIONS_CACHE.get(stock);
-			if (softRef == null || softRef.get() == null) {
+			if (softRef == null || softRef.get() == null) { //|| softRef.get().get(validityFilterKey) == null || softRef.get().get(validityFilterKey).size() == 0) {
 				return null;
 			} else {
 				return softRef.get().get(validityFilterKey);

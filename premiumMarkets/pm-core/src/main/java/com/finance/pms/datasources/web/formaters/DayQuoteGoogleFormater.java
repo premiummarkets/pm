@@ -38,6 +38,10 @@ import java.util.LinkedList;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 
+@Deprecated
+/**
+ * @deprecated FIXME
+ */
 public class DayQuoteGoogleFormater extends DayQuoteFormater {
 	
 	public DayQuoteGoogleFormater(MyUrl url,Stock  stock, String currency) {

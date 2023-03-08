@@ -31,6 +31,7 @@ public class DayQuoteYahooPythonFormater extends DayQuoteFormater {
 			switch (columnNum) {
 			case 0: //Date
 				if (field.equals("Date")) {	throw new RuntimeException(line); }
+				if (line.contains("No data")) { throw new RuntimeException(line); }
 				try {
 					tokenisedLine.add(df1.parse(field));
 				} catch (Exception e) {

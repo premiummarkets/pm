@@ -108,7 +108,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown() != null) {
 			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown());
-			BigDecimal todaysQuotation = quotation.getCloseRaw(); //FIXME?? Should it be the CloseSplit()?
+			BigDecimal todaysQuotation = quotation.getCloseSplit();
 			for (AlertOnThreshold alert : alertsSetDown) {
 
 				if (alert.getValue().compareTo(todaysQuotation) > 0) {
@@ -118,7 +118,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					Date nowEndDate = DateFactory.getNowEndDate();
 					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					NumberFormat nf = new DecimalFormat("#0.00");
-					String message = "'Below alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\n" + alert;
+					String message = "'Below alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\nTriggered alerts:\n" + alert;
 					message = message + additionnalMessage(todaysQuotation);
 
 					//TODO improved rules
@@ -146,7 +146,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp() != null) {
 			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp());
-			BigDecimal todaysQuotation = quotation.getCloseRaw();  //FIXME?? Should it be the CloseSplit()?
+			BigDecimal todaysQuotation = quotation.getCloseSplit();
 			for (AlertOnThreshold alert : alertsSetUp) {
 
 				if (alert.getValue().compareTo(todaysQuotation) < 0) {
@@ -163,7 +163,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					Date nowEndDate = DateFactory.getNowEndDate();
 					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					NumberFormat nf = new DecimalFormat("#0.00");
-					String message = "'Above alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\n" + alert;
+					String message = "'Above alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\nTriggered alerts:\n" + alert;
 					message = message + additionnalMessage(todaysQuotation);
 
 					EventType eventType = EventType.INFO; //default alert
@@ -182,7 +182,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 		Date nowEndDate = DateFactory.getNowEndDate();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(nowEndDate, portfolioShare.getTransactionCurrency());
-		return ".\n\nFYI, current: " + todaysQuotation + " and cost per unit: " + pricePerUnitCost + " on the " + df.format(nowEndDate) + ".";
+		return ".\n\nFYI:\n current price: " + todaysQuotation + " and cost per unit: " + pricePerUnitCost + " on the " + df.format(nowEndDate) + ".";
 	}
 
 	private void alertDetected(Map<EventKey, EventValue> eventData, Date current, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {

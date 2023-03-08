@@ -370,6 +370,47 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bestShiftOperation">
+            <reference>bestShift</reference>
+            <description>Calculate the more profitable shift (best shift) for given operation formulae. If &gt; 0 =&gt; Buy, If &lt; 0 =&gt; Sell</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>formulae</referenceAsOperand>
+                    <description>formulae</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,close))))))</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>period</referenceAsOperand>
+                    <description>period</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>42.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>shiftSteps</referenceAsOperand>
+                    <description>shift steps per 1</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitOperation">
             <reference>profit</reference>
             <description>Calculate the profits (the my way) of series of Events from Indicators</description>
@@ -1500,8 +1541,8 @@
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
-                    <referenceAsOperand>allowTrailingNaN</referenceAsOperand>
-                    <description>If NaN are allowed at the end of the data set (usefull for targets)</description>
+                    <referenceAsOperand>allowLastColumnTrailingNaN</referenceAsOperand>
+                    <description>If NaN are allowed int the last column of the data set (usefull for targets)</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue>FALSE</stringValue>
                     </defaultValue>

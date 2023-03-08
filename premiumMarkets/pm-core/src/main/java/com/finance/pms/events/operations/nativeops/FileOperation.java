@@ -19,7 +19,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 
-public class FileOperation extends PMWithDataOperation implements MultiValuesOutput {
+public class FileOperation extends PMWithDataOperation implements MultiValuesOutput, CachableOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(FileOperation.class);
 
@@ -93,8 +93,18 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 
 	@Override
 	public int mainInputPosition() {
-		//return ((NumberValue)getOperands().get(1).getParameter()).getValue(null).intValue();
-		return 0; //FIXME
+		return ((NumberValue)getOperands().get(1).getParameter()).getValue(null).intValue();
+		//return 0; //FIXME
+	}
+	
+	@Override
+	public Integer operationNaturalShift() {
+		return 0;
+	}
+	
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		return true;
 	}
 
 }

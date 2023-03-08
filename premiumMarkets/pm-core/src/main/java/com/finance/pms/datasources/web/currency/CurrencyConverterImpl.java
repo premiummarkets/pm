@@ -81,10 +81,10 @@ public class CurrencyConverterImpl implements CurrencyConverter, MyBeanFactoryAw
 
 	public CurrencyConverterImpl(String pathToProps, CurrencyDAO currencyDao) {
 		super();
-		this.httpSource =  new HttpSourceExchange(pathToProps, this);
+		this.httpSource = new HttpSourceExchange(pathToProps, this);
 		this.numberFormater.setMaximumFractionDigits(2);
 		this.cache = new ConcurrentHashMap<Currency, Map<Currency,List<CurrencyRate>>>();
-		this.currencyDao=currencyDao;
+		this.currencyDao = currencyDao;
 		this.currencyDBAccessSemaphore = new Semaphore(1);
 	}
 

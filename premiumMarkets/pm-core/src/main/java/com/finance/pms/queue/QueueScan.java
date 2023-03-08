@@ -136,18 +136,20 @@ public class QueueScan implements Observer {
 	public void update(Observable o, Object arg) {
 		while (!destination.isEmpty()) {
 			Message nextMess = destination.nextMessage();
-			try {
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Processing message :"+nextMess);
-				this.myMessageListener.onMessage(nextMess);
-
-			} catch (Exception e) {
-				LOGGER.error("Can't deal with the following :"+nextMess.toString()+ " Message is now lost",e);
-				if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
-			} finally {
+			if (nextMess != null) {
 				try {
-					destination.removeMessage(nextMess);
-				} catch (Throwable e) {
-					LOGGER.error(e, e);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Processing message :" + nextMess);
+					this.myMessageListener.onMessage(nextMess);
+	
+				} catch (Exception e) {
+					LOGGER.error("Can't deal with the following :" + nextMess.toString() +  " Message is now lost", e);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
+				} finally {
+					try {
+						destination.removeMessage(nextMess);
+					} catch (Throwable e) {
+						LOGGER.error(e, e);
+					}
 				}
 			}
 		}

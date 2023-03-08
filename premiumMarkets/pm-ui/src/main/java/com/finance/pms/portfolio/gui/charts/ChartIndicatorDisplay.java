@@ -29,7 +29,6 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
-import java.awt.EventQueue;
 import java.io.File;
 import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
@@ -366,9 +365,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 						TuningResDTO tuningResDTO = null;
 						try {
-							SortedMap<EventKey, EventValue> evtDefEvents = ses.getDataResultMap().entrySet().stream().filter(e -> e.getKey().getEventInfo().equals(eventDefinition))
+							SortedMap<EventKey, EventValue> evtDefEvents = ses.getDataResultMap().entrySet().stream()
+									.filter(e -> e.getKey().getEventInfo().equals(eventDefinition))
 									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> b, TreeMap::new));
-							tuningResDTO = chartTarget.getHightlitedEventModel().updateTuningRes(selectedShare, eventDefinition, evtDefEvents, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
+							tuningResDTO = chartTarget.getHightlitedEventModel()
+									.updateTuningRes(selectedShare, eventDefinition, evtDefEvents, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate());
 						} catch (Exception e) {
 							LOGGER.warn("No event results were found for " + eventDefinition + ". Calculation needed. " + e);
 						}
@@ -432,8 +433,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				//Missing bars
 				if (!outputDataNeedsUpdate && !noDataTrends.isEmpty()) {
 					String chartedEvtStr = EventDefinition.getReadableEventDefSetAsString(", ", noDataTrends);
-					String errMsg = "No events are available for " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n"
-							+ "You may want to check the date boundaries, the formulae, the OHLCV available and Force Update the calculations.";
+					String errMsg = 
+							"No events are available for " + chartedEvtStr + " and " + selectedShare.getFriendlyName() + " within the period you have selected.\n" +
+							"You may want to check the date boundaries, the formulae, the OHLCV available and Force Update the calculations.";
 					Display.getDefault().asyncExec(new Runnable() {
 						public void run() {
 							logComposite.getLogDisplay().setText(errMsg);

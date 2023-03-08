@@ -59,6 +59,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.Condition;
+import com.finance.pms.events.operations.nativeops.BestShiftOperation;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
@@ -87,7 +88,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
-	RequiredShiftWrapperOperation.class})
+	RequiredShiftWrapperOperation.class, BestShiftOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -186,13 +187,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			return parameter;
 		}
 		else {
-			for (int i = 0; i < nbOperands; i++) {
-				Operation operand = operands.get(i);
-				if (!operand.isQuotationsDataSensitive()) {
-					Value<?> output = operand.run(targetStock, operand.shortOutputReference(), 0);								
-					operand.setParameter(output);
-				}
-			}
+			runNonDataSensiftives(targetStock, operands);
 		}
 
 		//Quotation sensitives
@@ -316,6 +311,16 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	protected void runNonDataSensiftives(TargetStockInfo targetStock, List<Operation> someOperands) {
+		for (int i = 0; i < someOperands.size(); i++) {
+			Operation operand = someOperands.get(i);
+			if (!operand.isQuotationsDataSensitive()) {
+				Value<?> output = operand.run(targetStock, operand.shortOutputReference(), 0);								
+				operand.setParameter(output);
+			}
+		}
 	}
 
 	/**

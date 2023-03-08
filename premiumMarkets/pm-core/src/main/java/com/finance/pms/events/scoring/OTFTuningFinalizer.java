@@ -92,7 +92,7 @@ public class OTFTuningFinalizer {
 			} else {
 				eventsValues = evtDefEvents.values();
 			}
-			if (eventsValues.isEmpty()) throw new NotEnoughDataException(stock, startDate, endDate, "", new RuntimeException());
+			if (eventsValues.isEmpty()) throw new NotEnoughDataException(stock, startDate, endDate, "For " + evtDef, new RuntimeException());
 
 			//Build res
 			Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));

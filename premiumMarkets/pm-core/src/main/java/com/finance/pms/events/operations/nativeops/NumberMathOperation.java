@@ -24,8 +24,7 @@ public class NumberMathOperation extends Operation {
 	}
 	
 	public NumberMathOperation() {
-		this("nMath", "Math calculus for unary numbers.", 
-				new NumberOperation("number", "number", "Input number", new NumberValue(0.0)));
+		this("nMath", "Math calculus for unary numbers.", new NumberOperation("number", "number", "Input number", new NumberValue(0.0)));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sqrt"})));
 	}
@@ -68,7 +67,7 @@ public class NumberMathOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> emptyValue() {
+	public NumberValue emptyValue() {
 		return null;
 	}
 

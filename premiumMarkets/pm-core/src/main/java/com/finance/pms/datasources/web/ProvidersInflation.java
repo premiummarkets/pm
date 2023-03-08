@@ -97,7 +97,7 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 				throw new RuntimeException(message);
 			}
 
-			long twoMonthAndHalf = (long) (DateFactory.DAYINMILLI*31.0*2.5); //(long) DateFactory.DAYINMILLI*31*2 + DateFactory.DAYINMILLI*15;
+			long twoMonthAndHalf = (long) (DateFactory.DAYINMILLI*31.0*1.0); //(long) DateFactory.DAYINMILLI*31.0*2.5;
 			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
 			Date lastWebDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
 			
@@ -162,6 +162,11 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 
 	private void lastQuoteInterpolation(Stock stock, BigDecimal lastClose, Date lastDate, Date end, List<QuotationUnit> usersQ) {
 		try {
+			
+			//Clean up interpolations between start and end
+			DataSource.getInstance().getShareDAO().deleteQuotationUnits(usersQ); 
+			
+			//Calculate new interpolation
 			GetInflation inflationInterpoler = GetInflation.geInstance();
 
 			BigDecimal inflationRateWithinDateRange = inflationInterpoler.inflationRateWithinDateRange(lastDate, end);
@@ -184,9 +189,6 @@ public class ProvidersInflation extends Providers implements QuotationProvider {
 					Long.valueOf(0),
 					ORIGIN.USER, 
 					BigDecimal.ONE, null);
-			
-			//Clean up interpolations between start and end
-			DataSource.getInstance().getShareDAO().deleteQuotationUnits(usersQ); 
 			
 			//Insert new interpolation
 			DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnit(quotationUnit);

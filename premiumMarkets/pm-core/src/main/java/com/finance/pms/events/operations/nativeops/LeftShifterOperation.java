@@ -97,7 +97,8 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 	}
 
 	@Override
-	public int rightLagAmount() {
+	public int rightLagAmount(TargetStockInfo targetStock) {
+		runNonDataSensiftives(targetStock, getOperands());
 		return ((NumberValue) getOperands().get(LEFT_SHIFT_AMOUNT_IDX).getParameter()).getValue(null).intValue();
 	}
 

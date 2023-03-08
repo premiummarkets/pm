@@ -45,6 +45,7 @@ import com.finance.pms.events.operations.RandomOperation;
 import com.finance.pms.events.operations.TargetStockDelegateOperation;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.BandRatioNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.BestShiftOperation;
 import com.finance.pms.events.operations.nativeops.ConcatStringOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.DataTypeCheckOperation;
@@ -141,7 +142,7 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(listOperation);
 		OperationReferenceOperation operationReferenceOperation = new OperationReferenceOperation();
 		nativeOperations.addOperation(operationReferenceOperation);
-
+		
 		//Stock
 		StockOperation stockOperation = new StockOperation();
 		nativeOperations.addOperation(stockOperation);
@@ -155,6 +156,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(targetStockDelegateOperation);
 		DataTypeCheckOperation dataTypeCheckOperation = new DataTypeCheckOperation();
 		nativeOperations.addOperation(dataTypeCheckOperation);
+		BestShiftOperation bestShiftOperation = new BestShiftOperation();
+		nativeOperations.addOperation(bestShiftOperation);
 
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();

@@ -3,6 +3,7 @@ package com.finance.pms.screening;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,7 +15,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,19 +57,20 @@ public class BestHTClassifier {
 	
 	private final String TMP_PATH = System.getProperty("installdir") + File.separator + "tmp" + File.separator;
 
+	//Components
 	private ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
 	private ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 	private OTFTuningFinalizer tuningFinalizer = (OTFTuningFinalizer) SpringContext.getSingleton().getBean("tuningFinalizer");
 	private PortfolioDAO portfolioDAO = SpringContext.getSingleton().getBean(PortfolioDAO.class);
 	private ShareDAO shareDAO = SpringContext.getSingleton().getBean(ShareDAO.class);
 	
+	//Formulae
 	//shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(31,sma(21,periodicLn_(1,sma(42,close))))))
 	private String templateOperationFormulae = "shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,close))))))";
 //	private String templateOperationFormulae = "shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,bandNormalizer(0,100,NaN,NaN,subtraction_(close,stat:msimplereg(NaN,close)))))))))";
-	private String templateIndicatorformulae = "is bullish when operationXX is above threshold 0; is bearish when operationXX is below threshold 0;";
-	
-//	private String simpleReg = "stat:msimplereg(NaN,close)";
+	private String templateIndicatorformulae = "is bullish when ? is above threshold 0; is bearish when ? is below threshold 0;";
 
+	//Cache
 	private Set<String> createdOperations = Collections.synchronizedSet(new HashSet<>());
 	private Set<String> createdIndicators = Collections.synchronizedSet(new HashSet<>());
 	
@@ -78,6 +79,12 @@ public class BestHTClassifier {
 		if (!this.parameterizedOperationBuilder.isAntlrInitialised()) {
 			this.parameterizedOperationBuilder.updateEditableOperationLists();
 		}
+	}
+
+	public BestHTClassifier(String templateOperationFormulae, String templateIndicatorformulae) {
+		super();
+		this.templateOperationFormulae = templateOperationFormulae;
+		this.templateIndicatorformulae = templateIndicatorformulae;
 	}
 
 	private Operation templateOperation(String opPrefix, String randomUUID, String operationFormulae) throws IOException {
@@ -128,21 +135,30 @@ public class BestHTClassifier {
 	}
 	
 	
-	private class BestShiftReturn {
+	public class BestShiftReturn {
 		
 		Integer bestShift;
 		Double bestRatio;
-		private Map<Integer, Double> shiftRatio;
+
+		private Map<Integer, Double> shiftRatios;
 		
 		protected BestShiftReturn(Integer bestShift, Double bestRatio, Map<Integer, Double> shiftRatio) {
 			super();
 			this.bestShift = bestShift;
 			this.bestRatio = bestRatio;
-			this.shiftRatio = shiftRatio;
+			this.shiftRatios = shiftRatio;
 		}
 		
-		public Map<Integer, Double> getShiftRatio() {
-			return shiftRatio;
+		public Integer getBestShift() {
+			return bestShift;
+		}
+
+		public Double getBestRatio() {
+			return bestRatio;
+		}
+		
+		public Map<Integer, Double> getShiftRatios() {
+			return shiftRatios;
 		}
 		
 		@Override
@@ -170,14 +186,15 @@ public class BestHTClassifier {
 	 */
 	private SortedMap<Integer, BestShiftReturn> bestShiftFor(
 				String randomUUID, 
-				final Stock stock, int periodRangeStart, int periodRangeEnd,
-				int periodRangeStep, double minShiftRangeOverPeriod, double maxShiftRangeOverPeriod, int shiftRangeStep
+				final Stock stock,  Date startDate,  Date endDate,
+				int periodRangeStart, int periodRangeEnd,
+				int periodRangeStep, double minShiftRangePerPeriod, double maxShiftRangePerPeriod, int shiftRangeStep
 				) throws NoQuotationsException, NotEnoughDataException, IOException, WarningException {
 				
-		final Date endDate = DateFactory.getNowEndDate();
-		final Date startDate = DateUtils.addYears(endDate, -20);
+//		final Date endDate = DateFactory.getNowEndDate();
+//		final Date startDate = DateUtils.addYears(endDate, -20);
 		
-		Quotations quotations  = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
+		Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
 		final SortedMap<Date, Double> qMap = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 		
 //		Operation simpleRegressionOperation = templateOperation("c_op_simplereg_", randomUUID, this.simpleReg);
@@ -195,8 +212,8 @@ public class BestHTClassifier {
 		for (int period = periodRangeStart; period <= periodRangeEnd; period = period + periodRangeStep) {
 		
 			final int periodX = period;
-			final int shiftStart = (int)(periodX*minShiftRangeOverPeriod);
-			final int shiftEnd = (int)(periodX*maxShiftRangeOverPeriod);
+			final int shiftStart = (int)(periodX*minShiftRangePerPeriod);
+			final int shiftEnd = (int)(periodX*maxShiftRangePerPeriod);
 			
 			LOGGER.info("Calculating: p " + periodX + " with start s " + shiftStart + " end s " + shiftEnd + " step s " + shiftRangeStep);
 			Config config = ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
@@ -210,7 +227,7 @@ public class BestHTClassifier {
 					
 					int bestShift = 0;
 					Double bestRatio = Double.NEGATIVE_INFINITY;
-					for (int leftShift = shiftStart; leftShift < shiftEnd; leftShift = leftShift + shiftRangeStep) {
+					for (int leftShift = shiftStart; leftShift <= shiftEnd; leftShift = leftShift + shiftRangeStep) {
 
 						try {
 
@@ -218,12 +235,11 @@ public class BestHTClassifier {
 							LOGGER.info("Calculating: " + iterationOperationId + " for " + stock);
 
 							//shiftWrapper(P0==NaN,bandNormalizer(-1,1,0,P1==NaN,leftShifter(P2==leftShift,sma(P3=periodX/2,periodicLn_(1,sma(periodX,close)))))
-							//"shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,bandNormalizer(0,100,NaN,NaN,subtraction_(close,stat:msimplereg(NaN,close)))))))))";
 							@SuppressWarnings("rawtypes")
 							List<Value> params = Lists.newArrayList(
-									new NumberValue(Double.NaN), new NumberValue(Double.NaN), new NumberValue((double) leftShift), 
-									new NumberValue((double) (periodX / 2)), new NumberValue((double) periodX)); //,
-									//new NumberValue(Double.NaN), new NumberValue(Double.NaN), new NumberValue(Double.NaN), new NumberValue(Double.NaN));
+									//new NumberValue(2540.0), new NumberValue(Double.NaN),
+									new NumberValue(Double.NaN), new NumberValue(Double.NaN), 
+									new NumberValue((double) leftShift), new NumberValue((double) (periodX / 2)), new NumberValue((double) periodX));
 							Operation iterationOperation = iterationOperation(templateOperation, params);
 
 							Operation existingOperation = parameterizedOperationBuilder.getCurrentOperations().get(iterationOperationId);
@@ -237,7 +253,7 @@ public class BestHTClassifier {
 
 							//indicator
 							//"is bullish when operationXX is above threshold 0; is bearish when operationXX is below threshold 0;"
-							String indicatorFormulae = BestHTClassifier.this.templateIndicatorformulae.replaceAll("operationXX", iterationOperationId);
+							String indicatorFormulae = BestHTClassifier.this.templateIndicatorformulae.replaceAll("\\?", iterationOperationId);
 							String indicatorId = iterationOperationId + "Ind";
 							Operation existingIndicator = parameterizedIndiactorsBuilder.getCurrentOperations().get(indicatorId);
 							if (existingIndicator != null && !existingIndicator.getFormulae().equals(indicatorFormulae))
@@ -290,7 +306,7 @@ public class BestHTClassifier {
 			try {
 				BestShiftReturn bestShiftRet = f.getValue().get();
 				periodsBestShift.put(f.getKey(), bestShiftRet);
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (Exception e) {
 				LOGGER.error(e, e);
 			}
 		});
@@ -322,46 +338,75 @@ public class BestHTClassifier {
 	
 	public void calculateBestShifts() {
 		final UUID randomUUID = UUID.randomUUID();
+		final Date endDate = DateFactory.getNowEndDate();
+		final Date startDate = DateUtils.addYears(endDate, -20);
 		Function<Stock, SortedMap<Integer, BestShiftReturn>> function = a -> {
 			try {
-				return bestShiftFor(randomUUID.toString(), a, 7, 84, 7, 0, 1, 1);
+				return bestShiftFor(randomUUID.toString(), a, startDate, endDate, 7, 84, 7, 0, 1, 1);
 			} catch (NoQuotationsException | NotEnoughDataException | IOException | WarningException e) {
 				return new TreeMap<>();
 			}
 		};
-		calculate("bestshift", function);
+		calculate(true, randomUUID, "bestShift", function);
 		
 	}
 	
-	public void calculateBestShifts(Integer periodRangeStart, Integer periodRangeEnd, Integer periodRangeStep, Integer shiftRangeStep) {
+	public Map<Stock, SortedMap<Integer, BestShiftReturn>> calculateBestShifts(Boolean export, Integer periodRangeStart, Integer periodRangeEnd, Integer periodRangeStep, Integer shiftRangeStep) {
 		final UUID randomUUID = UUID.randomUUID();
+		final Date endDate = DateFactory.getNowEndDate();
+		final Date startDate = DateUtils.addYears(endDate, -20);
 		Function<Stock, SortedMap<Integer, BestShiftReturn>> function = a -> {
 			try {
-				return bestShiftFor(randomUUID.toString(), a, periodRangeStart, periodRangeEnd, periodRangeStep, 0, 1, shiftRangeStep);
+				return bestShiftFor(randomUUID.toString(), a, startDate, endDate, periodRangeStart, periodRangeEnd, periodRangeStep, 0, 1, shiftRangeStep);
 			} catch (NoQuotationsException | NotEnoughDataException | IOException | WarningException e) {
 				return new TreeMap<>();
 			}
 		};
-		calculate("bestRatioBestShift", function);
+		return calculate(export, randomUUID, "bestRatioBestShift", function);
 		
 	}
 	
-	public void calculateProfitRatioForDefinedShift() {
+	public void calculateProfitRatioForDefinedShift(Boolean export, Integer periodRangeStart, Integer periodRangeEnd, Integer periodRangeStep, double minShiftRangeOverPeriod, double maxShiftRangeOverPeriod) {
 		final UUID randomUUID = UUID.randomUUID();
+		final Date endDate = DateFactory.getNowEndDate();
+		final Date startDate = DateUtils.addYears(endDate, -20);
 		Function<Stock, SortedMap<Integer, BestShiftReturn>> function = a -> {
 			try {
 				//return bestShiftFor(randomUUID.toString(), a, 7, 84, 7, 1d/1.8500506792355262, 1d/1.1093514164587905, 1);
-				return bestShiftFor(randomUUID.toString(), a, 14, 14, 7, 1d/1.8500506792355262, 1d/1.1093514164587905, 1);
+				return bestShiftFor(randomUUID.toString(), a, startDate, endDate, periodRangeStart, periodRangeEnd, periodRangeStep, minShiftRangeOverPeriod, maxShiftRangeOverPeriod, 1);
 			} catch (NoQuotationsException | NotEnoughDataException | IOException | WarningException e) {
 				return new TreeMap<>();
 			}
 		};
-		calculate("bestRatioLimitedShift", function);
+		calculate(export, randomUUID, "bestRatioLimitedShift", function);
+		
+	}
+	
+	public void calculateBestShiftsOverTime(Boolean export) {
+		
+		final Date lastEndDate = DateFactory.getNowEndDate();
+		Date endDate = DateUtils.addYears(lastEndDate, -10);
+		Date startDate = DateUtils.addYears(endDate, -20);
+		for( int i = 0; i <= 10; i++) {
+			final UUID randomUUID = UUID.randomUUID();
+			final Date fStartDate = startDate;
+			final Date fEndDate = endDate;
+			Function<Stock, SortedMap<Integer, BestShiftReturn>> function = a -> {
+				try {
+					return bestShiftFor(randomUUID.toString(), a, fStartDate, fEndDate, 7, 84, 7, 0, 1, 1);
+				} catch (NoQuotationsException | NotEnoughDataException | IOException | WarningException e) {
+					return new TreeMap<>();
+				}
+			};
+			calculate(export, randomUUID, "bestShiftOverTime_" + new SimpleDateFormat("YYYYMMdd").format(endDate), function);
+			startDate = DateUtils.addYears(startDate, +1);
+			endDate = DateUtils.addYears(endDate, +1);
+		}
 		
 	}
 	
 	
-	private void calculate(String extention, Function<Stock, SortedMap<Integer, BestShiftReturn>> function) {
+	private Map<Stock, SortedMap<Integer, BestShiftReturn>> calculate(Boolean export, UUID randomUUID, String extention, Function<Stock, SortedMap<Integer, BestShiftReturn>> function) {
 		
 		try {
 			Set<Stock> allStocks = stocks();
@@ -369,39 +414,48 @@ public class BestHTClassifier {
 			Config config = ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 			
 			Map<Stock, SortedMap<Integer,BestShiftReturn>> allBestShifts = allStocks.parallelStream().collect(Collectors.toMap(s -> s, s -> {
-				ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
-				SortedMap<Integer, BestShiftReturn> apply = function.apply(s);
+				SortedMap<Integer, BestShiftReturn> apply = new TreeMap<Integer, BestHTClassifier.BestShiftReturn>();
+				try {
+					ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, config);
+					apply = function.apply(s);
+				} catch (Exception e) {
+					LOGGER.error(e, e);
+				}
 				return apply;
 			}));
 			
 			
-			try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + UUID.randomUUID().toString() + "_bestShifts_" + extention + ".csv"))) {
-				fileWriter.write("stock,period,best shift,profit ratio\n"); //header
-				allBestShifts.keySet().stream().forEach(k -> allBestShifts.get(k).entrySet().forEach(e -> {
-					try {
-						fileWriter.write(k.getSymbol() + "," + e.getKey() + "," + e.getValue() + "\n");
-					} catch (IOException e1) {
-						throw new RuntimeException(e1);
-					}
-				}));
-			} catch (Exception e) {
-				LOGGER.error(e, e);
+			if (export) {
+				try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + randomUUID.toString() + "_bestShifts_" + extention + ".csv"))) {
+					fileWriter.write("stock,period,best shift,profit ratio\n"); //header
+					allBestShifts.keySet().stream().forEach(stock -> allBestShifts.get(stock).entrySet().forEach(period -> {
+						try {
+							fileWriter.write(stock.getSymbol() + "," + period.getKey() + "," + period.getValue() + "\n");
+						} catch (IOException e1) {
+							throw new RuntimeException(e1);
+						}
+					}));
+				} catch (Exception e) {
+					LOGGER.error(e, e);
+				}
+				
+				try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + randomUUID.toString() + "_allShifts_" + extention + ".csv"))) {
+					fileWriter.write("stock,period,shift,profit ratio\n"); //header
+					allBestShifts.keySet().stream().forEach(stock -> allBestShifts.get(stock).entrySet().forEach(period -> {
+						period.getValue().getShiftRatios().entrySet().forEach(shiftRatio -> {
+							try {
+								fileWriter.write(stock.getSymbol() + "," + period.getKey() + "," + shiftRatio.getKey() + "," + shiftRatio.getValue() +"\n");
+							} catch (IOException e1) {
+								LOGGER.error(e1, e1);
+							}
+						});
+					}));
+				} catch (Exception e) {
+					LOGGER.error(e, e);
+				}
 			}
 			
-			try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + UUID.randomUUID().toString() + "_allShifts_" + extention + ".csv"))) {
-				fileWriter.write("stock,period,shift,profit ratio\n"); //header
-				allBestShifts.keySet().stream().forEach(k -> allBestShifts.get(k).entrySet().forEach(e -> {
-					e.getValue().getShiftRatio().entrySet().forEach(sr -> {
-						try {
-							fileWriter.write(k.getSymbol() + "," + e.getKey() + "," + sr.getKey() + "," + sr.getValue() +"\n");
-						} catch (IOException e1) {
-							LOGGER.error(e1, e1);
-						}
-					});
-				}));
-			} catch (Exception e) {
-				LOGGER.error(e, e);
-			}
+			return allBestShifts;
 					
 		} finally {
 			tearDown();
@@ -409,24 +463,40 @@ public class BestHTClassifier {
 
 	}
 
-	private Set<Stock> stocks() {
+	protected Set<Stock> stocks() {
 //				IndepShareList shareList = portfolioDAO.loadIndepShareList("VOLATILITY,ALLVOLATILITY:" + "MISCELLANEOUS");
 //				Set<Stock> allStocks = shareList.getListShares().values().stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
 				Set<Stock> allStocks = new HashSet<>();
-				allStocks.add(shareDAO.loadStockBy("BTC-USD", "BTC-USD"));
-				allStocks.add(shareDAO.loadStockBy("FCHI", "FCHI"));
-				allStocks.add(shareDAO.loadStockBy("FTSE", "FTSE"));
-				allStocks.add(shareDAO.loadStockBy("VOW.DE", "VOW.DE"));
-				allStocks.add(shareDAO.loadStockBy("INTC", "INTC"));
-				allStocks.add(shareDAO.loadStockBy("AAPL", "AAPL"));
-				allStocks.add(shareDAO.loadStockBy("JPM", "JPM"));
-				allStocks.add(shareDAO.loadStockBy("IBM", "IBM"));
+//				allStocks.add(shareDAO.loadStockBy("FCHI", "FCHI"));
+//				allStocks.add(shareDAO.loadStockBy("FTSE", "FTSE"));
+//				allStocks.add(shareDAO.loadStockBy("VOW.DE", "VOW.DE"));
+//				allStocks.add(shareDAO.loadStockBy("INTC", "INTC"));
+//				allStocks.add(shareDAO.loadStockBy("AAPL", "AAPL"));
+//				allStocks.add(shareDAO.loadStockBy("JPM", "JPM"));
+//				allStocks.add(shareDAO.loadStockBy("IBM", "IBM"));
+//				
+//				allStocks.add(shareDAO.loadStockBy("GALT", "GALT"));
+//				allStocks.add(shareDAO.loadStockBy("CASI", "CASI"));
+//				
+//				allStocks.add(shareDAO.loadStockBy("FSBW", "FSBW")); //low volatility
+//				allStocks.add(shareDAO.loadStockBy("AGG", "AGG")); //low volatility
 				
-				allStocks.add(shareDAO.loadStockBy("GALT", "GALT"));
-				allStocks.add(shareDAO.loadStockBy("CASI", "CASI"));
-				
-				allStocks.add(shareDAO.loadStockBy("FSBW", "FSBW"));
-				allStocks.add(shareDAO.loadStockBy("AGG", "AGG"));
+//				allStocks.add(shareDAO.loadStockBy("BTC-USD","BTC-USD"));
+//				allStocks.add(shareDAO.loadStockBy("MSFT","MSFT"));
+//				allStocks.add(shareDAO.loadStockBy("CAT","CAT"));
+//				allStocks.add(shareDAO.loadStockBy("CASI","CASI"));
+//				allStocks.add(shareDAO.loadStockBy("ALTR","US0214411003"));
+				allStocks.add(shareDAO.loadStockBy("AAPL","AAPL"));
+//				allStocks.add(shareDAO.loadStockBy("GALT","GALT"));
+//				allStocks.add(shareDAO.loadStockBy("VOW.DE","VOW.DE"));
+//				allStocks.add(shareDAO.loadStockBy("INTC","INTC"));
+//				allStocks.add(shareDAO.loadStockBy("IBM","IBM"));
+//				allStocks.add(shareDAO.loadStockBy("CAC","CAC"));
+//				allStocks.add(shareDAO.loadStockBy("LMNR","LMNR"));
+//				allStocks.add(shareDAO.loadStockBy("CTSO","CTSO"));
+//				allStocks.add(shareDAO.loadStockBy("CYTR","CYTR"));
+//				allStocks.add(shareDAO.loadStockBy("AGG","AGG"));
+//				allStocks.add(shareDAO.loadStockBy("FSBW","FSBW"));
 				
 				// Calculating: c_op_p84_s74_a80996bb-53f7-4c0e-a501-e102aa78c412 for Halozyme Therapeutics Inc (HALO / HALO / 20230210 / USD)
 //				allStocks.add(shareDAO.loadStockBy("ADMP", "ADMP"));

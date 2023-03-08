@@ -326,8 +326,8 @@ public class TargetStockInfo {
 	}
 
 	private ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Integer indexOfOutput, Boolean displayByDefault) {
+		
 		if (indexOfOutput != -1) {
-
 			Output output = getGatheredChartableOutput(indexOfOutput);
 			OutputDescr chartedDesrc = output.getChartedDescription();
 			if (chartedDesrc != null) {
@@ -339,10 +339,10 @@ public class TargetStockInfo {
 				output.setChartedDescription(chartedDesrc);
 			}
 			return chartedDesrc.getContainer();
-
 		} else {
 			throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: " + operation.getClass() + " for " + operation);
 		}
+		
 	}
 
 	public Integer getIndexOfChartableOutput(Operation operation, String outputSelector) {
