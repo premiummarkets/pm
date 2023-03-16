@@ -175,10 +175,6 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 				ret.hasNewQuotations = false;
 			}
 
-			Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-			stock.setLastQuote(lastQuote);
-			updateLastQuoteDateForShareInDB(lastQuote);
-
 			LOGGER.info(
 					stock.getSymbol() + ": Done quotations from " + df.format(updateStart) + " to " + df.format(endDate) + ", last quote: " + df.format(stock.getLastQuote()) + ", "
 							+ "Status: " + ret.isSuccessfulUpdate + ", Granted: " + updateGranted + ", "

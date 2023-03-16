@@ -379,7 +379,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				"select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
 						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ? AND "
-						+ QUOTATIONS.DATE_FIELD + " >= ? "+testEndConstraint()+" order by date asc ") {
+						+ QUOTATIONS.DATE_FIELD + " >= ? " + testEndConstraint() + " order by date asc ") {
 
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
@@ -465,13 +465,13 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				+ SHARES.TABLE_NAME+ ".*" 
 				+ " FROM " + eventsTableName + "," + SHARES.TABLE_NAME 
 				+ " WHERE "
-				+ eventsTableName +"."+ EVENTS.DATE_FIELD + " >= ? AND " 
-				+ eventsTableName +"."+ EVENTS.DATE_FIELD + " <= ? AND " 
-				+ eventsTableName +"."+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint
+				+ eventsTableName + "." + EVENTS.DATE_FIELD + " >= ? AND " 
+				+ eventsTableName + "." + EVENTS.DATE_FIELD + " <= ? AND " 
+				+ eventsTableName + "." + EVENTS.ANALYSE_NAME + " in "+eventListConstraint
 				+ eventDefinitionConstraint(eventDefinitions)+ " AND "
-				+ eventsTableName +"."+ EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
-				+ SHARES.TABLE_NAME + "."+ SHARES.SYMBOL_FIELD + "=" + eventsTableName +"."+ EVENTS.SYMBOL_FIELD + " AND "
-				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + eventsTableName +"."+ EVENTS.ISIN_FIELD;
+				+ eventsTableName + "." + EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
+				+ SHARES.TABLE_NAME + "."+ SHARES.SYMBOL_FIELD + "=" + eventsTableName + "." + EVENTS.SYMBOL_FIELD + " AND "
+				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + eventsTableName + "." + EVENTS.ISIN_FIELD;
 
 		LOGGER.info(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate));
 
@@ -644,22 +644,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		Query select = new Query(
 				"SELECT "
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.ANALYSE_NAME+","
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.DATE_FIELD+","
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.EVENTDEF_FIELD+","
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.EVENTTYPE_FIELD+","
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.ISIN_FIELD+","
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.MESSAGE_FIELD+","
-						+ EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.SYMBOL_FIELD
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ANALYSE_NAME + ","
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + ","
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEF_FIELD + ","
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD + ","
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD + ","
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.MESSAGE_FIELD + ","
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD
 						+ " FROM " + EVENTS.EVENTS_TABLE_NAME 
 						+ " WHERE "
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ANALYSE_NAME + " = ? AND " 
-						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD +" in "+eventTypeConstraint+" AND " 
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTTYPE_FIELD + " in " + eventTypeConstraint + " AND " 
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD + " = ? AND " 
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD + " = ? AND " 
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEF_FIELD + " = ? AND "
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " <= ? "
-						+ " ORDER BY "+EVENTS.EVENTS_TABLE_NAME+"."+EVENTS.DATE_FIELD+ " DESC ") {
+						+ " ORDER BY " + EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " DESC ") {
 
 			@Override
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {

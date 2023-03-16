@@ -611,7 +611,7 @@ public class AdminDB {
 				DataSource.getInstance().executeBlock(lstUpdate, updateS);
 
 			if (!justCheck)
-				DataSource.getInstance().executeBlock(lstUpdateS,updateQ);
+				DataSource.getInstance().executeBlock(lstUpdateS, updateQ);
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

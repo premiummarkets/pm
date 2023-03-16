@@ -30,7 +30,6 @@
 package com.finance.pms.datasources.shares;
 
 import java.security.InvalidAlgorithmParameterException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -45,11 +44,12 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.Query;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.web.ProvidersList;
@@ -74,7 +74,7 @@ public class Stock implements Validatable {
 
 	private String name;
 	private StockCategories category;
-	private Date lastQuote;
+	//private Date lastQuote;
 	private MarketValuation marketValuation;
 	private SymbolMarketQuotationProvider symbolMarketQuotationProvider;
 	private String sectorHint;
@@ -105,7 +105,7 @@ public class Stock implements Validatable {
 		this.name = s.name;
 		this.overrideUserQuotes = s.overrideUserQuotes;
 		this.category = s.category;
-		this.lastQuote = s.lastQuote;
+//		this.lastQuote = s.lastQuote;
 		this.refName = s.refName;
 		this.tradingMode = s.tradingMode;
 		this.sectorHint = s.sectorHint;
@@ -164,7 +164,7 @@ public class Stock implements Validatable {
 		this.name = name;
 		this.overrideUserQuotes = removable;
 		this.category = category;
-		this.lastQuote = lastquote;
+//		this.lastQuote = lastquote;
 
 		this.tradingMode = tradingMode;
 		this.sectorHint = sectorHint;
@@ -179,7 +179,7 @@ public class Stock implements Validatable {
 		this.name = stock.name;
 		this.overrideUserQuotes = stock.overrideUserQuotes;
 		this.category = stock.category;
-		this.lastQuote = stock.lastQuote;
+//		this.lastQuote = stock.lastQuote;
 		this.refName = stock.refName;
 		this.tradingMode = stock.tradingMode;
 		this.sectorHint = stock.sectorHint;
@@ -227,7 +227,7 @@ public class Stock implements Validatable {
 	@Transient
 	private boolean isObsolete() {
 		GregorianCalendar gcal = new GregorianCalendar();
-		gcal.setTime(this.lastQuote);
+//		gcal.setTime(this.lastQuote);
 		gcal.add(Calendar.MONTH,12);
 		Date obsolete = gcal.getTime();
 		return (obsolete.compareTo(new Date()) < 0);
@@ -251,29 +251,7 @@ public class Stock implements Validatable {
 
 	@Override
 	public Query toDataBase() {
-
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy/MM/dd");
-
-		Query iq = new Query();
-
-		//Ajout d'une requete pour la base
-		iq.addValue(this.getSymbol());
-		iq.addValue(this.getIsin());
-		iq.addValue(this.getName());
-		iq.addValue(overrideUserQuotes);
-		iq.addValue(this.getCategory().name());
-		try {
-			iq.addValue((null != this.lastQuote)?this.lastQuote:sf.parse("1970/01/01"));
-		} catch (ParseException e) {
-			iq.addValue(new Date());
-			LOGGER.error("",e);
-		}
-		iq.addValue(this.getSymbolMarketQuotationProvider().toString());
-		iq.addValue(this.getMarketValuation().toString());
-		iq.addValue(this.getSectorHint());
-		iq.addValue(this.getTradingMode().toString());
-		iq.addValue(this.getCapitalisation());
-		return iq;
+		throw new NotImplementedException("Use the SahreDAO instead.");
 	}
 
 
@@ -281,16 +259,17 @@ public class Stock implements Validatable {
 	public String toString() {
 
 		String str = "";
-
+		Date lastQuote = null;
 		try {
 			Currency currency = Currency.NAN;
 			if (this.getMarketValuation() != null) {
 				currency = this.getMarketValuation().getCurrency();
 			}
 			String lastDateStr = "None";
-			if (this.lastQuote != null) {
+			lastQuote = this.getLastQuote();
+			if (lastQuote != null) {
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-				lastDateStr = dateFormat.format(this.lastQuote);
+				lastDateStr = dateFormat.format(lastQuote);
 			}
 			str = getFriendlyName().replace(")", " / ") + lastDateStr + " / " + currency + ")";
 
@@ -398,12 +377,17 @@ public class Stock implements Validatable {
 	}
 
 	public void setLastQuote(Date lastQuote) {
-		this.lastQuote = lastQuote;
+		//this.lastQuote = lastQuote;
 	}
 
-	@Temporal(TemporalType.DATE)
+//	@Temporal(TemporalType.DATE)
+//	@Formula("select QUOTATIONS.DATE_FIELD from QUOTATIONS " + 
+//			" where QUOTATIONS.SYMBOL_FIELD = ? AND QUOTATIONS.ISIN_FIELD = ? " +
+//			" order by QUOTATIONS.DATE_FIELD desc ")
+	@Transient
 	public Date getLastQuote() {
-		return lastQuote;
+//		return lastQuote;
+		return DataSource.getInstance().getLastQuotationDateFromQuotations(this, false);
 	}
 
 	public void setCategory(StockCategories category) {
