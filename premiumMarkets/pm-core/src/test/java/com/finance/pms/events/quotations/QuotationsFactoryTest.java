@@ -46,11 +46,11 @@ public class QuotationsFactoryTest {
 		Date start = DateFactory.midnithDate(new Date()); //new SimpleDateFormat("yyyy-MM-dd").parse("2023-03-06");
 		Date end = DateUtils.addDays(start, 1); //new SimpleDateFormat("yyyy-MM-dd").parse("2023-03-07");
 		//QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(portfolioShare.getStock(), startDate, endDate, true, calculationCurrency, 1, ValidityFilter.CLOSE);
-		Quotations aaplQs = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(aapl, start, end, true, Currency.GBP, 1, Quotations.ValidityFilter.CLOSE);
+		Quotations aaplQs = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(aapl, start, end, true, Currency.GBP, 1, Quotations.ValidityFilter.CLOSE);
 		System.out.println(aaplQs);
 		System.out.println(Arrays.toString(aaplQs.getQuotationData().toArray()));
 		
-		Quotations aaplQsEur = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(aapl, start, end, true, Currency.EUR, 1, Quotations.ValidityFilter.CLOSE);
+		Quotations aaplQsEur = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(aapl, start, end, true, Currency.EUR, 1, Quotations.ValidityFilter.CLOSE);
 		System.out.println(aaplQsEur);
 		System.out.println(Arrays.toString(aaplQsEur.getQuotationData().toArray()));
 	}

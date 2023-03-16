@@ -49,7 +49,7 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 public class ClosedDayQuotationsFactory implements QuotationsFactory {
 
 	@Override
-	public Quotations getSpliFreeQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
+	public Quotations getSplitFreeQuotationsInstance(Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexShift, ValidityFilter validityFilter) throws NoQuotationsException {
 		return new Quotations(stock, firstDate, lastDate, keepCache, targetCurrency, Math.max(0, firstIndexShift), SplitOption.SPLITFREE, validityFilter);
 	}
 
@@ -91,7 +91,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 		}
 		try {
 			Quotations quotations = QuotationsFactories.getFactory()
-										.getSpliFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.getFilterFor(dataTypes));
+										.getSplitFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.getFilterFor(dataTypes));
 			Date[] quotationsKeySet = quotations.getDates();
 			
 			Date incrementedDate = null;

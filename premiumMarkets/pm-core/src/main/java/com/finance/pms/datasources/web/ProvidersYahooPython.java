@@ -102,7 +102,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 
         try {
             ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
-            tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
+            tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME, TableLocker.LockMode.NOLOCK));
             DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
         } catch (SQLException e) {
             LOGGER.error("Yahoo quotations SQL error trying: " + stock + " between " + start + " and " + end, e);

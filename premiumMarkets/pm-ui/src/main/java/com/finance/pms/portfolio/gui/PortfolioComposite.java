@@ -1318,7 +1318,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 											}
 										} else {
 											LOGGER.info("Loading in background quotations for "+pS.getStock().getFriendlyName());
-											QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), today, true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
+											QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(pS.getStock(), chartsComposite.getSlidingStartDate(), today, true, pS.getTransactionCurrency(), 1, ValidityFilter.CLOSE);
 										}
 									} catch (NoQuotationsException e) {
 										LOGGER.warn(e);

@@ -64,6 +64,7 @@ import com.finance.pms.portfolio.SharesList;
  * 
  * @author Guillaume Thoreton
  */
+@Deprecated
 public class ProvidersYahoo extends Providers implements QuotationProvider, MarketListProvider {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahoo.class);

@@ -31,7 +31,7 @@ package com.finance.pms.alerts;
 
 public enum AlertOnThresholdType {
 
-	AVG_BUY_PRICE ("Average cost per unit reached"), //Should be updated when avg price changes
+	AVG_BUY_PRICE ("Average buy price reached"), //Should be updated when avg price changes
 	ABOVE_PRICE_CHANNEL ("Above channel threshold reached"), //Updated when triggered
 	BELOW_PRICE_CHANNEL ("Below channel threshold reached"), //Updated when triggered
 	ABOVE_TAKE_PROFIT_LIMIT ("Above take profit threshold limit"), //Should be updated when avg price changes and stays when triggered

@@ -167,7 +167,7 @@ public class NewCurrencyStockDialog extends Dialog {
 					stocks.add(currencyStock);
 					int currentTabSelection = ((PortfolioComposite) caller).getCurrentTabSelection();
 					if (currentTabSelection != -1) {
-						((PortfolioComposite) caller).addShares(currentTabSelection, stocks, BigDecimal.ONE, MonitorLevel.BEARISH);
+						((PortfolioComposite) caller).addShares(currentTabSelection, stocks, BigDecimal.ONE, MonitorLevel.INVESTED);
 						((PortfolioComposite) caller).refreshPortfolioTotalsInfos(currentTabSelection);
 					}
 				} catch (Exception e) {

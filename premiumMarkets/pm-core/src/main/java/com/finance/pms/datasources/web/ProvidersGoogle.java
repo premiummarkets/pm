@@ -59,7 +59,12 @@ import com.finance.pms.datasources.web.formaters.DayQuoteFormater;
 import com.finance.pms.datasources.web.formaters.DayQuoteGoogleFormater;
 import com.finance.pms.portfolio.SharesList;
 
-
+@Deprecated
+/**
+ * @deprecated FIXME
+ * @author guil
+ *
+ */
 public class ProvidersGoogle extends Providers implements MarketListProvider, QuotationProvider {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ProvidersGoogle.class);

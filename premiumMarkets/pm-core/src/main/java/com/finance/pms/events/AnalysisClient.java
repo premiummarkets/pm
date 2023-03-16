@@ -29,6 +29,7 @@
  */
 package com.finance.pms.events;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -225,9 +226,10 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		}
 
 		SimpleMailMessage mail = new SimpleMailMessage(this.templateMessage);
-		String stockName = event.getSymbolName()+" ("+event.getSymbol()+")";
+		String stockName = event.getSymbolName() +" (" + event.getSymbol() + ")";
 		String eMailTxt = event.toEMail();
-		String notaBene = "This message was created on the "+new Date();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		String notaBene = "Message and calculation made on the " + df.format(new Date());
 		String subject = "NONE";
 		if (!eventInfoRef.isEmpty()) eventInfoRef = ", "+eventInfoRef;
 

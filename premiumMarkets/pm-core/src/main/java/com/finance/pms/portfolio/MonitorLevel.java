@@ -38,8 +38,8 @@ package com.finance.pms.portfolio;
 public enum MonitorLevel {
 
 	NONE ("None"),
-	BEARISH ("Invested"),
-	BULLISH ("Supervised"),
+	INVESTED ("Invested"), //Bearish
+	SUPERVISED ("Supervised"), //Bullish
 	ANY ("Any");
 
 	

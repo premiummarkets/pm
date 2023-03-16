@@ -69,7 +69,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 			
 			//Init new ClosePriceIndicator(timeSeries)
 			Date shiftedStartDate = targetStock.getStartDate(thisStartShift + inputParameters.stream().reduce(0, (a, e) -> a + e));
-			Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(
+			Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(
 					targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(),
 					true, targetStock.getStock().getMarketValuation().getCurrency(), 0, validityFilter);
 			SortedMap<Date, double[]> exactMapFromQuotations = 

@@ -51,9 +51,9 @@ public abstract class QuotationsIntraDay extends Quotations {
 //	}
 	
 	@Override
-	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
+	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift, QuotationData quotationData) {
 	
-		QuotationData quotationData = Quotations.getCachedStock(stock, SplitOption.RAW, ValidityFilter.ALLVALID.name()); //FIXME is the filter correct?
+		//QuotationData quotationData = Quotations.getCachedStock(stock, SplitOption.RAW, ValidityFilter.ALLVALID.name()); //FIXME is the filter correct?
 		
 		if (quotationData == null || quotationData.size() == 0) {
 			return null;

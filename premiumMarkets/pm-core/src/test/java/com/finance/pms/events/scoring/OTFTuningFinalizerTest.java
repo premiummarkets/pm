@@ -73,7 +73,7 @@ public class OTFTuningFinalizerTest {
         startDate = sdf.parse("20050101");
         endDate = sdf.parse("20150101");
         stock = DataSource.getInstance().loadStockBySymbol("GOOG");
-        quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+        quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
         qMap = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
         endQDate =  quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate)).getDate();
 

@@ -37,16 +37,18 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 
-public class DailyQuotation extends Stock implements ValidatableDated {
+public class DailyQuotation implements ValidatableDated {
 
 	private static final long serialVersionUID = 1L;
 	
+
+	Stock stock;
 	Date quoteDate;
 	LinkedList<Comparable<?>> mainQuery;
 	String currency;
 
 	public DailyQuotation(LinkedList<Comparable<?>> mainQuery, Stock stock, String currency) {
-		super(stock);
+		this.stock = stock;
 		this.mainQuery = mainQuery;
 		this.quoteDate = (Date) mainQuery.getFirst();
 		this.currency = currency;
@@ -62,8 +64,8 @@ public class DailyQuotation extends Stock implements ValidatableDated {
 		Query iq = new Query();
 		iq.addValuesList(mainQuery);
 		iq.addValue(currency);
-		iq.addValue(((Stock)this).getSymbol());
-		iq.addValue(((Stock)this).getIsin());	
+		iq.addValue(stock.getSymbol());
+		iq.addValue(stock.getIsin());	
 		return iq;
 	}
 	

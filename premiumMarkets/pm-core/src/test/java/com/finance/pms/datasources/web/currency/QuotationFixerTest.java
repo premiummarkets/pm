@@ -97,7 +97,7 @@ public class QuotationFixerTest {
 	//@Test
 	public void split() throws NoQuotationsException {
 		List<Stock> stocks = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol("AAPL");
-		QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stocks.get(0), DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
+		QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stocks.get(0), DateFactory.dateAtZero(), new Date(), true, Currency.NAN, 0, ValidityFilter.CLOSE);
 	}
 
 	//@Test

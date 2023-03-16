@@ -207,7 +207,7 @@ public class VolatilityClassifier {
 		
 		Function<Stock, SortedMap<Date, Double>> quotationsWrapper = s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				return closeQuotations;
 				} catch (NoQuotationsException e) {
@@ -244,7 +244,7 @@ public class VolatilityClassifier {
 		GetInflation getInflation = GetInflation.geInstance();
 		Function<Stock, SortedMap<Date, Double>> quotationsWrapper = s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				Date firstKey = closeQuotations.firstKey();
 				TreeMap<Date, Double> unSkewedQuotations = closeQuotations.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
@@ -291,13 +291,13 @@ public class VolatilityClassifier {
 		
 		Stock dji = DataSource.getInstance().loadStockBySymbol("DJI");
 		RocSmoother rocDJISmoother = new RocSmoother(dji, Arrays.asList(ValidityFilter.CLOSE.toQuotationDataType()));
-		Quotations djiQuotatations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(dji, DateFactory.dateAtZero(), new Date(), true, dji.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+		Quotations djiQuotatations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(dji, DateFactory.dateAtZero(), new Date(), true, dji.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 		SortedMap<Date, double[]> djiClose = QuotationsFactories.getFactory().buildExactMapFromQuotations(djiQuotatations, 0, djiQuotatations.size()-1, QuotationDataType.CLOSE);
 		SortedMap<Date, double[]> djiRocs = rocDJISmoother.smooth(djiClose, false);
 		
 		Function<Stock, SortedMap<Date, Double>> quotationsWrapper = s -> {
 			try {
-				Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(s, DateFactory.dateAtZero(), new Date(), true, s.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				SortedMap<Date, Double> closeQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 				TreeMap<Date, Double> unSkewedQuotations = closeQuotations.entrySet().stream()
 					.collect(Collectors.toMap(e -> e.getKey(), e -> {
@@ -331,7 +331,7 @@ public class VolatilityClassifier {
 			Boolean match = false;
 			for (int i = 0; !match && i <= 1; i++) {
 				try {
-					Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+					Quotations ohlcQuotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 					Date firstQuote = ohlcQuotations.getDate(0);
 					Date lastQuote = ohlcQuotations.getDate(ohlcQuotations.size()-1);
 					Duration diff = Duration.between(new Date(firstQuote.getTime()).toInstant(), new Date(lastQuote.getTime()).toInstant());
@@ -364,7 +364,7 @@ public class VolatilityClassifier {
 		
 		Predicate<Stock> maxQuotationsGapPredicate = stock -> {
 			try {
-				Quotations ohlcQuotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+				Quotations ohlcQuotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				int nbOpenIncrementBetween = QuotationsFactories.getFactory().nbOpenIncrementBetween(
 						stock.getTradingMode().getDataPointFactor(), ohlcQuotations.get(0).getDate(), ohlcQuotations.get(ohlcQuotations.size()-1).getDate());
 				boolean match = (double)ohlcQuotations.size()/(double)nbOpenIncrementBetween >= minValidDataToTimeRatio;
@@ -387,9 +387,9 @@ public class VolatilityClassifier {
 			try {
 				Currency currency = stock.getMarketValuation().getCurrency();
 				Quotations ohlcQuotations = QuotationsFactories.getFactory()
-						.getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, currency, 1, ValidityFilter.OHLCV);
+						.getSplitFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, currency, 1, ValidityFilter.OHLCV);
 				Quotations closeQuotationsWithinRange = QuotationsFactories.getFactory()
-						.getSpliFreeQuotationsInstance(stock, ohlcQuotations.getDate(0), ohlcQuotations.getDate(ohlcQuotations.size()-1), true, currency, 1, ValidityFilter.CLOSE);
+						.getSplitFreeQuotationsInstance(stock, ohlcQuotations.getDate(0), ohlcQuotations.getDate(ohlcQuotations.size()-1), true, currency, 1, ValidityFilter.CLOSE);
 				boolean match = (double) ohlcQuotations.size()/(double) closeQuotationsWithinRange.size() >= minOHLCToQuotesRatio;
 				if (!match) {
 					LOGGER.info(stock + " does not match 'ohlc validity >= " + minOHLCToQuotesRatio + "'.");
@@ -407,7 +407,7 @@ public class VolatilityClassifier {
 		Predicate<Stock> splitMergePredicate = stock -> {
 			try {
 				Quotations ohlcQuotations = QuotationsFactories.getFactory()
-						.getSpliFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
+						.getSplitFreeQuotationsInstance(stock, DateFactory.dateAtZero(), new Date(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.OHLCV);
 				
 				List<QuotationUnit> ohlcData = ohlcQuotations.getQuotationUnits(0, ohlcQuotations.size()-1);
 				List<BigDecimal> splits = ohlcData.stream()

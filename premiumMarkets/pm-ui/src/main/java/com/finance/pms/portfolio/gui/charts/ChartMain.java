@@ -740,7 +740,7 @@ public class ChartMain extends Chart {
 				bdQuotes = QuotationsFactories.getFactory()
 									.getRawQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, SplitOption.SPLITFREE_CALCULATEDONLY, ValidityFilter.CLOSE);
 			} else {
-				bdQuotes = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
+				bdQuotes = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, transactCurrency, 1, ValidityFilter.CLOSE);
 			}
 			return bdQuotes;
 		} catch (NoQuotationsException e) {

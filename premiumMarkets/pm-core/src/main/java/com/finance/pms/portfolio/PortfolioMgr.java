@@ -375,13 +375,13 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 	public Boolean isMonitoredForAlerts(Stock stock, String portfolioName, AlertEventKey alertKey) {
 
-		LOGGER.info("Checking monitor on: "+stock+" in "+portfolioName+" for "+alertKey);
+		LOGGER.info("Checking monitor on: " + stock + " in " + portfolioName + " for " + alertKey);
 
 		AbstractSharesList portfolio = getPortfolio(portfolioName);
 		for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
 			if (portfolioShare.getStock().equals(stock)) {
 
-				LOGGER.info("Checking "+portfolioShare+" against "+stock+" in "+portfolioName+" for "+alertKey);
+				LOGGER.info("Checking " + portfolioShare + " against " + stock + " in " + portfolioName + " for " + alertKey);
 				MonitorLevel monitorLevel = portfolioShare.getMonitorLevel();
 
 				if (monitorLevel.equals(MonitorLevel.ANY)) return true;
@@ -391,16 +391,16 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 				//MonitorLevel == BEARISH || BULLISH
 				switch(alertKey.getAlertType()) {
-				case ABOVE_PRICE_CHANNEL:
-				case AVG_BUY_PRICE:
-				case BELOW_PRICE_CHANNEL:
-				case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:
-				case MANUALDOWN:
-				case MANUALUP:
-					return true;
-				case ABOVE_TAKE_PROFIT_LIMIT:
-				case BELOW_MAX_LOSS_LIMIT:
-					return monitorLevel.equals(MonitorLevel.BEARISH);
+					case ABOVE_PRICE_CHANNEL:
+					case AVG_BUY_PRICE:
+					case BELOW_PRICE_CHANNEL:
+					case BELOW_ZERO_WEIGHTED_PROFIT_LIMIT:
+					case MANUALDOWN:
+					case MANUALUP:
+						return true;
+					case ABOVE_TAKE_PROFIT_LIMIT:
+					case BELOW_MAX_LOSS_LIMIT:
+						return monitorLevel.equals(MonitorLevel.INVESTED);
 				}
 
 			}

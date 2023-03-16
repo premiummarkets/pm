@@ -199,10 +199,14 @@ public class Quotations {
 		QuotationData allValidQuotationData;
 		if (keepCache) {
 			
+			String buildFilterNameKeyAllValid = buildFilterNameKey(ValidityFilter.ALLVALID);
+			
 			synchronized (stock) {
-				allValidQuotationData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift);
+				
+				QuotationData existingProcessed = Quotations.getCachedStock(stock, splitOption, buildFilterNameKeyAllValid);
+				allValidQuotationData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift, existingProcessed);
+				
 				if (allValidQuotationData == null) { //Update the cache from DB for ALLVALID
-					QuotationData existingProcessed = Quotations.getCachedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID));
 					
 					//Remove potential other filters as they need update
 					Quotations.removeCachedStockKey(stock);
@@ -225,7 +229,7 @@ public class Quotations {
 					boolean splitFree = SplitOption.SPLITFREE.equals(splitOption) || SplitOption.SPLITFREE_CALCULATEDONLY.equals(splitOption);
 					boolean calculatedSplitFreeOnly =  SplitOption.SPLITFREE_CALCULATEDONLY.equals(splitOption);
 					
-					if (existingProcessed == null || existingProcessed.isEmpty()) { //Update cache from scratch
+					if (existingProcessed == null || existingProcessed.isEmpty()) { //Update cache from scratch (initialisation)
 						
 						QuotationUnit filteredQjm1 = null;
 						List<QuotationUnit> quotationsUnitOut = new ArrayList<QuotationUnit>();
@@ -238,69 +242,75 @@ public class Quotations {
 								}
 								filteredQjm1 = qj; 
 							}
-							Quotations.putCashedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID), new QuotationData(quotationsUnitOut));
+							allValidQuotationData = Quotations.putCashedStock(stock, splitOption, buildFilterNameKeyAllValid, new QuotationData(quotationsUnitOut));
 						} else {
-							Quotations.putCashedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID), retreived);
+							allValidQuotationData = Quotations.putCashedStock(stock, splitOption, buildFilterNameKeyAllValid, retreived);
 						}
 						
-					} else { //Update Cache completion 
-						
-						if (!retreived.isEmpty()) {
-						
-							if (splitFree) {
-								
-								Date lastCached = existingProcessed.get(existingProcessed.size()-1).getDate();
-								Date firstCached = existingProcessed.get(0).getDate();
-								Date lastRetreived = retreived.get(retreived.size()-1).getDate();
-								Date firstRetreived = retreived.get(0).getDate();
-								
-								List<QuotationUnit> processed = new ArrayList<QuotationUnit>();
-								if (lastRetreived.after(lastCached)) {// Addition to the right: go through the right only  ]..] and apply to the whole series
-									processed.addAll(existingProcessed);
-									QuotationUnit filteredQjm1 = existingProcessed.get(existingProcessed.size()-1);
-									for (int j = 0; j < retreived.size(); j++) {
-										QuotationUnit qj = retreived.get(j);
-										if (qj.getDate().after(lastCached)) { //we fill after to the end
-											processed.add(qj);
-											solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, processed);
-										}
-										filteredQjm1 = qj;
-									}
-								}
-								if (firstRetreived.before(firstCached)) {// addition to the left: go through the left only  [..] and apply only to the left
-									QuotationUnit filteredQjm1 = null;
-									for (int j = 0; j < retreived.size(); j++) {
-										QuotationUnit qj = retreived.get(j);
-										if (qj.getDate().before(firstCached)) {//we fill before and stop
-											processed.add(qj);
-											if (filteredQjm1 != null) {
-												solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, processed);
-											}
-										} else {
-											break;
-										}
-										filteredQjm1 = qj; //qj is not affected by the split free as it is the pivot in the split free operation
-									}
-									processed.add(existingProcessed.get(0));
-									solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, existingProcessed.get(0), processed);
-									processed.addAll(existingProcessed.subList(1, existingProcessed.size()));
-								}
-								
-								Quotations.putCashedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID), new QuotationData(processed));
-									
-							} else {
-								SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
-								quotationUnits.addAll(existingProcessed);
-								quotationUnits.addAll(retreived);
-								Quotations.putCashedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID), new QuotationData(quotationUnits));
-							}
-							
-						}
+						LOGGER.info("All Valid cached intialized for " + firstDate + " - " + firstIndexShift + " to " + lastDate + ", " + stock + " and slpit " + splitFree + ": " + allValidQuotationData.size());
 						
 					}
+					else if (!retreived.isEmpty()) { //Update Cache completion 
+
+						if (splitFree) {
+
+							Date lastCached = existingProcessed.get(existingProcessed.size()-1).getDate();
+							Date firstCached = existingProcessed.get(0).getDate();
+							Date lastRetreived = retreived.get(retreived.size()-1).getDate();
+							Date firstRetreived = retreived.get(0).getDate();
+
+							List<QuotationUnit> processed = new ArrayList<QuotationUnit>();
+							if (lastRetreived.after(lastCached)) {// Addition to the right: go through the right only  ]..] and apply to the whole series
+								processed.addAll(existingProcessed);
+								QuotationUnit filteredQjm1 = existingProcessed.get(existingProcessed.size()-1);
+								for (int j = 0; j < retreived.size(); j++) {
+									QuotationUnit qj = retreived.get(j);
+									if (qj.getDate().after(lastCached)) { //we fill after to the end
+										processed.add(qj);
+										solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, processed);
+									}
+									filteredQjm1 = qj;
+								}
+							}
+							if (firstRetreived.before(firstCached)) {// addition to the left: go through the left only  [..] and apply only to the left
+								QuotationUnit filteredQjm1 = null;
+								for (int j = 0; j < retreived.size(); j++) {
+									QuotationUnit qj = retreived.get(j);
+									if (qj.getDate().before(firstCached)) {//we fill before and stop
+										processed.add(qj);
+										if (filteredQjm1 != null) {
+											solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, processed);
+										}
+									} else {
+										break;
+									}
+									filteredQjm1 = qj; //qj is not affected by the split free as it is the pivot in the split free operation
+								}
+								processed.add(existingProcessed.get(0));
+								solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, existingProcessed.get(0), processed);
+								processed.addAll(existingProcessed.subList(1, existingProcessed.size()));
+							}
+
+							allValidQuotationData = Quotations.putCashedStock(stock, splitOption, buildFilterNameKeyAllValid, new QuotationData(processed));
+
+						} else {
+							SortedSet<QuotationUnit> quotationUnits = new TreeSet<QuotationUnit>();
+							quotationUnits.addAll(existingProcessed);
+							quotationUnits.addAll(retreived);
+							allValidQuotationData =  Quotations.putCashedStock(stock, splitOption, buildFilterNameKeyAllValid, new QuotationData(quotationUnits));
+						}
+						
+						LOGGER.info(
+								"All Valid cached updated for " + firstDate + " - " + firstIndexShift + " to " + lastDate + ", " + stock + " and slpit " + splitFree + ": " + allValidQuotationData.size() + 
+								". Added: " + retreived.size());
+
+					} 
+					else { //No cache update
+						allValidQuotationData = existingProcessed;
+					}
 					
-					allValidQuotationData = Quotations.getCachedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID));
 				}
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("All Valid cached for " + firstDate + " - " + firstIndexShift + " to " + lastDate + " and " + stock + ": " + allValidQuotationData.size());
 			}
 		
 		} else {
@@ -312,12 +322,15 @@ public class Quotations {
 		if (keepCache) {
 			synchronized (stock) {
 				String validityFilterKey = buildFilterNameKey(validityFilters);
-				QuotationData cachedStockForFilter = Quotations.getCachedStock(stock, splitOption, validityFilterKey);
-				if (cachedStockForFilter == null) {
-					cacheFilteredDataQuotationData(splitOption, validityFilterKey, allValidQuotationData);
+				QuotationData existingForFilter = Quotations.getCachedStock(stock, splitOption, validityFilterKey);
+				if (existingForFilter == null) {
+					cachedStock = cacheFilteredDataQuotationData(splitOption, validityFilterKey, allValidQuotationData);
+				} else {
+					cachedStock = existingForFilter;
 				}
-				cachedStock = Quotations.getCachedStock(stock, splitOption, validityFilterKey);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug(validityFilterKey + " cached for " + firstDate + " - " + firstIndexShift + " to " + lastDate + " and " + stock + ": " + cachedStock.size());
 			}
+			
 		} else {
 			if (Arrays.asList(validityFilters).contains(ValidityFilter.ALLVALID)) {
 				cachedStock = allValidQuotationData;
@@ -333,9 +346,7 @@ public class Quotations {
 	}
 
 
-	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift) {
-
-		QuotationData maxRangeCachedQuotationData = Quotations.getCachedStock(stock, splitOption, buildFilterNameKey(ValidityFilter.ALLVALID));
+	protected QuotationData isAllCached(Stock stock, Date firstDate, Date lastDate, Integer indexShift, QuotationData maxRangeCachedQuotationData) {
 
 		QuotationUnit lastQU;
 		Integer fdIdx = 0;
@@ -467,7 +478,7 @@ public class Quotations {
 	public Boolean hasQuotations() {
 		QuotationData quotationData = getQuotationData();
 		if (quotationData == null || quotationData.size() == 0) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("No Quotations for:" + this.stock + " !! ");
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("No Quotations for: " + this.stock + " !! ");
 			return false;
 		}
 		return true;
@@ -804,8 +815,8 @@ public class Quotations {
 	}
 
 
-	protected void cacheFilteredDataQuotationData(SplitOption splitOption, String validityFilterKey, QuotationData allValidQuotationData) throws NoQuotationsException {
-		putCashedStock(
+	protected QuotationData cacheFilteredDataQuotationData(SplitOption splitOption, String validityFilterKey, QuotationData allValidQuotationData) throws NoQuotationsException {
+		return putCashedStock(
 				stock, splitOption, validityFilterKey, 
 				buildQuotationDataFilter(allValidQuotationData, allValidQuotationData.getDate(0), allValidQuotationData.getLastDate(), validityFilters));
 	}
@@ -935,7 +946,7 @@ public class Quotations {
 		
 	}
 
-	private static void putCashedStock(Stock stock, SplitOption splitOption, String validityFilterKey, QuotationData quotationData) {
+	private static QuotationData putCashedStock(Stock stock, SplitOption splitOption, String validityFilterKey, QuotationData quotationData) {
 		
 		validityFilterKey = "_" + splitOption.name() + "_" + validityFilterKey;
 
@@ -954,6 +965,8 @@ public class Quotations {
 			if (oldValue != null) {
 				oldValue.clear();
 			}
+			
+			return quotationData;
 		}
 		
 	}

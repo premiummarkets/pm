@@ -94,7 +94,7 @@ public class BooleanMapValue extends MapValue<Boolean> implements Cloneable {
 			Stock stock = targetStock.getStock();
 			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
 			Quotations quotations = QuotationsFactories.getFactory()
-					.getSpliFreeQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
+					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
 			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 			this.map = map.entrySet().stream().filter(e -> exactMapFromQuotations.containsKey(e.getKey())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
 			return this;

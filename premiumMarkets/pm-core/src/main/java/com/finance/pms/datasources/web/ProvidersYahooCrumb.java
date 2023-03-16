@@ -77,6 +77,7 @@ import com.finance.pms.portfolio.SharesList;
 /**
  * The MarketListProvider is implemented here solely to handle the UNKNOWN market list (stocks in no particular lists)
  */
+@Deprecated
 public class ProvidersYahooCrumb extends Providers implements QuotationProvider, MarketListProvider {
 
     private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahooCrumb.class);

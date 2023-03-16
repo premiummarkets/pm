@@ -195,12 +195,10 @@ public class Portfolio extends AbstractSharesList {
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, transactionCurrency);
 		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account);
-		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) {
-			portfolioShare.setMonitorLevel(MonitorLevel.BEARISH);
-		} else {
+		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
 			portfolioShare.setMonitorLevel(MonitorLevel.NONE);
 		}
-
+		
 		return portfolioShare;
 
 	}
@@ -367,7 +365,8 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		Date ret = new Date(0);
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.getStock().equals(portfolioShare.getStock())) {
 				ret = te.getDate();
 			}
@@ -378,7 +377,8 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		SortedSet<TransactionElement> ret = new TreeSet<TransactionElement>();
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.getStock().equals(portfolioShare.getStock())) {
 				ret.add(te);
 			}
@@ -394,7 +394,8 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public BigDecimal getTotalInAmountEver(Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal ret = BigDecimal.ZERO;
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AIN)) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
 				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
@@ -411,7 +412,8 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public BigDecimal getTotalOutAmountEver(Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal ret = BigDecimal.ZERO;
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AOUT)) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
 				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
@@ -433,7 +435,8 @@ public class Portfolio extends AbstractSharesList {
 	@Override
 	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal ret = BigDecimal.ZERO;
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
 				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
@@ -445,7 +448,8 @@ public class Portfolio extends AbstractSharesList {
 	@Override
 	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal ret = BigDecimal.ZERO;
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AOUT) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
 				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
@@ -457,7 +461,8 @@ public class Portfolio extends AbstractSharesList {
 	@Override
 	public BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		BigDecimal ret = BigDecimal.ZERO;
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.getStock().equals(portfolioShare.getStock())) {
 				ret = ret.add(te.getQuantity());
 			}
@@ -483,7 +488,8 @@ public class Portfolio extends AbstractSharesList {
 		BigDecimal totalMoneyInvested = BigDecimal.ZERO;
 		BigDecimal totalQuantityBought = BigDecimal.ZERO;
 
-		for (TransactionElement te : headTransactionsTo(currentStartDate, currentEndDate)) {
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
 				totalMoneyInvested = totalMoneyInvested.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
@@ -551,7 +557,8 @@ public class Portfolio extends AbstractSharesList {
 
 		try {
 			SortedSet<TransactionElement> transactionsForStock = new TreeSet<TransactionElement>();
-			for (TransactionElement te : headTransactionsTo(null, currentEndDate)) {
+			SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(null, currentEndDate);
+			for (TransactionElement te : headTransactionsTo) {
 				if (te.getStock().equals(portfolioShare.getStock())) {
 					transactionsForStock.add(te);
 				}

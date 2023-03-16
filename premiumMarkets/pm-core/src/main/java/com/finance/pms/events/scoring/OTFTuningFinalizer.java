@@ -99,7 +99,7 @@ public class OTFTuningFinalizer {
 			if (evtDef instanceof EventInfoOpsCompoOperation) {
 				requieredStockDataTypes = ((EventInfoOpsCompoOperation) evtDef).getRequiredStockData();
 			}
-			Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.getFilterFor(requieredStockDataTypes));
+			Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.getFilterFor(requieredStockDataTypes));
 			SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 			LOGGER.info("Quotations map for " + stock.getFriendlyName() + " ranges from " + mapFromQuotationsClose.firstKey() + " to " + mapFromQuotationsClose.lastKey() + " while requested from " + startDate + " to " + endDate);
 			

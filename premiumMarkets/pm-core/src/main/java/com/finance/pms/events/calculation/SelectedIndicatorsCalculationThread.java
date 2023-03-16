@@ -154,7 +154,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					}
 
 					//Calculation
-					Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
+					Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
 					SortedMap<EventKey, EventValue> calculatedEventsForCalculator = calculator.calculateEventsFor(quotations, eventListName);
 
 					if (calculatedEventsForCalculator != null) {//There are results or empty results

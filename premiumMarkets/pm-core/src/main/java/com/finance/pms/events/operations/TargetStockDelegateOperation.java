@@ -71,9 +71,9 @@ public class TargetStockDelegateOperation extends MapOperation {
 				ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
 				Stock stock = targetStock.getStock();
 				Quotations quotations = QuotationsFactories.getFactory()
-						.getSpliFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
+						.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
 				Quotations quotationsDelegate  = QuotationsFactories.getFactory()
-						.getSpliFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
+						.getSplitFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
 				List<Date> qDelegateDates = Arrays.asList(quotationsDelegate.getDates());
 				List<Date> missingKeys = Arrays.stream(quotations.getDates()).filter(qd -> !qDelegateDates.contains(qd)).collect(Collectors.toList());
 				targetStock.addMissingData(missingKeys);

@@ -350,7 +350,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 					for (int j = 0, n = MonitorLevel.values().length; j < n; j++) {
 						moniCombo.add(MonitorLevel.values()[j].getMonitorLevel());
 					}
-					moniCombo.select(moniCombo.indexOf(MonitorLevel.BEARISH.getMonitorLevel()));
+					moniCombo.select(moniCombo.indexOf(MonitorLevel.INVESTED.getMonitorLevel()));
 				}
 			}
 			

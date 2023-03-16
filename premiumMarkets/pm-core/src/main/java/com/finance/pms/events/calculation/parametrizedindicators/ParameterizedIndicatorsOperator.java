@@ -124,17 +124,15 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			
 			long startTime = new Date().getTime();
 			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime);
-			EventMapValue eventMapValue = 
-					(EventMapValue) ((EventInfoOpsCompoOperation)eventInfoOpsCompoOperationHolder.clone())
-										.run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
+			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation)eventInfoOpsCompoOperationHolder.clone()).run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
 			long finishTime = new Date().getTime();
-			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds." );
+			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds.");
 			
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
 			try {
 				//Finding duplicates and invalid dates
-				List<Date> validQuotationsDates =new ArrayList<>(
+				List<Date> validQuotationsDates = new ArrayList<>(
 						QuotationsFactories.getFactory()
 						.buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet());
 				EventKey previousKey = null;
@@ -146,6 +144,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 					Date currentKeyDate = currentKey.getDate();
 					
 					if (currentKeyDate.compareTo(validQuotationsDates.get(0)) >= 0 && !validQuotationsDates.contains(currentKeyDate)) {
+						LOGGER.warn(currentKeyDate + " (" + currentKeyDate.getClass() + ") was not found in " + validQuotationsDates); 
 						invalids.add(currentKey);
 					} else {
 						if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {

@@ -212,12 +212,12 @@ public class MainPMScmd {
 
 
 	public static void commandParamsPrinter(String[] args, @SuppressWarnings("rawtypes") Class mainClazz, Date runningStartDate) {
-		StringBuffer str = new StringBuffer("Your command : java -jar com.finance.pm.jar "+mainClazz.getName()+" ");
+		StringBuffer str = new StringBuffer("Your command : java -jar " + System.getProperty("installdir") + "/pm.jar " + mainClazz.getName() + " ");
 		for (int i = 0; i < args.length; i++) {
 			str.append(args[i] + " ");
 		}
 		LOGGER.warn(str);
-		LOGGER.warn("Started at "+runningStartDate);
+		LOGGER.warn("Started at " + runningStartDate);
 	}
 
 	public static MyPreference getMyPrefs() {
@@ -239,7 +239,7 @@ public class MainPMScmd {
 
 		public MyPreference() {
 			try {
-				String prefdbpath = "com.finance.pms"+System.getProperty("installdir").replaceAll("/", ".");
+				String prefdbpath = "com.finance.pms" + System.getProperty("installdir").replaceAll("/", ".");
 				prefs = prefRoot().node(prefdbpath);
 			} catch (Throwable e) {
 				LOGGER.warn("prefs node name has been reduced to com.finance.pms because : "+e);

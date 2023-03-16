@@ -151,7 +151,7 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 
 		SortedSet<Date> fullKeySet;
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(
+			Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(
 			        targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(),
 			        true, targetStock.getStock().getMarketValuation().getCurrency(),
 			        0, ValidityFilter.CLOSE);

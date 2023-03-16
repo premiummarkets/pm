@@ -194,7 +194,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 								try {
 
-									Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, datedeb, datefin, true, stock.getMarketValuation().getCurrency(), evtCalculator.getStartShift(), evtCalculator.quotationsValidity());
+									Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, datedeb, datefin, true, stock.getMarketValuation().getCurrency(), evtCalculator.getStartShift(), evtCalculator.quotationsValidity());
 									SortedMap<EventKey, EventValue> calculatedEventsForCalculator = evtCalculator.calculateEventsFor(quotations, IndicatorsCalculationThread.this.eventListName);
 
 									if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {

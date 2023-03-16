@@ -119,7 +119,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					NumberFormat nf = new DecimalFormat("#0.00");
 					String message = "'Below alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\nTriggered alerts:\n" + alert;
-					message = message + additionnalMessage(todaysQuotation);
+					message = message + additionnalMessage(todaysQuotation, quotation.getDate());
 
 					//TODO improved rules
 					EventType eventType = EventType.INFO; //default alert
@@ -164,7 +164,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					NumberFormat nf = new DecimalFormat("#0.00");
 					String message = "'Above alert' detected at " + nf.format(todaysQuotation) + " on the " + df.format(nowEndDate) + ".\n\nTriggered alerts:\n" + alert;
-					message = message + additionnalMessage(todaysQuotation);
+					message = message + additionnalMessage(todaysQuotation, quotation.getDate());
 
 					EventType eventType = EventType.INFO; //default alert
 					if (AlertOnThresholdType.ABOVE_TAKE_PROFIT_LIMIT.equals(alert.getAlertType()) || AlertOnThresholdType.BELOW_MAX_LOSS_LIMIT.equals(alert.getAlertType())) { //above profit or below loss limit reach
@@ -178,11 +178,11 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 	}
 
-	private String additionnalMessage(BigDecimal todaysQuotation) {
+	private String additionnalMessage(BigDecimal todaysQuotation, Date today) {
 		Date nowEndDate = DateFactory.getNowEndDate();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(nowEndDate, portfolioShare.getTransactionCurrency());
-		return ".\n\nFYI:\n current price: " + todaysQuotation + " and cost per unit: " + pricePerUnitCost + " on the " + df.format(nowEndDate) + ".";
+		return ".\n\nFYI:\n current price: " + todaysQuotation + " and cost per unit: " + pricePerUnitCost + " on the " + df.format(today) + ".";
 	}
 
 	private void alertDetected(Map<EventKey, EventValue> eventData, Date current, EventDefinition eventDefinition, EventType eventType, String message, String eventListName, AlertOnThresholdType alertType) {

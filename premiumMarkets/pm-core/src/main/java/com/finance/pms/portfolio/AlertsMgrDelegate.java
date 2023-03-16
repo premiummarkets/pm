@@ -104,12 +104,14 @@ public class AlertsMgrDelegate {
 
 	private void addBuyPriceAlertBelow(Date currentDate) {
 		BigDecimal avgBuyPrice = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
-		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice));
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice) + " on the " + df.format(currentDate));
 	}
 
 	private void addBuyPriceAlertAbove(Date currentDate) {
 		BigDecimal avgBuyPrice = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
-		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice));
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice) + " on the " + df.format(currentDate));
 	}
 
 	private String readableNumber(BigDecimal aNumber) {
@@ -155,7 +157,8 @@ public class AlertsMgrDelegate {
 
 	private String readablePercentOf(BigDecimal aPercentage) {
 		NumberFormat format = new DecimalFormat("#0.00 %");
-		return format.format(aPercentage);
+		String formated = format.format(aPercentage);
+		return formated;
 	}
 
 	private EventSignalConfig getEventsConfig() {
@@ -303,20 +306,15 @@ public class AlertsMgrDelegate {
 			BigDecimal priceUnitCost = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
 			
 			BigDecimal aboveThresholdSellPrice = BigDecimal.ZERO;
-			BigDecimal actualPriceToThresholdPrice = null;
 			if (priceUnitCost.compareTo(BigDecimal.ZERO) > 0) {
 				aboveThresholdSellPrice = BigDecimal.ONE.add(sellLimitToPriceRate).multiply(priceUnitCost);
-				actualPriceToThresholdPrice = calculationPrice.divide(aboveThresholdSellPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE);
 			}
 			
 			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 			String takeProfitMessage = 
 					readablePercentOf(sellLimitToPriceRate) + " threshold reached. " +
 					"\nWith " + 
-					"limit: " + readableNumber(aboveThresholdSellPrice) + 
-					", current: " + readableNumber(calculationPrice) + " (current/limit: " + ((actualPriceToThresholdPrice != null)? readablePercentOf(actualPriceToThresholdPrice):"inf %") + ")" +
-					", unit cost: " + readableNumber(priceUnitCost) +  " (latest line)" +
-					", unrealised: " + readableNumber(ps.getGainUnreal(null, currentDate, ps.getTransactionCurrency())) + 
+					"limit: " + readableNumber(aboveThresholdSellPrice) + ", unit cost: " + readableNumber(priceUnitCost) +  " (latest line)" +
 					" on the " + df.format(currentDate);
 
 			addAboveTakeProfitAlert(aboveThresholdSellPrice, takeProfitMessage);

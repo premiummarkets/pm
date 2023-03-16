@@ -9,7 +9,7 @@ public class YahooPyQuotation extends DailyQuotation {
 	private static final long serialVersionUID = 1338187621985651051L;
 
 	public YahooPyQuotation(DailyQuotation dailyQuotation) {
-		super(dailyQuotation.mainQuery, dailyQuotation, dailyQuotation.currency);
+		super(dailyQuotation.mainQuery, dailyQuotation.stock, dailyQuotation.currency);
 	}
 	
 	

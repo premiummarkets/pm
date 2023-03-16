@@ -194,7 +194,7 @@ public class BestHTClassifier {
 //		final Date endDate = DateFactory.getNowEndDate();
 //		final Date startDate = DateUtils.addYears(endDate, -20);
 		
-		Quotations quotations = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
+		Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
 		final SortedMap<Date, Double> qMap = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 		
 //		Operation simpleRegressionOperation = templateOperation("c_op_simplereg_", randomUUID, this.simpleReg);

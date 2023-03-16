@@ -39,7 +39,7 @@ public class InputFileChecker {
 		Date firstDate = importedData.firstKey();
 		Date lastDate = importedData.lastKey();
 		
-		Quotations quotations  = QuotationsFactories.getFactory().getSpliFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, validityFilter);
+		Quotations quotations  = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, validityFilter);
 		SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 		
 		ArrayList<Date> expectedkeySet = new ArrayList<Date>(exactMapFromQuotations.keySet());
