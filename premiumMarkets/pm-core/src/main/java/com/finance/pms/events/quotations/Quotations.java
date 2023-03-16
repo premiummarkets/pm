@@ -925,13 +925,8 @@ public class Quotations {
 	}
 
 	public static Date refreshCaches(Stock stock) {
-		Date lastQuote = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-		stock.setLastQuote(lastQuote);
-		DataSource.getInstance().getShareDAO().saveOrUpdateStock(stock);
-
 		Quotations.removeCachedStockKey(stock);
-
-		return lastQuote;
+		return DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
 	}
 
 	public static void removeCachedStockKey(Stock stock) {

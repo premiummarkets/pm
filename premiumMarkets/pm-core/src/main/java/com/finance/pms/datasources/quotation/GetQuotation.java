@@ -103,7 +103,6 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 			Date lastQuoteBeforeUpdate;
 			if (forceReset) {
 				lastQuoteBeforeUpdate = dateAtZero;
-				stock.setLastQuote(dateAtZero);
 			} else {
 				lastQuoteBeforeUpdate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
 			}

@@ -174,7 +174,6 @@ public class AdminDB {
 						retour.add(new Stock(rs.getString(
 								SHARES.ISIN_FIELD).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim(), rs.getString(SHARES.NAME_FIELD).trim(), 
 								rs.getBoolean(SHARES.REMOVABLE), StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()), 
-								rs.getDate(SHARES.LASTQUOTE), 
 								new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()),new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), 
 								rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 								rs.getString(SHARES.SECTOR_HINT), 

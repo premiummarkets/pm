@@ -1709,10 +1709,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										boolean clearPrevious = clearExisting.getSelection();
 										try {
 											if (clearPrevious) DataSource.getInstance().cleanQuotationsFor(stock);
-											stock.setLastQuote(DateFactory.dateAtZero());
 										} catch (SQLException e1) {
 											LOGGER.error(e1, e1);
-											stock.setLastQuote(DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false));
 										}
 
 										QuotationUpdate quotationUpdate = new QuotationUpdate();

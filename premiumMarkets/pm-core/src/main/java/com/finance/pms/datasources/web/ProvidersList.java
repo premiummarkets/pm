@@ -223,7 +223,6 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 				//check for last former quotation
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-				stock.setLastQuote(formerQuotationDate);
 
 				LOGGER.info("New ticker : "+stock.toString()+" and will be added with last quote : "+ formerQuotationDate);
 
@@ -361,7 +360,6 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 					if (formerQuotationDate.after(DateFactory.dateAtZero())) {
 						LOGGER.warn("Adding Supplemented stock "+stock+" in data base but it has already quotations until "+formerQuotationDate);
 					}
-					stock.setLastQuote(formerQuotationDate);
 
 					//Adding stock for update in db
 					newStockRequestsSet.add(stock);

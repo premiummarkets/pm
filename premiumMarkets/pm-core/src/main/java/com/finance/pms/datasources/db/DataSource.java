@@ -51,6 +51,7 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -132,7 +133,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		SHARES.NAME_FIELD = MainPMScmd.getMyPrefs().get("lookup.name", "NAME");
 		SHARES.REMOVABLE = MainPMScmd.getMyPrefs().get("lookup.removable", "REMOVABLE");
 		SHARES.CATEGORY = MainPMScmd.getMyPrefs().get("lookup.category", "CATEGORY");
-		SHARES.LASTQUOTE = MainPMScmd.getMyPrefs().get("lookup.lastquote", "LASTQUOTE");
 		SHARES.QUOTATIONPROVIDER = MainPMScmd.getMyPrefs().get("lookup.provider", "QUOTATIONPROVIDER");
 		SHARES.MARKET = MainPMScmd.getMyPrefs().get("lookup.market", "MARKETLISTPROVIDER");
 		PORTFOLIO.TABLE_NAME = MainPMScmd.getMyPrefs().get("portfolio.table", "PORTFOLIO");
@@ -221,8 +221,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	 * @deprecated use Hibernate instead
 	 */
 	public Date getLastQuotationDateFromShares(Stock stock) {
-		String query = "SELECT " + SHARES.LASTQUOTE + " FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
-		return this.getLastFormerQuote(stock, false, query);
+//		String query = "SELECT " + SHARES.LASTQUOTE + " FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
+//		return this.getLastFormerQuote(stock, false, query);
+		throw new NotImplementedException("SHARES.LASTQUOTE");
 	}
 
 	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
@@ -485,8 +486,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 									rs.getString(SHARES.SYMBOL_FIELD).trim(),
 									rs.getString(SHARES.NAME_FIELD).trim(), 
 									rs.getBoolean(SHARES.REMOVABLE),
-									StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()), 
-									rs.getDate(SHARES.LASTQUOTE),
+									StockCategories.valueOf(rs.getString(SHARES.CATEGORY).trim()),
 									new SymbolMarketQuotationProvider(rs.getString(SHARES.QUOTATIONPROVIDER).trim(),rs.getString(SHARES.SYMBOL_FIELD).trim()), new MarketValuation(Market.valueOf(rs.getString(SHARES.MARKET).trim()), 
 											rs.getBigDecimal(SHARES.CURRENCYFACTOR), Currency.valueOf(rs.getString(SHARES.CURRENCY).trim())),
 									rs.getString(SHARES.SECTOR_HINT),
@@ -1308,7 +1308,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String NAME_FIELD;
 		public static String REMOVABLE;
 		public static String CATEGORY;
-		public static String LASTQUOTE;
 		public static String QUOTATIONPROVIDER;
 		public static String MARKET;
 
@@ -1320,8 +1319,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		@Deprecated
 		public static String getUPDATELASTQUOTE() {
-			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? " + " where " + SHARES.SYMBOL_FIELD
-					+ " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
+//			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? " + " where " + SHARES.SYMBOL_FIELD
+//					+ " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
+			throw new NotImplementedException("SHARES.LASTQUOTE");
 		}
 
 		@Deprecated
@@ -1330,8 +1330,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		 * @return
 		 */
 		public static String getUPDATELASTQUOTEANDNAME() {
-			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? ," + SHARES.NAME_FIELD + " = ? "
-					+ " where " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
+//			return "UPDATE " + SHARES.TABLE_NAME + " set " + SHARES.LASTQUOTE + " = ? ," + SHARES.NAME_FIELD + " = ? "
+//					+ " where " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
+			throw new NotImplementedException("SHARES.LASTQUOTE");
 		}
 
 	}

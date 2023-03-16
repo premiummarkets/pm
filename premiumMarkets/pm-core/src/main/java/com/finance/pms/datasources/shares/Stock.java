@@ -74,7 +74,6 @@ public class Stock implements Validatable {
 
 	private String name;
 	private StockCategories category;
-	//private Date lastQuote;
 	private MarketValuation marketValuation;
 	private SymbolMarketQuotationProvider symbolMarketQuotationProvider;
 	private String sectorHint;
@@ -105,7 +104,6 @@ public class Stock implements Validatable {
 		this.name = s.name;
 		this.overrideUserQuotes = s.overrideUserQuotes;
 		this.category = s.category;
-//		this.lastQuote = s.lastQuote;
 		this.refName = s.refName;
 		this.tradingMode = s.tradingMode;
 		this.sectorHint = s.sectorHint;
@@ -152,25 +150,6 @@ public class Stock implements Validatable {
 		this.capitalisation = capitalisation;
 	}
 
-	public Stock(String isin, String symbol, String name, Boolean removable,
-			StockCategories category, Date lastquote, 
-			SymbolMarketQuotationProvider marketQuotationsProvider, 
-			MarketValuation market,
-			String sectorHint, TradingMode tradingMode, Long capitalisation)  throws InvalidAlgorithmParameterException {
-		this.marketValuation = market;
-		this.symbolMarketQuotationProvider = marketQuotationsProvider;
-		this.setIsin(isin);
-		this.setSymbol(symbol);
-		this.name = name;
-		this.overrideUserQuotes = removable;
-		this.category = category;
-//		this.lastQuote = lastquote;
-
-		this.tradingMode = tradingMode;
-		this.sectorHint = sectorHint;
-		this.capitalisation = capitalisation;
-	}
-
 	public void resetStock(Stock stock) {
 		this.marketValuation = stock.marketValuation;
 		this.symbolMarketQuotationProvider = stock.symbolMarketQuotationProvider;
@@ -179,7 +158,6 @@ public class Stock implements Validatable {
 		this.name = stock.name;
 		this.overrideUserQuotes = stock.overrideUserQuotes;
 		this.category = stock.category;
-//		this.lastQuote = stock.lastQuote;
 		this.refName = stock.refName;
 		this.tradingMode = stock.tradingMode;
 		this.sectorHint = stock.sectorHint;
@@ -376,17 +354,8 @@ public class Stock implements Validatable {
 		this.symbolMarketQuotationProvider = symbolMarketQuotationProvider;
 	}
 
-	public void setLastQuote(Date lastQuote) {
-		//this.lastQuote = lastQuote;
-	}
-
-//	@Temporal(TemporalType.DATE)
-//	@Formula("select QUOTATIONS.DATE_FIELD from QUOTATIONS " + 
-//			" where QUOTATIONS.SYMBOL_FIELD = ? AND QUOTATIONS.ISIN_FIELD = ? " +
-//			" order by QUOTATIONS.DATE_FIELD desc ")
 	@Transient
 	public Date getLastQuote() {
-//		return lastQuote;
 		return DataSource.getInstance().getLastQuotationDateFromQuotations(this, false);
 	}
 

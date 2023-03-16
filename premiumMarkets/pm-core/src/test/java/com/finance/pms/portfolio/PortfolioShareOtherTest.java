@@ -95,7 +95,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForPAJ() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("FR0010096354","PAJ.PA","",true,
-				StockCategories.DEFAULT_CATEGORY,currentDate,
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
@@ -138,7 +138,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForFTE() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("FR0000133308","FTE.PA","",true,
-				StockCategories.DEFAULT_CATEGORY,currentDate,
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
@@ -232,7 +232,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForIGLT() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("IGLT.L","IGLT.L","",true,
-				StockCategories.DEFAULT_CATEGORY,currentDate,
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
@@ -267,7 +267,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForHorizon() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("FR0010091173","FR0010091173","",true,
-				StockCategories.DEFAULT_CATEGORY,currentDate,
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
@@ -301,7 +301,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForCRUDOil() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("GB00B0CTWC01","OILB.L","", true,
-				StockCategories.DEFAULT_CATEGORY,new Date(),
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.EURONEXT),
 				"",TradingMode.CONTINUOUS,0l);
@@ -335,7 +335,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForBPCE() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("FR0000188625","FR0000188625","",true,
-				StockCategories.DEFAULT_CATEGORY,new Date(),
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);
@@ -368,7 +368,7 @@ public class PortfolioShareOtherTest extends TestCase {
 	public void testInflationAndExpectationWeightedQuantityForTemple() throws ParseException, InvalidAlgorithmParameterException {
 		
 		Stock stock = new Stock("LU0294219869","LU0294219869","",true,
-				StockCategories.DEFAULT_CATEGORY,new Date(),
+				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
 				"",TradingMode.CONTINUOUS,0l);

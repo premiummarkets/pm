@@ -178,9 +178,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 
                 //check for last former quotation
                 Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-                stock.setLastQuote(pastLastQuotationDate);
-
-                LOGGER.info("New ticker : "+stock.toString()+" and will be added with last quote : "+ pastLastQuotationDate);
+                LOGGER.info("New ticker : " + stock.toString() + " and will be added with last quote : " + pastLastQuotationDate);
 
                 listReq.add(stock);
                 stockList.add(stock);

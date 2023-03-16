@@ -158,7 +158,6 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
 
                 //check for last former quotation
                 Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-                stock.setLastQuote(pastLastQuotationDate);
 
                 LOGGER.info("New ticker : "+stock.toString()+" and will be added with last quote : "+ pastLastQuotationDate);
 

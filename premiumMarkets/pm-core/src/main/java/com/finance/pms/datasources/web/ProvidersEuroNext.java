@@ -100,7 +100,6 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider, 
 				
 				//check for last former quotation
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
-				s.setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ formerQuotationDate);
 				
@@ -168,12 +167,10 @@ public class ProvidersEuroNext extends Providers implements MarketListProvider, 
 			Stock stockWeb = (Stock) newStockList.next();
 			if (stockList.contains(stockWeb)) {
 				int index = stockList.indexOf(stockWeb);
-				stockWeb.setLastQuote(stockList.get(index).getLastQuote());
 				stockList.set(index, stockWeb);
 				
 			} else {
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb, false);
-				((Stock)stockWeb).setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);
 				LOGGER.guiInfo("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);

@@ -343,7 +343,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 			
 			//check for last former quotation
 			Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
-			s.setLastQuote(formerQuotationDate);
 			
 			LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ formerQuotationDate);
 			
@@ -380,7 +379,6 @@ public class ProvidersBoursorama extends Providers implements MarketListProvider
 				
 				//check for last former quotation
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(initialStock, false);
-				initialStock.setLastQuote(formerQuotationDate);
 				LOGGER.info("New ticker in check : "+initialStock.toString()+" and will be added with last quote : "+ formerQuotationDate);
 				
 				// Fetch info for new stock

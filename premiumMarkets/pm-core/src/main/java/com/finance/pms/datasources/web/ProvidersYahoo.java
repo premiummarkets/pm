@@ -136,7 +136,6 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 				
 				//check for last former quotation
 				Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-				stock.setLastQuote(pastLastQuotationDate);
 				
 				LOGGER.info("New ticker : "+stock.toString()+" and will be added with last quote : "+ pastLastQuotationDate);
 				

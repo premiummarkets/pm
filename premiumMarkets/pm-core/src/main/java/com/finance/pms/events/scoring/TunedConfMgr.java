@@ -89,9 +89,10 @@ public class TunedConfMgr {
 	public Date endDateConsistencyCheck(TunedConf tunedConf, Stock stock, Date endDate) throws InvalidAlgorithmParameterException {
 
 		//Check end date within quotations
-		boolean newEndWithinQuotations = endDate.before(stock.getLastQuote()) || endDate.compareTo(stock.getLastQuote()) == 0;
+		Date lastQuote = stock.getLastQuote();
+		boolean newEndWithinQuotations = endDate.before(lastQuote) || endDate.compareTo(lastQuote) == 0;
 		if (!newEndWithinQuotations) {
-			endDate = stock.getLastQuote();
+			endDate = lastQuote;
 		}
 		return endDate;
 

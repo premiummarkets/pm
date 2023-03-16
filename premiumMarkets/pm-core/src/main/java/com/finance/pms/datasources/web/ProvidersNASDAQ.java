@@ -100,7 +100,6 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider, Qu
 				
 				//check for last former quotation
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(s, false);
-				s.setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("New ticker : "+s.toString()+" and will be added with last quote : "+ formerQuotationDate);
 				
@@ -168,7 +167,6 @@ public class ProvidersNASDAQ extends Providers implements MarketListProvider, Qu
 			if (!stockList.contains(stockWeb)) {
 				
 				Date formerQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations((Stock)stockWeb, false);
-				((Stock)stockWeb).setLastQuote(formerQuotationDate);
 				
 				LOGGER.info("Ticker " + stockWeb.toString() + " is new and will be added with last quote : "+ formerQuotationDate);
 				listReqIns.add(stockWeb);

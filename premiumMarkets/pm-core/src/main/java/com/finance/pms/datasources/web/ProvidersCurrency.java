@@ -111,8 +111,6 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 			tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME,TableLocker.LockMode.NOLOCK));
 			DataSource.getInstance().executeInsertOrUpdateQuotations(new ArrayList<ValidatableDated>(queries), tablet2lock);
 			
-			//Update stock stamp
-			currencyStock.setLastQuote(((CurrencyRate) rates.get(rates.size()-1)).getDate());
 		}
 	}
 

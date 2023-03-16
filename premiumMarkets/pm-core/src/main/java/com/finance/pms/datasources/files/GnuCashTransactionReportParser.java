@@ -272,9 +272,7 @@ public class GnuCashTransactionReportParser {
 		cashTransactionReportParser.parse("/home/guil/Documents/Comptes/Gestion/PMS/transactionReport.html");
 
 		Stock stock = new Stock("LU0294219869", "LU0294219869", "", true, StockCategories.DEFAULT_CATEGORY,
-				DateFactory.getNowEndDate(),
-				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,
-						SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
+				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO, SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS), "", TradingMode.CONTINUOUS, 0l);
 		SortedSet<TransactionElement> fteReports = PortfolioMgr.getInstance().getPortfolioDAO()
 				.loadOrphanTransactionReportFor(stock, "TEMPLETON_GLOBAL_BOND", DateFactory.getNowEndDate());

@@ -29,8 +29,9 @@ public class EventsStatusChecker {
     }
 
     private void endDateToLastEventConsistencyCheck(Date endDate) throws InvalidAlgorithmParameterException {
-        if ( currentTunedConfEnd.after(stock.getLastQuote()) ) {
-            throw new InvalidAlgorithmParameterException("Data inconsistency detected for stock : "+stock+". last quote is : "+stock.getLastQuote()+ " and last event calculated is : "+currentTunedConfEnd);
+        Date lastQuote = stock.getLastQuote();
+		if ( currentTunedConfEnd.after(lastQuote) ) {
+            throw new InvalidAlgorithmParameterException("Data inconsistency detected for stock : "+stock+". last quote is : "+lastQuote+ " and last event calculated is : "+currentTunedConfEnd);
         }
     }
 

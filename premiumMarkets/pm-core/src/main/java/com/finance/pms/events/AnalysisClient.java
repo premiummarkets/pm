@@ -57,7 +57,6 @@ import com.finance.pms.datasources.shares.Market;
 import com.finance.pms.datasources.shares.MarketValuation;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.ScraperMetrics;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.MessageProperties;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
@@ -83,7 +82,6 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	static {
 		ANY_STOCK.setName("ANY STOCK");
 		ANY_STOCK.setMarketValuation(new MarketValuation(Market.EURONEXT));
-		ANY_STOCK.setLastQuote(DateFactory.getNowEndDate());
 	}
 	private static EnumSet<EmailFilterEventSource> EMAILMSGQEUEINGFILTER = EmailFilterEventSource.webSet();
 
