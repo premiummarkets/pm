@@ -32,6 +32,7 @@ import org.apache.commons.math3.util.Precision;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.InputFileChecker;
+import com.finance.pms.datasources.files.OvewriteDeltaException;
 import com.finance.pms.datasources.files.SeriesPrinter;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
@@ -135,7 +136,17 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 			String deltaFile;
 			if (append) {
 				synchronized (LOGGER) {
-					baseFilePath = SeriesPrinter.appendto(baseFilePath, headersPrefixes, series);
+					try {
+						baseFilePath = SeriesPrinter.appendto(baseFilePath, headersPrefixes, series);
+					} catch (OvewriteDeltaException e) {
+						LOGGER.warn("Invalid delta file content: " + e.getFilePath() + ". Overwriting ..");
+						try {
+							Files.delete(Path.of(URI.create("file://" + e.getFilePath())));
+						} catch (IOException e2) {
+							LOGGER.error(e2, e2);
+						}
+						baseFilePath = SeriesPrinter.printo(baseFilePath, headersPrefixes, series);
+					}
 					deltaFile = createDeltaFile(targetStock, parentRequiredStartShift, baseFilePath);
 				}
 			} else {

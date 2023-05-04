@@ -275,7 +275,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		Set<ScreeningSupplementedStock> supplementedStockFromWeb = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 
 		Boolean trendSuppNeeded = Boolean.valueOf(MainPMScmd.getMyPrefs().get("marketlistretrieval.trendSuppNeeded","false"));
-		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("marketlistretrieval.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("marketlistretrieval.semaphore.nbthread","5")));
 		for (Observer observer : observers) {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, listAsFromWeb.size()));
 		}
@@ -459,7 +459,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		int nbShares = shareList.size();
 		final Set<ScreeningSupplementedStock> listTrendIns = new ConcurrentSkipListSet<ScreeningSupplementedStock>();
 
-		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("screeninginforetrieval.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("screeninginforetrieval.semaphore.nbthread","5")));
 		for (final Stock stock : shareList) {
 
 			Thread t = new Thread(new Runnable() {

@@ -78,7 +78,7 @@ public class SelectedIndicatorsCalculationService {
 		ThreadFactory namedThreadFactory = 
 				  new ThreadFactoryBuilder().setNameFormat("my-calculation-thread-%d").build();
 		ExecutorService executor = Executors.newFixedThreadPool(
-				Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")), 
+				Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","50")), 
 				namedThreadFactory);
 		try {
 

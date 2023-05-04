@@ -56,7 +56,7 @@ public class SeriesPrinter {
     
 
     //Append
-	public static String appendto(String fileFullPathStr, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) {
+	public static String appendto(String fileFullPathStr, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series) throws OvewriteDeltaException {
 		
 		if (series.isEmpty() || series.values().stream().anyMatch(v -> v.isEmpty())) {
 			LOGGER.warn("Empty series. No append was made: " + fileFullPathStr);
@@ -81,7 +81,14 @@ public class SeriesPrinter {
 		        	List<String> existingHeaders_wo_date = existingHeaders.subList(1, existingHeaders.size());
 		            List<String> newHeaders = Arrays.asList(makeHeaders(headersPrefixes, series, seriesWidths).get(0).split(","));
 		        	boolean sameHeader = IntStream.range(0, newHeaders.size()).allMatch(i -> existingHeaders_wo_date.get(i).trim().equals(newHeaders.get(i)));
-		        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
+		        	if (newHeaders.size() != existingHeaders_wo_date.size() || !sameHeader) {
+		        		Boolean overwriteInvalidDelta = Boolean.valueOf(MainPMScmd.getMyPrefs().get("print.delta.overwriteinvalid", "false"));
+		        		if (overwriteInvalidDelta) {
+		        			throw new OvewriteDeltaException("fileFullPathStr");
+		        		} else {
+		        			throw new Exception("Headers: " + newHeaders + " don't match existing: " + existingHeaders_wo_date);
+		        		}
+		        	}
 					
 					//Find the last date and trunk series to last date (ex. lines containing NaN)
 		        	inputWTmp.write(line); //headers

@@ -105,7 +105,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Scre
 		staleDateLimit.setTime(endDate);
 		staleDateLimit.add(Calendar.MONTH, -TREND_OUTDATE_LIMIT);
 		
-		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("trendeventscalculation.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("trendeventscalculation.semaphore.nbthread","5")));
 		for (final ScreeningSupplementedStock trendedStock : listOfShares) {
 			
 			Runnable runnable = new Runnable() {

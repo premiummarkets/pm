@@ -276,8 +276,8 @@ public class AutoPortfolioDelegate {
 		LOGGER.info("Checking existing transactions: " + this.thisPortfolio.getTransactions());
 		if (existingPs != null) {
 			Date lastTransactionDate = existingPs.getLastTransactionDate();
-			LOGGER.info("Event validity for line: is event date: " + latestEventDateAndNewBuyDate + " (strictly after?) last transaction: " + lastTransactionDate);
-			if (!latestEventDateAndNewBuyDate.after(lastTransactionDate)) {
+			LOGGER.info("Event validity for line: is event date: " + latestEventDateAndNewBuyDate + " (after or equal?) last transaction: " + lastTransactionDate);
+			if (latestEventDateAndNewBuyDate.compareTo(lastTransactionDate) < 0) {
 				throw new IgnoredEventDateException("Event (" + latestEventDateAndNewBuyDate + ") already processed: " + 
 					  existingPs + " last transaction on the " + lastTransactionDate, new Throwable());
 			}

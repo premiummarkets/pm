@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -45,12 +44,12 @@ import javax.jms.Queue;
 
 import org.springframework.jms.core.JmsTemplate;
 
-import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.UserPortfolio;
@@ -88,7 +87,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 
 		for (final Portfolio portfolio : portfolios) {
 
-			ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("alertcalculator.semaphore.nbthread","5")));
+			ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
 			List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
 
 			boolean isUserPortfolio = portfolio instanceof UserPortfolio; 

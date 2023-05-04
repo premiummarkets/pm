@@ -123,6 +123,7 @@ public class Quotations {
 		}
 	}
 	
+	private static List<Stock> CACHE_KEYS_REF = new ArrayList<>();
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(100,0.90f);
 	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
 	
@@ -201,7 +202,18 @@ public class Quotations {
 			
 			String buildFilterNameKeyAllValid = buildFilterNameKey(ValidityFilter.ALLVALID);
 			
-			synchronized (stock) {
+			//The sync stock always has to be the same object.
+			Stock syncStock = null;
+			synchronized (CACHE_KEYS_REF) {
+				int indexOf = CACHE_KEYS_REF.indexOf(stock);
+				if (indexOf == -1) {
+					CACHE_KEYS_REF.add(stock);
+					indexOf = CACHE_KEYS_REF.indexOf(stock);
+				}
+				syncStock = CACHE_KEYS_REF.get(indexOf);
+			}
+			
+			synchronized (syncStock) {
 				
 				QuotationData existingProcessed = Quotations.getCachedStock(stock, splitOption, buildFilterNameKeyAllValid);
 				allValidQuotationData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift, existingProcessed);
@@ -260,20 +272,8 @@ public class Quotations {
 							Date firstRetreived = retreived.get(0).getDate();
 
 							List<QuotationUnit> processed = new ArrayList<QuotationUnit>();
-							if (lastRetreived.after(lastCached)) {// Addition to the right: go through the right only  ]..] and apply to the whole series
-								processed.addAll(existingProcessed);
-								QuotationUnit filteredQjm1 = existingProcessed.get(existingProcessed.size()-1);
-								for (int j = 0; j < retreived.size(); j++) {
-									QuotationUnit qj = retreived.get(j);
-									if (qj.getDate().after(lastCached)) { //we fill after to the end
-										processed.add(qj);
-										solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, processed);
-									}
-									filteredQjm1 = qj;
-								}
-							}
-							if (firstRetreived.before(firstCached)) {// addition to the left: go through the left only  [..] and apply only to the left
-								QuotationUnit filteredQjm1 = null;
+							QuotationUnit filteredQjm1 = null;
+							if (firstRetreived.before(firstCached)) {// Addition to the left: go through the left only  [..] and apply only to the left
 								for (int j = 0; j < retreived.size(); j++) {
 									QuotationUnit qj = retreived.get(j);
 									if (qj.getDate().before(firstCached)) {//we fill before and stop
@@ -286,9 +286,21 @@ public class Quotations {
 									}
 									filteredQjm1 = qj; //qj is not affected by the split free as it is the pivot in the split free operation
 								}
-								processed.add(existingProcessed.get(0));
-								solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, existingProcessed.get(0), processed);
-								processed.addAll(existingProcessed.subList(1, existingProcessed.size()));
+							}
+							// Addition of the existing already processed
+							processed.add(existingProcessed.get(0));
+							if (filteredQjm1 != null) solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, existingProcessed.get(0), processed);
+							processed.addAll(existingProcessed.subList(1, existingProcessed.size()));
+							if (lastRetreived.after(lastCached)) {// Addition to the right: go through the right only  ]..] and apply to the whole series
+								filteredQjm1 = existingProcessed.get(existingProcessed.size()-1);
+								for (int j = 0; j < retreived.size(); j++) {
+									QuotationUnit qj = retreived.get(j);
+									if (qj.getDate().after(lastCached)) { //we fill after to the end
+										processed.add(qj);
+										solveSplitBetween(calculatedSplitFreeOnly, filteredQjm1, qj, processed);
+									}
+									filteredQjm1 = qj;
+								}
 							}
 
 							allValidQuotationData = Quotations.putCashedStock(stock, splitOption, buildFilterNameKeyAllValid, new QuotationData(processed));

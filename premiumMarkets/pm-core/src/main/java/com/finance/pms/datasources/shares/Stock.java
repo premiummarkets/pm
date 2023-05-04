@@ -30,7 +30,6 @@
 package com.finance.pms.datasources.shares;
 
 import java.security.InvalidAlgorithmParameterException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -243,13 +242,7 @@ public class Stock implements Validatable {
 			if (this.getMarketValuation() != null) {
 				currency = this.getMarketValuation().getCurrency();
 			}
-			String lastDateStr = "None";
-			lastQuote = this.getLastQuote();
-			if (lastQuote != null) {
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-				lastDateStr = dateFormat.format(lastQuote);
-			}
-			str = getFriendlyName().replace(")", " / ") + lastDateStr + " / " + currency + ")";
+			str = getFriendlyName().replace(")", " / ") + currency + ")";
 
 		} catch (RuntimeException e) {
 			LOGGER.error("Can't print stock : " + this.symbol + ";" + this.isin + ";" + this.name + ";" + lastQuote, e);

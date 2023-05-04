@@ -292,7 +292,6 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getMyPrefs().put("events.type", props.getProperty("events.type"));
 
 			//Semaphore
-			putInPrefs("alertcalculator.semaphore.nbthread",props);
 			putInPrefs("indicatorcalculator.semaphore.nbthread",props);
 			putInPrefs("indicEventsCalculator.semaphore.eventthread",props);
 			putInPrefs("currencyconverter.semaphore.nbthread",props);
