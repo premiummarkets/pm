@@ -148,6 +148,8 @@ public class SpringContext extends GenericApplicationContext {
 	public void close() {
 		super.close();
 		this.hasBeenClosed  = true;
+		SpringContext.singleton = null;
+		PostInitMonitor.resetOptPostInit();
 	}
 
 	public boolean isHasBeenClosed() {
@@ -333,10 +335,12 @@ public class SpringContext extends GenericApplicationContext {
 			if (props.containsKey("quotes.listproviderindices"))
 				MainPMScmd.getMyPrefs().put("quotes.listproviderindices", props.getProperty("quotes.listproviderindices"));
 			putInPrefs("quotes.yahooFixDumpRootPath", props);
+			putInPrefs("quotes.stockSymbolApiDumpRootPath", props); 
 			putInPrefs("quotes.pythonPath",props);
 
 			//Events
 			putInPrefs("event.sendAnalysisEventMsg",props);
+			putInPrefs("event.analysisName",props);
 
 			if (props.containsKey("event.stoploss"))
 				MainPMScmd.getMyPrefs().put("event.stoploss", props.getProperty("event.stoploss"));

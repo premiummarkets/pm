@@ -76,7 +76,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 	protected Stock stock;
 	private String passOneCalcMode;
 
-	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency  calculationCurrency, 
+	protected IndicatorsCalculationThread(Stock stock, Date startDate, Date endDate, String eventListName, Currency calculationCurrency, 
 			Set<Observer> observers,
 			String passOneCalcMode,
 			Queue eventQueue, JmsTemplate jmsTemplate) throws NotEnoughDataException {
@@ -95,19 +95,19 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 		try {
 
-			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
-			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, this.configs.get(Config.EVENT_SIGNAL_NAME));
+			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Analysing events for "+stock+", starting at "+startDate);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Analysing events for " + stock + ", starting at " + startDate);
 
 			setCalculationParameters();
 			calculate(symbolEventsForStock, dataSetExceptions);
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("End analyse "+stock+" from "+startDate+" to "+endDate);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("End analyse " + stock + " from " + startDate + " to " + endDate);
 
 		} catch (Exception e) {
-			LOGGER.error("UnHandled error : While calculating Events for "+stock+", analysis "+eventListName+" and dates "+startDate+" to "+endDate, e);
-			throw new IncompleteDataSetException(stock, symbolEventsForStock, "UnHandled error : " + e.getMessage());
+			LOGGER.error("UnHandled error: While calculating Events for " + stock + ", analysis " + eventListName + " and dates " + startDate + " to " + endDate, e);
+			throw new IncompleteDataSetException(stock, symbolEventsForStock, "UnHandled error: " + e.getMessage());
 
 		} finally {
 			this.setChanged();
@@ -118,7 +118,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 			if (LOGGER.isEnabledFor(Level.ERROR)) {
 				dataSetExceptions.stream().forEach(e ->  LOGGER.error(e,e));
 			}
-			throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set for "+stock.getFriendlyName()+" may invalidate further usage.");
+			throw new IncompleteDataSetException(stock, symbolEventsForStock, "Invalid data set for " + stock.getFriendlyName() + " may invalidate further usage.");
 		}
 
 		return symbolEventsForStock;
@@ -129,7 +129,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 		Set<IndicatorsOperator> eventsCalculators;
 
-		LOGGER.info("Effective recalculation (potentially incremental) for "+stock+" will occur from "+startDate+" to "+endDate);
+		LOGGER.info("Effective recalculation (potentially incremental) for " + stock + " will occur from " + startDate + " to " + endDate);
 
 		//Init calculators
 		try {

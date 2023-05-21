@@ -30,6 +30,7 @@
 package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -87,9 +88,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 	enum Titles {Symbol,Isin,Name,Category};
 	
 	protected Composite caller;
-
 	
-	private MarketListProvider selectedProvider;
 	private Composite compositeBounds;
 	private Table symbolTable;
 
@@ -205,7 +204,11 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 		}
 		
 		//List selection
-		List<String> loadShareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadValidShareListNames();
+		List<String> webShareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadValidShareListNames();
+		List<String> indepShareListNames = PortfolioMgr.getInstance().getPortfolioDAO().loadIndepShareListNames();
+		List<String> shareListNames = new ArrayList<>();
+		shareListNames.addAll(webShareListNames);
+		shareListNames.addAll(indepShareListNames);
 		{
 			Group sharelistSelectionGroup = new Group(this, SWT.NONE);
 			sharelistSelectionGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -222,7 +225,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				
 				existingCCombo.setToolTipText("Select stocks in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu");
 				existingCCombo.setFont(MainGui.CONTENTFONT);
-				for (String shareListName : loadShareListNames) {
+				for (String shareListName : shareListNames) {
 					existingCCombo.add(shareListName);
 				}
 
@@ -273,13 +276,20 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 
 						String item = existingCCombo.getItem(existingCCombo.getSelectionIndex());
 						try {
-
-							selectedProvider = ProvidersList.getMarketListInstance(item);
-							shareListGroup.setText("Select shares in " + selectedProvider.getSharesListIdEnum().getDescription());
-
+							
+							try {
+								MarketListProvider selectedProvider = ProvidersList.getMarketListInstance(item);
+								shareListGroup.setText("Select shares in: " + item + " of " + selectedProvider.getSharesListIdEnum().getDescription());
+							} catch (IllegalArgumentException e) {
+								shareListGroup.setText("Select shares in: " + item);
+							}
+							
 							getShell().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 							try {
-								stockList= new StockList(PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(item).toSortedStocksSet());
+								stockList = new StockList(PortfolioMgr.getInstance().getPortfolioDAO().loadShareList(item).toSortedStocksSet());
+								if (stockList.isEmpty()) {
+									stockList = new StockList(PortfolioMgr.getInstance().getPortfolioDAO().loadIndepShareList(item).toSortedStocksSet());
+								}
 								
 								symbolTable.removeAll();
 								updateTableDisplay();

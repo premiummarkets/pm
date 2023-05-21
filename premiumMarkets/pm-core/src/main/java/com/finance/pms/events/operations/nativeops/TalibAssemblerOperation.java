@@ -142,7 +142,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					NumericableMapValue run = (NumericableMapValue) iterationOperationClone
 							.run(targetStock, addThisToStack(thisCallStack, assemblerInputStartShift, assembleeOperandStartShift, targetStock), assemblerInputStartShift + assembleeOperandStartShift);
 					
-					LOGGER.info("Done: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
+					//LOGGER.info("Done: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
 					LOGGER.info(
 							"Yield: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 
 							" and this shift " + assemblerInputStartShift + " and operands added shift " + assembleeOperandStartShift + ": " + run);

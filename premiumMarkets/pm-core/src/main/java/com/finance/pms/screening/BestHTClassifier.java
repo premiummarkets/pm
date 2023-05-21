@@ -47,7 +47,6 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
-import com.finance.pms.portfolio.PortfolioDAO;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.google.common.collect.Lists;
 
@@ -61,13 +60,13 @@ public class BestHTClassifier {
 	private ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
 	private ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 	private OTFTuningFinalizer tuningFinalizer = (OTFTuningFinalizer) SpringContext.getSingleton().getBean("tuningFinalizer");
-	private PortfolioDAO portfolioDAO = SpringContext.getSingleton().getBean(PortfolioDAO.class);
+	//private PortfolioDAO portfolioDAO = SpringContext.getSingleton().getBean(PortfolioDAO.class);
 	private ShareDAO shareDAO = SpringContext.getSingleton().getBean(ShareDAO.class);
 	
 	//Formulae
 	//shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(31,sma(21,periodicLn_(1,sma(42,close))))))
 	private String templateOperationFormulae = "shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,close))))))";
-//	private String templateOperationFormulae = "shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,bandNormalizer(0,100,NaN,NaN,subtraction_(close,stat:msimplereg(NaN,close)))))))))";
+	//private String templateOperationFormulae = "shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,bandNormalizer(0,100,NaN,NaN,subtraction_(close,stat:msimplereg(NaN,close)))))))))";
 	private String templateIndicatorformulae = "is bullish when ? is above threshold 0; is bearish when ? is below threshold 0;";
 
 	//Cache

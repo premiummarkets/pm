@@ -240,7 +240,7 @@ public class ValueManipulator {
 					
 					NumericableMapValue doubleMapValue = innerCalcFunc.apply(fCombinationsAcc.get(fI));
 					
-					LOGGER.info("Done: " + operation.getReference() + " with params " + outputsOperandsRef);
+					//LOGGER.info("Done: " + operation.getReference() + " with params " + outputsOperandsRef);
 					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + doubleMapValue);
 					
 					if (doubleMapValue.getValue(targetStock).size() == 0) {

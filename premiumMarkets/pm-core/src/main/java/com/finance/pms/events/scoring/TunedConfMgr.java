@@ -97,12 +97,24 @@ public class TunedConfMgr {
 		return endDate;
 
 	}
-
+	
+	
+	@Deprecated
+	/**
+	 * @deprecated If related to first and second pass IndicatorCalculationThread
+	 * 
+	 * @param tunedConf
+	 * @param stock
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 */
 	public CalculationBounds autoCalcAndSetDatesBounds(TunedConf tunedConf, Stock stock, Date startDate, Date endDate) {
 
 		LOGGER.info(
-				stock.getSymbol() + " TunedConf before calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd() +
-				". Requested calculation is from "+startDate+" to "+endDate+". ");
+				stock.getSymbol() + " TunedConf before calculating bounds from " + tunedConf.getLastCalculationStart() + " to " + tunedConf.getLastCalculationEnd() + ". " +
+				"Requested calculation is from " + startDate + " to " + endDate + ". "
+				);
 
 		//Setting PM events calculation date range
 		//We want the calculation from the start date onward but we don't want to recalculate already calculated PM events

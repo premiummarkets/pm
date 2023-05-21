@@ -219,7 +219,7 @@ public class UserDialog extends Dialog {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				System.out.println("Key released : "+e.keyCode+","+e.character+","+e.doit);
+				System.out.println("Key released : " + e.keyCode + "," + e.character + "," + e.doit);
 				if ((e.keyCode == SWT.CR || e.keyCode == SWT.SPACE)) {
 					dispose();
 				}
@@ -227,7 +227,7 @@ public class UserDialog extends Dialog {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				System.out.println("Key pressed : "+e.keyCode+","+e.character+","+e.doit);
+				System.out.println("Key pressed : " + e.keyCode + "," + e.character + "," + e.doit);
 			}
 
 		});

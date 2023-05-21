@@ -74,7 +74,7 @@ public class Indice implements Comparable<Indice> {
 					listIndice.add(new Indice(indiceElems[0], indiceElems[1]));
 				}
 			} catch (Exception e) {
-				LOGGER.warn("Invalid index : " + indice + ". " + e);
+				LOGGER.warn("Invalid index: " + indice + ". " + e);
 			}
 		}
 		return listIndice;
@@ -90,7 +90,7 @@ public class Indice implements Comparable<Indice> {
 
 	@Override
 	public String toString() {
-		return this.getName()+":"+this.getMarket()+",";
+		return this.getName() + ":" + this.getMarket() + ",";
 	}
 
 

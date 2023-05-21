@@ -23,7 +23,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
 
 @XmlRootElement
 public class BestShiftOperation extends Operation {
-	
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(BestShiftOperation.class);
 	
 	public BestShiftOperation(String reference, String description, Operation ... operands) {
@@ -33,6 +33,7 @@ public class BestShiftOperation extends Operation {
 	public BestShiftOperation() {
 		this("bestShift", "Calculate the more profitable shift (best shift) for given operation formulae. If > 0 => Buy, If < 0 => Sell",
 			 //TODO formulae should leverage the meta operation instead of using NaN and hard coded parameters expansion
+			 //TODO replace formulae with operationReference parameter?
 			 new StringOperation("string", "formulae", "formulae", new StringValue("\"shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,close))))))\"")),
 			 new NumberOperation("number", "period", "period", new NumberValue(42.0)),
 			 new NumberOperation("number", "shiftSteps", "shift steps per 1", new NumberValue(1.0)));
@@ -87,6 +88,11 @@ public class BestShiftOperation extends Operation {
 	@Override
 	public NumberValue emptyValue() {
 		return null;
-	}	
+	}
+	
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		return false;
+	}
 
 }

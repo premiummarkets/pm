@@ -85,7 +85,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
-	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class,
+	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
 	RequiredShiftWrapperOperation.class, BestShiftOperation.class})
@@ -539,13 +539,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	public String toFormulae() {
-		if (operands.isEmpty()) {
-			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
-				return ((StringableValue) this.getParameter()).getValueAsString();
-			} else {
-				return this.getOperationReference();
-			}
+
+		if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
+			return ((StringableValue) this.getParameter()).getValueAsString();
+		} else if (operands.isEmpty()) {
+			return this.getOperationReference();
 		}
+
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
 		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
 	}

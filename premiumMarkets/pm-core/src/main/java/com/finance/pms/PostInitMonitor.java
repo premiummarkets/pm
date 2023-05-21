@@ -32,5 +32,10 @@ public class PostInitMonitor {
     public static void startOptPostInit() {
         optPostInitStarted = true;
     }
+    
+    public static void resetOptPostInit() {
+    	optPostInitFinished = false;
+    	optPostInitStarted = false;
+    }
 
 }

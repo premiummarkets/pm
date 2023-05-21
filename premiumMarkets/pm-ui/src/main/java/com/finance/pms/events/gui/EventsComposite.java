@@ -1065,7 +1065,8 @@ public class EventsComposite extends Composite implements RefreshableView {
 
 		try {
 			Date filterDateStart = getFilterDate();
-			EventsResources.getInstance().updateEventsTabsByCriteriaAndDate(filterDateStart, infCrit, supCrit, action.getPonderationRule(), action.getIndicators(), SelectedIndicatorsCalculationService.UI_ANALYSIS);
+			EventsResources.getInstance().updateEventsTabsByCriteriaAndDate(
+					filterDateStart, infCrit, supCrit, action.getPonderationRule(), action.getIndicators(), SelectedIndicatorsCalculationService.getAnalysisName());
 			stockFilter();
 
 		} catch (InvalidAlgorithmParameterException e) {

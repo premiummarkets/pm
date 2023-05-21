@@ -79,13 +79,9 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			LOGGER.guiInfo(
-					"Calculating " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + 
-					" between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
+			LOGGER.guiInfo("Calculating " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
-			LOGGER.guiInfo(
-					"Finishing " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + 
-					" between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
+			LOGGER.guiInfo("Finishing " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			return symbolEvents;
 
 		} catch (IncompleteDataSetException e) {
@@ -128,7 +124,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			} catch (InvalidAlgorithmParameterException e1) {
 				//Recoverable we leave the tunedConf as is
 				LOGGER.error("Failed invalid calculation dates for " + stock + " using analysis " + eventListName + ": from " + start + " to " + end, e1);
-				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
 			}
 
 			Boolean dirty = true;

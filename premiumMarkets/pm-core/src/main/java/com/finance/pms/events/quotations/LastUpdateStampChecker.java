@@ -156,7 +156,7 @@ public class LastUpdateStampChecker {
 					private static final long serialVersionUID = 1L;
 				}.getType());
 			} catch (Exception e) {
-				LOGGER.error("Inconsistencies : " + readStampRecords + " in " + JSON_DUMP_PATH, e);
+				LOGGER.error("Inconsistencies: " + readStampRecords + " in " + JSON_DUMP_PATH, e);
 				throw new RuntimeException(e);
 			} finally {
 				if (readStampRecords == null) {

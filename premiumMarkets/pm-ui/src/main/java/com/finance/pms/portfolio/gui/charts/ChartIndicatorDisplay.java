@@ -109,7 +109,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		private EventsDataLoader(Map<String, Config> configs, Stock selectedShare, Date exentedStartDate) {
 			this.selectedShare = selectedShare;
 			this.exentedStartDate = exentedStartDate;
-			this.configs= configs;
+			this.configs = configs;
 		}
 
 		@Override
@@ -117,7 +117,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, configs.get(Config.INDICATOR_PARAMS_NAME));
 
-			SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), chartTarget.getChartedEvtDefsTrends(), SelectedIndicatorsCalculationService.UI_ANALYSIS);
+			SymbolEvents eventsForStock = EventsResources.getInstance().crudReadEventsForStock(
+						selectedShare, exentedStartDate, chartTarget.getSlidingEndDate(), 
+						chartTarget.getChartedEvtDefsTrends(), SelectedIndicatorsCalculationService.getAnalysisName());
 			setChanged();
 			notifyObservers(eventsForStock);
 		}
@@ -296,7 +298,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			chartTarget.getHightlitedEventModel().setViewParam(0, notUpToDateEI);
 
 			String msg = "Analysis are not up to date for " + selectedShare.getName() + ", the selected time frame and the requested trends.";
-			if (minDate.after(new Date(0))) msg = msg + "\nMinimun calculation date reached for this stock : " + new SimpleDateFormat("MMM dd yyyy").format(minDate);
+			if (minDate.after(new Date(0))) msg = msg + "\nMinimun calculation date reached for this stock: " + new SimpleDateFormat("MMM dd yyyy").format(minDate);
 			for (EventInfo eventInfo : notUpToDateEI) {
 				if (chartTarget.getChartedEvtDefsTrends().contains(eventInfo)) {
 					msg = msg + "\n'" + eventInfo.getEventReadableDef() + "' may be a candidate for update"; 
@@ -403,11 +405,13 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						            }
 						        });
 								
-								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = ChartBarUtils.buildBarsData(selectedShare, chartTarget.getChartedEvtDefsTrends(),
-										chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), ses, tuningRessCache, trendSettings);
+								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = ChartBarUtils
+										.buildBarsData(
+												selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
+												ses, tuningRessCache, trendSettings);
 								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {
-								LOGGER.error("arg : " + arg + ", chartTarget.getMainChartWraper(): " + chartTarget.getMainChartWraper() + ", chartTarget.getHighligtedId(): "
+								LOGGER.error("arg: " + arg + ", chartTarget.getMainChartWraper(): " + chartTarget.getMainChartWraper() + ", chartTarget.getHighligtedId(): "
 										+ chartTarget.getHighligtedId() + ", barChartSettings: " + trendSettings + ", chartTarget.getPlotChartDimensions(): "
 										+ chartTarget.getPlotChartDimensions(), e);
 								

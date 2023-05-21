@@ -1863,6 +1863,26 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 
 			}
+			table.addKeyListener(new KeyListener() {
+				
+				@Override
+				public void keyReleased(KeyEvent e) {
+					if (e.keyCode == SWT.CR) {
+						int selectionIndex = table.getSelectionIndex();
+						if (selectionIndex != -1) {
+							SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);
+							LOGGER.info("Calling highLight from Portfolio Table (MouseListener");
+							chartsComposite.rowSelectioHighLight(selectionIndex, selectedShare.getStock(), true);
+							modelControler.addOrUpdateSlidingShareToTab(selectedPortfolioIdx(), selectedShare);
+						}
+					}
+				}
+				
+				@Override
+				public void keyPressed(KeyEvent e) {
+					
+				}
+			});
 			table.addMouseListener(new MouseListener() {
 
 				public void mouseDoubleClick(MouseEvent event) {
@@ -3359,26 +3379,26 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			} finally {
 				bufferedWriter.close();
 			}
-			LOGGER.info("File generated:"+reportFileName);
+			LOGGER.info("File generated:" + reportFileName);
 
 			try {
-				LOGGER.info("Trying default desktop spreadsheet");
-				Program csvProgram = Program.findProgram(".csv");
-				if (csvProgram == null ) csvProgram = Program.findProgram("csv");
-				csvProgram.execute(reportFileName);
+				LOGGER.info("Trying /usr/bin/gnumeric desktop spreadsheet");
+				runSpread(transactionExportName, dir, "/usr/bin/gnumeric");
 			} catch (Throwable e) {
-				String[] commands = new String[]{"/usr/bin/gnumeric","/usr/bin/soffice"};
+				String[] commands = new String[]{"/usr/bin/soffice"};
 				try {
-					LOGGER.info("Trying "+commands[0]+" fall back");
+					LOGGER.info("Trying " + commands[0] + " fall back");
 					runSpread(transactionExportName, dir, commands[0]);
 				} catch (Exception e1) {
 					try {
-						LOGGER.info("Trying "+commands[0]+" fall back");
-						runSpread(transactionExportName, dir, commands[1]);
+						LOGGER.info("Trying Program.findProgram(\".csv\") fall back");
+						Program csvProgram = Program.findProgram(".csv");
+						if (csvProgram == null ) csvProgram = Program.findProgram("csv");
+						boolean isLaunched = csvProgram.execute(reportFileName);
+						if (!isLaunched) throw new Exception();
 					} catch (Exception e2) {
-						UserDialog dialog = new UserDialog(getShell(), "Your Transaction summary  for "+portfolio.getName(),
-								"Your transaction summary for "+portfolio.getName()+" is available here :\n"+
-										reportFileName+"\n"+
+						UserDialog dialog = new UserDialog(getShell(), "Your Transaction summary  for " + portfolio.getName(),
+								"Your transaction summary for " + portfolio.getName() + " is available here :\n" + reportFileName + "\n" +
 								"Alternatively, to automatically open it in as a spreadsheet, you may want to check the software associated with '.csv' file in your Operating System.");
 						dialog.open();
 					}

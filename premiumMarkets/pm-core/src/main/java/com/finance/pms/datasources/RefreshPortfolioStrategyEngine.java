@@ -66,7 +66,7 @@ public class RefreshPortfolioStrategyEngine extends UserContentStrategyEngine<Co
 		Date endDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 		
 		UserPortfolio[] userPortfolios = viewStateParams[0].toArray(new UserPortfolio[0]);
-		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), SelectedIndicatorsCalculationService.UI_ANALYSIS, endDate, userPortfolios);
+		AlertCalculationRunnableMessage alertOnThresholdAnalyser = new AlertCalculationRunnableMessage(SpringContext.getSingleton(), SelectedIndicatorsCalculationService.getAnalysisName(), endDate, userPortfolios);
 		alertOnThresholdAnalyser.runAlertsOnThresholdCalculation();
 		
 	}

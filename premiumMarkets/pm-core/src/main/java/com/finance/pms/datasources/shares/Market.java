@@ -46,61 +46,63 @@ import com.finance.pms.admin.install.logging.MyLogger;
 //FIXME time lags are hard coded. It should be calculated: market time zone UTC lag - machine time zone (LOCALE) UTC lag
 public enum Market implements Serializable {
 
-	ASX ("ASX", "ASX", Currency.AUD, BigDecimal.ONE, YahooMarketExtentions.ASX, "UNKNOWN", "WMORN", true, new String[]{"AORD"}, +10),
-	BSE ("BSE", "BSE", Currency.INR, BigDecimal.ONE, YahooMarketExtentions.BSE, "UNKNOWN", "WMORN", false, new String[]{}, +5), //FIXME Half hour +5:30
-	NSEINDIA ("NSEINDIA", "NSEINDIA", Currency.INR, BigDecimal.ONE, YahooMarketExtentions.BSE, "UNKNOWN", "WMORN", false, new String[]{"NSEI"}, +5),  //FIXME Half hour +5:30
+	ASX ("ASX", "ASX", Currency.AUD, BigDecimal.ONE, YahooMarketExtentions.ASX, "UNKNOWN", "WMORN", true, new String[]{"AORD"}, "australia", +10),
+	BSE ("BSE", "BSE", Currency.INR, BigDecimal.ONE, YahooMarketExtentions.BSE, "UNKNOWN", "WMORN", false, new String[]{}, "india", +5), //FIXME Half hour +5:30
+	NSEINDIA ("NSEINDIA", "NSEINDIA", Currency.INR, BigDecimal.ONE, YahooMarketExtentions.BSE, "UNKNOWN", "WMORN", false, new String[]{"NSEI"}, "india", +5),  //FIXME Half hour +5:30
 
-	NASDAQ ("NASDAQ", "Nasdaq", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NASDAQ, "NASDAQ", "WMORN", true, new String[]{"NDX", "IXIC"}, -4),
-	NYSE ("NYSE", "NYSE", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "NSE", "WMORN", true, new String[]{"NYA"}.clone(), -4),
-	AMEX  ("AMEX", "AMEX", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN", true, new String[]{}, -4),
-	DJI  ("DJI", "DJI", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{"DJA", "DJI"}, -4),
+	NASDAQ ("NASDAQ", "Nasdaq", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NASDAQ, "NASDAQ", "WMORN", true, new String[]{"NDX", "IXIC"}, "america", -4),
+	NYSE ("NYSE", "NYSE", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "NSE", "WMORN", true, new String[]{"NYA"}.clone(), "america", -4),
+	AMEX  ("AMEX", "AMEX", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
+	DJI  ("DJI", "DJI", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{"DJA", "DJI"}, "america", -4),
+	DJ  ("DJ", "DowJones", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
+	SP  ("SP", "S&P", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
 
-	NZSX ("NZSX", "NZSX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{"NZ50"}, +12),
-	NZAX ("NZAX", "NZAX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}, +12),
-	NZDX ("NZDX", "NZDX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}, +12),
+	NZSX ("NZSX", "NZSX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{"NZ50"}, "newzealand", +12),
+	NZAX ("NZAX", "NZAX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}, "newzealand", +12),
+	NZDX ("NZDX", "NZDX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}, "newzealand", +12),
 
-	LSE ("LON", "London", Currency.GBP, new BigDecimal(100), YahooMarketExtentions.LON, "UNKNOWN", "WMORN", true, new String[]{"FTSE", "FTAI", "FTAS", "FTMC", "FTT1X"}, +1),
-	EURONEXT ("EURONEXT", "Euronext", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.PAR, "EPA", "XPAR", false, new String[]{}, +2),
-	PARIS ("PARIS", "Paris", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.PAR, "EPA", "XPAR", true, new String[]{"FCHI", "SBF250", "MS190", "CM100", "CS90"}, +2),
-	VIENNA ("VIENNA", "Vienna", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.VI, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	MILAN ("MILAN", "Milan", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MI, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	STOCKHOLM ("STOCKHOLM", "Stockholm", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.ST, "UNKNOWN", "UNKNOWN", true, new String[]{"OMX"}, +2),
-	COPENHAGEN ("COPENHAGEN", "Copenhagen", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.CO, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
+	LSE ("LON", "London", Currency.GBP, new BigDecimal(100), YahooMarketExtentions.LON, "UNKNOWN", "WMORN", true, new String[]{"FTSE", "FTAI", "FTAS", "FTMC", "FTT1X"}, "unitedkingdom", +1),
+	EURONEXT ("EURONEXT", "Euronext", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.PAR, "EPA", "XPAR", false, new String[]{}, "europe", +2),
+	PARIS ("PARIS", "Paris", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.PAR, "EPA", "XPAR", true, new String[]{"FCHI", "SBF250", "MS190", "CM100", "CS90"}, "france", +2),
+	VIENNA ("VIENNA", "Vienna", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.VI, "UNKNOWN", "UNKNOWN", true, new String[]{}, "austria", +2),
+	MILAN ("MILAN", "Milan", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MI, "UNKNOWN", "UNKNOWN", true, new String[]{}, "italy", +2),
+	STOCKHOLM ("STOCKHOLM", "Stockholm", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.ST, "UNKNOWN", "UNKNOWN", true, new String[]{"OMX"}, "sweden", +2),
+	COPENHAGEN ("COPENHAGEN", "Copenhagen", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.CO, "UNKNOWN", "UNKNOWN", true, new String[]{}, "denmark", +2),
 
-	HANNOVER ("HANNOVER", "Hannover", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.HA, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	DUSSELDORF ("DUSSELDORF", "Dusseldorf", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.DU, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	HAMBURG ("HAMBURG", "Hamburg", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.HM, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	FRANKFURT ("FRANKFURT", "Frankfurt", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.F, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	STUTTGART ("STUTTGART", "Stuttgart", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.SG, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	XETRA ("XETRA", "Xetra", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.DE, "UNKNOWN", "UNKNOWN", true, new String[]{"GDAXI"}, +2),
-	MUNICH ("MUNICH", "Munich", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MU, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	BERLIN ("BERLIN", "Berlin", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.BE, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
+	HANNOVER ("HANNOVER", "Hannover", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.HA, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany",+2),
+	DUSSELDORF ("DUSSELDORF", "Dusseldorf", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.DU, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany", +2),
+	HAMBURG ("HAMBURG", "Hamburg", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.HM, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany", +2),
+	FRANKFURT ("FRANKFURT", "Frankfurt", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.F, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany", +2),
+	STUTTGART ("STUTTGART", "Stuttgart", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.SG, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany", +2),
+	XETRA ("XETRA", "Xetra", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.DE, "UNKNOWN", "UNKNOWN", true, new String[]{"GDAXI"}, "germany", +2),
+	MUNICH ("MUNICH", "Munich", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MU, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany", +2),
+	BERLIN ("BERLIN", "Berlin", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.BE, "UNKNOWN", "UNKNOWN", true, new String[]{}, "germany", +2),
 
-	MERCADOCONTINUO ("MERCADOCONTINUO", "MercadoContinuo", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MC, "UNKNOWN", "UNKNOWN", true, new String[]{"IBEX"}, +2),
-	MADRID ("MADRID", "Madrid", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MA, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
+	MERCADOCONTINUO ("MERCADOCONTINUO", "MercadoContinuo", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MC, "UNKNOWN", "UNKNOWN", true, new String[]{"IBEX"}, "spain", +2),
+	MADRID ("MADRID", "Madrid", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.MA, "UNKNOWN", "UNKNOWN", true, new String[]{}, "spain, ", +2),
 
-	BRUSSELS ("BRUSSELS", "Brussels", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.BR, "UNKNOWN", "UNKNOWN", true, new String[]{"BFX"}, +2),
-	VIRT_X ("VIRT_X", "Virt_X", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.VX, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	AMSTERDAM ("AMSTERDAM", "Amsterdam", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.AS, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	LISBON ("LISBON", "Lisbon", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.LS, "UNKNOWN", "UNKNOWN", true, new String[]{}, +2),
-	OSLO ("OSLO", "Oslo", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.OL, "UNKNOWN", "UNKNOWN", true, new String[]{"OSEAX"}, +2),
+	BRUSSELS ("BRUSSELS", "Brussels", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.BR, "UNKNOWN", "UNKNOWN", true, new String[]{"BFX"}, "belgium", +2),
+	AMSTERDAM ("AMSTERDAM", "Amsterdam", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.AS, "UNKNOWN", "UNKNOWN", true, new String[]{}, "netherlands", +2),
+	LISBON ("LISBON", "Lisbon", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.LS, "UNKNOWN", "UNKNOWN", true, new String[]{}, "portugal", +2),
+	OSLO ("OSLO", "Oslo", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.OL, "UNKNOWN", "UNKNOWN", true, new String[]{"OSEAX"}, "norway", +2),
 
-	TSX ("TSX", "TSX", Currency.CAD, BigDecimal.ONE, YahooMarketExtentions.TSX, "UNKNOWN", "WMORN", false, new String[]{}, -4),
-	TORONTO ("TORONTO", "Toronto", Currency.CAD, BigDecimal.ONE, YahooMarketExtentions.TO, "UNKNOWN", "UNKNOWN", true, new String[]{}, -4),
+	TSX ("TSX", "TSX", Currency.CAD, BigDecimal.ONE, YahooMarketExtentions.TSX, "UNKNOWN", "WMORN", false, new String[]{}, "canada", -4),
+	TORONTO ("TORONTO", "Toronto", Currency.CAD, BigDecimal.ONE, YahooMarketExtentions.TO, "UNKNOWN", "UNKNOWN", true, new String[]{}, "canada", -4),
 	
-	SWITZERLAND ("SWITZERLAND", "Switzerland", Currency.CHF, BigDecimal.ONE, YahooMarketExtentions.SW, "UNKNOWN", "UNKNOWN", true, new String[]{"SSMI"}, +2),
+	VIRT_X ("VIRT_X", "Virt_X", Currency.EUR, BigDecimal.ONE, YahooMarketExtentions.VX, "UNKNOWN", "UNKNOWN", true, new String[]{}, "switzerland", +2),
+	SWITZERLAND ("SWITZERLAND", "Switzerland", Currency.CHF, BigDecimal.ONE, YahooMarketExtentions.SW, "UNKNOWN", "UNKNOWN", true, new String[]{"SSMI"}, "switzerland", +2),
 
-	ARTA ("JAKARTA", "Jakarta", Currency.IDR, BigDecimal.ONE, YahooMarketExtentions.JK, "UNKNOWN", "UNKNOWN", true, new String[]{"JKSE"}, +7),
-	SES ("SES", "SES", Currency.SGD, BigDecimal.ONE, YahooMarketExtentions.SI, "UNKNOWN", "UNKNOWN", true, new String[]{"STI"}, +8),
-	KOSDAQ ("KOSDAQ", "KOSDAQ", Currency.KRW, BigDecimal.ONE, YahooMarketExtentions.KQ, "UNKNOWN", "UNKNOWN", true, new String[]{}, +9),
-	TAIWAN ("TAIWAN", "Taiwan", Currency.TWD, BigDecimal.ONE, YahooMarketExtentions.TW, "UNKNOWN", "UNKNOWN", true, new String[]{}, +8),
-	TASE ("TASE", "TASE", Currency.ILS, BigDecimal.ONE, YahooMarketExtentions.TA, "UNKNOWN", "UNKNOWN", true, new String[]{"TA100"}, +3),
-	HKSE ("HKSE", "HKSE", Currency.HKD, BigDecimal.ONE, YahooMarketExtentions.HK, "UNKNOWN", "UNKNOWN", true, new String[]{"HSI"}, +8),
-	NSENAIROBI ("NSENAIROBI", "NSENAIROBI", Currency.KES, BigDecimal.ONE, YahooMarketExtentions.KE, "UNKNOWN", "UNKNOWN", false, new String[]{}, +3),
+	ARTA ("JAKARTA", "Jakarta", Currency.IDR, BigDecimal.ONE, YahooMarketExtentions.JK, "UNKNOWN", "UNKNOWN", true, new String[]{"JKSE"}, "jakarta", +7),
+	SES ("SES", "SES", Currency.SGD, BigDecimal.ONE, YahooMarketExtentions.SI, "UNKNOWN", "UNKNOWN", true, new String[]{"STI"}, "singapore", +8),
+	KOSDAQ ("KOSDAQ", "KOSDAQ", Currency.KRW, BigDecimal.ONE, YahooMarketExtentions.KQ, "UNKNOWN", "UNKNOWN", true, new String[]{}, "korea", +9),
+	TAIWAN ("TAIWAN", "Taiwan", Currency.TWD, BigDecimal.ONE, YahooMarketExtentions.TW, "UNKNOWN", "UNKNOWN", true, new String[]{}, "taiwan", +8),
+	TASE ("TASE", "TASE", Currency.ILS, BigDecimal.ONE, YahooMarketExtentions.TA, "UNKNOWN", "UNKNOWN", true, new String[]{"TA100"}, "israel", +3),
+	HKSE ("HKSE", "HKSE", Currency.HKD, BigDecimal.ONE, YahooMarketExtentions.HK, "UNKNOWN", "UNKNOWN", true, new String[]{"HSI"}, "hongkong", +8),
+	NSENAIROBI ("NSENAIROBI", "NSENAIROBI", Currency.KES, BigDecimal.ONE, YahooMarketExtentions.KE, "UNKNOWN", "UNKNOWN", false, new String[]{}, "nairobi", +3),
 	
-	CRYPTOS ("CRYPTOS", "CRYPTOS", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, -4), //US time zone
+	CRYPTOS ("CRYPTOS", "CRYPTOS", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4), //US time zone
 
-	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, -4); //US time zone
+	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4); //US time zone
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);
@@ -117,11 +119,14 @@ public enum Market implements Serializable {
 	private Boolean hasStaticAllMarket;
 	private String[] yahooIndices;
 	
+	private String country;
 	private int utcTimeLag;
 
 	private Market(
 			String marketName, String friendlyName, Currency defaultCurrency , BigDecimal defaultCurrencyFactor, 
-			YahooMarketExtentions marketExtentions, String googleMarketName, String investirExtension, Boolean hasStaticAllMarket, String[] yahooIndices, int utcTimeLag) {
+			YahooMarketExtentions marketExtentions, String googleMarketName, String investirExtension, 
+			Boolean hasStaticAllMarket, String[] yahooIndices, 
+			String country, int utcTimeLag) {
 		this.marketName = marketName;
 		this.friendlyName = friendlyName;
 		this.defaultCurrency = defaultCurrency;
@@ -131,6 +136,7 @@ public enum Market implements Serializable {
 		this.investirExtension = investirExtension;
 		this.hasStaticAllMarket = hasStaticAllMarket;
 		this.yahooIndices = yahooIndices;
+		this.country = country;
 		this.utcTimeLag = utcTimeLag;
 	}
 
@@ -207,6 +213,10 @@ public enum Market implements Serializable {
 
 	public String[] getYahooIndices() {
 		return yahooIndices;
+	}
+	
+	public String getCountry() {
+		return country;
 	}
 
 	public int getUTCTimeLag() {

@@ -53,7 +53,7 @@ public class IndicatorEventCalculator implements ScreenerCalculator<SymbolEvents
 		if (ei != -1) {
 			return events.get(ei);
 		} else {
-			LOGGER.trace("No events for "+stock);
+			LOGGER.trace("No events for " + stock);
 			return new SymbolEvents(stock);
 		}
 	}

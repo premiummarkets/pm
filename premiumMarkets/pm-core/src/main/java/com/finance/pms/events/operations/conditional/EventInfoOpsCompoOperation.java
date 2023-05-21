@@ -284,5 +284,4 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		return false;
 	}
 	
-	
 }

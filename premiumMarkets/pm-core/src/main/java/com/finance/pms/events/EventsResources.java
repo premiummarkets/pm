@@ -647,7 +647,7 @@ public class EventsResources {
 
 		if (isEventPersisted || !isEventCached) {
 
-			LOGGER.info("Storing Events in db cached is "+isEventCached+", persist is "+isEventPersisted+", other params "+eventListName);
+			LOGGER.info("Storing Events in db cached is " + isEventCached + ", persist is " + isEventPersisted + ", other params " + eventListName);
 			persitEvents(symbolEventsList, eventListName, EVENTSTABLE);
 
 		} 
@@ -655,7 +655,7 @@ public class EventsResources {
 
 	private void persitEvents(List<SymbolEvents> events, String eventListName, String eventTableName) {
 
-		LOGGER.info("INSERT/UPDATE "+events.stream().map(e -> e.getDataResultMap().size()).reduce((r,e) -> r+e)+" events for "+eventListName+" into " + eventTableName);
+		LOGGER.info("INSERT/UPDATE " + events.stream().map(e -> e.getDataResultMap().size()).reduce((r,e) -> r + e) + " events for " + eventListName + " into " + eventTableName);
 
 		SortedSet<Stock> lockIds = new TreeSet<Stock>();
 		for (SymbolEvents se : events) {
@@ -1128,7 +1128,7 @@ public class EventsResources {
 	 */
 	public void crudDeleteEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
 
-		LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r+","+e)+" for "+analysisName + " and "+stock.getFriendlyName());
+		LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
 
 		for (EventInfo eventInfo : indicators) {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
@@ -1152,7 +1152,7 @@ public class EventsResources {
 
 		//DB
 		if (isEventPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db, cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+stock+", "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",", indicators));
+			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " + isEventPersisted + " other params " + stock + ", " + analysisName + ", " + datedeb + ", " + datefin + ", " + EventDefinition.getEventDefArrayAsString(",", indicators));
 			DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
 		}
 
@@ -1162,7 +1162,7 @@ public class EventsResources {
 
 	public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
 
-		LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r+","+e)+" for "+analysisName);
+		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
 
 		Date datedeb = DateFactory.DEFAULT_DATE;
 		Date datefin = DateFactory.getNowEndDate();

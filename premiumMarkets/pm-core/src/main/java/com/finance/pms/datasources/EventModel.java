@@ -440,7 +440,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	public TuningResDTO updateTuningRes(Stock stock, EventInfo eventDefinition, SortedMap<EventKey, EventValue> evtDefEvents, Date start, Date end) {
 		try {
 
-			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, SelectedIndicatorsCalculationService.UI_ANALYSIS, eventDefinition, evtDefEvents, tuningResObs);
+			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(start, end, stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefinition, evtDefEvents, tuningResObs);
 			return tuningRes;
 
 		} catch (NotEnoughDataException e) {

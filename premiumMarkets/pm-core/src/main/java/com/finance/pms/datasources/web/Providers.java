@@ -112,6 +112,11 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 				"NSE India INDICES components aggregation", true, true,
 				new String[]{"NIFTY:NSEINDIA", "NIFTY:NSEINDIA", "JRNIFTYLISR:NSEINDIA", "CNX100:NSEINDIA", "CNX200:NSEINDIA", "CNX500:NSEINDIA", "NIFTYMIDCAP50:NSEINDIA", "CNXMIDCAP:NSEINDIA", "CNXSMALLCAP:NSEINDIA"}));
 		shareListIds.put("BSE", new SharesListId("BSE", "bse", ProvidersTypes.BSE, "No comment", "All BSE from bseindia.com", false, true, new String[0]));
+		
+		shareListIds.put("STOCKSYMBOLAPI", new SharesListId(
+				"STOCKSYMBOLAPI", "stockSymbolApi", ProvidersTypes.STOCKSYMBOLAPI, 
+				"Markets and indices prodived by the https://stock-symbol.herokuapp.com/ api. The format is  <INDEX ID>:<MARKET ID>.\n", 
+				"STOCK SYMBOL API market aggregation", true, true, SharesListId.sharesListIdOptionsForStockSymbolApi()));
 
 		//Broken
 		shareListIds.put("GOOGLENYSE", new SharesListId("GOOGLENYSE", "nyse", ProvidersTypes.GOOGLE, "No comment", "All NYSE from google.com", false, true,new String[0]));

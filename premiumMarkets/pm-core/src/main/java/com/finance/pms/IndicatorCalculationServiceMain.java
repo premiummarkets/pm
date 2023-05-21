@@ -143,7 +143,7 @@ public class IndicatorCalculationServiceMain {
 			
 			////default dates (An offset will be added specific for each analyze in the analyze methods)
 			final Date datefin = new Date();
-			final Date datedeb = DataSource.getInstance().getLastEventDateForAnalysis(SelectedIndicatorsCalculationService.AUTOPORTFOLIO);
+			final Date datedeb = DataSource.getInstance().getLastEventDateForAnalysis(SelectedIndicatorsCalculationService.getAnalysisName());
 			LOGGER.info("Events calculation date range based on last event calculated : from "+datedeb+" to "+datefin);
 
 			if (defaultCal) {//default dates and full
@@ -192,8 +192,8 @@ public class IndicatorCalculationServiceMain {
 					Integer sellEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getSellEventTriggerThreshold(); 
 					Integer buyEventTriggerThreshold = ((EventSignalConfig)ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getBuyEventTriggerThreshold();
 					AutoPortfolio autoPortfolio = PortfolioMgr.getInstance().getOrCreateAutoPortfolio(
-							SelectedIndicatorsCalculationService.COMMAND_LINE_ANALYSIS,
-							new LatestEventsScreennerBuyAlertOnlyPonderationRule(SelectedIndicatorsCalculationService.COMMAND_LINE_ANALYSIS),
+							SelectedIndicatorsCalculationService.getAnalysisName(),
+							new LatestEventsScreennerBuyAlertOnlyPonderationRule(SelectedIndicatorsCalculationService.getAnalysisName()),
 							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold),
 							null);
 					

@@ -37,6 +37,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.IfOperation;
 import com.finance.pms.events.operations.MetaOperation;
 import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.ProfitDrivenOperation;
@@ -81,6 +82,7 @@ import com.finance.pms.events.operations.nativeops.RefiterOperation;
 import com.finance.pms.events.operations.nativeops.RequiredShiftWrapperOperation;
 import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.operations.nativeops.StringEqualsOperation;
 import com.finance.pms.events.operations.nativeops.Subtraction;
 import com.finance.pms.events.operations.nativeops.Sum;
 import com.finance.pms.events.operations.nativeops.Ta4jOperation;
@@ -114,6 +116,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(metaOperation);
 		NullOperation nullOperation = new NullOperation();
 		nativeOperations.addOperation(nullOperation);
+		IfOperation ifOperation = new IfOperation();
+		nativeOperations.addOperation(ifOperation);
 
 		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)
@@ -220,6 +224,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(randomizeStringOperation);
 		ConcatStringOperation concatStringOperation = new ConcatStringOperation();
 		nativeOperations.addOperation(concatStringOperation);
+		StringEqualsOperation stringEqualsOperation = new StringEqualsOperation();
+		nativeOperations.addOperation(stringEqualsOperation);
 
 		//Other
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();

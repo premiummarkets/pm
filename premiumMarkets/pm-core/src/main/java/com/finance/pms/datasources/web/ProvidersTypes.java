@@ -52,8 +52,9 @@ public enum ProvidersTypes {
 	INVESTIR("investir","Investir"),
 	DIXHUITDIXHUIT("dixHuitDixHuit","dixHuitDixHuit"),
 	INFLATION("inflation","Inflation"),
-	CURRENCY("currency","Currency"), 
-	INVESTING("investing","Investing");
+	CURRENCY("currency","Currency"),
+	INVESTING("investing","Investing"),
+	STOCKSYMBOLAPI("stockSymbolApi","stockSymbolApi");
 	
 	private ProvidersTypes(String cmdParam, String className) {
 	}

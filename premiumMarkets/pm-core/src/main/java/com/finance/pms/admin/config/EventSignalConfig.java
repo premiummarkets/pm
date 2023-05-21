@@ -102,7 +102,13 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	private String buyPonderationRule = MainPMScmd.getMyPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getMyPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
-	private String configListFileName = SelectedIndicatorsCalculationService.UI_ANALYSIS;
+	
+	@Deprecated
+	/**
+	 * @deprecated this is hard coded ...
+	 * @return
+	 */
+	private String configListFileName = SelectedIndicatorsCalculationService.getAnalysisName();
 
 	//Roc
 	private int rocNNeuralHouseTrendPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("rocnneural.houseTrendPeriod", "21"));
@@ -689,6 +695,11 @@ public class EventSignalConfig extends Config implements Cloneable {
 		return clone;
 	}
 
+	@Deprecated
+	/**
+	 * @deprecated this is hard coded ...
+	 * @return
+	 */
 	public String getConfigListFileName() {
 		return configListFileName;
 	}

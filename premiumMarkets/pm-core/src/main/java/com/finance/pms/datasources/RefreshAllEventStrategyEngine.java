@@ -126,7 +126,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 				//Calculations
 				IndicatorAnalysisCalculationRunnableMessage actionThread = 
 						new IndicatorAnalysisCalculationRunnableMessage(
-								SpringContext.getSingleton(), analyzer, SelectedIndicatorsCalculationService.UI_ANALYSIS, periodType, 
+								SpringContext.getSingleton(), analyzer, SelectedIndicatorsCalculationService.getAnalysisName(), periodType, 
 								sharesListForThisListProvider.getListShares().keySet(), datedeb, datefin, 
 								engineObservers.toArray(new Observer[0]));
 				try {
@@ -148,7 +148,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		EventsResources.getInstance().crudDeleteEventsForIndicators(SelectedIndicatorsCalculationService.UI_ANALYSIS, eventDefsArray);
+		EventsResources.getInstance().crudDeleteEventsForIndicators(SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
 
 		//Delete all
 		postCallBackForClean(true);

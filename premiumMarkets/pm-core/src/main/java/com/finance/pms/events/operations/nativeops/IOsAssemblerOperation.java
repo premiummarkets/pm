@@ -60,7 +60,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		Boolean allowLastColumnTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
 
-		return innerCalculation(targetStock, inputs, assemblerGroupName,  isExport, allowLastColumnTrailingNaN);
+		return innerCalculation(targetStock, inputs, assemblerGroupName, isExport, allowLastColumnTrailingNaN);
 	}
 
 	protected DoubleArrayMapValue innerCalculation(

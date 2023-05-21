@@ -68,6 +68,7 @@ public interface PortfolioDAO {
 	Set<PortfolioShare> loadSharesListContent(String[] include, String[] exclude);
 	public void deletePortfolioShare(PortfolioShare portfolioShare);
 
+	//Independent share lists
 	public IndepShareList loadIndepShareList(String shareListName);
 	public List<String> loadIndepShareListNames();
 

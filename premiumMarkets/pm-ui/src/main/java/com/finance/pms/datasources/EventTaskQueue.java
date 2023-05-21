@@ -134,9 +134,9 @@ public class EventTaskQueue {
 			}
 			Boolean isItScheduledLast = i>=0 && array[i].contains(task);
 
-			LOGGER.info("\n\tTask request :\n"+task+".\n\tLast Task :\n"+lastRunningTasks+".\n" +
-					"Validity : has it just been or is running : "+hasItJustRunOrIsRunning+", is it queued to run last : "+isItScheduledLast+".\n" +
-					"Tasks queue : "+tasks.toString());
+			LOGGER.info("\n\tTask request:\n" + task + ".\n\tLast Task:\n" + lastRunningTasks + ".\n" +
+					"Validity: has it just been or is running: " + hasItJustRunOrIsRunning + ", is it queued to run last: " + isItScheduledLast + ".\n" +
+					"Tasks queue: " + tasks.toString());
 			return hasItJustRunOrIsRunning || isItScheduledLast;
 		}
 	}

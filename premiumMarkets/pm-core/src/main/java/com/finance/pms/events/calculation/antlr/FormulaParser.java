@@ -194,7 +194,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		//If there is a pre parameterised operation, we use it
 		Operation nativeOperation = fetchNativeOperation(child.getText());
 		if (nativeOperation != null) {
-			LOGGER.info("Cloning pre parameterised native op: " + nativeOperation.getReference());
+			LOGGER.debug("Cloning pre parameterised native op: " + nativeOperation.getReference());
 			Operation clone = (Operation) nativeOperation.clone();
 			clone.setOperands(operands);
 			clone.setOutputSelector(outputSelector);
@@ -203,7 +203,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 		Operation userOperation = fetchUserOperation(child.getText());
 
-		//No native. If there is a user operation, we use it
+		//No native. If there is a user operation, we use it //XXX FIXME should I clone user operations as well? XXX
 		if (userOperation != null) {
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
 			LOGGER.info("Reusing user op: " + userOperation.getReference());

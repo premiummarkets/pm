@@ -31,6 +31,7 @@ package com.finance.pms.sharelists.gui;
 
 import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -278,7 +279,7 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			stocks.setFont(MainGui.CONTENTFONT);
 			stocks.getVerticalBar().setVisible(true);
 
-			String[] titles = new String[]{"Symbol", "Isin", "Name"};
+			String[] titles = new String[]{"Symbol", "Isin", "Name", "Last quote"};
 			for (String title : titles) {
 				TableColumn tableColumn = new TableColumn(stocks, SWT.NONE);
 				tableColumn.setText(title);
@@ -402,9 +403,10 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 							item.setText(0, stock.getSymbol());
 							item.setText(1, stock.getIsin());
 							item.setText(2, stock.getName());
+							item.setText(3, new SimpleDateFormat("yyyy-MM-dd").format(stock.getLastQuote()));
 						}
 					}
-					for (int j = 0; j < 3; j++) {
+					for (int j = 0; j < 4; j++) {
 						if (!stocks.isDisposed()) {
 							stocks.getColumn(j).pack();
 						}

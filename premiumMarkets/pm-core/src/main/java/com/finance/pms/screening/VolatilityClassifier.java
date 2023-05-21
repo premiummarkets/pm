@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateExce
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -51,6 +53,19 @@ import com.finance.pms.events.scoring.functions.RocSmoother;
 import com.finance.pms.portfolio.IndepShareList;
 import com.finance.pms.portfolio.PortfolioDAO;
 
+
+/**
+ * From yahoo screener to volatilities beta share list:
+ * yahoo screener 
+ * --screnner.py/betaScreener (when update is true)--> yahoo beta share list (YAHOOINDICES,BETA:SCREENER)
+ * --filterStocks and its predicates filters--> volatilities beta csv 
+ * --generateFromFileToDB--> volatilities beta share list (VOLATILITY,BETA:UNKNOWN)
+ * 
+ * VOLATILITY,BETA:UNKNOWN is a subset of YAHOOINDICES,BETA:SCREENER
+ * 
+ * @author guil
+ *
+ */
 @Component
 public class VolatilityClassifier {
 
@@ -68,7 +83,8 @@ public class VolatilityClassifier {
 	
 	//Predicates
 	private Boolean allowQuotesUpdate = false;
-	private int minDataInYears = 8;
+	private int minRecentQuoteInDays = 7;
+	private int minDataInYears = 10 + 10; //years before input + years input
 	private double minValidDataToTimeRatio = 0.80;
 	private double minOHLCToQuotesRatio = 0.80;
 	
@@ -92,14 +108,16 @@ public class VolatilityClassifier {
 
 	}
 	
-	void generateFromFileToDB(String volatiliesCsvPath) throws Exception {
+	void generateFromFileToDB(String volatiliesCsvPath, String volatilityIndiceName, Double lowerMeanOfReturn, Double higherMeanOfReturn) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
 		if (existsCsvFile) {
 			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
-			//Create Indep Portfolios
-			createOnePortfolioShareList(sorted, 0, sorted.size(), "VOLATILITY,ALLVOLATILITY:" + "MISCELLANEOUS");
+			List<Entry<Stock, Double[]>> filteredMeanOReturn = sorted.stream().filter(e -> e.getValue()[2] >= lowerMeanOfReturn && e.getValue()[2] <= higherMeanOfReturn).collect(Collectors.toList());
+			
+			//Create Indep Portfolios //XXX sort does not matter here as we pass the whole list.
+			createOnePortfolioShareList(filteredMeanOReturn, 0, filteredMeanOReturn.size(), "VOLATILITY," + volatilityIndiceName + ":" + "UNKNOWN");
 		}
 
 	}
@@ -116,20 +134,20 @@ public class VolatilityClassifier {
 	 * @param sameCurrency 
 	 * @throws Exception
 	 */
-	void generateFromFileInRangeOfToFile(String volatiliesCsvPath, Stock referenceStock, Boolean sameCurrency, int nbRows, String supportFile) throws Exception {
+	void generateFromFileInRankOfToFile(String volatiliesCsvPath, Stock referenceStock, Boolean sameCurrency, int nbRows, String supportFile) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
 		if (existsCsvFile) {
 			List<Entry<Stock, Double[]>> sorted = uploadFromFile(volatilitiesCsv);
-			List<Entry<Stock, Double[]>> entries = filterSubListInRange(referenceStock, nbRows, sorted);
+			List<Entry<Stock, Double[]>> entries = filterSubListInRank(referenceStock, nbRows, sorted);
 			if (sameCurrency) entries = filterSubListSameCurrency(referenceStock.getMarketValuation().getCurrency(), entries);
 			exportToFile(referenceStock.getFriendlyName(), supportFile, entries);
 		}
 
 	}
 
-	private List<Entry<Stock, Double[]>> filterSubListInRange(Stock referenceStock, int nbRows, List<Entry<Stock, Double[]>> sorted) throws IOException {
+	private List<Entry<Stock, Double[]>> filterSubListInRank(Stock referenceStock, int nbRows, List<Entry<Stock, Double[]>> sorted) throws IOException {
 
 		//Find i
 		int i = 0;
@@ -183,11 +201,11 @@ public class VolatilityClassifier {
 		} catch (Exception e1) {
 			LOGGER.error(e1);
 		}
-		return sortVolatilities(stockVolatilities);
+		return sortVolatilitiesByMeansOfReturn(stockVolatilities);
 
 	}
 
-	void generateNewCalculationFilteredToFile() throws Exception {
+	String generateNewCalculationFilteredToFile() throws Exception {
 		
 		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
 		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
@@ -197,8 +215,8 @@ public class VolatilityClassifier {
 		UUID randomUUID = UUID.randomUUID();
 		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
 		
-		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
-		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator);
+		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
 		LOGGER.info("Split checks:\n"+
 		"stock, size, nbyears, split max, merge max\n" +
 				stockSplitsTracer.entrySet().stream()
@@ -220,6 +238,8 @@ public class VolatilityClassifier {
 		};
 		
 		calculateFor(randomUUID.toString(), quotationsWrapper, filteredStocks);
+		
+		return randomUUID + "_" + VOLATILITIES_CSV;
 
 	}
 	
@@ -233,8 +253,8 @@ public class VolatilityClassifier {
 		UUID randomUUID = UUID.randomUUID();
 		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
 		
-		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
-		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator);
+		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
 		LOGGER.info("Split checks:\n"+
 		"stock, size, nbyears, split max, merge max\n" +
 				stockSplitsTracer.entrySet().stream()
@@ -281,8 +301,8 @@ public class VolatilityClassifier {
 		UUID randomUUID = UUID.randomUUID();
 		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
 		
-		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
-		LOGGER.info("Validitiy accounting: " + invalidStockAccumulator);
+		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
+		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
 		LOGGER.info("Split checks:\n"+
 		"stock, size, nbyears, split max, merge max\n" +
 				stockSplitsTracer.entrySet().stream()
@@ -325,6 +345,35 @@ public class VolatilityClassifier {
 
 	private List<Predicate<Stock>> buildPredicates(Map<String, List<Stock>> invalidStockAccumulator, Map<Stock, double[]> stockSplitsTracer) {
 		List<Predicate<Stock>> predicates = new ArrayList<Predicate<Stock>>();
+		
+		
+		//Has recent quotations
+		Predicate<Stock> lastQuotePredicate = stock -> {
+			boolean hasRecentQuotes = false;
+			for (int i = 0; !hasRecentQuotes && i <= 1; i++) {
+				Date lastQuote = stock.getLastQuote();
+				Duration diff = Duration.between(new Date(lastQuote.getTime()).toInstant(), new Date().toInstant());
+				hasRecentQuotes = diff.toDays() <= minRecentQuoteInDays;
+				if (!hasRecentQuotes && allowQuotesUpdate) {
+					try {	
+						QuotationUpdate quotationUpdate = new QuotationUpdate();
+						quotationUpdate.getQuotesFor(stock);
+					} catch (QuotationUpdateException e) {
+						LOGGER.warn("Can't update quotation for: " + stock + " because " + e);
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+			if (!hasRecentQuotes) {
+				LOGGER.info(stock + " does not match 'last quote is within " + minRecentQuoteInDays + " days'.");
+				List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("lastQuotePredicate", new ArrayList<>());
+				predicateAcc.add(stock);
+				invalidStockAccumulator.put("lastQuotePredicate", predicateAcc);
+			}
+			return hasRecentQuotes;
+		};
 
 		//N years minimum length.
 		Predicate<Stock> nYearsPredicate = stock -> {
@@ -342,17 +391,24 @@ public class VolatilityClassifier {
 				}
 				if (!match && i < 1) { //Quote updates and then retry
 					LOGGER.info(stock + " may not be up to date for 'minimum length " + minDataInYears + " years'. Will update quotations and try again: " + allowQuotesUpdate);
-					try {
-						if (allowQuotesUpdate) {
+					if (allowQuotesUpdate) {
+						try {
+							
 							QuotationUpdate quotationUpdate = new QuotationUpdate();
-							quotationUpdate.getQuotesFor(stock);
+							//quotationUpdate.getQuotesFor(stock);  //XXX should we do a reset of the quote here?
+							DataSource.getInstance().cleanQuotationsFor(stock);
+							quotationUpdate.getQuotes(new StockList(stock), true, false);
+							
+						} catch (QuotationUpdateException | SQLException e) {
+							LOGGER.warn("Can't update quotation for: " + stock + " because " + e);
+							break;
 						}
-					} catch (QuotationUpdateException e) {
-						LOGGER.warn("Can't update quotation for: " + stock + " because " + e);
+					} else {
+						break;
 					}
 				}
-				if (!allowQuotesUpdate) break;
 			}
+			
 			if (!match) {
 				LOGGER.info(stock + " does not match 'minimum length " + minDataInYears + " years'.");
 				List<Stock> predicateAcc = invalidStockAccumulator.getOrDefault("nYearsPredicate", new ArrayList<>());
@@ -449,7 +505,8 @@ public class VolatilityClassifier {
 				return false;
 			}
 		};
-//		predicates.add(Last quote was n years ago and minimum length is m years);
+		
+		predicates.add(lastQuotePredicate);
 		predicates.add(nYearsPredicate);
 		predicates.add(maxQuotationsGapPredicate);
 		predicates.add(ohlcPredicate);
@@ -475,7 +532,7 @@ public class VolatilityClassifier {
 		}));
 
 		//Sort
-		List<Entry<Stock, Double[]>> sorted = sortVolatilities(stockVolatilities);
+		List<Entry<Stock, Double[]>> sorted = sortVolatilitiesByMeansOfReturn(stockVolatilities);
 
 		//Export to "volatilities.csv"
 		try (FileWriter fileWriter = new FileWriter(new File(EXPORT_PATH + randomUUID + "_" + VOLATILITIES_CSV))) {
@@ -498,7 +555,7 @@ public class VolatilityClassifier {
 		return sorted;
 	}
 
-	private List<Entry<Stock, Double[]>> sortVolatilities(Map<Stock, Double[]> stockVolatilities) {
+	private List<Entry<Stock, Double[]>> sortVolatilitiesByMeansOfReturn(Map<Stock, Double[]> stockVolatilities) {
 		List<Entry<Stock, Double[]>> sorted = stockVolatilities.entrySet().stream()
 				.filter(e -> !Double.isNaN(e.getValue()[0]) && !Double.isNaN(e.getValue()[2]))
 				.sorted((e0, e1) -> {
@@ -523,6 +580,7 @@ public class VolatilityClassifier {
 		createOnePortfolioShareList(sorted, sorted.size() - nbRows, sorted.size(), "VOLATILITY,HIGHVOLATILITY:" + listMName);
 	}
 
+	//FIXME use as sorted Collection instead of a list
 	private void createOnePortfolioShareList(List<Entry<Stock, Double[]>> sorted, int from, int to, String shareListName) {
 
 		List<Entry<Stock, Double[]>> volatilitiesSubSet = sorted.subList(from, to);
@@ -540,19 +598,30 @@ public class VolatilityClassifier {
 
 	private Set<Stock> filterStocks(UUID randomUUID, List<Predicate<Stock>> predicates) {
 
-		Set<Stock> allStocks = portfolioDAO.loadSharesListContent(null, null).stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
+		//Set<Stock> allStocks = portfolioDAO.loadSharesListContent(null, null).stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
 		//List<Stock> allStocks = shareDAO.loadAllStocks();
+		
+		YahooStockScreener yahooStockScreener = new YahooStockScreener(false);
+		Set<Stock> allStocks = yahooStockScreener.calculate();
+		try {	
+			QuotationUpdate quotationUpdate = new QuotationUpdate();
+			quotationUpdate.getQuotesFor(allStocks);
+		} catch (QuotationUpdateException e) {
+			LOGGER.error("Can't update quotation for screener because " + e);
+		}
 
 		Set<Stock> filtered = allStocks.stream()
 				.filter(s -> predicates.stream().allMatch(p -> p.test(s)))
 				.collect(Collectors.toSet());
 		LOGGER.info("Valid stock filtered: " + filtered.size() + " out of " + allStocks.size());
+		
 		String validLines = filtered.stream()
 				.map(s -> s.toString())
 				.distinct()
 				.reduce((r, e) -> r + "\n" + e)
 				.orElse("None");
 		LOGGER.info("Valid stocks: \n" + validLines);
+		
 		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + randomUUID + "_validStocks.txt"))) {
 			fileWriter.write(validLines + "\n");
 		} catch (IOException e) {
@@ -569,6 +638,7 @@ public class VolatilityClassifier {
 				.reduce((r, e) -> r + "\n" + e)
 				.orElse("None");
 		LOGGER.info("Affected stocks: \n" + invalidLines);
+		
 		try (FileWriter fileWriter = new FileWriter(new File(TMP_PATH + randomUUID + "_invalidStocks.txt"))) {
 			fileWriter.write(invalidLines + "\n");
 		} catch (IOException e) {

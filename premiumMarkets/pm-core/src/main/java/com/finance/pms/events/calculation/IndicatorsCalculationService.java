@@ -92,12 +92,14 @@ public abstract class IndicatorsCalculationService {
 	 * In the case of the daily calculation, the next iteration will then start on today-1 (lets call it �)
 	 * The first calculation for the next daily iteration will then be on � - daysbackwardday + 1.
 	 */
+	@Deprecated
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> analyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean kc, Integer passNumber, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
 		return analyseSymbolCollection(symbols, dateDeb, dateFin, calculationCurrency, eventListName, periodType, kc, passNumber, passOneCalcMode, observers);		
 	}
 	
+	@Deprecated
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> partialAnalyze(
 			Collection<Stock> symbols, Date dateDeb, Date dateFin, Currency calculationCurrency, String eventListName, 
 			String periodType, Boolean keepCache, Integer passNumer, String passOneCalcMode, Observer... observers) throws InvalidAlgorithmParameterException, IncompleteDataSetException {
@@ -117,7 +119,7 @@ public abstract class IndicatorsCalculationService {
 			String periodType, Boolean keepCache, Integer passNumber, String passOneCalcMode, Observer... observers) 
 			throws InvalidAlgorithmParameterException, IncompleteDataSetException;
 	
-	
+	@Deprecated
 	public Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> runIndicatorsCalculation(
 			Collection<Stock> shareList, String eventListName, Date startDate, Date endDate, Currency calculationCurrency, 
 			String periodType, Integer passNumber, String passOneCalcMode, Observer... observers)

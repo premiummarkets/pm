@@ -1439,4 +1439,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return shareDAO;
 	}
 
+	public PortfolioDAO getPortfolioDAO() {
+		return portfolioDAO;
+	}
+	
+	
+
 }

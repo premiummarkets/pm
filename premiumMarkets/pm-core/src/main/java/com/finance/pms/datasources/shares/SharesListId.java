@@ -29,13 +29,32 @@
  */
 package com.finance.pms.datasources.shares;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.web.ProvidersTypes;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * Defines a market list providers
@@ -82,7 +101,6 @@ public class SharesListId  {
 		this.isIndicesComposite = false;
 		this.isDownloadable = false;
 		this.options = null;
-		
 	}
 
 	public static SharesListId[] values() {
@@ -195,9 +213,74 @@ public class SharesListId  {
 		SortedSet<String> ret = new TreeSet<String>();
 		for (Market market : Market.values()) {
 			for (String indice : market.getYahooIndices()) {
-				ret.add(indice+ ":" + market.name());
+				ret.add(indice + ":" + market.name());
 			}
 		}
+		return ret.toArray(new String[0]);
+	}
+	
+	public static String[] sharesListIdOptionsForStockSymbolApi() {
+		
+		SortedSet<String> ret = new TreeSet<String>();
+		
+		String rootPath = MainPMScmd.getMyPrefs().get("quotes.stockSymbolApiDumpRootPath", "");
+		Path marketListFilePath = Path.of(rootPath, "markets_lists.json");
+		
+		if (!Files.exists(marketListFilePath)) {
+			try {
+				Path python_py = Files.createTempFile("stock-symbol_market_list", "py");
+				try (InputStream stream = SharesListId.class.getResourceAsStream("/stockSymbolApi/stock-symbol_market_list.py")) {
+					Files.copy(stream, python_py, StandardCopyOption.REPLACE_EXISTING);
+					PosixFileAttributeView view = Files.getFileAttributeView(python_py, PosixFileAttributeView.class);
+					if (view != null) {
+						Set<PosixFilePermission> perms = view.readAttributes().permissions();
+						if (perms.add(PosixFilePermission.OWNER_EXECUTE)) {
+							view.setPermissions(perms);
+						}
+					}
+				}
+				String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
+				ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString());
+				Process p = pb.start();
+				
+				try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream())); BufferedWriter out = new BufferedWriter(new FileWriter(marketListFilePath.toFile()))) {
+					String line = null;
+					while ((line = in.readLine()) != null) {
+						out.write(line);
+					}
+				}
+				
+				try {
+					Files.delete(python_py);
+				} catch (IOException e) {
+					System.out.println("Error deleting StockSymbolApi market list init py: " + e);
+					e.printStackTrace();
+				}
+				
+			} catch (IOException e) {
+				LOGGER.error(e);
+			}
+		}
+			
+		try (Reader in = new FileReader(marketListFilePath.toFile());) {
+			JsonArray marketJsons = new JsonParser().parse(in).getAsJsonArray();
+			for (JsonElement marketElement : marketJsons) {
+				JsonObject market = marketElement.getAsJsonObject();
+				JsonArray indexJsonArray = market.get("index").getAsJsonArray();
+				if (indexJsonArray.size() > 0) {
+					for (JsonElement indiceElement : indexJsonArray) {
+						JsonObject indice = indiceElement.getAsJsonObject();
+						String[] indiceSplit = indice.get("id").getAsString().split(":"); // <= NASDAQ:NDX
+						ret.add(indiceSplit[1] + ":" + indiceSplit[0]); // => NDX:NASDAQ
+					}
+				} else {
+					ret.add("ALL:" + market.get("market").getAsString().toUpperCase()); // => ALL:AMERICA
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+		}
+		
 		return ret.toArray(new String[0]);
 	}
 

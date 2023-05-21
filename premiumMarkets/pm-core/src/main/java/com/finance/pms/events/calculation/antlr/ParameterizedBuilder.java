@@ -600,7 +600,7 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 	private void invalidateOperations(List<Operation> impactedOps) {
-		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.UI_ANALYSIS, Optional.empty()));
+		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty()));
 	}
 
 

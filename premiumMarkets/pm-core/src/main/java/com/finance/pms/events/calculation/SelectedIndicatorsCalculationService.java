@@ -33,10 +33,19 @@ public class SelectedIndicatorsCalculationService {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(SelectedIndicatorsCalculationService.class);
 	
-	public static final String COMMAND_LINE_ANALYSIS = "cmdLineAnalysis";
-	public static final String AUTOPORTFOLIO = "AutoPortfolio";
-	public static final String WEB_ANALYSIS = "WebAnalysis";
-	public static final String UI_ANALYSIS = "UiAnalysis";
+//	public static final String COMMAND_LINE_ANALYSIS = "cmdLineAnalysis";
+//	public static final String AUTOPORTFOLIO = "AutoPortfolio";
+//	public static final String WEB_ANALYSIS = "WebAnalysis";
+//	public static final String UI_ANALYSIS = "UiAnalysis";
+	private static String ANALYSIS_NAME = null;
+	public static String getAnalysisName() {
+		if (ANALYSIS_NAME == null) {
+			String analysisNameInConfig = MainPMScmd.getMyPrefs().get("event.analysisName", null);
+			if (analysisNameInConfig == null) throw new RuntimeException("Please set 'event.analysisName' in the db.properties config file.");
+			ANALYSIS_NAME = analysisNameInConfig;
+		}
+		return ANALYSIS_NAME;
+	}
 
 	public class QuotesBounds {
 

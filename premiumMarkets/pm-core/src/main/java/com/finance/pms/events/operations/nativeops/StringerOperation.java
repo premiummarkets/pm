@@ -12,7 +12,7 @@ import com.finance.pms.events.operations.Value;
 
 @XmlSeeAlso({
 	CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class, IOsWebImporterOperation.class,
-	RandomizeStringOperation.class, ConcatStringOperation.class
+	RandomizeStringOperation.class, ConcatStringOperation.class, StringEqualsOperation.class
 	})
 public abstract class StringerOperation extends Operation {
 

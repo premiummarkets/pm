@@ -451,7 +451,7 @@ public class AutoPortfolioDelegate {
 			double fee = 0.01;
 			BigDecimal sellPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
 									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
-									.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
+									.multiply(new BigDecimal(1 - (fee/(1+fee)) )).setScale(10, RoundingMode.HALF_EVEN);
 
 			BigDecimal quantityProrata;
 			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());

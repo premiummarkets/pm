@@ -1219,6 +1219,25 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="stringEqualsOperation">
+            <reference>equalsString</reference>
+            <description>Compares strings and return TRUE if all equals, FALSE otherwise</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>anyString</referenceAsOperand>
+                    <description>Any string to be compared</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="nullOperation">
             <reference>NONE</reference>
             <description>Null operation. Should signify no operation.</description>
@@ -1689,6 +1708,41 @@
             <reference>operationReference</reference>
             <description>Operation reference name</description>
             <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ifOperation">
+            <reference>If</reference>
+            <description>If 1rst operand is true then run second operand else run the third operand.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>condition</reference>
+                    <referenceAsOperand>if</referenceAsOperand>
+                    <description>if condition</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>TRUE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>then</referenceAsOperand>
+                    <description>then</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>else</referenceAsOperand>
+                    <description>else</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
