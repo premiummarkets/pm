@@ -442,7 +442,7 @@ public enum EventDefinition implements Serializable, EventInfo {
 	}
 
 	@Override
-	public void interrupt() {
+	public void interruptEventInfo() {
 		// TODO Auto-generated method stub
 		
 	}

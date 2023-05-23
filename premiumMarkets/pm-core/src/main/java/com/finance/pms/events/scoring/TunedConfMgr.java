@@ -61,7 +61,12 @@ public class TunedConfMgr {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(TunedConfMgr.class);
 
-	public enum CalcStatus {NONE,INC,RESET,IGNORE};
+	public enum CalcStatus {
+			NONE, //No calculation is done/required
+			LEFT_INC, RIGHT_INC, //Only a missing (head/tail) increment is calculated
+			RESET, //Delete previous and recalculate from scratch
+			IGNORE //Calculate as requested ignoring the values in db
+		};
 
 	@Autowired
 	TunedConfDAO tunedConfDAO;
@@ -127,7 +132,7 @@ public class TunedConfMgr {
 		if (!startDate.before(tunedConf.getLastCalculationStart()) && !startDate.after(tunedConf.getLastCalculationEnd())) {//start is included into the last calculation
 			//inc calc, tuned config start stays the same
 			pmEvtsCalcStart = startDate;
-			calcStatus = CalcStatus.INC;
+			calcStatus = CalcStatus.RIGHT_INC;
 			infoMsg = "New dates for "+stock+" starts within the previous calc : we do INCREMENTAL calc. ";
 
 		} else {//start outside the last calculation
@@ -146,7 +151,7 @@ public class TunedConfMgr {
 			pmEvtsCalcEnd = endDate;
 			tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
 		}
-		else if (calcStatus.equals(CalcStatus.INC)) {//Start date within previous calc
+		else if (calcStatus.equals(CalcStatus.RIGHT_INC)) {//Start date within previous calc
 			if (newEndSpansAfterPreviousCalc) { //End date after previous calc => inc calc
 				pmEvtsCalcEnd = endDate;
 				tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
@@ -157,9 +162,9 @@ public class TunedConfMgr {
 
 		LOGGER.info(
 				infoMsg +
-				"TunedConf after calculating bounds from "+tunedConf.getLastCalculationStart()+" to "+tunedConf.getLastCalculationEnd() +
-				". Requested calculation is from "+startDate+" to "+endDate+". "+
-				"New calculation status is "+calcStatus+" and will either be from "+pmEvtsCalcStart+" to "+pmEvtsCalcEnd +" or is not needed if "+CalcStatus.NONE+".");
+				"TunedConf after calculating bounds from " + tunedConf.getLastCalculationStart() + " to " + tunedConf.getLastCalculationEnd() + 
+				". Requested calculation is from " + startDate + " to " + endDate + ". " + 
+				"New calculation status is " + calcStatus + " and will either be from " + pmEvtsCalcStart + " to " + pmEvtsCalcEnd  + " or is not needed if " + CalcStatus.NONE + ".");
 
 		return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd, null, null);
 

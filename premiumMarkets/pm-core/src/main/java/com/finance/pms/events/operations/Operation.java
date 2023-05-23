@@ -210,7 +210,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			else {
 				List<Value<?>> operandsOutputs = new ArrayList<>(Collections.nCopies(nbOperands, (Value<?>) null));
 				
-				//If start > true, non literals operands will be set empty 
+				//If start > end, non literals operands will be set empty 
 				final Boolean literalsOnly = targetStock.getStartDate(thisInputOperandsRequiredshiftFromThis).compareTo(targetStock.getEndDate()) > 0;
 				
 				//Non literals
@@ -758,12 +758,32 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}, (a, b) -> Math.max(a, b));
 	}
 
-	//Children of this operation not idempotent would make this operation not idempotent. It will return true by default.
-	//This can be overridden by making this operation itself not idempotent
-	//Non idempotent operation will invalidate any previous calculation.
+	/**
+	 * For non idempotent operations
+	 * Non idempotent operation will ignore previous calculations found in the db and redo the full calculations as required by the start and end date.
+	 * If false, events will be deleted as from the CalcStatus.RESET !! unless isNoOverrideDeltaOnly() is also true !!
+	 * 	//All children must be idempotent for this to be. True by default.
+		//This can be overridden by making this operation itself not idempotent.
+	 * @return
+	 */
 	public Boolean isIdemPotent() {
 		if (operands.isEmpty()) return true;
 		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
+	}
+	
+	/** 
+	 * For non idempotent operations where past calculations need keeping
+	 * If true only the tail end delta of the calculated events will be stored in the db.
+	 * No gap or head start checks will be made.
+	 * This applies only for non idempotent (when isIdemPotent() == false) operations as events can be overridden for idempotent operations.
+	 * //Any Child NoOverrideDeltaOnly will make this operation NoOverrideDeltaOnly. False by default.
+	 * @return
+	 */
+	public Boolean isNoOverrideDeltaOnly() {
+		//if (this.isIdemPotent()) return false;
+		if (operands.isEmpty()) return false;
+		Boolean reduce = operands.stream().reduce(false, (r, e) -> r || e.isNoOverrideDeltaOnly(), (a, b) -> a || b);
+		return reduce;
 	}
 	
 	/**
@@ -798,6 +818,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				});
 	}
 	
+	//XXX should be protected use with caution
 	public Set<QuotationDataType> getRequiredStockData() {
 		Set<QuotationDataType> quotationDataTypes = new HashSet<>();
 		if (this instanceof StockOperation) {
@@ -809,6 +830,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return quotationDataTypes;
 	}
 	
+	//XXX should be protected use with caution
 	public void interrupt() throws Exception {
 		operands.stream()
 			.forEach(

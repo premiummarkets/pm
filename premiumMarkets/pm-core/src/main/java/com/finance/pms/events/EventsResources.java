@@ -615,7 +615,7 @@ public class EventsResources {
 
 
 	public void crudCreateEvents(List<SymbolEvents> symbolEventsList, String eventListName) {
-
+		
 		if (isEventCached) {
 
 			String eventsTableName = EVENTSTABLE;
@@ -690,7 +690,7 @@ public class EventsResources {
 				updated = DataSource.getInstance().executeBlockSerializedWithTimeStamp(lqUpdate, DataSource.EVENTS.getUPDATE(eventTableName));
 
 				//Insert the raws not updated
-				for (int i=0;i<updated.length;i++) {
+				for (int i=0; i < updated.length; i++) {
 
 					final Query query = qInsert.get(i);
 
@@ -1128,7 +1128,7 @@ public class EventsResources {
 	 */
 	public void crudDeleteEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
 
-		LOGGER.info("DELETE events "+ Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
+		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
 
 		for (EventInfo eventInfo : indicators) {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
@@ -1188,7 +1188,7 @@ public class EventsResources {
 
 		//DB
 		if (isEventPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db, cached is "+isEventCached+", persist is "+isEventPersisted+" other params "+analysisName+", "+datedeb+", "+datefin+", "+EventDefinition.getEventDefArrayAsString(",",indicators));
+			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " + isEventPersisted + " other params " + analysisName + ", " + datedeb + ", " + datefin + ", " + EventDefinition.getEventDefArrayAsString(",", indicators));
 			DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
 		}
 
@@ -1198,7 +1198,7 @@ public class EventsResources {
 
 	public void crudDeleteEventsForAnalysisName(String analysisName) {
 
-		LOGGER.info("DELETE events for "+analysisName);
+		LOGGER.info("DELETE events for " + analysisName);
 
 		//Cache
 		if (isEventCached) {

@@ -12,6 +12,7 @@ import java.util.Observer;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
@@ -82,6 +83,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			LOGGER.guiInfo("Calculating " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
 			LOGGER.guiInfo("Finishing " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
+						
 			return symbolEvents;
 
 		} catch (IncompleteDataSetException e) {
@@ -113,13 +115,20 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			//				LOGGER.error(e,e);
 			//			}
 
-			CalculationBounds calculationBounds;
+			//FIXME operations method should not be called outside of the operation.run loop
+			boolean isNonIdempotentOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent();
+			boolean isNoOverrideDeltaOnlyOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly();
+			
+			CalculationBounds calcBounds;			
 			try {
-				if (eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent()) {
-					calculationBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
-				} else {
-					EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
-					calculationBounds = checker.autoCalcAndSetDatesBounds(start, end);
+				EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
+				calcBounds = checker.autoCalcAndSetDatesBounds(start, end);
+				if (isNonIdempotentOpsCompo) {
+					if (isNoOverrideDeltaOnlyOpsCompo && calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
+						calcBounds = new CalculationBounds(CalcStatus.RIGHT_INC, start, end, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
+					} else {
+						calcBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
+					}
 				}
 			} catch (InvalidAlgorithmParameterException e1) {
 				//Recoverable we leave the tunedConf as is
@@ -129,11 +138,11 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 			Boolean dirty = true;
 			try {
-				Date adjustedStart = calculationBounds.getPmStart();
-				Date adjustedEnd = calculationBounds.getPmEnd();
+				Date adjustedStart = calcBounds.getPmStart();
+				Date adjustedEnd = calcBounds.getPmEnd();
 
 				//
-				if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {//Calculation needed
+				if (!calcBounds.getCalcStatus().equals(CalcStatus.NONE)) { //Calculation needed
 
 					//Calculator preparation
 					Currency currency = stock.getMarketValuation().getCurrency();
@@ -145,34 +154,47 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					}
 
 					//If RESET or not idemPotent we clean
-					if (calculationBounds.getCalcStatus().equals(CalcStatus.RESET)) {
+					if (calcBounds.getCalcStatus().equals(CalcStatus.RESET)) {
 						EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
 					}
 
 					//Calculation
 					Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
-					SortedMap<EventKey, EventValue> calculatedEventsForCalculator = calculator.calculateEventsFor(quotations, eventListName);
+					SortedMap<EventKey, EventValue> calculatorEvents = calculator.calculateEventsFor(quotations, eventListName);
 
-					if (calculatedEventsForCalculator != null) {//There are results or empty results
-						LOGGER.info("Calculated " + calculatedEventsForCalculator.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+					if (calculatorEvents != null) {//There are results or empty results
+						
+						LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+						
+						//isNoOverrideDeltaOnly
+						if (isNonIdempotentOpsCompo) {
+							if (isNoOverrideDeltaOnlyOpsCompo && calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
+									Date lastEventInDb = tunedConf.getLastCalculationEnd();
+									LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to tail from " + lastEventInDb);
+									calculatorEvents = calculatorEvents.entrySet().stream()
+										.filter(e -> e.getKey().getDate().after(lastEventInDb))
+										.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+									LOGGER.info("Received (to be stored) " + calculatorEvents.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+							}
+						}
+						
 						dirty = false;
 						symbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
-						symbolEvents.addEventResultElement(calculatedEventsForCalculator, eventInfo);
+						symbolEvents.addEventResultElement(calculatorEvents, eventInfo);
 
 					} else {//No results
 						LOGGER.warn("Failed (null returned) calculation for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						dirty = false; //Not recoverable issue
 						symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 						symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
-						throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : "+eventInfo);
-
+						throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
 					}
 
 				} else {//No calculation needed
 					LOGGER.info(
 							"Recalculation requested for " + stock + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() +
 							" from " + adjustedStart + " to " + adjustedEnd + ". " +
-							"No recalculation needed calculation bound is " + calculationBounds.toString());
+							"No recalculation needed calculation bound is " + calcBounds.toString());
 					dirty = false;
 					symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 					symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
@@ -182,26 +204,26 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
-				LOGGER.error(
-						"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and " +
-								eventInfo.getEventDefinitionRef() + " from " + calculationBounds.getPmStart() + " to " + calculationBounds.getPmEnd(), e);
+				LOGGER.error(	"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and " +
+								eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
 				dirty = false; //Not recoverable issue
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
-				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : " + eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
 
 			} catch (Throwable e) {
 				// Recoverable??
 				LOGGER.error(
 						"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and "+
-								eventInfo.getEventDefinitionRef() + " from " + calculationBounds.getPmStart() + " to " + calculationBounds.getPmEnd(), e);
+								eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
 				dirty = true; //Recoverable issue ??
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
-				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing : " + eventInfo);
+				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
 
 			} finally {
-				TunedConfMgr.getInstance().updateConf(tunedConf, dirty, calculationBounds.getNewTunedConfStart(), calculationBounds.getNewTunedConfEnd());
+				LOGGER.info("Updating tunedConf: " + tunedConf + " with calculation bounds: " + calcBounds);
+				TunedConfMgr.getInstance().updateConf(tunedConf, dirty, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
 			}
 
 		}

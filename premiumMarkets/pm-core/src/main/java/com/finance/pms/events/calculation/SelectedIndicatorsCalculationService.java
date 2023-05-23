@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.stream.Collectors;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -106,7 +108,7 @@ public class SelectedIndicatorsCalculationService {
 					LOGGER.info("Calculation adjusted : events for stock " + stock.toString() + " between " + dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate()) + " and " + dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
 
 					List<Future<SymbolEvents>> eventInfosFutures = new ArrayList<>();
-					for(EventInfo eventInfo: stocksEventInfos.get(stock)) {
+					for (EventInfo eventInfo: stocksEventInfos.get(stock)) {
 						Callable<SymbolEvents> calculationRunnable = new SelectedIndicatorsCalculationThread(stock, adjCalcDatesToQs.getAdjustedStartDate(), adjCalcDatesToQs.getAdjustedEndDate(), eventInfo, eventListName, observers);
 						Future<SymbolEvents> submittedRunnable = executor.submit(calculationRunnable);
 						eventInfosFutures.add(submittedRunnable);
@@ -117,7 +119,7 @@ public class SelectedIndicatorsCalculationService {
 
 				} catch (Exception e1) {
 					LOGGER.warn("Could not proceed with initialisation of calculation for " + stock + ": " + e1.getMessage());
-					//We update the tunedConfs assuming subsequent calculations will fail as well.
+					//We update the tunedConfs to NOT dirty assuming subsequent calculations will fail as well.
 					stocksEventInfos.get(stock).stream().forEach( ei -> {
 						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
 						TunedConfMgr.getInstance().updateConf(tunedConf, false);
@@ -132,7 +134,7 @@ public class SelectedIndicatorsCalculationService {
 
 				SymbolEvents stockAllSymbolEvents = new SymbolEvents(stock);
 				allEvents.add(stockAllSymbolEvents);
-				for(Future<SymbolEvents> stockEventInfoFuture : futuresMap.get(stock)) {
+				for (Future<SymbolEvents> stockEventInfoFuture : futuresMap.get(stock)) {
 
 					try {
 						SymbolEvents symbolEvents = stockEventInfoFuture.get();

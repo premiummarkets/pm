@@ -701,7 +701,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean("selectedIndsCalculator");
 						analyzer.getFutureTracker().stream().forEach(o -> {
 							try {
-								o.interrupt();
+								o.interruptEventInfo();
 							} catch (Exception e) {
 								LOGGER.error(e, e);
 							}

@@ -148,14 +148,13 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 		}
 
-		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference() + "' at : " + inconsistent);
+		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference() + "' at: " + inconsistent);
 
 		///Finalizing this IndicatorOperator using its operands calculations
 		try {
 			//Analysis of above event in light of previously calculated ops
 			if (edata.isEmpty()) {
-				LOGGER.warn("No event data found. The up stream main operation has failed for " +
-						targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
+				LOGGER.warn("No event data found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 			} else {
 				edata = targetStock.analyseEvents(edata);
 			}
@@ -163,7 +162,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			//Retrieve exportBaseFileName of the main operation
 			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
 			if (chartedOutputGroups.isEmpty()) {
-				LOGGER.warn("No charted group found. The up stream main operation has failed for "+targetStock.getStock()+" in "+this.getReference()+"/"+this.getOperationReference());
+				LOGGER.warn("No charted group found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 			} else {
 				EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(chartedOutputGroups.get(0).getThisGroupMainOutputReference());
 				if (eventsAnalyser != null) this.eventDefDescriptor.setExportBaseFileName(eventsAnalyser.getEgFileBaseName());
@@ -282,6 +281,11 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public Boolean isIdemPotent() {
 		return false;
+	}
+
+	@Override
+	public void interruptEventInfo() throws Exception {
+		this.interrupt();
 	}
 	
 }

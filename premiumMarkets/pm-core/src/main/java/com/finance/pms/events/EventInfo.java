@@ -50,6 +50,6 @@ public interface EventInfo extends InfoObject {
 
 	public Integer getEventDefId();
 
-	public void interrupt() throws Exception;
+	public void interruptEventInfo() throws Exception;
 
 }

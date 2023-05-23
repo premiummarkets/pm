@@ -141,8 +141,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
 								.filter(e -> e instanceof  EventInfoOpsCompoOperation)
-								.forEach(e ->
-										((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.of(stock)));
+								.forEach(e -> ((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.of(stock)));
 					});
 					viewStateParams[1] = null;
 				}

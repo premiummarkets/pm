@@ -1,5 +1,6 @@
 package com.finance.pms.events.scoring;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CalculationBounds {
@@ -41,7 +42,10 @@ public class CalculationBounds {
 
     @Override
     public String toString() {
-        return "CalculationBounds [calcStatus=" + calcStatus + ", pmStart=" + pmStart + ", pmEnd=" + pmEnd + "]";
+    	SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        return "CalculationBounds [calcStatus=" + calcStatus + 
+        		", pmStart=" + df.format(pmStart) + ", pmEnd=" + df.format(pmEnd) + 
+        		", newTunedConfStart=" + df.format(newTunedConfStart) + ", newTunedConfEnd=" + df.format(newTunedConfEnd) + "]";
     }
 
 }

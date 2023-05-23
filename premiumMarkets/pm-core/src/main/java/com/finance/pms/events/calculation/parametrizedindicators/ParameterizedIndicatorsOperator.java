@@ -40,6 +40,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
@@ -64,6 +65,8 @@ import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
 /**
  * 
  * @author guil
@@ -124,7 +127,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			
 			long startTime = new Date().getTime();
 			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime);
-			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation)eventInfoOpsCompoOperationHolder.clone()).run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
+			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder.clone()).run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
 			long finishTime = new Date().getTime();
 			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds.");
 			

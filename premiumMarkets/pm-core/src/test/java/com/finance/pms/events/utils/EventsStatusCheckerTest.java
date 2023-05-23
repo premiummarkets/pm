@@ -133,7 +133,7 @@ public class EventsStatusCheckerTest {
         CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.INC, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(previousEnd, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
@@ -163,7 +163,7 @@ public class EventsStatusCheckerTest {
         CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.INC, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(previousStart, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(previousEnd, autoCalcAndSetDatesBounds.getPmStart());
@@ -193,7 +193,7 @@ public class EventsStatusCheckerTest {
         CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.INC, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(previousStart, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(previousEnd, autoCalcAndSetDatesBounds.getPmStart());
@@ -223,7 +223,7 @@ public class EventsStatusCheckerTest {
         CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.INC, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(previousEnd, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());

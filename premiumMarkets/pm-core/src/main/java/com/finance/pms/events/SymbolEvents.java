@@ -76,7 +76,7 @@ public class SymbolEvents implements Serializable {
 		this.weightData = null;
 		
 		this.stock = stock;
-		this.dataResultMap= new ConcurrentSkipListMap<EventKey, EventValue>();
+		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
 		this.eventsState = EventState.STATE_TERMINATED;
 	}
@@ -84,7 +84,7 @@ public class SymbolEvents implements Serializable {
 	public SymbolEvents(Stock stock, ConcurrentSkipListMap<EventKey, EventValue> dataResultList, Collection<?> eventDefList, EventState state) {
 		this.weightData = null;
 
-		this.stock =stock;
+		this.stock = stock;
 		this.dataResultMap = dataResultList;
 		this.eventDefList = new HashSet<String>();
 		for (Object eventInfo : eventDefList) {
@@ -118,7 +118,7 @@ public class SymbolEvents implements Serializable {
 		this.dataResultMap = map;
 		this.eventDefList = new HashSet<String>();
 		this.eventDefList.add(eventValue.getEventDef().getEventDefinitionRef());
-		this.eventsState= EventState.STATE_TERMINATED;
+		this.eventsState = EventState.STATE_TERMINATED;
 
 	}
 
@@ -296,12 +296,12 @@ public class SymbolEvents implements Serializable {
 			this.dataResultMap.putAll(evl);
 
 		} catch (RuntimeException e) {
-			String dataResult = "Current data result : \n";
+			String dataResult = "Current data result: \n";
 			for (EventKey key : this.dataResultMap.keySet()) {
 				dataResult = dataResult + key+" ; "+this.dataResultMap.get(key) + "\n";
 			}
 			LOGGER.error(dataResult);
-			String addedEvents = "Added events : \n";
+			String addedEvents = "Added events: \n";
 			for (EventKey key : evl.keySet()) {
 				addedEvents = addedEvents +key+" ; "+evl.get(key) + "\n";
 			}
