@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
@@ -79,16 +80,16 @@ public class TunedConfMgr {
 	public TunedConfMgr() {
 	}
 
-	public synchronized TunedConf loadUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition) {
-
+	public synchronized Optional<TunedConf> loadUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition) {
 		TunedConfId tunedConfId = new TunedConfId(stock, configListFileName, eventDefinition);
 		TunedConf stockPrevTunedConf = tunedConfDAO.loadTunedConf(tunedConfId);
-		if (stockPrevTunedConf == null) { //No prev conf : first calculation for this config file
-			stockPrevTunedConf = new TunedConf(stock, configListFileName, eventDefinition);
-			tunedConfDAO.saveOrUpdateTunedConfs(stockPrevTunedConf);
-		}
-
-		return stockPrevTunedConf;
+		return Optional.ofNullable(stockPrevTunedConf);
+	}
+	
+	public synchronized TunedConf saveUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition) {
+			TunedConf newTunedConf = new TunedConf(stock, configListFileName, eventDefinition);
+			tunedConfDAO.saveOrUpdateTunedConfs(newTunedConf);
+			return newTunedConf;
 	}
 
 	public Date endDateConsistencyCheck(TunedConf tunedConf, Stock stock, Date endDate) throws InvalidAlgorithmParameterException {
@@ -233,8 +234,8 @@ public class TunedConfMgr {
 	 */
 	public void resetTunedConfDatesFor(Stock stock, String analysisName, EventInfo[] indicators) {
 		for(EventInfo ei: indicators) {
-			TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-			resetDates(tc);
+			Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
+			if (tc.isPresent()) resetDates(tc.get());
 		}
 	}
 
@@ -258,7 +259,7 @@ public class TunedConfMgr {
 	}
 
 	/**
-	 * Deletes Events, Reset calculation dates AND set Dirty.
+	 * Deletes Events, Reset calculation dates AND set Dirty. //XXX FIXME separation of concern
 	 * @param stock
 	 * @param analysisName
 	 * @param indicators
@@ -269,8 +270,8 @@ public class TunedConfMgr {
 			EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
 
 			for(EventInfo ei: indicators) {
-				TunedConf tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-				setDirty(tc);
+				Optional<TunedConf> storedTunedConf = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
+				storedTunedConf.ifPresent(tc -> setDirty(tc));
 			}
 		}
 

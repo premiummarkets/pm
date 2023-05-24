@@ -245,7 +245,7 @@ public class TalibGenericOperation extends TalibOperation {
 	}
 	
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 

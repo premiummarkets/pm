@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
@@ -141,7 +140,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
 								.filter(e -> e instanceof  EventInfoOpsCompoOperation)
-								.forEach(e -> ((EventInfoOpsCompoOperation) e).invalidateAllNonIdempotentOperands(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.of(stock)));
+								.forEach(e -> TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, SelectedIndicatorsCalculationService.getAnalysisName(), new EventInfo[]{((EventInfoOpsCompoOperation) e)}));
 					});
 					viewStateParams[1] = null;
 				}

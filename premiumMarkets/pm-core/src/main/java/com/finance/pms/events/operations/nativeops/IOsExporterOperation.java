@@ -112,7 +112,7 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 	}
 	
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 

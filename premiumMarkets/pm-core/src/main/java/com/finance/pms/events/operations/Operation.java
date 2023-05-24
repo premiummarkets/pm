@@ -764,11 +764,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * If false, events will be deleted as from the CalcStatus.RESET !! unless isNoOverrideDeltaOnly() is also true !!
 	 * 	//All children must be idempotent for this to be. True by default.
 		//This can be overridden by making this operation itself not idempotent.
+	 * @param targetStock TODO
 	 * @return
 	 */
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		if (operands.isEmpty()) return true;
-		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(), (a, b) -> a && b);
+		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(targetStock), (a, b) -> a && b);
 	}
 	
 	/** 
@@ -777,12 +778,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * No gap or head start checks will be made.
 	 * This applies only for non idempotent (when isIdemPotent() == false) operations as events can be overridden for idempotent operations.
 	 * //Any Child NoOverrideDeltaOnly will make this operation NoOverrideDeltaOnly. False by default.
+	 * @param targetStock TODO
 	 * @return
 	 */
-	public Boolean isNoOverrideDeltaOnly() {
+	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
 		//if (this.isIdemPotent()) return false;
 		if (operands.isEmpty()) return false;
-		Boolean reduce = operands.stream().reduce(false, (r, e) -> r || e.isNoOverrideDeltaOnly(), (a, b) -> a || b);
+		Boolean reduce = operands.stream().reduce(false, (r, e) -> r || e.isNoOverrideDeltaOnly(targetStock), (a, b) -> a || b);
 		return reduce;
 	}
 	
@@ -796,6 +798,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands.stream().reduce(false, (r, e) -> r || e.isDateSensitive(), (a, b) -> a || b);
 	}
 	
+	//XXX should be protected use with caution or have targetStock as parameter
 	public boolean isQuotationsDataSensitive() {
 		if (this instanceof StockOperation || this instanceof OperationReferenceOperation) return true;
 		if (operands.isEmpty()) return false;
@@ -804,21 +807,20 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams);
 
-	public void invalidateAllNonIdempotentOperands(String analysisName, Optional<Stock> stock) {
+	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking " + getReference() + " for invalidation.");
-		if (!this.isIdemPotent()) {
+		if (!this.isIdemPotent(targetStock)) {
 			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
 			this.invalidateOperation(analysisName, stock);
 		}
 		operands.stream().forEach(
 				o -> {
 					if (!o.getOperands().isEmpty()) {
-						o.invalidateAllNonIdempotentOperands(analysisName, stock);
+						o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock);
 					}
 				});
 	}
 	
-	//XXX should be protected use with caution
 	public Set<QuotationDataType> getRequiredStockData() {
 		Set<QuotationDataType> quotationDataTypes = new HashSet<>();
 		if (this instanceof StockOperation) {
@@ -830,7 +832,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return quotationDataTypes;
 	}
 	
-	//XXX should be protected use with caution
+	//XXX should be protected use with caution or have targetStock as parameter
 	public void interrupt() throws Exception {
 		operands.stream()
 			.forEach(

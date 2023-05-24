@@ -178,7 +178,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	}
 
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 

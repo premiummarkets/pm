@@ -20,12 +20,15 @@ public class EventsStatusChecker {
     private Date currentTunedConfEnd;
     private Date currentTunedConfStart;
 
+	private Boolean isDirtyConf;
+
 
     public EventsStatusChecker(TunedConf tunedConf) {
         super();
         this.stock = tunedConf.getTunedConfId().getStock();
         this.currentTunedConfStart = tunedConf.getLastCalculationStart();
         this.currentTunedConfEnd = tunedConf.getLastCalculationEnd();
+        this.isDirtyConf = tunedConf.getDirty();
 
     }
 
@@ -47,6 +50,13 @@ public class EventsStatusChecker {
 		String endDateStr = df.format(endDate);
 		String calcIsFrom = "Requested calculation is from " + startDateStr + " to " + endDateStr + ". ";
 		String calcWasFrom = "Previous calculation was from " + currCfStartStr + " to " + currCfEndStr + ". ";
+		
+        if ( isDirtyConf ) {
+            LOGGER.info(
+                    "New dates for " + stock + ": Old Calculation is dirty => RESET. " +
+                    calcIsFrom + calcWasFrom + "New calculation will be from " + startDateStr + " to " + endDateStr);
+            return new CalculationBounds(CalcStatus.RESET, startDate, endDate, startDate, endDate);
+        }
 		
 		if (currentTunedConfEnd.equals(DateFactory.dateAtZero())) {//No previous calculation
             LOGGER.info(

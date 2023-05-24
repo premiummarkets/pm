@@ -62,6 +62,7 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
@@ -103,14 +104,6 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	@Override
 	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-
-		//		//We don't calculate event for operands when iterating as they are not used in the iterative calculation. This is to avoid excessive database access.
-		//		//isIterative should be reset false when iterations complete in order to take in account only events from the iterative itself.
-		//		boolean isIterative = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).isIterative();
-		//		if (isIterative) {
-		//			return new EventMapValue();
-		//		}
-
 		BooleanMapValue bullishMapValue = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMapValue = ((BooleanMapValue)inputs.get(1));
 		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2)); //not used for calculation
@@ -246,6 +239,18 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+		
+		Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(targetStock.getStock(), targetStock.getAnalysisName(), this.getEventDefinitionRef());
+		Boolean hasPreviousCalculations = tunedConf.isPresent();
+		Boolean hasDirtyCalculations = hasPreviousCalculations && tunedConf.get().getDirty(); 
+		Boolean isNotIdempotent = !isIdemPotent(targetStock);
+		Boolean grantsEventsOverride = !isNoOverrideDeltaOnly(targetStock);
+		
+		if (hasDirtyCalculations || (hasPreviousCalculations && isNotIdempotent && grantsEventsOverride) ) {
+			//EventsResources.getInstance().crudDeleteEventsForStock(targetStock.getStock(), targetStock.getAnalysisName(), new EventInfo[] {this});
+			invalidateAllNonIdempotentOperands(targetStock, targetStock.getAnalysisName(), Optional.of(targetStock.getStock()));
+		}
+		
 		return 0;
 	}
 
@@ -279,7 +284,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 

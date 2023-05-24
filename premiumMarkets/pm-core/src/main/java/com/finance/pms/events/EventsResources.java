@@ -1212,7 +1212,7 @@ public class EventsResources {
 
 		//DB
 		if (isEventPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db, cached is "+isEventCached+", persist is "+isEventPersisted);
+			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " +isEventPersisted);
 			DataSource.getInstance().cleanEventsForAnalysisName(EVENTSTABLE, analysisName);
 		}
 

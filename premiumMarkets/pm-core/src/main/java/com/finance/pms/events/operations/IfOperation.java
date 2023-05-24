@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -70,6 +71,86 @@ public class IfOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	}
+	
+	
+	private <T> T reccurentProceeds(Value<?> value0, Function<Operation,T> f) {
+		String ifCondition = (String) value0.getValue(null);
+		if (ifCondition.equals("TRUE")) {
+			return f.apply(getOperands().get(1));
+		} else {
+			return f.apply(getOperands().get(2));
+		}
+	}
+	
+//	@Override
+//	public Set<QuotationDataType> getRequiredStockData(TargetStockInfo targetStock) {
+//		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+//		if (value0 != null) {
+//			return this.<Set<QuotationDataType>>reccurentProceeds(value0, o -> o.getRequiredStockData(targetStock));
+//		} else {
+//			throw new RuntimeException();
+//		}
+//	}
+	
+//	@Override
+//	public void interrupt() throws Exception {
+//		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+//		if (value0 != null) {
+//			this.<Void>reccurentProceeds(value0, o -> {o.interrupt(); return null;});
+//		} else {
+//			throw new RuntimeException();
+//		}
+//	}
+
+	@Override
+	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		if (value0 != null) {
+			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+	@Override
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		if (value0 != null) {
+			return this.<Boolean>reccurentProceeds(value0, o -> o.isIdemPotent(targetStock));
+		} else {
+			throw new RuntimeException();
+		}
+	}
+
+	@Override
+	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		if (value0 != null) {
+			return this.<Boolean>reccurentProceeds(value0, o -> o.isNoOverrideDeltaOnly(targetStock));
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+//	@Override
+//	public boolean isQuotationsDataSensitive() {
+//		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+//		if (value0 != null) {
+//			return this.<Boolean>reccurentProceeds(value0, o -> o.isQuotationsDataSensitive(targetStock));
+//		} else {
+//			throw new RuntimeException();
+//		}
+//	}
+	
+	@Override
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		if (value0 != null) {
+			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift));
+		} else {
+			throw new RuntimeException();
+		}
 	}
 
 }

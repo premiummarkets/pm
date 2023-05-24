@@ -40,7 +40,6 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
@@ -65,8 +64,6 @@ import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.TunedConf;
-import com.finance.pms.events.scoring.TunedConfMgr;
 /**
  * 
  * @author guil
@@ -285,7 +282,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 
 	@Override
 	public Boolean isIdemPotent() {
-		return eventInfoOpsCompoOperationHolder.isIdemPotent();
+		return eventInfoOpsCompoOperationHolder.isIdemPotent(targetStock);
 	}
 
 }

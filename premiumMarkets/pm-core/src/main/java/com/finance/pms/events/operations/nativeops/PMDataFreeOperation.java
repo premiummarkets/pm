@@ -56,7 +56,7 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
     }
 
     @Override
-    public Boolean isIdemPotent() {
+    public Boolean isIdemPotent(TargetStockInfo targetStock) {
         return false;
     }
 

@@ -2,6 +2,7 @@ package com.finance.pms.events.operations.nativeops;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -10,6 +11,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.quotations.QuotationDataType;
 
 @XmlRootElement
 public class OperationReferenceOperation extends Operation implements LeafOperation {
@@ -48,6 +50,77 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	@Override
 	public Value<?> emptyValue() {
 		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Set<QuotationDataType> getRequiredStockData() {
+		if (this.getParameter() != null) {
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).getRequiredStockData();
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void interrupt() throws Exception {
+		if (this.getParameter() != null) {
+			((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).interrupt();
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
+		if (this.getParameter() != null) {
+			((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).invalidateAllNonIdempotentOperands(targetStock, analysisName, stock);
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
+		if (this.getParameter() != null) {
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).isIdemPotent(targetStock);
+		} else {
+			throw new RuntimeException();
+		}
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
+		if (this.getParameter() != null) {
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).isNoOverrideDeltaOnly(targetStock);
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean isQuotationsDataSensitive() {
+		if (this.getParameter() != null) {
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).isQuotationsDataSensitive();
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
+		if (this.getParameter() != null) {
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
+		} else {
+			throw new RuntimeException();
+		}
 	}
 
 }

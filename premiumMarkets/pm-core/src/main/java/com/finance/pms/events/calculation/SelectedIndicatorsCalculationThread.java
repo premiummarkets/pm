@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -25,6 +26,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
@@ -100,11 +102,12 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 	}
 
 	//TODO Only handle EventInfoOpsCompoOperation and get rid of First and Second pass
-	protected SymbolEvents calculate(Date start, Date end) throws IncompleteDataSetException {
+	protected SymbolEvents calculate(Date start, Date end) throws IncompleteDataSetException, Exception {
 
 		SymbolEvents symbolEvents = new SymbolEvents(stock);
 
-		TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+		TunedConf tunedConf = (tunedConfOpt.isPresent())?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
 		synchronized (tunedConf) {
 
 			//FIXME delete needs the calculator..
@@ -115,9 +118,10 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			//				LOGGER.error(e,e);
 			//			}
 
-			//FIXME operations method should not be called outside of the operation.run loop
-			boolean isNonIdempotentOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent();
-			boolean isNoOverrideDeltaOnlyOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly();
+			//FIXME operations method should not be called outside of the operation.run loop and delegated to the event info. 
+			TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, DateFactory.dateAtZero(), DateFactory.dateAtZero());
+			boolean isNonIdempotentOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent(dummyTargetStock);
+			boolean isNoOverrideDeltaOnlyOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock);
 			
 			CalculationBounds calcBounds;			
 			try {
@@ -154,6 +158,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					}
 
 					//If RESET or not idemPotent we clean
+					//FIXME the storage should be delegated to the eventInfo or calculator
+					//FIXME And the control of the calculation state in db, here, should be done through tunedConf only.
 					if (calcBounds.getCalcStatus().equals(CalcStatus.RESET)) {
 						EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
 					}
@@ -166,6 +172,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						
 						LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						
+						//FIXME the storage should be delegated to the eventInfo or calculator
+						//FIXME And the control of the calculation state in db, here, should be done through tunedConf only.
 						//isNoOverrideDeltaOnly
 						if (isNonIdempotentOpsCompo) {
 							if (isNoOverrideDeltaOnlyOpsCompo && calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {

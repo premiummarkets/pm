@@ -6,6 +6,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -49,7 +50,7 @@ public class EventsStatusCheckerTest {
         tunedConf = PowerMock.createMock(TunedConf.class);
         tunedConfMgr = PowerMock.createMock(TunedConfMgr.class);
         EasyMock.expect(TunedConfMgr.getInstance()).andReturn(tunedConfMgr);
-        EasyMock.expect(tunedConfMgr.loadUniqueNoRetuneConfig(stock, analysisName, eventDef.getEventDefinitionRef())).andReturn(tunedConf);
+        EasyMock.expect(tunedConfMgr.loadUniqueNoRetuneConfig(stock, analysisName, eventDef.getEventDefinitionRef())).andReturn(Optional.of(tunedConf));
         
     }
 

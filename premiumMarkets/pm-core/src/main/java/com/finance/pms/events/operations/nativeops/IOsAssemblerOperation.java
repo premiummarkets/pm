@@ -128,7 +128,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 

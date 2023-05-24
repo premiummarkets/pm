@@ -10,15 +10,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.Collectors;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -121,8 +120,8 @@ public class SelectedIndicatorsCalculationService {
 					LOGGER.warn("Could not proceed with initialisation of calculation for " + stock + ": " + e1.getMessage());
 					//We update the tunedConfs to NOT dirty assuming subsequent calculations will fail as well.
 					stocksEventInfos.get(stock).stream().forEach( ei -> {
-						TunedConf tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
-						TunedConfMgr.getInstance().updateConf(tunedConf, false);
+						Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
+						tunedConf.ifPresent(tc -> TunedConfMgr.getInstance().updateConf(tc, false));
 					});
 					isDataSetComplete = false;
 					failingStocks.add(stock);
@@ -172,7 +171,7 @@ public class SelectedIndicatorsCalculationService {
 			try {
 				Integer nbEvents = allEvents.stream().map(se -> se.getDataResultMap().size()).reduce( 0, (r, mapSize) -> r + mapSize);
 				LOGGER.guiInfo("Storing " + nbEvents + " events for " + allEvents.size() + " stocks.");
-				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName);
+				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName); //FIXME the storage should be delegated to the eventInfo or calculator
 				LOGGER.guiInfo("Stored " + nbEvents + " events for " + allEvents.size() + " stocks.");
 			} catch (Exception e) { 
 				isDataSetComplete = false;

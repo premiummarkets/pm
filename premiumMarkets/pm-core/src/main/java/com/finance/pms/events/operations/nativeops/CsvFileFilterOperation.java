@@ -30,6 +30,14 @@ public class CsvFileFilterOperation extends StringerOperation {
 			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("NONE")),
 			new StringOperation("string","default", "Default value.", new StringValue("NONE")));
 	}
+	
+	
+
+	@Override
+	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftFromParent) {
+		this.setParameter(null);
+		return super.run(targetStock, parentCallStack, thisOutputRequiredStartShiftFromParent);
+	}
 
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
@@ -91,7 +99,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 	}
 
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 

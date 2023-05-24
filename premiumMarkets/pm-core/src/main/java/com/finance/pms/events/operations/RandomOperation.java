@@ -144,7 +144,7 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 	}
 	
 	@Override
-	public Boolean isIdemPotent() {
+	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
 
