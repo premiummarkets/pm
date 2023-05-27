@@ -52,6 +52,7 @@ import com.finance.pms.events.calculation.ErrorException;
 import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.Value;
@@ -117,57 +118,61 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	public SortedMap<EventKey, EventValue> calculateEventsFor(Quotations quotations, String eventListName) throws WarningException, ErrorException {
 
 		SortedMap<EventKey, EventValue> eData = new TreeMap<>();
+		if (eventInfoOpsCompoOperationHolder.getFormulae() == null) return eData;
 
-		if (eventInfoOpsCompoOperationHolder.getFormulae() != null) {
-
-			eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
+		eventInfoOpsCompoOperationHolder.setOperandsParams(null, null, null, null, new StringValue(eventListName));
+		
+		try {
+			
+			CalculateThreadExecutor.getSemaphoreInstance().acquire();
 			
 			long startTime = new Date().getTime();
-			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime);
+			LOGGER.info("STARTING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime);
 			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder.clone()).run(targetStock, eventInfoOpsCompoOperationHolder.getReference(), 0);
 			long finishTime = new Date().getTime();
-			LOGGER.info(eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds.");
-			
+			LOGGER.info("ENDING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds.");
+	
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
-			try {
-				//Finding duplicates and invalid dates
-				List<Date> validQuotationsDates = new ArrayList<>(
-						QuotationsFactories.getFactory()
-						.buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet());
-				EventKey previousKey = null;
-				SortedSet<EventKey> duplicates = new TreeSet<EventKey>();
-				SortedSet<EventKey> invalids = new TreeSet<EventKey>();
-				for (EventKey currentKey : returnedEvents.keySet()) {
+			//Finding duplicates and invalid dates
+			List<Date> validQuotationsDates = new ArrayList<>(
+					QuotationsFactories.getFactory()
+					.buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet());
+			EventKey previousKey = null;
+			SortedSet<EventKey> duplicates = new TreeSet<EventKey>();
+			SortedSet<EventKey> invalids = new TreeSet<EventKey>();
+			for (EventKey currentKey : returnedEvents.keySet()) {
 
-					Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
-					Date currentKeyDate = currentKey.getDate();
-					
-					if (currentKeyDate.compareTo(validQuotationsDates.get(0)) >= 0 && !validQuotationsDates.contains(currentKeyDate)) {
-						LOGGER.warn(currentKeyDate + " (" + currentKeyDate.getClass() + ") was not found in " + validQuotationsDates); 
-						invalids.add(currentKey);
-					} else {
-						if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
-							duplicates.add(currentKey);
-							duplicates.add(previousKey);
-						}
-						previousKey = currentKey;
+				Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
+				Date currentKeyDate = currentKey.getDate();
+				
+				if (currentKeyDate.compareTo(validQuotationsDates.get(0)) >= 0 && !validQuotationsDates.contains(currentKeyDate)) {
+					LOGGER.warn(currentKeyDate + " (" + currentKeyDate.getClass() + ") was not found in " + validQuotationsDates); 
+					invalids.add(currentKey);
+				} else {
+					if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
+						duplicates.add(currentKey);
+						duplicates.add(previousKey);
 					}
-					
+					previousKey = currentKey;
 				}
-				if (!invalids.isEmpty()) {
-					throw new WarningException("Invalid event dates for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + invalids);
-				}
-				if (!duplicates.isEmpty()) {
-					throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + duplicates);
-				}
-			} catch (Exception e) {
-				throw new ErrorException(e.toString(), e);
+				
 			}
+			if (!invalids.isEmpty()) {
+				throw new WarningException("Invalid event dates for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + invalids);
+			}
+			if (!duplicates.isEmpty()) {
+				throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + duplicates);
+			}
+			
 			eData.putAll(returnedEvents);
-
+			
+		} catch (Exception e) {
+			throw new ErrorException(e.toString(), e);
+		} finally {
+			CalculateThreadExecutor.getSemaphoreInstance().release();
 		}
-
+		
 		return eData;
 	}
 

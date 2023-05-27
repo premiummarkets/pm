@@ -252,7 +252,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 				trendProfit = trendProfit * (1 + priceRateOfChange);
 			}
 		}
-		if (unReal && currentPeriod.getTo().compareTo(date) <= 0) { //Adding last unrealised if bullish
+		if (unReal && currentPeriod != null && currentPeriod.getTo().compareTo(date) <= 0) { //Adding last unrealised if bullish
 			if (!currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {
 				Double priceRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;

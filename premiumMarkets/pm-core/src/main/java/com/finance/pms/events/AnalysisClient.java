@@ -335,7 +335,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 			LOGGER.info("Waiting for all runnable messages to stop.");
 			analysisExecutor.shutdown();
-			boolean awaitTermination = analysisExecutor.awaitTermination(2, TimeUnit.DAYS);
+			boolean awaitTermination = analysisExecutor.awaitTermination(100, TimeUnit.DAYS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = analysisExecutor.shutdownNow();
 				LOGGER.error(shutdownNow,new Exception());

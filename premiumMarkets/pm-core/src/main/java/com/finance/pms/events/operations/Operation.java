@@ -338,7 +338,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 		String thisCallStack = 
 					parentCallStack + ": \n" + 
-					"Call Stack: " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + 
+					"Call Stack (" + targetStock.getStock().getSymbol() + "): " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + 
 					" with s" +  operationOperandsRequiredStartShift + " and d" + stackDepth + 
 					" from " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate());
 		return thisCallStack;

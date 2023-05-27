@@ -484,7 +484,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 		executor.shutdown();
 		try {
-			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			boolean awaitTermination = executor.awaitTermination(1, TimeUnit.HOURS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
 				LOGGER.error(shutdownNow,new Exception());

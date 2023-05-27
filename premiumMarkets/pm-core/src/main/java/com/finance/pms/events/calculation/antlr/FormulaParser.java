@@ -42,7 +42,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.Value;
 
-public class FormulaParser implements Runnable, Comparable<FormulaParser> , Cloneable {
+public class FormulaParser implements Runnable, Comparable<FormulaParser>, Cloneable {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(FormulaParser.class);
 
@@ -194,7 +194,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 		//If there is a pre parameterised operation, we use it
 		Operation nativeOperation = fetchNativeOperation(child.getText());
 		if (nativeOperation != null) {
-			LOGGER.debug("Cloning pre parameterised native op: " + nativeOperation.getReference());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Cloning pre parameterised native op: " + nativeOperation.getReference());
 			Operation clone = (Operation) nativeOperation.clone();
 			clone.setOperands(operands);
 			clone.setOutputSelector(outputSelector);
@@ -203,11 +203,11 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser> , Clon
 
 		Operation userOperation = fetchUserOperation(child.getText());
 
-		//No native. If there is a user operation, we use it //XXX FIXME should I clone user operations as well? XXX
+		//No native. If there is a user operation, we use it
 		if (userOperation != null) {
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
-			LOGGER.info("Reusing user op: " + userOperation.getReference());
-			return userOperation;
+			LOGGER.info("Cloning user op: " + userOperation.getReference());
+			return (Operation) userOperation.clone(); //XXX FIXME should I clone user operations as well? XXX
 		}
 
 		//Else we instantiate a new one (in that case all the operands must be present)

@@ -35,7 +35,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 
 	@Override
 	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftFromParent) {
-		this.setParameter(null);
+		this.setParameter(null); //Always re check the file system
 		return super.run(targetStock, parentCallStack, thisOutputRequiredStartShiftFromParent);
 	}
 
@@ -68,8 +68,8 @@ public class CsvFileFilterOperation extends StringerOperation {
 				try {
 					prevLength = rowSplit.length;
 					boolean anyMatchPattern = Arrays.stream(rowSplit).anyMatch(c -> c.matches(filterPatternString));
-					boolean anyMatchContains = Arrays.stream(rowSplit).anyMatch(c -> c.contains(filterPatternString));
-					if (anyMatchPattern || anyMatchContains) {
+					//boolean anyMatchContains = Arrays.stream(rowSplit).anyMatch(c -> c.contains(filterPatternString));
+					if (anyMatchPattern) { // || anyMatchContains) {
 						matchingLines.add(rowSplit[retrievedColumnIndex]);
 					}
 				} catch (Exception e) {

@@ -43,13 +43,13 @@ public class IfOperation extends Operation {
 		Operation elseOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(2)).getValue(targetStock).clone();
 		
 		try {
-			LOGGER.info(this.getReference() + " condition is " + ifCondition);
+			LOGGER.info(this.getReference() + " condition is " + ifCondition + " for " + targetStock.getStock().getSymbol());
 			if (ifCondition.equals("TRUE")) {
-				LOGGER.info(this.getReference() + " will run " + thenOperationClone.getReference());
+				LOGGER.info(this.getReference() + " will run " + thenOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
 				return thenOperationClone
 						.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
 			} else {
-				LOGGER.info(this.getReference() + " will run " + elseOperationClone.getReference());
+				LOGGER.info(this.getReference() + " will run " + elseOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
 				return elseOperationClone
 						.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
 			}

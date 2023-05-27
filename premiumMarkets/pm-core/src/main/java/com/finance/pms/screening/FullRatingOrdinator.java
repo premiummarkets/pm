@@ -137,7 +137,7 @@ public class FullRatingOrdinator implements ScreenerCalculator<NavigableSet<Scre
 		executor.shutdown();
 		
 		try {
-			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			boolean awaitTermination = executor.awaitTermination(1, TimeUnit.HOURS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
 				LOGGER.error(shutdownNow, new Exception());

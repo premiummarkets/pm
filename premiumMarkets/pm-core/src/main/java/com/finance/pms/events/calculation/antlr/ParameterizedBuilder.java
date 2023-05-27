@@ -54,6 +54,8 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
+import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 
 public abstract class ParameterizedBuilder extends Observable {
 
@@ -351,11 +353,11 @@ public abstract class ParameterizedBuilder extends Observable {
 	private void replaceInUse(Operation replacementOp) throws StackOverflowError {
 
 		List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
-		LOGGER.info("Operations using " + replacementOp.getReference() + ": " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+		LOGGER.info("Operations using " + replacementOp.getReference() + ": " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
 
 		List<Operation> usingIndicators = notifyChanged(replacementOp, ObsMsgType.OPERATION_cRud);
 
-		LOGGER.info("Indicators using " + replacementOp.getReference() + ": " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+		LOGGER.info("Indicators using " + replacementOp.getReference() + ": " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
 		actualReplaceInUse(usingIndicators, replacementOp);
 
 	}
@@ -379,12 +381,17 @@ public abstract class ParameterizedBuilder extends Observable {
 		return operationUsing;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void actualCheckInUseRecursive(Collection<Operation> operations, Operation operationToCheck) {
 
 		for (Operation operation : operations) {
 
-			if (operation instanceof MapOperation && operationToCheck.equals(operation)) {
-				throw new RuntimeException("'"+ operationToCheck.getReference() +"' is used by some other operations. Please delete these first.");
+			if (	(operation instanceof MapOperation && operationToCheck.getReference().equals(operation.getReference())) ||
+					(operation instanceof OperationReferenceOperation && 
+							operation.getParameter() != null &&
+							operationToCheck.getReference().equals(((OperationReferenceValue<? extends Operation>) operation.getParameter()).getValue(null).getReference()))
+			) {
+				throw new RuntimeException("'" + operationToCheck.getReference() + "' is used by some other operations. Please delete these first.");
 			}
 			if (operation.getOperands() != null) {
 				actualCheckInUseRecursive(operation.getOperands(), operationToCheck);
@@ -407,21 +414,37 @@ public abstract class ParameterizedBuilder extends Observable {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private Boolean actualReplacenUseRecursive(Operation parent, Operation replacementOp) {
 		Boolean replacementOpIsUsedByParent = false;
 		List<Operation> operations = parent.getOperands();
 		for (int i = 0; i < operations.size(); i++) {
-
+			
+			//Standard
 			if (operations.get(i) instanceof MapOperation && replacementOp.getReference().equals(operations.get(i).getReference())) {
-				parent.replaceOperand(i, replacementOp);
+				
+				parent.replaceOperand(i, replacementOp); //effective replacement
 				replacementOpIsUsedByParent = true;
+				
 			}
 			if (operations.get(i).getOperands() != null) {
 				replacementOpIsUsedByParent = actualReplacenUseRecursive(operations.get(i), replacementOp) || replacementOpIsUsedByParent;
 			}
+			
+			//OperationReferenceOperation
+			if (operations.get(i) instanceof OperationReferenceOperation) {
+				OperationReferenceValue<? extends Operation> operationReferenceParameter = (OperationReferenceValue<? extends Operation>) operations.get(i).getParameter();
+				if (operationReferenceParameter != null) {
+					Operation referedOperation = operationReferenceParameter.getValue(null);
+					if (replacementOp.getReference().equals(referedOperation.getReference())) {
+						operations.get(i).setParameter(new OperationReferenceValue<Operation>((Operation) replacementOp.clone())); //effective replacement
+						replacementOpIsUsedByParent = true;
+					}
+					replacementOpIsUsedByParent = actualReplacenUseRecursive(referedOperation, replacementOp) || replacementOpIsUsedByParent;
+				}
+			}
 
 		}
-
 		return replacementOpIsUsedByParent;
 	}
 
@@ -433,7 +456,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 		try {
 			List<Operation> checkInUse = checkInUse(operation, true);
-			if (!checkInUse.isEmpty()) throw new RuntimeException("'"+ identifier +"' is used by "+operationListAsString(", ", checkInUse)+". Please delete these first.");
+			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
 
 			moveToDisabled(identifier);
 			operation.setDisabled(true);

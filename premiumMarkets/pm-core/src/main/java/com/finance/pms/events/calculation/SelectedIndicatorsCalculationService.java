@@ -87,9 +87,7 @@ public class SelectedIndicatorsCalculationService {
 
 		ThreadFactory namedThreadFactory = 
 				  new ThreadFactoryBuilder().setNameFormat("my-calculation-thread-%d").build();
-		ExecutorService executor = Executors.newFixedThreadPool(
-				Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","50")), 
-				namedThreadFactory);
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","10")), namedThreadFactory);
 		try {
 
 			Map<Stock, List<Future<SymbolEvents>>> futuresMap = new HashMap<>();

@@ -201,7 +201,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 		executor.shutdown();
 		try {
-			boolean awaitTermination = executor.awaitTermination(2, TimeUnit.DAYS);
+			boolean awaitTermination = executor.awaitTermination(1, TimeUnit.DAYS);
 			if (!awaitTermination) {
 				List<Runnable> shutdownNow = executor.shutdownNow();
 				LOGGER.error(shutdownNow, new Exception());
