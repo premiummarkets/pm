@@ -155,7 +155,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			//Retrieve exportBaseFileName of the main operation
 			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
 			if (chartedOutputGroups.isEmpty()) {
-				LOGGER.warn("No charted group found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
+				LOGGER.warn("No charted group found. The up stream main operation may have failed or this run is headless for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 			} else {
 				EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(chartedOutputGroups.get(0).getThisGroupMainOutputReference());
 				if (eventsAnalyser != null) this.eventDefDescriptor.setExportBaseFileName(eventsAnalyser.getEgFileBaseName());

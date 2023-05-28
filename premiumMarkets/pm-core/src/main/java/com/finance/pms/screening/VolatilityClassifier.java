@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -204,8 +205,14 @@ public class VolatilityClassifier {
 		return sortVolatilitiesByMeansOfReturn(stockVolatilities);
 
 	}
+	
+	public void generateFilteredCloseToDB(String sourceList, Boolean updateSourceList) throws Exception {
+		String generatedNewCalculationFilteredToFile = generateFilteredCloseToFile(sourceList, updateSourceList);
+		String path = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator;
+		generateFromFileToDB(path + generatedNewCalculationFilteredToFile, "BETA", -0.01, 0.01);
+	}
 
-	String generateNewCalculationFilteredToFile() throws Exception {
+	String generateFilteredCloseToFile(String sourceList, Boolean updateSourceList) throws Exception {
 		
 		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
 		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
@@ -213,7 +220,7 @@ public class VolatilityClassifier {
 		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
 
 		UUID randomUUID = UUID.randomUUID();
-		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates, sourceList, updateSourceList);
 		
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
@@ -243,7 +250,7 @@ public class VolatilityClassifier {
 
 	}
 	
-	void generateInflatUnSkewedCalculationFilteredToFile() throws Exception {
+	void generateFilteredInflatUnSkewedCalculationToFile() throws Exception {
 		
 		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
 		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
@@ -251,7 +258,7 @@ public class VolatilityClassifier {
 		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
 
 		UUID randomUUID = UUID.randomUUID();
-		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates, "default", false);
 		
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
@@ -291,7 +298,7 @@ public class VolatilityClassifier {
 
 	}
 	
-	void generateDJIUnSkewedCalculationFilteredToFile() throws Exception {
+	void generateFilteredDJIUnSkewedCalculationToFile() throws Exception {
 		
 		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
 		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
@@ -299,7 +306,7 @@ public class VolatilityClassifier {
 		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
 
 		UUID randomUUID = UUID.randomUUID();
-		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates);
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates, "default", false);
 		
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
@@ -596,13 +603,19 @@ public class VolatilityClassifier {
 
 	}
 
-	private Set<Stock> filterStocks(UUID randomUUID, List<Predicate<Stock>> predicates) {
+	private Set<Stock> filterStocks(UUID randomUUID, List<Predicate<Stock>> predicates, String sourceList, Boolean updateSourceList) {
 
-		//Set<Stock> allStocks = portfolioDAO.loadSharesListContent(null, null).stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
-		//List<Stock> allStocks = shareDAO.loadAllStocks();
+		Set<Stock> allStocks= new HashSet<>();
+		switch (sourceList) {
+		case "VOLATILITY,BETA":
+			YahooStockScreener yahooStockScreener = new YahooStockScreener(updateSourceList);
+			allStocks.addAll(yahooStockScreener.calculate());
+			break;
+		default:
+			//allStocks = portfolioDAO.loadSharesListContent(null, null).stream().map(ps -> ps.getStock()).collect(Collectors.toSet());
+			//allStocks = shareDAO.loadAllStocks();
+		}
 		
-		YahooStockScreener yahooStockScreener = new YahooStockScreener(false);
-		Set<Stock> allStocks = yahooStockScreener.calculate();
 		try {	
 			QuotationUpdate quotationUpdate = new QuotationUpdate();
 			quotationUpdate.getQuotesFor(allStocks);

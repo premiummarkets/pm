@@ -119,9 +119,10 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	//Encog
 	private boolean isIterative = false;
+	
+	//Keras
 	private Collection<Stock> autoPortfolioMonitoredStocks;
-
-
+	private String autoPortfolioMonitoredStocksSource;
 
 	public EventSignalConfig() {
 		super();
@@ -746,6 +747,15 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public Collection<Stock> getAutoPortfolioMonitoredStocks() {
 		return autoPortfolioMonitoredStocks;
+	}
+
+	public void setAutoPortfolioMonitoredStocksSource(String autoPortfolioMonitoredStocksSource) {
+		this.autoPortfolioMonitoredStocksSource = autoPortfolioMonitoredStocksSource;
+		
+	}
+	
+	public String getAutoPortfolioMonitoredStocksSource() {
+		return autoPortfolioMonitoredStocksSource;
 	}
 
 }
