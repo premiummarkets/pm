@@ -130,7 +130,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 
 		Map<Stock,Map<EventInfo, SortedMap<Date, double[]>>> calculatedOutputReturn =  new HashMap<Stock, Map<EventInfo, SortedMap<Date, double[]>>>(1);
 
-		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","20")));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")));
 		List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
 		int obsSize = stList.size() + 1;
 		for (Observer observer : observers) {

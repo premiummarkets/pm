@@ -23,7 +23,7 @@ public class CalculateThreadExecutor {
 	protected CalculateThreadExecutor() {
 		super();
 		executor = Executors.newCachedThreadPool();
-		semaphore = new Semaphore(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","10")));
+		semaphore = new Semaphore(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")));
 	}
 
 	private ExecutorService getExecutor() {

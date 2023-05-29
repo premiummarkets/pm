@@ -159,8 +159,8 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 	private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
 
 		if (LOGGER.isDebugEnabled()) LOGGER.debug(
-				"Email/Popup potential (before filtering) message preview : "+eventType.name()+" from "+source+" in "+ eventListName + " : "+
-				symbolEvents.getStock().getFriendlyName() + ", "+symbolEvents.toEMail());
+				"Email/Popup potential (before filtering) message preview: " + eventType.name() + " from " + source + " in " + eventListName + ": "+
+				symbolEvents.getStock().getFriendlyName() + ", " + symbolEvents.toEMail());
 
 		Boolean sendMailEnabled = Boolean.valueOf(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
 
@@ -176,14 +176,14 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 		Boolean isValidEventSource = symbolEvents.getStock().equals(ANY_STOCK) || PortfolioMgr.getInstance().isMonitoredFor(symbolEvents, eventListName);
 		if 	( sendMailEnabled && isValidEventSource && isFiltered ) {
-			LOGGER.info("Email/Popup message preview : "+eventType.name()+" "+eventInfoRef+" from "+source+" in "+ eventListName + " : "+symbolEvents.getStock().getFriendlyName()+", "+symbolEvents.toEMail());
+			LOGGER.info("Email/Popup message preview: " + eventType.name() + " " + eventInfoRef + " from " + source + " in " + eventListName + ": " + symbolEvents.getStock().getFriendlyName() + ", " + symbolEvents.toEMail());
 			this.sendMailEvent(symbolEvents, eventType, source, eventListName, eventInfoRef);
 		} 
 	}
 
 	private void runAsyncTask(String analysisName, Runnable runnable) {
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("Executing executor :"+runnable.getClass().getName()+" for "+ analysisName);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Executing executor:" + runnable.getClass().getName() + " for " + analysisName);
 		analysisExecutor.execute(runnable);
 
 	}
@@ -229,7 +229,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		String notaBene = "Message and calculation made on the " + df.format(new Date());
 		String subject = "NONE";
-		if (!eventInfoRef.isEmpty()) eventInfoRef = ", "+eventInfoRef;
+		if (!eventInfoRef.isEmpty()) eventInfoRef = ", " + eventInfoRef;
 
 		switch (eventType) {
 		case BEARISH:
@@ -238,11 +238,10 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				String sellTrigPat = "Sell Events\t: ";
 				if (eMailTxt.contains(sellTrigPat)) {
 					int sstartIdx = eMailTxt.indexOf(sellTrigPat) + sellTrigPat.length();
-					sellTriggeringEvents = " with trigger "
-							+ eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
+					sellTriggeringEvents = " with trigger " + eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
 				}
 			}
-			subject = source + " : " + stockName + eventInfoRef+ " " + eventType.name()+ sellTriggeringEvents + " in " + eventListName;
+			subject = source + ": " + stockName + eventInfoRef + " " + eventType.name() + sellTriggeringEvents + " in " + eventListName;
 			break;
 		case BULLISH:
 			String buyTriggeringEvents = " ";
@@ -250,11 +249,10 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				String buyTrigPat = "Buy Events\t: ";
 				if (eMailTxt.contains(buyTrigPat)) {
 					int bstartIdx = eMailTxt.indexOf(buyTrigPat) + buyTrigPat.length();
-					buyTriggeringEvents = " with trigger "
-							+ eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
+					buyTriggeringEvents = " with trigger " + eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
 				}
 			}
-			subject = source + " : " + stockName + eventInfoRef+ " "+eventType.name() + buyTriggeringEvents + " in " + eventListName;
+			subject = source + ": " + stockName + eventInfoRef + " " + eventType.name() + buyTriggeringEvents + " in " + eventListName;
 			break;
 		default:
 			String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
@@ -262,7 +260,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		}
 
 		mail.setSubject(subject);
-		mail.setText(eMailTxt+"\n\n\n"+notaBene);
+		mail.setText(eMailTxt + "\n\n\n" + notaBene);
 		mail.setSentDate(event.getLastDate());
 
 		try {

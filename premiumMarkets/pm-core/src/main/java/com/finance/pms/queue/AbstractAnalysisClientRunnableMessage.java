@@ -379,8 +379,7 @@ public abstract class AbstractAnalysisClientRunnableMessage extends IdentifiedOb
 
 
 	public String toString() {
-		return "AbstractAnalyseClientRunnableMessage [analysisName=" + analysisName + ", messageKey="
-				+ messageKey + "]";
+		return "AbstractAnalyseClientRunnableMessage [analysisName=" + analysisName + ", messageKey=" + messageKey + "]";
 	}
 
 }

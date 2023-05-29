@@ -87,7 +87,7 @@ public class SelectedIndicatorsCalculationService {
 
 		ThreadFactory namedThreadFactory = 
 				  new ThreadFactoryBuilder().setNameFormat("my-calculation-thread-%d").build();
-		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","10")), namedThreadFactory);
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")), namedThreadFactory);
 		try {
 
 			Map<Stock, List<Future<SymbolEvents>>> futuresMap = new HashMap<>();
@@ -102,7 +102,7 @@ public class SelectedIndicatorsCalculationService {
 
 					LOGGER.guiInfo("Calculation requested : events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 					QuotesBounds adjCalcDatesToQs = adjustCalculationDatesToQuotations(stock, startDate, endDate);
-					LOGGER.info("Calculation adjusted : events for stock " + stock.toString() + " between " + dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate()) + " and " + dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
+					LOGGER.info("Calculation adjusted: events for stock " + stock.toString() + " between " + dateFormat.format(adjCalcDatesToQs.getAdjustedStartDate()) + " and " + dateFormat.format(adjCalcDatesToQs.getAdjustedEndDate()));
 
 					List<Future<SymbolEvents>> eventInfosFutures = new ArrayList<>();
 					for (EventInfo eventInfo: stocksEventInfos.get(stock)) {

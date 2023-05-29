@@ -124,9 +124,9 @@ public class InnerQueue extends Observable implements Queue {
 		StringBuffer retVal = new StringBuffer("[ ");
 		String sep = "";
 		for (IdentifiedObjecMessage inProcess :inProcessQueue.values()) {
-			retVal.append(sep + "Identifier : "+inProcess.messageKey+" ");
+			retVal.append(sep + "Identifier: " + inProcess.messageKey + " ");
 			try {
-				retVal.append("Message : "+inProcess.getObject().toString());
+				retVal.append("Message: " + inProcess.getObject().toString());
 			} catch (JMSException e) {
 				LOGGER.error("",e);
 			}

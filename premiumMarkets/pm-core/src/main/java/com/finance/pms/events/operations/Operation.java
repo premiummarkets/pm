@@ -241,8 +241,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredshiftFromThis, isInChart);
 											return output;
 									} catch (Exception e) {
-										LOGGER.error("In " + thisCallStack + "\n" + operand.toFormulae(), e);
-										return operand.emptyValue();
+										//LOGGER.error("In " + thisCallStack + "\n" + operand.toFormulae(), e);
+										//return operand.emptyValue();
+										throw new RuntimeException("Failing operand in " + thisCallStack + "\n" + operand.toFormulae(), e);
 									} finally {
 										synchronized (targetStock) {
 											targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
@@ -271,7 +272,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 							operandsOutputs.set(j, output);
 						}
 					} catch (Exception e) {
-						LOGGER.error("Operand Calculation failed: " + e);
+						//LOGGER.error("Operand Calculation failed: " + e);
 						throw new RuntimeException(e);
 					}
 				});
@@ -307,7 +308,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		} catch (Exception e) {
 			failed.set(true);
-			LOGGER.warn("Operation calculation error " + this, e);
+			//LOGGER.warn("Operation calculation error " + this, e);
 			throw new RuntimeException(e);
 		}
 

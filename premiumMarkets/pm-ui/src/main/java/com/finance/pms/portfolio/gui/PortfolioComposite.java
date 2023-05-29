@@ -1001,7 +1001,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					GridData portfolioInfosGroupData = new GridData(SWT.FILL, SWT.TOP, true, false);
 					portfolioInfosGroup.setLayoutData(portfolioInfosGroupData);
 					portfolioInfosGroup.setLayout(new GridLayout());
-					portfolioInfosGroup.setText("Portfolio summary : ");
+					portfolioInfosGroup.setText("Portfolio summary: ");
 					portfolioInfosGroup.setFont(MainGui.DEFAULTFONT);
 					portfolioInfosGroup.setBackground(MainGui.pORTFOLIO_LIGHT);
 
