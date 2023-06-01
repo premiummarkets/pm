@@ -240,10 +240,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 											output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredshiftFromThis, Operation.this);
 											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredshiftFromThis, isInChart);
 											return output;
+									} catch (StackException e) {
+										throw e;
 									} catch (Exception e) {
-										//LOGGER.error("In " + thisCallStack + "\n" + operand.toFormulae(), e);
-										//return operand.emptyValue();
-										throw new RuntimeException("Failing operand in " + thisCallStack + "\n" + operand.toFormulae(), e);
+										throw new StackException("Failing operand in " + thisCallStack + "\n" + operand.toFormulae(), e);
 									} finally {
 										synchronized (targetStock) {
 											targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);

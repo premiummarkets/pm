@@ -360,12 +360,29 @@ public class OTFTuningFinalizer {
 		private double failureWeightAbs;
 		
 		//Info
-		private Double totPrcChgUsed;
 		private Double totForecastProfit;
+		private Double totPrcChgUsed;
 
 		//Resulting rating
 		private Validity ratingValidityScore;
 		private String cause;
+		
+		public FinalRating() {
+			super();
+			this.rating = 0d;
+			this.nbSuccess = 0;
+			this.nbFailure = 0;
+			
+			this.flog = 0;
+			this.failureWeightAbs = 0d;
+			
+			this.totForecastProfit = 0d;
+			this.totPrcChgUsed = 0d;
+			
+			this.ratingValidityScore = Validity.NORATING;
+			this.cause = "No Rating could be calculated";
+			
+		}
 
 		public FinalRating(Double totForecastProfit, Double totPrcChgUsed, int nbSuccess, int nbFailure) {
 			super();
@@ -491,6 +508,8 @@ public class OTFTuningFinalizer {
 	}
 
 	public FinalRating calculateRating(TuningResDTO tuningRes, Date start, Date end) {
+		
+		if (tuningRes == null) return new FinalRating();
 
 		int nbSuccess = 0;
 		int nbFailure = 0;

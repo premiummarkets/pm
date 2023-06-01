@@ -513,15 +513,26 @@ public class Portfolio extends AbstractSharesList {
 		return headTransactionsTo(transactions, currentStartDate, currentEndDate);
 	}
 
+	/**
+	 * All inclusive
+	 * @param inputTransactions
+	 * @param currentStartDate
+	 * @param currentEndDate
+	 * @return
+	 */
 	public SortedSet<TransactionElement> headTransactionsTo(SortedSet<TransactionElement> inputTransactions, Date currentStartDate, Date currentEndDate) {
-		if (currentStartDate == null || currentStartDate.equals(DateFactory.dateAtZero())) {
+		Calendar endDateCal = Calendar.getInstance();
+		endDateCal.setTime(currentEndDate);
+		endDateCal.add(Calendar.DATE, +1);
+		currentEndDate = DateFactory.midnithDate(endDateCal.getTime());
+		if (currentStartDate == null || currentStartDate.equals(DateFactory.dateAtZero())) { //left bound
 			return inputTransactions.headSet(new TransactionElement(null,null, null, currentEndDate, null, null, null)); 
-		} else {
-			Calendar currentDateCal = Calendar.getInstance();
-			currentDateCal.setTime(currentStartDate);
-			currentDateCal.add(Calendar.DAY_OF_YEAR, -1);
-			//The id (marker) has the last time stamp (milli since 1970) and hence is the last transaction for any days (it being start or end date)
-			return inputTransactions.subSet(new TransactionElement(null,null, null, currentDateCal.getTime(), null, null, null), new TransactionElement(null,null, null, currentEndDate, null, null, null));
+		} else { //right and left bound
+			currentStartDate = DateFactory.midnithDate(currentStartDate);
+			return inputTransactions.subSet(
+					new TransactionElement(null,null, null, currentStartDate, null, null, null), 
+					new TransactionElement(null,null, null, currentEndDate, null, null, null)
+				);
 		}
 	}
 

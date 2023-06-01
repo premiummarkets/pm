@@ -308,11 +308,18 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getMyPrefs().put("mas.daysbackwardday", props.getProperty("mas.daysbackwardday"));
 			if (props.containsKey("talib.daysbackwardday"))
 				MainPMScmd.getMyPrefs().put("talib.daysbackwardday", props.getProperty("talib.daysbackwardday"));
+			putInPrefs("print.outputs",props);
+			
+			
+			//Auto
 			if (props.containsKey("autoporfolio.generatecsv"))
 				MainPMScmd.getMyPrefs().put("autoporfolio.generatecsv", props.getProperty("autoporfolio.generatecsv"));
 			if (props.containsKey("autoporfolio.generatepng"))
 				MainPMScmd.getMyPrefs().put("autoporfolio.generatepng", props.getProperty("autoporfolio.generatepng"));
-			putInPrefs("print.outputs",props);
+			putInPrefs("autoporfolio.nominal.transaction.amount", props);
+			putInPrefs("autoporfolio.min.transaction.amount", props);
+			putInPrefs("autoporfolio.max.lines", props);
+
 
 
 			//Quotes

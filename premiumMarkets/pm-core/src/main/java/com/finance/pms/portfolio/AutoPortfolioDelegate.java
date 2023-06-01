@@ -46,9 +46,14 @@ import java.util.NavigableSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.files.TransactionComparator;
+import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -81,19 +86,30 @@ public class AutoPortfolioDelegate {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
 	
-	private static final BigDecimal DEFAULT_TRANSACTION_AMOUNT = new BigDecimal(2000).setScale(4);
-	private static final BigDecimal MINIMUM_TRANSACTION_AMOUNT = BigDecimal.ONE;
-	private static final int DEFAULT_MAXIMUM_LINES = 1;
-	protected static final BigDecimal DEFAULT_INITIAL_CASH = DEFAULT_TRANSACTION_AMOUNT.multiply(new BigDecimal(DEFAULT_MAXIMUM_LINES));
+	private final BigDecimal nominalTransactionAmount; // = new BigDecimal(2000).setScale(4);
+	private final BigDecimal minimumTransactionAmount; //= BigDecimal.ONE;
+	private final int maximumNumberOfLines; // = 1;
+	protected final BigDecimal initialCash; //= minTransactionAmount.multiply(new BigDecimal(maximumNumberOfLines));
 
 	
 	private TransactionHistory transactionHistory;
 	
-	public enum BuyStrategy { REINVEST, LIMITROWS, INFINITCASH, INFINITQUANTITY };
+	public enum BuyStrategy { 
+		REINVEST, //The profit is reinvested in new transactions. Starting with nominalTransactionAmount*maximumNumberOfLines of cash. Buy only if not owned. Sell the full line.
+		LIMITROWS, //Buys of nominalTransactionAmount are maid until the maximumNumberOfLines is reached. Buy only if not owned. Sell the full line.
+		INFINITCASH, //Buys of nominalTransactionAmount are maid on buy events if not already bought.Buy only if not owned. Sell the full line.
+		INFINITQUANTITY //Buys of nominalTransactionAmount are maid on buy events disregarding everything else. Buy even if owned. Sells for the nominalTransactionAmount. 
+		};
 
 	protected AutoPortfolioWays thisPortfolio;
 
 	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio, Boolean isFileLogged) {
+		
+		nominalTransactionAmount = new BigDecimal(MainPMScmd.getMyPrefs().getInt("autoporfolio.nominal.transaction.amount", 2000)).setScale(4);
+		minimumTransactionAmount = new BigDecimal(MainPMScmd.getMyPrefs().getInt("autoporfolio.min.transaction.amount", 1)).setScale(4);
+		maximumNumberOfLines = MainPMScmd.getMyPrefs().getInt("autoporfolio.max.lines", 5);
+		initialCash = nominalTransactionAmount.multiply(new BigDecimal(maximumNumberOfLines));
+		
 		this.thisPortfolio = autoPortfolio;
 		Path logFilePath = Path.of(URI.create("file://" + System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + thisPortfolio.getName() + "_Log.csv"));
 		if (isFileLogged && !Files.exists(logFilePath)) {
@@ -111,10 +127,10 @@ public class AutoPortfolioDelegate {
 		TransactionHistory thisCalculationHistory = new TransactionHistory(thisPortfolio.getName());
 
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking events for AutoPortfolio: " + thisPortfolio.getName() + " and date " + currentDate);
-		thisCalculationHistory.addAll(this.checkSellSignals(buyStrategy, currentDate, listEvents, sellComparator));
+		thisCalculationHistory.addAll(checkSellSignals(buyStrategy, currentDate, listEvents, sellComparator));
 		BigDecimal canBuy = canBuy(buyStrategy);
 		if (0 > BigDecimal.ZERO.compareTo(canBuy)) {
-			thisCalculationHistory.addAll(this.checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
+			thisCalculationHistory.addAll(checkBuySignals(buyStrategy, currentDate, listEvents, buyComparator));
 		} else {
 			LOGGER.info("Not checking buy signals because: Cash amount left: " + canBuy + " at " + currentDate + ". Buy strategy: " + buyStrategy + ", Events: " + listEvents);
 		}
@@ -130,18 +146,18 @@ public class AutoPortfolioDelegate {
 		switch (buyStrategy) {
 			case LIMITROWS:
 				int ownedSharesSize = thisPortfolio.getOwnedPorfolioShares().size();
-				if (ownedSharesSize == DEFAULT_MAXIMUM_LINES) {
+				if (ownedSharesSize == maximumNumberOfLines) {
 					LOGGER.info("Strategy " + buyStrategy + ", Maximum number of lines reached.");
 					availableCash = BigDecimal.ZERO;
-				} else if (ownedSharesSize > DEFAULT_MAXIMUM_LINES) {
+				} else if (ownedSharesSize > maximumNumberOfLines) {
 					throw new RuntimeException("Strategy " + buyStrategy + ", Maximum number of lines over taken");
 				} else {
-					availableCash = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+					availableCash = nominalTransactionAmount;
 				}
 				break;
 			case INFINITCASH:
 			case INFINITQUANTITY:
-				availableCash = AutoPortfolioDelegate.DEFAULT_TRANSACTION_AMOUNT;
+				availableCash = nominalTransactionAmount;
 				break;
 			case REINVEST:
 				availableCash = thisPortfolio.getAvailableCash();
@@ -302,8 +318,8 @@ public class AutoPortfolioDelegate {
 									.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
 
 			BigDecimal availableCash = canBuy(buyStrategy);
-			if (availableCash.compareTo(MINIMUM_TRANSACTION_AMOUNT) >= 0) {
-				BigDecimal requestedAmount = (availableCash.compareTo(DEFAULT_TRANSACTION_AMOUNT) >= 0)? DEFAULT_TRANSACTION_AMOUNT : availableCash;
+			if (availableCash.compareTo(minimumTransactionAmount) >= 0) {
+				BigDecimal requestedAmount = (availableCash.compareTo(nominalTransactionAmount) >= 0)? nominalTransactionAmount : availableCash;
 				BigDecimal effectiveAmountWithDrawn = thisPortfolio.withdrawCash(currentDate, requestedAmount, transactionCurrency);
 				BigDecimal quantity = effectiveAmountWithDrawn.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
 				LOGGER.info("Buying: " + quantity + " " + stock + " on the " + currentDate + ". " +
@@ -321,7 +337,7 @@ public class AutoPortfolioDelegate {
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
 				
 			} else {
-				throw new NoCashAvailableException("Cash left : " + availableCash + ", buyStrategy: " + buyStrategy + ", minimum required: " + MINIMUM_TRANSACTION_AMOUNT + ". Can't buy: " + symbolEvents);
+				throw new NoCashAvailableException("Cash left : " + availableCash + ", buyStrategy: " + buyStrategy + ", minimum required: " + minimumTransactionAmount + ". Can't buy: " + symbolEvents);
 			}
 
 		} catch (NoQuotationsException e) {
@@ -418,7 +434,7 @@ public class AutoPortfolioDelegate {
 
 			LOGGER.info("Selling at " + currentDate + " with " + symbolEvents.getSymbol());
 			BigDecimal amount = (BuyStrategy.INFINITQUANTITY.equals(buyStrategy))?
-					BigDecimal.valueOf((Math.max(alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).doubleValue(), DEFAULT_TRANSACTION_AMOUNT.doubleValue()))):
+					BigDecimal.valueOf((Math.max(alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).doubleValue(), nominalTransactionAmount.doubleValue()))):
 					null;
 			TransactionRecord sellTransactionRecord = sell(symbolEvents, currentDate, amount, alreadyBoughtShare);
 			thisPortfolio.setChanged();
@@ -480,8 +496,8 @@ public class AutoPortfolioDelegate {
 		BigDecimal amount = transactionRecord.getTransactionQuantity().multiply(transactionRecord.getTransactionPrice()).setScale(10, RoundingMode.HALF_EVEN);
 		String eventList = (transactionRecord.getEventList() == null)?"No Event":transactionRecord.getEventList().toAutoPortfolioLog();
 
-		this.log(
-				transactionRecord.getAvailableCash().toString(),new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(transactionRecord.getDate()),
+		log(
+				transactionRecord.getAvailableCash().toString(), new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(transactionRecord.getDate()),
 				transactionRecord.getStock().getSymbol(), transactionRecord.getStock().getIsin(), transactionRecord.getStock().getName(), transactionRecord.getStock().getMarketValuation().getCurrency().toString(),
 				transactionRecord.getMovement(), transactionRecord.getTransactionQuantity().toString(), transactionRecord.getTransactionPrice().toString(), amount.toString(),
 				eventList, LocalDateTime.now().toString());
@@ -496,7 +512,7 @@ public class AutoPortfolioDelegate {
 						stock, movement, quantity, price, symbolEvents, EmailFilterEventSource.PMAutoBuySell);
 		getTransactionHistory().add(transactionRecord);
 
-		this.log(transactionRecord);
+		log(transactionRecord);
 
 		return transactionRecord;
 
@@ -519,7 +535,7 @@ public class AutoPortfolioDelegate {
 				.append(timeStamp + ",").append(cleanEventList);
 			if (LOGGER.isDebugEnabled()) LOGGER.debug(line);
 
-			fos.write(line.toString()+"\n");
+			fos.write(line.toString() + "\n");
 			fos.flush();
 
 		} catch (Throwable e) {

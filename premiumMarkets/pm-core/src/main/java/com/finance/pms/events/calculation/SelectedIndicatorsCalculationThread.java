@@ -89,10 +89,10 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			return symbolEvents;
 
 		} catch (IncompleteDataSetException e) {
-			LOGGER.error("UnHandled error : While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
+			LOGGER.error("UnHandled error: While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error("UnHandled error : While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
+			LOGGER.error("UnHandled error: While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
 			throw new IncompleteDataSetException(stock, new HashSet<>(), null);
 		} finally {
 			this.setChanged();
@@ -212,7 +212,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
-				LOGGER.error(	"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and " +
+				LOGGER.error(	"Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " +
 								eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
 				dirty = false; //Not recoverable issue
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
@@ -222,7 +222,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			} catch (Throwable e) {
 				// Recoverable??
 				LOGGER.error(
-						"Failed (empty) calculation for " + stock + " using analysis " + eventListName +  " and "+
+						"Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and "+
 								eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
 				dirty = true; //Recoverable issue ??
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());

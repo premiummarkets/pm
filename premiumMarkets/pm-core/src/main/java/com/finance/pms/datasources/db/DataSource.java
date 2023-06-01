@@ -229,45 +229,36 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
 
 		String originConstraint = (ignoreUserEntries)? "AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
-
-		String endConstraint = testEndConstraint();
+		
+		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateContraint? testEndConstraint() : "";
 
 		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + 
 				" where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
 				" order by " + QUOTATIONS.DATE_FIELD + " desc ";
 
-		return this.getLastFormerQuote(stock, ignoreUserEntries, q);
+		return this.getLastFormerQuote(stock, ignoreUserEntries, hasEndDateContraint, q);
 	}
 
 	private String testEndConstraint() {
-
-//		String endConstraint = "";
-//
-//		try {
-//			if (EventSignalConfig.ENDDATE != null) {
-//				endConstraint = " AND "+QUOTATIONS.DATE_FIELD+ " <= '" + new SimpleDateFormat("yyyy-MM-dd").format(DateFactory.getNowEndDate())+ "' ";
-//			}
-//		} catch (IllegalArgumentException e) {
-//			if (LOGGER.isDebugEnabled()) LOGGER.debug("No test past end date specified because: "+e);
-//		}
-//
-//		return endConstraint;
-		
-		//FIXME
-		return "";
-
+			String endConstraint = " AND " + QUOTATIONS.DATE_FIELD + " <= ? ";
+			return endConstraint;
 	}
 
 	public Date getFirstQuotationDateFromQuotations(Stock stock) {
+		
+		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateContraint? testEndConstraint() : "";
+		
 		String q = 
 				"select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
-						+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? "
+						+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + endConstraint
 						+ "order by " + QUOTATIONS.DATE_FIELD + " asc ";
 
-		return this.getLastFormerQuote(stock, false, q);
+		return this.getLastFormerQuote(stock, false, hasEndDateContraint, q);
 	}
 
-	private Date getLastFormerQuote(Stock stock, Boolean ignoreUserEntries, String sqlQuery) {
+	private Date getLastFormerQuote(Stock stock, Boolean ignoreUserEntries, Boolean hasEndDateConstraint, String sqlQuery) {
 		Date retour;
 		MyDBConnection scnx = this.getConnection(true);
 		try {
@@ -276,7 +267,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.setMaxRows(1);
 			pst.setString(1, stock.getSymbol());
 			pst.setString(2, stock.getIsin());
-			if (ignoreUserEntries) pst.setInt(3, ORIGIN.WEB.ordinal());
+			int i = 3;
+			if (ignoreUserEntries) pst.setInt(i++, ORIGIN.WEB.ordinal());
+			if (hasEndDateConstraint) pst.setDate(i++, new java.sql.Date(DateFactory.getNowEndDate().getTime()));
 
 			pst.setMaxRows(1);
 			ResultSet rs = pst.executeQuery();
@@ -293,7 +286,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
-			LOGGER.error("Query: " +  sqlQuery + "Param: " + stock,e);
+			LOGGER.error("Query: " + sqlQuery + "Param: " + stock,e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -376,11 +369,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	@SuppressWarnings("unchecked")
 	public ArrayList<QuotationUnit> loadStripedQuotationsAfter(final Stock stock, Date firstDate) {
 
+		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateContraint? testEndConstraint() : "";
+		
 		Query query = new QuotationQuery(
 				"select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
 						+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ? AND "
-						+ QUOTATIONS.DATE_FIELD + " >= ? " + testEndConstraint() + " order by date asc ") {
+						+ QUOTATIONS.DATE_FIELD + " >= ? " + endConstraint + " order by date asc ") {
 
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
@@ -398,6 +394,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		query.addValue(stock.getSymbol());
 		query.addValue(stock.getIsin());
 		query.addValue(firstDate);
+		if (hasEndDateContraint) query.addValue(new java.sql.Date(DateFactory.getNowEndDate().getTime()));
 
 		List<? extends Object> retour = this.exectuteSelect(ArrayList.class,query);
 		return (ArrayList<QuotationUnit>) retour;
@@ -408,6 +405,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public ArrayList<QuotationUnit> loadNStripedQuotationsBefore(final Stock stock, Date refDate, Integer indexShift, boolean includeRefDate) {
 
 		if (indexShift == 0) return  new ArrayList<QuotationUnit>();
+		
+		if (DateFactory.isEndDateSet()) refDate = (refDate.after(DateFactory.getNowEndDate()))?refDate:DateFactory.getNowEndDate();
 
 		String infOrEqual = " < ";
 		if (includeRefDate) {

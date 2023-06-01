@@ -107,10 +107,14 @@ public class DateFactory {
 			}
 		}
 	}
+	
+	public static Boolean isEndDateSet() {
+		return ENDDATE != null;
+	}
 
 	public static Date getNowEndDate() {
 		if (ENDDATE != null) {
-			return new Date(ENDDATE.getTime());
+			return new Date(ENDDATE.getTime()); //ENDDATE must be immutable
 		} else {
 			Date midnithDate = midnithDate(new Date());
 			return midnithDate;
@@ -131,7 +135,7 @@ public class DateFactory {
 	}
 	
 	public static void forceEndDate(Date date) {
-		ENDDATE = date;
+		ENDDATE = midnithDate(date);
 	}
 	//
 
