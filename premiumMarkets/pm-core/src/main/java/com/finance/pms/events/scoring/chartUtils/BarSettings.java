@@ -46,12 +46,12 @@ public class BarSettings {
 	
 	public BarSettings() {
 		super();
-		this.alphaDividend = MainPMScmd.getMyPrefs().getDouble("chart.alphaDividend", 5.0);
-		this.maxFill = MainPMScmd.getMyPrefs().getInt("chart.maxFill", 1);
-		this.isZeroBased  = MainPMScmd.getMyPrefs().getBoolean("chart.isZeroBased", false);
-		this.isReachTop =  MainPMScmd.getMyPrefs().getBoolean("chart.isReachTop", false);
-		this.isGradient = MainPMScmd.getMyPrefs().getBoolean("chart.isGradient", false);
-		this.sideBySide  = MainPMScmd.getMyPrefs().getBoolean("chart.isSideBySide", false); //TODO?? => calculate some kind of density
+		this.alphaDividend = Double.valueOf(MainPMScmd.getMyPrefs().get("chart.alphaDividend", "5.0"));
+		this.maxFill = Integer.valueOf(MainPMScmd.getMyPrefs().get("chart.maxFill", "1"));
+		this.isZeroBased  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isZeroBased", "false"));
+		this.isReachTop =  Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isReachTop", "false"));
+		this.isGradient = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isGradient", "false"));
+		this.sideBySide  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isSideBySide", "false")); //TODO?? => calculate some kind of density
 	}
 	
 	public Double getAlphaDividend() {

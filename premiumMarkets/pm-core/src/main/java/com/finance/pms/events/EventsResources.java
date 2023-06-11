@@ -1142,7 +1142,7 @@ public class EventsResources {
 			synchronized (this) {
 				EventsForAnalisysNameCacheHolder eventsForAnalysis = EVENTS_CACHE.get(analysisName);
 				if (eventsForAnalysis != null) {
-					removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, datedeb, datefin, indicators);
+					removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, DateFactory.DEFAULT_DATE, DateFactory.getNowEndDate(), indicators);
 				}
 			}
 			if (isCachePersistent && !isEventPersisted) {

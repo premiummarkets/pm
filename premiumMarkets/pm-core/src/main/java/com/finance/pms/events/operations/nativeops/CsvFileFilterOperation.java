@@ -8,8 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.log4j.Logger;
-
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -17,7 +16,7 @@ import com.finance.pms.events.operations.Value;
 
 public class CsvFileFilterOperation extends StringerOperation {
 	
-	private static Logger LOGGER = Logger.getLogger(CsvFileFilterOperation.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(CsvFileFilterOperation.class);
 
 	public CsvFileFilterOperation(String reference, String description, Operation ... operands) {
 		super(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));

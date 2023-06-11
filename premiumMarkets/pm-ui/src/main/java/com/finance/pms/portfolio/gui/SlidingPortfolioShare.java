@@ -54,6 +54,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	private PortfolioShare underLyingPortfolioShare;
 
 	private Boolean displayOnChart;
+	private Boolean chartTransactions;
 	private Color color;
 
 	private Boolean slidingEnd;
@@ -73,7 +74,8 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.slidingEnd = slidingEnd;
 		this.slidingStart = slidingStart;
 		this.color = color;
-		this.displayOnChart = portfolioShare.getQuantity(end).compareTo(BigDecimal.ZERO) > 0;
+		this.displayOnChart = portfolioShare.getPriceAvgBuy(end, portfolioShare.getTransactionCurrency()).compareTo(BigDecimal.ZERO) > 0;
+		this.chartTransactions = false;
 
 		this.displayedCurrency = portfolioShare.getTransactionCurrency();
 	}
@@ -243,4 +245,13 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.displayedCurrency = displayedCurrency;
 	}
 
+	public Boolean isChartTransactions() {
+		return chartTransactions;
+	}
+
+	public void setChartTransactions(Boolean chartTransactions) {
+		this.chartTransactions = chartTransactions;
+	}
+
+	
 }

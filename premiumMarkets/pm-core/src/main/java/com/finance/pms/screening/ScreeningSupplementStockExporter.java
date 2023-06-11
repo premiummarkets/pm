@@ -86,7 +86,7 @@ public abstract class ScreeningSupplementStockExporter extends Exporter<Navigabl
 	@Override
 	public void exportToFile(NavigableSet<ScreeningSupplementedStock> element) throws IOException {
 		
-		Boolean generateScreenerReports = MainPMScmd.getMyPrefs().getBoolean("screener.generatecsv", false);
+		Boolean generateScreenerReports = Boolean.valueOf(MainPMScmd.getMyPrefs().get("screener.generatecsv", "false"));
 		if (!generateScreenerReports) return;
 		
 		writeFileHeader(fileName, header);

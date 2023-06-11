@@ -75,6 +75,8 @@ public class LastUpdateStampChecker {
 	//Compare the attempt time stamp with Mc (see GetQuotations) which should give which end date was attempted already.
 	public Boolean isUpdateGranted(String asset, Date lastQuoteDateForAsset, int utcTimeLag, TradingMode tradinMode) {
 		
+		if (DateFactory.isEndDateSet()) return false; //No quotation update in end date tampering test mode.
+		
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 		
 		LastUpDateStampRecord timeStampOfLastUpdate = getLastUpdateStampRecord(asset);

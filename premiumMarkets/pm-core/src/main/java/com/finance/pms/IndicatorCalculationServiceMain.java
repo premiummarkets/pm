@@ -107,7 +107,7 @@ public class IndicatorCalculationServiceMain {
 
 			String periodType = MainPMScmd.getMyPrefs().get("events.periodtype","daily");
 			if (!cmds && !specDates && !defaultCal) {
-				LOGGER.error("Invalid command line parameters "+args);
+				LOGGER.error("Invalid command line parameters " + args);
 				Runtime.getRuntime().exit(0);
 			}
 			

@@ -84,7 +84,6 @@ import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
@@ -158,10 +157,12 @@ public class ChartMain extends Chart {
 	private XYPlot indicPlot;
 	private Integer indicPlotWeight = CHARTS_TOTAL_WEIGHT/2;
 
-	private Map<Long, XYTextAnnotation> lineAnnotations;
+	private Map<ValueMarker, XYTextAnnotation> vLineAnnotations;
+	private Map<ValueMarker, XYTextAnnotation> vTransAnnotations;
 	private ValueMarker axisMarker;
 
 	private Frame chartFrame;
+
 
 	
 	public ChartMain(Date startDate, JFreeChartTimePeriod jFreeTimePeriod) {
@@ -181,7 +182,8 @@ public class ChartMain extends Chart {
 
 		barChartDisplayStrategy = new ChartBarSquare(this);
 
-		lineAnnotations = new HashMap<Long, XYTextAnnotation>();
+		vLineAnnotations = new HashMap<ValueMarker, XYTextAnnotation>();
+		vTransAnnotations = new HashMap<ValueMarker, XYTextAnnotation>();
 
 	}
 
@@ -303,7 +305,7 @@ public class ChartMain extends Chart {
 					LOGGER.warn(kthPs + " error building line series ", e);
 					lineSerie = new TimeSeries(kthPs.getName());
 				}
-
+				
 			} else {
 				lineSerie = new TimeSeries(kthPs.getName());
 			}
@@ -604,7 +606,7 @@ public class ChartMain extends Chart {
 		}
 	}
 
-	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors, final Rectangle2D plotArea) {
+	public void updateLineDataSet(final List<SlidingPortfolioShare> listShares, final StripedCloseFunction stripedCloseFunction, final Boolean applyColors) {
 
 		Runnable runnable = new Runnable() {
 
@@ -615,6 +617,7 @@ public class ChartMain extends Chart {
 				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 				xAxis.setTickUnit(new DateTickUnit(DateTickUnitType.DAY, domainTicksMultiple(arbitraryStartDate, arbitraryEndDate)));
 				xAxis.setRange(arbitraryStartDate, arbitraryEndDate);
+				Rectangle2D plotArea = chartPanel.getScreenDataArea();
 				try {
 					setCursor(java.awt.Cursor.WAIT_CURSOR);
 					
@@ -633,12 +636,26 @@ public class ChartMain extends Chart {
 					LOGGER.warn(e, e);
 					resetBarChart();
 					resetIndicChart();
-					updateLineDataSet(listShares, stripedCloseFunction, applyColors, plotArea);
+					updateLineDataSet(listShares, stripedCloseFunction, applyColors);
 				}  finally {
 					setCursor(java.awt.Cursor.DEFAULT_CURSOR);
 				}
 
 				resetVerticalLines(plotArea);
+				
+				removeVTrans();
+				listShares.stream()
+					.forEach(ps -> {
+						if (ps.getDisplayOnChart() && ps.isChartTransactions()) {
+							ps.getTransactions().stream()
+							.forEach(t -> {
+								Paint lineColor = (t.getQuantity().compareTo(BigDecimal.ZERO) > 0)?Color.cyan:Color.blue;
+								addVTrans(
+										t.getDate().getTime(), t.toChart() + " / gain " + 
+										PERCENTAGE_FORMAT.format(ps.getGainTotalPercent(null, t.getDate(), ps.getTransactionCurrency())), lineColor);
+							});
+						}
+				});
 			}
 
 		};
@@ -814,7 +831,6 @@ public class ChartMain extends Chart {
 
 	public void resetLineChart() {
 		Runnable runnable = new Runnable() {
-
 			public void run() {
 				mainPlot.setDataset(0, new TimeSeriesCollection());
 			}
@@ -826,7 +842,6 @@ public class ChartMain extends Chart {
 	public void resetBarChart() {
 
 		Runnable runnable = new Runnable() {
-
 			public void run() {
 				mainPlot.setDataset(1, new TimeSeriesCollection());
 				mainPlot.getRenderer(1).removeAnnotations();
@@ -961,18 +976,20 @@ public class ChartMain extends Chart {
 			vDomainMarker.setPaint(Color.ORANGE);
 			vDomainMarker.setStroke(new BasicStroke(1.5f, BasicStroke.JOIN_MITER, BasicStroke.JOIN_MITER, 10.0f, new float[]{1.0f}, 0.0f)); //set the value new float[]{1.0f}as 1.0f to avoiding dashing of marker
 
-			addVerticalLine(mainPlot, vDomainMarker);
+			mainPlot.addDomainMarker(vDomainMarker);
 			if (indicPlot != null) {
-				addVerticalLine(indicPlot, vDomainMarker);
+				indicPlot.addDomainMarker(vDomainMarker);
 			}
 
-			XYTextAnnotation vLineLabel = createVLineAnnotation(chartX, plotArea.getHeight());
-			lineAnnotations.put(chartX, vLineLabel);
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
+			String text = simpleDateFormat.format(chartX);
+			XYTextAnnotation vLineLabel = createVLineAnnotation(chartX, plotArea.getHeight(), text);
+			vLineAnnotations.put(vDomainMarker, vLineLabel);
 			mainPlot.addAnnotation(vLineLabel);
 
 		} else {
 
-			removeVline(vLineAt);
+			removeVLineMarkerAndAnnotation(vLineAt);
 
 			List<Double> chartYs = point2DToRange(clickPoint, plotArea);
 
@@ -1014,13 +1031,12 @@ public class ChartMain extends Chart {
 
 	}
 
-	protected XYTextAnnotation createVLineAnnotation(long chartX, double chartHeight) {
+	protected XYTextAnnotation createVLineAnnotation(long chartX, double totalHeight, String text) {
 
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy");
-		double chartY = mainYAxis.getLowerBound()+ 35*mainYAxis.getRange().getLength() / (chartHeight*(CHARTS_TOTAL_WEIGHT-indicPlotWeight)/CHARTS_TOTAL_WEIGHT);
+		double chartY = mainYAxis.getLowerBound() + 50*mainYAxis.getRange().getLength() / (totalHeight*((double)(CHARTS_TOTAL_WEIGHT-indicPlotWeight)/CHARTS_TOTAL_WEIGHT));
 
-		XYTextAnnotation vLineLabel = new XYTextAnnotation(simpleDateFormat.format(chartX), chartX, chartY);
-		vLineLabel.setFont(mainYAxis.getTickLabelFont().deriveFont(8f));
+		XYTextAnnotation vLineLabel = new XYTextAnnotation(text, chartX, chartY);
+		vLineLabel.setFont(mainYAxis.getTickLabelFont().deriveFont(10f));
 		vLineLabel.setRotationAnchor(TextAnchor.BASELINE_CENTER);
 		vLineLabel.setTextAnchor(TextAnchor.BASELINE_CENTER);
 		vLineLabel.setRotationAngle(-3.14 / 2);
@@ -1068,6 +1084,11 @@ public class ChartMain extends Chart {
 		long lowerTime = point2DToTime(lowerClickPoint, rectangle2d);
 		long higherTime = point2DToTime(higherClickPoint, rectangle2d);
 
+		return checkVLineAt(lowerTime, higherTime);
+
+	}
+
+	private ValueMarker checkVLineAt(long lowerTime, long higherTime) {
 		@SuppressWarnings("unchecked")
 		Collection<ValueMarker> mainDomainMarkers = mainPlot.getDomainMarkers(Layer.FOREGROUND);
 		if (mainDomainMarkers != null) {
@@ -1077,9 +1098,7 @@ public class ChartMain extends Chart {
 				}
 			}
 		}
-
 		return null;
-
 	}
 
 	public List<ValueMarker> checkHLineAt(Point2D clickPoint, Rectangle2D plotArea) {
@@ -1135,7 +1154,7 @@ public class ChartMain extends Chart {
 	public Boolean removeVLineAt(Point2D point2d, Rectangle2D rectangle2d) {
 		ValueMarker vLineAt = checkVLineAt(point2d, rectangle2d);
 		if (vLineAt != null) {
-			removeVline(vLineAt);
+			removeVLineMarkerAndAnnotation(vLineAt);
 			return true;
 		} else {
 			return false;
@@ -1164,29 +1183,38 @@ public class ChartMain extends Chart {
 		}
 	}
 
-	private void removeVline(ValueMarker valueMarker) {
+	private void removeVLineMarkerAndAnnotation(ValueMarker valueMarker) {
+		
 		mainPlot.removeDomainMarker(valueMarker);
-		mainPlot.removeAnnotation(lineAnnotations.remove(Double.valueOf(valueMarker.getValue()).longValue()));
 		if (indicPlot != null) {
 			indicPlot.removeDomainMarker(valueMarker);
 		}
-	}
+		
+		XYTextAnnotation annot = vLineAnnotations.remove(valueMarker);
+		if (annot != null) mainPlot.removeAnnotation(annot);
 
-	private void addVerticalLine(XYPlot plot, Marker vLineDomainMarker) {
-		plot.addDomainMarker(vLineDomainMarker);
 	}
 
 	public void removeVLines() {
 
-		mainPlot.clearDomainMarkers();
-		for (XYTextAnnotation lineAnnotation : lineAnnotations.values()) {
-			mainPlot.removeAnnotation(lineAnnotation);
+		for (ValueMarker marker : vLineAnnotations.keySet()) {
+			mainPlot.removeDomainMarker(marker);
+			mainPlot.removeAnnotation(vLineAnnotations.get(marker));
 		}
-		lineAnnotations.clear();
+		vLineAnnotations.clear();
 
 		if (indicPlot != null) {
 			indicPlot.clearDomainMarkers();
 		}
+	}
+	
+	public void removeVTrans() {
+
+		for (ValueMarker marker : vTransAnnotations.keySet()) {
+			mainPlot.removeDomainMarker(marker);
+			mainPlot.removeAnnotation(vTransAnnotations.get(marker));
+		}
+		vTransAnnotations.clear();
 	}
 
 	public void removeHLines() {
@@ -1210,17 +1238,21 @@ public class ChartMain extends Chart {
 
 		if (mainDomainMarkers != null) {
 			for (ValueMarker valueMarker : mainDomainMarkers) {
-
-				XYTextAnnotation xyTextAnnotation = lineAnnotations.remove(Double.valueOf(valueMarker.getValue()).longValue());
-				mainPlot.removeAnnotation(xyTextAnnotation);
-				XYTextAnnotation newAnnotation = createVLineAnnotation(Double.valueOf(valueMarker.getValue()).longValue(), plotArea.getHeight());
-				mainPlot.addAnnotation(newAnnotation);
-				lineAnnotations.put(Double.valueOf(xyTextAnnotation.getX()).longValue(), newAnnotation);
-
+				
 				if (indicPlot != null && (indicDomainMarkers == null || !indicDomainMarkers.contains(valueMarker))) {
 					indicPlot.addDomainMarker(valueMarker);
 				}
 
+				long chartX = Double.valueOf(valueMarker.getValue()).longValue();
+				XYTextAnnotation existingAnnotation = vLineAnnotations.remove(valueMarker);
+				if (existingAnnotation != null) {
+					mainPlot.removeAnnotation(existingAnnotation);
+					String text = existingAnnotation.getText();
+					XYTextAnnotation newAnnotation = createVLineAnnotation(chartX, plotArea.getHeight(), text);
+					mainPlot.addAnnotation(newAnnotation);
+					vLineAnnotations.put(valueMarker, newAnnotation);
+				}
+				
 			}
 		}
 
@@ -1238,5 +1270,27 @@ public class ChartMain extends Chart {
 		this.chartFrame = chartFrame;
 		
 	}
+
+	private void addVTrans(double xDomainValue, String text, Paint lineColor) {
+		
+		ValueMarker vDomainMarker = new ValueMarker(xDomainValue);
+		vDomainMarker.setPaint(lineColor);
+		vDomainMarker.setStroke(new BasicStroke(1.5f, BasicStroke.JOIN_MITER, BasicStroke.JOIN_MITER, 10.0f, new float[]{1.0f}, 0.0f));
+		mainPlot.addDomainMarker(vDomainMarker);
+		
+		long chartX = Double.valueOf(vDomainMarker.getValue()).longValue();
+		XYTextAnnotation vLineLabel = createVLineAnnotation(chartX, chartPanel.getScreenDataArea().getHeight(), text);
+		vTransAnnotations.put(vDomainMarker, vLineLabel);
+		mainPlot.addAnnotation(vLineLabel);
+		
+	}
+	
+//	private void removeVTrans(long xDomainValue) {
+//		ValueMarker vDomainMarker = checkVLineAt(xDomainValue-1, xDomainValue+1);
+//		if (vDomainMarker != null) {
+//			removeVline(vDomainMarker);
+//		}
+//		
+//	}
 
 }

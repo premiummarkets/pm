@@ -74,6 +74,11 @@ public class DateFactory {
 
 	}
 
+	@Deprecated 
+	/**
+	 * @deprecated too slow
+	 * @return
+	 */
 	public static synchronized long milliSecStamp() {
 		long time = new Date().getTime();
 		try {

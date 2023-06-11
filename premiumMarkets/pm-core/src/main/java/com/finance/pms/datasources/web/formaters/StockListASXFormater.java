@@ -91,7 +91,7 @@ public class StockListASXFormater extends LineFormater {
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,YahooMarketExtentions.ASX.toString()),
 						new MarketValuation(Market.ASX),
-						"",TradingMode.CONTINUOUS,0l));
+						"",TradingMode.CONTINUOUS, 0l));
 			}
 			return retour;
 			

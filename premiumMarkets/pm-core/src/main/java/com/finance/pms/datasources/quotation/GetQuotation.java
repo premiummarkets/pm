@@ -78,7 +78,7 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 
 	public GetQuotation(Date actualDateTime, Stock stock, Boolean forceReset, Boolean forceUpdate) {
 		
-		config = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
+		this.config = (EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME);
 
 		this.stock = stock;
 		this.endDate = DateFactory.endDateFix(actualDateTime, stock.getMarket().getUTCTimeLag(), stock.getTradingMode());
@@ -90,9 +90,13 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 
 	@Override
 	public GetQuotationResult call() {
+		
+		//if (DateFactory.isEndDateSet()) return new GetQuotationResult(stock); //No quotation update in end date tampering test mode.
 
 		synchronized (stock) {
 
+			MyLogger.threadLocal.set(stock.getSymbol());
+			
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, config);
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, new IndicatorsConfig());
 			Date dateAtZero = DateFactory.dateAtZero();

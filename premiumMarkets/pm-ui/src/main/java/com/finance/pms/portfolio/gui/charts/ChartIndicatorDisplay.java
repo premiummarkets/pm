@@ -336,7 +336,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		}
 		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
 
 	}
 
@@ -474,7 +474,6 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				} else {
 					subMap = MapUtils.subMapInclusive(outputCache, this.chartTarget.getSlidingStartDate(), end);
 				}
-
 				eventsSeries.put(eventInfo, subMap);
 
 			}

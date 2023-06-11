@@ -622,7 +622,7 @@ public class MainGui extends SashForm implements RefreshableView {
 							}
 						};
 						getDisplay().syncExec(runnable2);
-						((PortfolioComposite) portfolioSash()).transposePortfolioTransactions();
+						((PortfolioComposite) portfolioSash()).csvTransposePortfolioTransactions();
 					} finally {
 						Runnable runnable2 = new Runnable() {
 							public void run() {
@@ -650,7 +650,7 @@ public class MainGui extends SashForm implements RefreshableView {
 							}
 						};
 						getDisplay().syncExec(runnable2);
-						((PortfolioComposite) portfolioSash()).viewPortfolioTransactions();
+						((PortfolioComposite) portfolioSash()).csvPortfolioTransactions();
 					} finally {
 						Runnable runnable2 = new Runnable() {
 							public void run() {

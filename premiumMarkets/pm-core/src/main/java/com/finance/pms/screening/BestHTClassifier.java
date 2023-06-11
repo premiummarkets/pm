@@ -265,7 +265,7 @@ public class BestHTClassifier {
 
 							EventInfoOpsCompoOperation eventInfo = (EventInfoOpsCompoOperation) parameterizedIndiactorsBuilder.getCurrentOperations().get(indicatorId);
 							TargetStockInfo targetStock = new TargetStockInfo("runInd" + eventInfo.getReference(), eventInfo, stock, startDate, endDate);
-							EventMapValue results = (EventMapValue) eventInfo.run(targetStock, eventInfo.getReference(), 0);
+							EventMapValue results = (EventMapValue) eventInfo.run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + eventInfo.getReference(), 0);
 
 							TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(targetStock.getStock(), startDate, endDate, qMap, results.getEventMap().values());
 							Double forecastRateOfChange = 1 + tuningRes.getForecastProfitUnReal();

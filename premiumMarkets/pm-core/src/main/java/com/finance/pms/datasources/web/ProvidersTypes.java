@@ -54,7 +54,8 @@ public enum ProvidersTypes {
 	INFLATION("inflation","Inflation"),
 	CURRENCY("currency","Currency"),
 	INVESTING("investing","Investing"),
-	STOCKSYMBOLAPI("stockSymbolApi","stockSymbolApi");
+	STOCKSYMBOLAPI("stockSymbolApi","stockSymbolApi"), 
+	SLICKSTOCKPYTHONINDICES("slickStockPythonIndices","slickStockPythonIndices");
 	
 	private ProvidersTypes(String cmdParam, String className) {
 	}

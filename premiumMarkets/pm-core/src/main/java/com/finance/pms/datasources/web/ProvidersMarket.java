@@ -31,11 +31,13 @@ package com.finance.pms.datasources.web;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.http.HttpException;
+import org.python.google.common.collect.Maps;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Market;
@@ -60,9 +62,9 @@ public abstract class ProvidersMarket extends ProvidersList {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) {
+	protected SortedMap<Stock, Double> fetchStockList(MarketQuotationProviders marketQuotationsProviders) {
 		
-		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
+		SortedMap<Stock, Double> listFromWeb =  new TreeMap<Stock, Double>(getNewStockComparator());
 		
 		LOGGER.info("Market Url : " + getUrl());
 		LineFormater lsf = this.getFormater(getUrl(), this.getMarket(), marketQuotationsProviders);
@@ -74,7 +76,7 @@ public abstract class ProvidersMarket extends ProvidersList {
 			LOGGER.error("",e);
 		}
 		
-		listFromWeb.addAll(ltmp);
+		listFromWeb.putAll(Maps.asMap(new TreeSet<Stock>(ltmp), k -> Double.valueOf(0)));
 		
 		return listFromWeb;
 	}

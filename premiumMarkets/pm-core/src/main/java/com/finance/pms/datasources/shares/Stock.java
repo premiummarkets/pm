@@ -80,6 +80,7 @@ public class Stock implements Validatable {
 	private Long capitalisation;
 
 	private Boolean overrideUserQuotes;
+
 	private String refName;
 
 	public Stock() {
@@ -128,9 +129,9 @@ public class Stock implements Validatable {
 
 		this.tradingMode = TradingMode.CONTINUOUS;
 		this.sectorHint = "";
-		this.capitalisation = 0L;
+		this.capitalisation = 0l;
 	}
-
+	
 	public Stock(String isin, String symbol, String name, Boolean removable,
 			StockCategories category, SymbolMarketQuotationProvider marketQuotationsProvider,
 			MarketValuation  market,

@@ -1,7 +1,7 @@
 package com.finance.pms.datasources.web;
 
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -43,9 +43,9 @@ public class ProvidersReutersIndicesTest {
 
 	//@Test
 	public void testFetchStockList() throws HttpException {
-		Set<Stock> stockList = p.fetchStockList(MarketQuotationProviders.YAHOO);
+		Map<Stock, Double> stockList = p.fetchStockList(MarketQuotationProviders.YAHOO);
 		System.out.println(stockList.size());
-		Optional<String> reduce = stockList.stream().map(s -> s.toString()).reduce( (r,e) -> r + "\n" + e);
+		Optional<String> reduce = stockList.keySet().stream().map(s -> s.toString()).reduce( (r,e) -> r + "\n" + e);
 		System.out.println(reduce);
 	}
 	

@@ -85,7 +85,7 @@ public class StockListEuroNextFormater extends LineFormater {
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Wrong file format while proceding web stock list : " + 
 						line+" with lenght "+strArray.length+". Ignoring line");
 			} else {
-				Long capitalisation = 0L;
+				Long capitalisation = 0l;
 				try {
 					capitalisation = Long.valueOf(strArray[13].replace(",",""));
 				} catch (NumberFormatException e) {
@@ -95,7 +95,7 @@ public class StockListEuroNextFormater extends LineFormater {
 				retour.add(new Stock(strArray[1], strArray[4], strArray[0], true, this.stockCategorie, 
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,strArray[3]), 
 						new MarketValuation(Market.EURONEXT),
-						strArray[5],TradingMode.valueOfLabel(strArray[14]),capitalisation));
+						strArray[5],TradingMode.valueOfLabel(strArray[14]), capitalisation));
 			}
 			return retour;
 			

@@ -1253,4 +1253,5 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public Point getPanelClickPosition() {
 		return panelClickPosition;
 	}
+	
 }

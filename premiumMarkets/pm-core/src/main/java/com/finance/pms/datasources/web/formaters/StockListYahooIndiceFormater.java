@@ -83,7 +83,7 @@ public class StockListYahooIndiceFormater extends LineFormater {
 						true,
 						StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-						market,"", TradingMode.CONTINUOUS, 0L));
+						market,"", TradingMode.CONTINUOUS, 0l));
 			}
 			return retour;
 			

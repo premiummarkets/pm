@@ -268,10 +268,12 @@
 						<directory>src/main/resources</directory>
 						<filtering>false</filtering>
 						<excludes>
+							<!-- -->
 							<exclude>db.properties</exclude>
-							<exclude>log4j.properties</exclude>
 							<exclude>**/*pmsjava*.*</exclude>
 							<exclude>**/*pmserror*.*</exclude>
+							<!-- -->
+							<exclude>log4j.properties</exclude>
 							<exclude>pmsbuild.properties</exclude>
 						</excludes>
 					</resource>

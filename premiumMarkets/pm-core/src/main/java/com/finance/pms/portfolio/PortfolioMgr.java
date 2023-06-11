@@ -73,7 +73,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 	private static PortfolioMgr singleton;
 
 	private List<Portfolio> portfolios;
-	private List<Portfolio> oldPortfolios;
 
 	private PortfolioDAO portfolioDAO;
 	private CurrencyConverterImpl currencyConverter;
@@ -84,7 +83,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 		this.portfolioDAO = portfolioDAO;
 		this.portfolios = portfolioDAO.loadVisiblePortfolios();
 		this.currencyConverter = currencyConverter;
-		resetOldPortfolioList();
 
 		singleton = this;
 	}
@@ -92,16 +90,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	//For Test ...
 	public static void setInit(PortfolioMgr singleton) {
 		PortfolioMgr.singleton = singleton;
-		PortfolioMgr.singleton.oldPortfolios  = new ArrayList<Portfolio>();
 		PortfolioMgr.singleton.portfolios   = new ArrayList<Portfolio>();
-	}
-
-	private void resetOldPortfolioList() {
-
-		this.oldPortfolios = new ArrayList<Portfolio>();
-		for (Portfolio portfolio: portfolios) {
-			copyPortfolioToList(portfolio, oldPortfolios);
-		}
 	}
 
 	public AutoPortfolio getOrCreateAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
@@ -145,7 +134,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 	public AbstractSharesList getPortfolio(String portfolioName) {
 
-		int index = this.portfolios.indexOf(new Portfolio(portfolioName,new SilentPonderationRule(),new SilentPonderationRule(),null));
+		int index = this.portfolios.indexOf(new Portfolio(portfolioName, new SilentPonderationRule(), new SilentPonderationRule(), null));
 
 		if (index == -1) {		
 			throw new IllegalArgumentException("Portfolio "+portfolioName+" doesn't exist");
@@ -166,7 +155,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 	public  void addPortfolio(Portfolio portfolio) throws InvalidAlgorithmParameterException {
 		if (portfolios.contains(portfolio)) {
-			throw new InvalidAlgorithmParameterException("Portfolio "+portfolio.getName()+" already exists. Please delete");
+			throw new InvalidAlgorithmParameterException("Portfolio "+portfolio.getName() + " already exists. Please delete");
 		}
 		this.portfolios.add(portfolio);
 	}
@@ -180,7 +169,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 	public void hibStorePortfolio() {
 
 		for (AbstractSharesList portfolio: this.portfolios) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("saving : "+portfolio.getName());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("saving : " + portfolio.getName());
 			try {			
 				this.portfolioDAO.saveOrUpdatePortfolio(portfolio);
 			} catch (Exception e) {
@@ -188,7 +177,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 			}
 		}
 
-		resetOldPortfolioList();
+		//resetOldPortfolioList();
 	}
 
 	public List<Portfolio> getVisiblePortfolios() {
@@ -250,21 +239,12 @@ public class PortfolioMgr implements ApplicationContextAware {
 		return portfolioShareList;
 	}
 
-	public List<Portfolio> cancelModifications() {
-		this.portfolios = new ArrayList<Portfolio>();	
-		for (Portfolio portfolio: oldPortfolios) {
-			copyPortfolioToList(portfolio, portfolios);
-		}
-		return this.portfolios;
-	}
-
-
-	private void copyPortfolioToList(Portfolio portfolio, List<Portfolio> list) throws InstantiationError {
+	public Portfolio copyPortfolio(Portfolio portfolio, String newName) throws InstantiationError {
 		if (portfolio instanceof AutoPortfolio) {
-			list.add(new AutoPortfolio((AutoPortfolio)portfolio));
+			return new AutoPortfolio((AutoPortfolio) portfolio, newName);
 		} 
 		else if (portfolio instanceof UserPortfolio) {
-			list.add(new UserPortfolio((UserPortfolio)portfolio));
+			return new UserPortfolio((UserPortfolio) portfolio, newName);
 		}
 		else {
 			throw new InstantiationError();

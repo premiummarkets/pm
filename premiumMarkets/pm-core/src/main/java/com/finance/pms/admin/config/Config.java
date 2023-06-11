@@ -29,15 +29,17 @@
  */
 package com.finance.pms.admin.config;
 
-
 public abstract class Config {
 
     public static final String EVENT_SIGNAL_NAME = "eventSignal";
     public static final String INDICATOR_PARAMS_NAME = "indicatorParams";
+    
+	abstract String getName();
+    
+    protected Config() {
+    }
 
-    abstract String getName();
-
-    @Override
+	@Override
     public Object clone() {
         try {
             return super.clone();

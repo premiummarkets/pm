@@ -1,6 +1,10 @@
 package com.finance.pms.events.operations;
 
 public class StackException extends RuntimeException {
+	
+	public StackException(Exception e) {
+		super(e);
+	}
 
 	public StackException(String string, Exception e) {
 		super(string, e);

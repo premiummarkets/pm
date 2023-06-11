@@ -317,7 +317,7 @@ public class GnuCashAdvPortfolioParser {
 		for (TransactionElement transactionElement : transactionsForStock) {
 			portfolio.rawAddTransaction(transactionElement);
 		}
-		return portfolio.addOrUpdateShareWithoutTransaction(stock, account, portfolioReportCurrency, DateFactory.getNowEndDate());
+		return portfolio.addOrUpdateShareAtDayClose(stock, account, portfolioReportCurrency, DateFactory.getNowEndDate());
 
 	}
 

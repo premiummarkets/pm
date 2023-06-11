@@ -55,7 +55,6 @@ import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateExce
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
@@ -135,12 +134,12 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 								.filter(e -> e instanceof EventDefinition)
 								.map(e -> ((EventInfo) e))
 								.toArray(EventInfo[]::new);
-						TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, SelectedIndicatorsCalculationService.getAnalysisName(), eiArray);
+						TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), eiArray);
 
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
 								.filter(e -> e instanceof  EventInfoOpsCompoOperation)
-								.forEach(e -> TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock, SelectedIndicatorsCalculationService.getAnalysisName(), new EventInfo[]{((EventInfoOpsCompoOperation) e)}));
+								.forEach(e -> TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), new EventInfo[]{((EventInfoOpsCompoOperation) e)}));
 					});
 					viewStateParams[1] = null;
 				}
@@ -223,7 +222,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					". Will delete : " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
 			
 			if (eventDefsArray.length > 0) { //None selected means no delete
-				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
+				TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock((Stock)stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
 			}
 
 			for (Observer observer : engineObservers) {

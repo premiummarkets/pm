@@ -73,7 +73,9 @@ public class MyLogger {
 	public static MyLogger getLogger(Class<? extends Object> clazz) {
 		return new MyLogger(Logger.getLogger(clazz));
 	}
-
+	
+	public static ThreadLocal<String> threadLocal = new ThreadLocal<>();
+	
 	private static long msgDelay = Long.valueOf(MainPMScmd.getMyPrefs().get("mail.log.delay", "4000"));
 
 	private static String mailUserName = null;
@@ -362,11 +364,17 @@ public class MyLogger {
 	}
 
 	public void debug(Object message, Throwable t) {
-		delegateLogger.debug(message, t);
+		delegateLogger.debug(stockInfo() + message, t);
+	}
+
+	private String stockInfo() {
+		String string = MyLogger.threadLocal.get();
+		if (string == null) return "";
+		return "(" + string + ") ";
 	}
 
 	public void debug(Object message) {
-		delegateLogger.debug(message);
+		delegateLogger.debug(stockInfo() + message);
 	}
 
 	@Override
@@ -375,22 +383,22 @@ public class MyLogger {
 	}
 
 	public void error(Object message, Throwable t) {
-		delegateLogger.error(message, t);
+		delegateLogger.error(stockInfo() + message, t);
 		this.sendMail(message, t, false);
 	}
 
 	public void warn(Object message, Boolean isTest) {
-		delegateLogger.warn(message);
+		delegateLogger.warn(stockInfo() + message);
 		this.sendMail(message, null, isTest);
 	}
 
 	public void warn(Object message, Throwable t, Boolean isTest) {
-		delegateLogger.warn(message, t);
+		delegateLogger.warn(stockInfo() + message, t);
 		this.sendMail(message, t, isTest);
 	}
 
 	public void error(Object message) {
-		delegateLogger.error(message);
+		delegateLogger.error(stockInfo() + message);
 		this.sendMail(message, null, false);
 	}
 
@@ -465,11 +473,11 @@ public class MyLogger {
 	}
 
 	public void info(Object message) {
-		delegateLogger.info(message);
+		delegateLogger.info(stockInfo() + message);
 	}
 
 	public void guiInfo(Object message) {
-		delegateLogger.info(message);
+		delegateLogger.info(stockInfo() + message);
 		lastMsg.setLastMessage(message.toString());
 	}
 
@@ -556,11 +564,11 @@ public class MyLogger {
 	}
 
 	public void warn(Object message, Throwable t) {
-		delegateLogger.warn(message, t);
+		delegateLogger.warn(stockInfo() + message, t);
 	}
 
 	public void warn(Object message) {
-		delegateLogger.warn(message);
+		delegateLogger.warn(stockInfo() + message);
 	}
 
 	//Email settings options :

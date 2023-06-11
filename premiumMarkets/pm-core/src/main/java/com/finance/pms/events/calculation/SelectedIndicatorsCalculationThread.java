@@ -23,7 +23,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -161,7 +160,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					//FIXME the storage should be delegated to the eventInfo or calculator
 					//FIXME And the control of the calculation state in db, here, should be done through tunedConf only.
 					if (calcBounds.getCalcStatus().equals(CalcStatus.RESET)) {
-						EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
+						TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock, eventListName, eventInfo);
 					}
 
 					//Calculation

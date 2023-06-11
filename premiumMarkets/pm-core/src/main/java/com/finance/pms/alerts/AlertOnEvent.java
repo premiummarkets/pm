@@ -73,6 +73,11 @@ public class AlertOnEvent implements Serializable {
 	}
 
 	public AlertOnEvent(AlertOnEvent alert, PortfolioShare portfolioShare) {
+		this(portfolioShare, alert);
+	}
+
+
+	public AlertOnEvent(PortfolioShare portfolioShare, AlertOnEvent alert) {
 		this.eventInfoReference = alert.eventInfoReference;
 		this.monitorLevel = alert.monitorLevel;
 		this.optionalMessage = alert.optionalMessage;

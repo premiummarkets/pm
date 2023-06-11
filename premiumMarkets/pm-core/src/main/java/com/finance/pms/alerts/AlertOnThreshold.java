@@ -81,6 +81,10 @@ public class AlertOnThreshold implements Serializable {
 	}
 
 	public AlertOnThreshold(AlertOnThreshold alert, PortfolioShare portfolioShare) {
+		this(portfolioShare, alert);
+	}
+
+	public AlertOnThreshold(PortfolioShare portfolioShare, AlertOnThreshold alert) {
 		this.value = alert.value;
 		this.optionalMessage = alert.optionalMessage;
 		this.alertType = alert.alertType;

@@ -85,8 +85,7 @@ public class SelectedIndicatorsCalculationService {
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 		List<Stock> failingStocks = new ArrayList<Stock>();
 
-		ThreadFactory namedThreadFactory = 
-				  new ThreadFactoryBuilder().setNameFormat("my-calculation-thread-%d").build();
+		ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("my-calculation-thread-%d").build();
 		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")), namedThreadFactory);
 		try {
 
@@ -169,7 +168,7 @@ public class SelectedIndicatorsCalculationService {
 			try {
 				Integer nbEvents = allEvents.stream().map(se -> se.getDataResultMap().size()).reduce( 0, (r, mapSize) -> r + mapSize);
 				LOGGER.guiInfo("Storing " + nbEvents + " events for " + allEvents.size() + " stocks.");
-				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName); //FIXME the storage should be delegated to the eventInfo or calculator
+				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName); //FIXME the storage should be delegated to the eventInfo or calculator and coupled with TunedConf update
 				LOGGER.guiInfo("Stored " + nbEvents + " events for " + allEvents.size() + " stocks.");
 			} catch (Exception e) { 
 				isDataSetComplete = false;

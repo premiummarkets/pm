@@ -98,7 +98,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS,  0l);
 		
 		testObject = new PortfolioShare(null, stock, MonitorLevel.NONE, Currency.EUR);
 		
@@ -141,7 +141,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS,  0l);
 		
 		testObject = new PortfolioShare(null, stock, MonitorLevel.NONE, Currency.EUR);
 		
@@ -235,7 +235,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS,  0l);
 		
 		testObject = new PortfolioShare(null, stock, MonitorLevel.NONE, Currency.GBP);
 		
@@ -270,7 +270,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS,  0l);
 		
 		testObject = new PortfolioShare(null, stock,  MonitorLevel.NONE, Currency.EUR);
 	
@@ -304,7 +304,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.EURONEXT),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS,  0l);
 		
 		testObject = new PortfolioShare(null, stock, MonitorLevel.NONE, Currency.EUR);
 	
@@ -338,7 +338,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS, 0l);
 		
 		testObject = new PortfolioShare(null, stock, MonitorLevel.NONE, Currency.EUR);
 	
@@ -371,7 +371,7 @@ public class PortfolioShareOtherTest extends TestCase {
 				StockCategories.DEFAULT_CATEGORY,
 				new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 				new MarketValuation(Market.PARIS),
-				"",TradingMode.CONTINUOUS,0l);
+				"",TradingMode.CONTINUOUS, 0l);
 		
 		testObject = new PortfolioShare(null, stock, MonitorLevel.NONE, Currency.EUR);
 	

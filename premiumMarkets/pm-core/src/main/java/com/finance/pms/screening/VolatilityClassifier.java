@@ -21,7 +21,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -41,6 +43,9 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
+import com.finance.pms.datasources.web.Indice;
+import com.finance.pms.datasources.web.MarketListProvider;
+import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -53,6 +58,8 @@ import com.finance.pms.events.scoring.functions.HistoricalVolatilityCalculator;
 import com.finance.pms.events.scoring.functions.RocSmoother;
 import com.finance.pms.portfolio.IndepShareList;
 import com.finance.pms.portfolio.PortfolioDAO;
+import com.finance.pms.portfolio.SharesList;
+import com.google.common.collect.Sets;
 
 
 /**
@@ -83,7 +90,7 @@ public class VolatilityClassifier {
 	PortfolioDAO portfolioDAO;
 	
 	//Predicates
-	private Boolean allowQuotesUpdate = false;
+	private Boolean allowQuotesUpdate = true;
 	private int minRecentQuoteInDays = 7;
 	private int minDataInYears = 10 + 10; //years before input + years input
 	private double minValidDataToTimeRatio = 0.80;
@@ -109,7 +116,7 @@ public class VolatilityClassifier {
 
 	}
 	
-	void generateFromFileToDB(String volatiliesCsvPath, String volatilityIndiceName, Double lowerMeanOfReturn, Double higherMeanOfReturn) throws Exception {
+	void generateFromFileToDB(String volatiliesCsvPath, String volFilteredOutputList, Double lowerMeanOfReturn, Double higherMeanOfReturn) throws Exception {
 
 		File volatilitiesCsv = new File(volatiliesCsvPath);
 		boolean existsCsvFile = volatilitiesCsv.exists();
@@ -118,7 +125,7 @@ public class VolatilityClassifier {
 			List<Entry<Stock, Double[]>> filteredMeanOReturn = sorted.stream().filter(e -> e.getValue()[2] >= lowerMeanOfReturn && e.getValue()[2] <= higherMeanOfReturn).collect(Collectors.toList());
 			
 			//Create Indep Portfolios //XXX sort does not matter here as we pass the whole list.
-			createOnePortfolioShareList(filteredMeanOReturn, 0, filteredMeanOReturn.size(), "VOLATILITY," + volatilityIndiceName + ":" + "UNKNOWN");
+			createOnePortfolioShareList(filteredMeanOReturn, 0, filteredMeanOReturn.size(), volFilteredOutputList);
 		}
 
 	}
@@ -206,13 +213,22 @@ public class VolatilityClassifier {
 
 	}
 	
-	public void generateFilteredCloseToDB(String sourceList, Boolean updateSourceList) throws Exception {
-		String generatedNewCalculationFilteredToFile = generateFilteredCloseToFile(sourceList, updateSourceList);
+	public void generateFilteredCloseToDB(String volFilteredOutputList, Boolean updateInputSourceList) throws Exception {
+		String generatedNewCalculationFilteredToFile = generateFilteredCloseToFile(volFilteredOutputList, updateInputSourceList);
 		String path = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator;
-		generateFromFileToDB(path + generatedNewCalculationFilteredToFile, "BETA", -0.01, 0.01);
+		generateFromFileToDB(path + generatedNewCalculationFilteredToFile, volFilteredOutputList, -0.01, 0.01);
 	}
-
-	String generateFilteredCloseToFile(String sourceList, Boolean updateSourceList) throws Exception {
+	
+	/**
+	 * 
+	 * @param volFilteredOutputList: name of the PORTFOLIO list where the stocks are pick up from. It also has to match a switch case in filterStocks
+	 * @param updateInputSourceList: if the source used to generate the output list above mentioned should be updated  
+	 * 			ex: "YAHOOINDICES,BETA:SCREENER" -> "VOLATILITY,BETA:UNKNOWN"
+	 * 				"SLICKSTOCKPYTHONINDICES,SP500:SP" -> "VOLATILITY,SNP:UNKNOWN"
+	 * @return
+	 * @throws Exception
+	 */
+	String generateFilteredCloseToFile(String volFilteredOutputList, Boolean updateInputSourceList) throws Exception {
 		
 		Map<String, List<Stock>> invalidStockAccumulator = new HashMap<>();
 		Map<Stock, double[]> stockSplitsTracer = new HashMap<>();
@@ -220,7 +236,7 @@ public class VolatilityClassifier {
 		List<Predicate<Stock>> predicates = buildPredicates(invalidStockAccumulator, stockSplitsTracer);
 
 		UUID randomUUID = UUID.randomUUID();
-		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates, sourceList, updateSourceList);
+		Set<Stock> filteredStocks = filterStocks(randomUUID, predicates, volFilteredOutputList, updateInputSourceList);
 		
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().size())));
 		LOGGER.info("Invaliditiy counting: " + invalidStockAccumulator);
@@ -603,13 +619,33 @@ public class VolatilityClassifier {
 
 	}
 
-	private Set<Stock> filterStocks(UUID randomUUID, List<Predicate<Stock>> predicates, String sourceList, Boolean updateSourceList) {
+	private Set<Stock> filterStocks(UUID randomUUID, List<Predicate<Stock>> predicates, String volFilteredOutputList, Boolean updateInputSourceList) {
 
-		Set<Stock> allStocks= new HashSet<>();
-		switch (sourceList) {
-		case "VOLATILITY,BETA":
-			YahooStockScreener yahooStockScreener = new YahooStockScreener(updateSourceList);
+		Set<Stock> allStocks = new HashSet<>();
+		switch (volFilteredOutputList) {
+		case "VOLATILITY,BETA:UNKNOWN": //XXX Hard coded name??
+			YahooStockScreener yahooStockScreener = new YahooStockScreener(updateInputSourceList);
 			allStocks.addAll(yahooStockScreener.calculate());
+			break;
+		case "VOLATILITY,SNP:UNKNOWN":
+			try {
+				SortedSet<Indice> indices = new TreeSet<>(Sets.newHashSet(new Indice("sp500", "SP")));
+				MarketListProvider spProvider = ProvidersList.getInstance("slickStockPythonIndices", indices);
+				if (updateInputSourceList) spProvider.updateStockListFromWeb(null);
+				SharesList spList = spProvider.loadSharesListForThisListProvider();
+				int size = spList.getListShares().size();
+				allStocks.addAll(spList.getListShares().values().stream()
+					.sorted((o1,o2) -> {
+						int w = o1.getWeight().compareTo(o2.getWeight());
+						if (w !=0 ) return w;
+						return o1.getSymbol().compareTo(o2.getSymbol());
+					})
+					.skip(size - 50)
+					.map(ps -> ps.getStock())
+					.collect(Collectors.toSet()));
+			} catch (Exception e1) {
+				throw new RuntimeException(e1);
+			}
 			break;
 		default:
 			//allStocks = portfolioDAO.loadSharesListContent(null, null).stream().map(ps -> ps.getStock()).collect(Collectors.toSet());

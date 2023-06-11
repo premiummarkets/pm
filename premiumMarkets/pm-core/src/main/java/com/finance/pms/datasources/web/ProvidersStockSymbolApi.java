@@ -42,8 +42,10 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.http.HttpException;
@@ -153,9 +155,9 @@ public class ProvidersStockSymbolApi extends ProvidersList {
 		};
 	}
 	
-	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+	protected Map<Stock, Double> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
 		
-		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
+		Map<Stock, Double> listFromWeb = new TreeMap<Stock, Double>(getNewStockComparator());
 		
 		for (Indice indice : indices) {
 				
@@ -172,10 +174,10 @@ public class ProvidersStockSymbolApi extends ProvidersList {
 					JsonArray symbolJsons = new JsonParser().parse(in).getAsJsonArray();
 					for (JsonElement symbolJsonElement : symbolJsons) {
 						JsonObject symbolJson = symbolJsonElement.getAsJsonObject();
-						listFromWeb.add(
+						listFromWeb.put(
 							new Stock(symbolJson.get("symbol").getAsString(), symbolJson.get("symbol").getAsString(), symbolJson.get("longName").getAsString(), true, StockCategories.DEFAULT_CATEGORY,
 							new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO, SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-							new MarketValuation(indice.getMarket()), "", TradingMode.CONTINUOUS, 0L));
+							new MarketValuation(indice.getMarket()), "", TradingMode.CONTINUOUS, 0l), 0d);
 					}
 				} catch (Exception e) {
 					LOGGER.error("No data for " + indice + " from " + python_py + ". Is '" + indice.getMarket().getCountry() + "' a valid country?", e);

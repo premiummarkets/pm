@@ -257,9 +257,9 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		if (stock.isPresent()) {
-			TunedConfMgr.getInstance().deleteEventsDirtyConfsFor(stock.get(), analysisName, this);
+			TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock.get(), analysisName, this);
 		} else {
-			TunedConfMgr.getInstance().deleteEventsDirtyConfs(analysisName, this);
+			TunedConfMgr.getInstance().deleteEventsDirtyConfsForIndicators(analysisName, this);
 		}
 	}
 

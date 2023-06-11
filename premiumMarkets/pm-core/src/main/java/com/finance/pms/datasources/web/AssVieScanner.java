@@ -106,7 +106,7 @@ public class AssVieScanner implements MyBeanFactoryAware {
 		for (Stock stock : assVieStockList) {
 
 			try {
-				portfolio.addOrUpdateShareForQuantity(stock, BigDecimal.ONE, DateFactory.getNowEndDate(), MonitorLevel.NONE, Currency.EUR);
+				portfolio.addOrUpdateShareAtDayCloseForQuantity(stock, BigDecimal.ONE, DateFactory.getNowEndDate(), MonitorLevel.NONE, Currency.EUR);
 			} catch (InvalidAlgorithmParameterException e) {
 				LOGGER.error(e,e);
 			} catch (InvalidQuantityException e) {

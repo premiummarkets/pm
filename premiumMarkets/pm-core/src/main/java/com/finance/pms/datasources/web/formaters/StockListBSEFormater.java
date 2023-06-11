@@ -86,7 +86,7 @@ public class StockListBSEFormater extends LineFormater {
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,YahooMarketExtentions.BSE.toString()),
 						new MarketValuation(Market.BSE),
-						"",TradingMode.CONTINUOUS,0l));
+						"",TradingMode.CONTINUOUS, 0l));
 			}
 			return retour;
 			

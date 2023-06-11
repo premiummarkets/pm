@@ -117,6 +117,11 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 				"STOCKSYMBOLAPI", "stockSymbolApi", ProvidersTypes.STOCKSYMBOLAPI, 
 				"Markets and indices prodived by the https://stock-symbol.herokuapp.com/ api. The format is  <INDEX ID>:<MARKET ID>.\n", 
 				"STOCK SYMBOL API market aggregation", true, true, SharesListId.sharesListIdOptionsForStockSymbolApi()));
+		
+		shareListIds.put("SLICKSTOCKPYTHONINDICES", new SharesListId(
+				"SLICKSTOCKPYTHONINDICES", "slickStockPythonIndices", ProvidersTypes.SLICKSTOCKPYTHONINDICES, 
+				"Markets and indices prodived by the https://www.slickcharts.com/{indice}.\n", 
+				"Slickcharts indices", true, true, new String[] {"sp500:SP"}));
 
 		//Broken
 		shareListIds.put("GOOGLENYSE", new SharesListId("GOOGLENYSE", "nyse", ProvidersTypes.GOOGLE, "No comment", "All NYSE from google.com", false, true,new String[0]));

@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -262,7 +263,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 		SharesList thisSharesList = loadSharesListForThisListProvider();
 
 		//Fetch		
-		Set<Stock> listAsFromWeb  = fetchStockList(marketQuotationsProviders);
+		Map<Stock, Double> listAsFromWeb  = fetchStockList(marketQuotationsProviders);
 
 		LOGGER.guiInfo("Number of stocks retrieved from web for " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + listAsFromWeb.size());
 		LOGGER.guiInfo("Number of stocks in the list " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + thisSharesList.getListShares().size());
@@ -283,7 +284,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 		List<Future<ScreeningSupplementedStock>> completedTrendSuppStocksFutures = new ArrayList<Future<ScreeningSupplementedStock>>();	
 		List<Stock> inDBNewInList = new ArrayList<Stock>();
-		for (final Stock stockFromWeb : listAsFromWeb) {
+		for (final Stock stockFromWeb : listAsFromWeb.keySet()) {
 
 			Stock foundStock = null;
 
@@ -379,18 +380,18 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				DataSource.getInstance().getShareDAO().saveOrUpdateStockTrendInfo(supplementedStockFromWeb);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Can't update stock info for "+thisSharesList.getName()+". new supplemented Stocks : "+supplementedStockFromWeb,e);
+			LOGGER.error("Can't update stock info for " + thisSharesList.getName() + ". new supplemented Stocks : " + supplementedStockFromWeb, e);
 		}	
 
 		//Remove obsolete stocks from list
 		Set<PortfolioShare> tobeRemovedFromList = new HashSet<PortfolioShare>();
 		if (!listAsFromWeb.isEmpty()) {
 			for (PortfolioShare existingInList : thisSharesList.getListShares().values()) {
-				Boolean found=false;
-				for (Stock stockFromWeb : listAsFromWeb) {
+				Boolean found = false;
+				for (Stock stockFromWeb : listAsFromWeb.keySet()) {
 					//this is the lenient match
 					if (stockFromWeb.getIsin().equals(existingInList.getIsin()) || stockFromWeb.getSymbol().equals(existingInList.getSymbol()) || stockFromWeb.getSymbol().equals(existingInList.getIsin()) || stockFromWeb.getIsin().equals(existingInList.getSymbol())) {
-						found=true;
+						found = true;
 						break;
 					}
 				}
@@ -407,9 +408,9 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 				} else {
 					LOGGER.error(
 							//"The number of tickers retrieved for "+listProviderDescr+" is "+listFromWebSize +
-							"The number of old tickers to be removed from "+thisSharesList.getName()+" : " + tobeRemovedFromList.size()+ " is more than "+ShareListMgr.PERCENT_THRESHOLD+"% of the existing list size "+thisSharesList.getListShares().size()+".\n" +
+							"The number of old tickers to be removed from " + thisSharesList.getName() + " : " + tobeRemovedFromList.size() + " is more than " + ShareListMgr.PERCENT_THRESHOLD + "% of the existing list size " + thisSharesList.getListShares().size() + ".\n" +
 							"Maybe the list is faulty and no remove will be done. Please check the log for urls used for that list.\n" +
-							"Tickers to be removed are : "+tobeRemovedFromList);
+							"Tickers to be removed are : " + tobeRemovedFromList);
 				}
 			}
 
@@ -418,16 +419,17 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 		//Share list
 		try {
+			thisSharesList.getListShares().values().stream().forEach(ps -> ps.setWeight(listAsFromWeb.get(ps.getStock())));
 			PortfolioMgr.getInstance().getPortfolioDAO().saveOrUpdatePortfolio(thisSharesList);
 		} catch (Exception e) {
-			LOGGER.error("Can't save share list : "+thisSharesList.getName(), e);
+			LOGGER.error("Can't save share list : " + thisSharesList.getName(), e);
 		}
 		LOGGER.guiInfo("Number of stocks in the list after update for " + shareListDescrTxt + " on the " + DateFactory.getNowEndDate() + " : " + thisSharesList.getListShares().size());
 		LOGGER.warn(
-				"After update of : "+ shareListDescrTxt +", initial from web : " + listAsFromWeb.size() +", initial in db "+ dbStocks.size() + 
-				", in "+shareListDescrTxt+" list : " +thisSharesList.getListShares().size() +
-				", supplemented (was not in db or was corrupted) "+supplementedStockFromWeb.size() + ", already in bd added to share list "+inDBNewInList.size() +
-				", asked for removal "+ tobeRemovedFromList.size(), true);
+				"After update of : "+ shareListDescrTxt + ", initial from web : " + listAsFromWeb.size() + ", initial in db " + dbStocks.size() + 
+				", in " + shareListDescrTxt + " list : " + thisSharesList.getListShares().size() +
+				", supplemented (was not in db or was corrupted) " + supplementedStockFromWeb.size() + ", already in bd added to share list " + inDBNewInList.size() +
+				", asked for removal " + tobeRemovedFromList.size(), true);
 
 
 		return new StockList(thisSharesList.toStocksSet());
@@ -446,7 +448,7 @@ public abstract class ProvidersList extends Providers implements MarketListProvi
 
 	protected abstract LineFormater getFormater(String url, Market market, MarketQuotationProviders marketQuotationsProviders);
 
-	protected abstract Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException;
+	protected abstract Map<Stock, Double> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException;
 
 	public abstract void retrieveScreeningInfoForShare(ScreeningSupplementedStock trendSupStock);
 

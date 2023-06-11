@@ -48,7 +48,8 @@ import com.finance.pms.talib.indicators.TalibIndicator;
     LeftShifterOperation.class, BandNormalizerOperation.class, BandRatioNormalizerOperation.class, ZeroLagEMAOperation.class,
     StatsOperation.class, MathOperation.class, TriggerPointJoiner.class,
     FlipOperation.class, InverseOperation.class,
-    VolatilityOperation.class, VolatilityOtherOperation.class
+    VolatilityOperation.class, VolatilityOtherOperation.class,
+    BuyAndHoldOperation.class
 })
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 

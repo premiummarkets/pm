@@ -23,34 +23,30 @@ public class AlertsMgrDelegate {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(AlertsMgrDelegate.class);
 
-	private LatestOnlyPSBridge ps;
+	private LatestOnlyPortfolioShare latestOnlyPortfolioShare;
 
 	public AlertsMgrDelegate(PortfolioShare portfolioShare) {
-		this.ps = new LatestOnlyPSBridge(portfolioShare);
+		this.latestOnlyPortfolioShare = new LatestOnlyPortfolioShare(portfolioShare);
 	}
 
 	public void addBuyAlerts(BigDecimal transcationPrice, Date currentDate) {
 
-		if (ps.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) {
-
+		if (latestOnlyPortfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) {
 			addBuyPriceAlerts(transcationPrice, currentDate);
-			BigDecimal avgCostPerUnit = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
+			BigDecimal avgCostPerUnit = latestOnlyPortfolioShare.getPriceUnitCost(currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 			addAboveTakeProfitAlert(avgCostPerUnit, currentDate);
 			addBelowMaxLossAlert(avgCostPerUnit, currentDate);
 			addWeightedZeroProfitAlertGuardSetter(avgCostPerUnit, currentDate);
 			addChannelAlerts(transcationPrice);
-
 		} else {
-
 			removeAllAlertsOnThreshold();
-
 		}
-
+		
 	}
 
 	public Set<AlertOnThreshold> getAlertsOnThresholdUp() {
 		Set<AlertOnThreshold> alertsUp = new HashSet<AlertOnThreshold>();
-		for (AlertOnThreshold alert : ps.getAlertsOnThreshold()) {
+		for (AlertOnThreshold alert : latestOnlyPortfolioShare.getAlertsOnThreshold()) {
 			if (alert.getThresholdType().equals(ThresholdType.UP)) alertsUp.add(alert);
 		}
 		return alertsUp;
@@ -58,7 +54,7 @@ public class AlertsMgrDelegate {
 
 	public Set<AlertOnThreshold> getAlertsOnThresholdDown() {
 		Set<AlertOnThreshold> alertsDown = new HashSet<AlertOnThreshold>();
-		for (AlertOnThreshold alert : ps.getAlertsOnThreshold()) {
+		for (AlertOnThreshold alert : latestOnlyPortfolioShare.getAlertsOnThreshold()) {
 			if (alert.getThresholdType().equals(ThresholdType.DOWN)) alertsDown.add(alert);
 		}
 		return alertsDown;
@@ -66,22 +62,22 @@ public class AlertsMgrDelegate {
 
 	public void addAlertOnThreshold(ThresholdType threshold, BigDecimal value, AlertOnThresholdType alertType, String message) {
 		if (value != null) {
-			ps.getAlertsOnThreshold().add(new AlertOnThreshold(ps.getUpStreamPs(), threshold, alertType, value, message));
+			latestOnlyPortfolioShare.getAlertsOnThreshold().add(new AlertOnThreshold(latestOnlyPortfolioShare.getUpStreamPortfolioShare(), threshold, alertType, value, message));
 		}
 	}
 
 	public void removeAlertOnThreshold(AlertOnThreshold alert) {
-		ps.getAlertsOnThreshold().remove(alert);
+		latestOnlyPortfolioShare.getAlertsOnThreshold().remove(alert);
 	}
 
 	private void removeAlertOnThresholdFor(AlertOnThresholdType alertType) {
 		HashSet<AlertOnThreshold> ret = getAlertsOnThresholdFor(alertType);
-		ps.getAlertsOnThreshold().removeAll(ret);
+		latestOnlyPortfolioShare.getAlertsOnThreshold().removeAll(ret);
 	}
 
 	public HashSet<AlertOnThreshold> getAlertsOnThresholdFor(AlertOnThresholdType alertType) {
 		HashSet<AlertOnThreshold> ret = new HashSet<AlertOnThreshold>();
-		for (AlertOnThreshold alert : ps.getAlertsOnThreshold()) {
+		for (AlertOnThreshold alert : latestOnlyPortfolioShare.getAlertsOnThreshold()) {
 			if (alertType.equals(alert.getAlertType())) {
 				ret.add(alert);
 			}
@@ -90,7 +86,7 @@ public class AlertsMgrDelegate {
 	}
 
 	private void removeAllAlertsOnThreshold() {
-		Set<AlertOnThreshold> alertsOnThresholdCp = new HashSet<AlertOnThreshold>(ps.getAlertsOnThreshold());
+		Set<AlertOnThreshold> alertsOnThresholdCp = new HashSet<AlertOnThreshold>(latestOnlyPortfolioShare.getAlertsOnThreshold());
 		for (AlertOnThreshold alertOnThreshold : alertsOnThresholdCp) {
 			removeAlertOnThreshold(alertOnThreshold);
 		}
@@ -98,18 +94,18 @@ public class AlertsMgrDelegate {
 
 	private void addBuyPriceAlerts(BigDecimal currentPrice, Date currentDate) {
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.AVG_BUY_PRICE);
-		if (currentPrice.compareTo(ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency())) <= 0) addBuyPriceAlertAbove(currentDate);
-		if (currentPrice.compareTo(ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency())) >= 0) addBuyPriceAlertBelow(currentDate);	
+		if (currentPrice.compareTo(latestOnlyPortfolioShare.getPriceUnitCost(currentDate, latestOnlyPortfolioShare.getTransactionCurrency())) <= 0) addBuyPriceAlertAbove(currentDate);
+		if (currentPrice.compareTo(latestOnlyPortfolioShare.getPriceUnitCost(currentDate, latestOnlyPortfolioShare.getTransactionCurrency())) >= 0) addBuyPriceAlertBelow(currentDate);	
 	}
 
 	private void addBuyPriceAlertBelow(Date currentDate) {
-		BigDecimal avgBuyPrice = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
+		BigDecimal avgBuyPrice = latestOnlyPortfolioShare.getPriceUnitCost(currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		this.addAlertOnThreshold(ThresholdType.DOWN, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice) + " on the " + df.format(currentDate));
 	}
 
 	private void addBuyPriceAlertAbove(Date currentDate) {
-		BigDecimal avgBuyPrice = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
+		BigDecimal avgBuyPrice = latestOnlyPortfolioShare.getPriceUnitCost(currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		this.addAlertOnThreshold(ThresholdType.UP, avgBuyPrice, AlertOnThresholdType.AVG_BUY_PRICE, "Calculation price is avg buy price " + readableNumber(avgBuyPrice) + " on the " + df.format(currentDate));
 	}
@@ -134,10 +130,10 @@ public class AlertsMgrDelegate {
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 
 		BigDecimal sellLimitGuardPriceRate;
-		InOutWeighted weightedInOut = ps.getWeightedInvested(null, currentDate, ps.getTransactionCurrency());
+		InOutWeighted weightedInOut = latestOnlyPortfolioShare.getWeightedInvested(null, currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 		BigDecimal sellLimitGuardPrice;
 		if (!weightedInOut.isEmpty()) {
-			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
+			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(latestOnlyPortfolioShare.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
 			sellLimitGuardPriceRate = (avgBuyPrice.compareTo(BigDecimal.ZERO) > 0)?
 					sellLimitGuardPrice.divide(avgBuyPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4)):
 					BigDecimal.ZERO;
@@ -146,7 +142,7 @@ public class AlertsMgrDelegate {
 			sellLimitGuardPrice = addPercentage(avgBuyPrice, sellLimitGuardPriceRate);
 		}
 
-		if (sellLimitGuardPrice.compareTo(ps.getPriceClose(currentDate, ps.getTransactionCurrency())) <= 0) {
+		if (sellLimitGuardPrice.compareTo(latestOnlyPortfolioShare.getPriceClose(currentDate, latestOnlyPortfolioShare.getTransactionCurrency())) <= 0) {
 			addWeightedZeroProfitAlertGuard(sellLimitGuardPrice);
 		} else {
 			String aboveMessage = "Will set a guard when "+ readablePercentOf(sellLimitGuardPriceRate) + " above calculation price " + readableNumber(avgBuyPrice);
@@ -303,7 +299,7 @@ public class AlertsMgrDelegate {
 
 			BigDecimal sellLimitToPriceRate = getEventsConfig().getSellLimitToPrice();
 
-			BigDecimal priceUnitCost = ps.getPriceUnitCost(currentDate, ps.getTransactionCurrency());
+			BigDecimal priceUnitCost = latestOnlyPortfolioShare.getPriceUnitCost(currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 			
 			BigDecimal aboveThresholdSellPrice = BigDecimal.ZERO;
 			if (priceUnitCost.compareTo(BigDecimal.ZERO) > 0) {
@@ -338,10 +334,10 @@ public class AlertsMgrDelegate {
 
 			BigDecimal sellLimitBelowPriceRate = getEventsConfig().getSellLimitBelowPrice();
 
-			BigDecimal cashin = ps.getCashin(currentDate, ps.getTransactionCurrency());
+			BigDecimal cashin = latestOnlyPortfolioShare.getCashin(currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 			BigDecimal reducedCashin = BigDecimal.ONE.subtract(sellLimitBelowPriceRate).multiply(cashin).setScale(10, RoundingMode.HALF_EVEN);
-			BigDecimal cashout = ps.getCashout(currentDate, ps.getTransactionCurrency());
-			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(ps.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
+			BigDecimal cashout = latestOnlyPortfolioShare.getCashout(currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
+			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(latestOnlyPortfolioShare.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
 			BigDecimal resultingPercentBelowAvgPrice = calculationPrice.divide(belowSellLimit, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));
 
 			String belowMessage = readablePercentOf(sellLimitBelowPriceRate) + " loss. Price is " + readablePercentOf(resultingPercentBelowAvgPrice) + " below threshold";
@@ -362,51 +358,55 @@ public class AlertsMgrDelegate {
 
 
 	public void addAlertOnEvent(String eventInfoReference, MonitorLevel monitorLevel, String optionalMessage) {
-		ps.getAlertsOnEvent().add(new AlertOnEvent(ps.getUpStreamPs(), eventInfoReference, monitorLevel, optionalMessage));
+		latestOnlyPortfolioShare.getAlertsOnEvent().add(new AlertOnEvent(latestOnlyPortfolioShare.getUpStreamPortfolioShare(), eventInfoReference, monitorLevel, optionalMessage));
 	}
 
 	public void clearAlertOnEvent() {
-		ps.getAlertsOnEvent().clear();
+		latestOnlyPortfolioShare.getAlertsOnEvent().clear();
 	}
 
-	private class LatestOnlyPSBridge extends PortfolioShare {
+	private class LatestOnlyPortfolioShare extends PortfolioShare {
 		private static final long serialVersionUID = -4649581283474796279L;
 
-		private PortfolioShare upStreamPs;
+		private PortfolioShare upStreamPortfolioShare;
+		private Portfolio latestOnlyPortfolio;
 
-		private LatestOnlyPSBridge(PortfolioShare upStreamPs) {
+		private LatestOnlyPortfolioShare(PortfolioShare upStreamPs) {
 			super(upStreamPs);
-			this.upStreamPs = upStreamPs;
-		}
-
-		public PortfolioShare getUpStreamPs() {
-			return upStreamPs;
-		}
-
-		public Set<AlertOnEvent> getAlertsOnEvent() {
-			return upStreamPs.getAlertsOnEvent();
-		}
-
-		public Currency getTransactionCurrency() {
-			return upStreamPs.getTransactionCurrency();
-		}
-
-		public Set<AlertOnThreshold> getAlertsOnThreshold() {
-			return upStreamPs.getAlertsOnThreshold();
-		}
-
-		@Override
-		public AbstractSharesList getPortfolio() {
-			AbstractSharesList portfolio = upStreamPs.getPortfolio();
-			if (portfolio instanceof Portfolio) {
-				return new Portfolio((Portfolio) portfolio) {
+			this.upStreamPortfolioShare = upStreamPs;
+			if (upStreamPs.getPortfolio() instanceof Portfolio) {//XXX There is Cartesian copy of the full Portfolio here .. Is is necessary?
+				this.latestOnlyPortfolio = new Portfolio((Portfolio) upStreamPs.getPortfolio(), upStreamPs.getName()) {
 					@Override
 					public Boolean isLatestTransactionsOnly() {
 						return true;
 					};
 				};
+			}
+		}
+
+		public PortfolioShare getUpStreamPortfolioShare() {
+			return upStreamPortfolioShare;
+		}
+
+		public Set<AlertOnEvent> getAlertsOnEvent() {
+			return upStreamPortfolioShare.getAlertsOnEvent();
+		}
+
+		public Currency getTransactionCurrency() {
+			return upStreamPortfolioShare.getTransactionCurrency();
+		}
+
+		public Set<AlertOnThreshold> getAlertsOnThreshold() {
+			return upStreamPortfolioShare.getAlertsOnThreshold();
+		}
+
+		@Override
+		public AbstractSharesList getPortfolio() {
+			AbstractSharesList upStreamPortfolio = upStreamPortfolioShare.getPortfolio();
+			if (upStreamPortfolio instanceof Portfolio) {
+				return latestOnlyPortfolio;
 			} else {
-				return portfolio;
+				return upStreamPortfolio;
 			}
 		}
 

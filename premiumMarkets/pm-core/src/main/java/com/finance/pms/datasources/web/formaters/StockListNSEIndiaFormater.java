@@ -77,7 +77,7 @@ public class StockListNSEIndiaFormater extends LineFormater {
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders,YahooMarketExtentions.BSE.toString()),
 						new MarketValuation(Market.NSEINDIA),
-						strArray[1].trim(),TradingMode.CONTINUOUS,0l));
+						strArray[1].trim(),TradingMode.CONTINUOUS, 0l));
 			}
 			return retour;
 			

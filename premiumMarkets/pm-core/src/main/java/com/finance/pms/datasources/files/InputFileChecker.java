@@ -47,21 +47,31 @@ public class InputFileChecker {
 		expectedkeySet.removeAll(missingKeys);
 		
 		boolean allMatch = expectedkeySet.subList(0, headingNans).stream().allMatch(k -> importedData.containsKey(k));
-		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching: heading NaNs", null);
+		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching: heading NaNs" +
+																									" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
 		allMatch = expectedkeySet.subList(headingNans, expectedkeySet.size()-trailingNans).stream()
-				.allMatch(k -> importedData.containsKey(k) && Arrays.stream(importedData.get(k)).allMatch(d -> !Double.isNaN(d)));
+					.allMatch(k -> importedData.containsKey(k) && Arrays.stream(importedData.get(k)).allMatch(d -> !Double.isNaN(d)));
 		if (!allMatch) {
 			List<Date> notMatching = expectedkeySet.subList(headingNans, expectedkeySet.size()-trailingNans).stream()
 					.filter(k -> !importedData.containsKey(k) || Arrays.stream(importedData.get(k)).filter(d -> Double.isNaN(d)).count() > 0)
 					.collect(Collectors.toList());
-			throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching quotations with missing keys or rows with NaNs: " + notMatching.toString(), null);
+			throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching quotations with " + notMatching.size() + " missing keys or rows with NaNs: " + notMatching.toString() + 
+																			String.format(" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
 		}
 		allMatch = expectedkeySet.subList(expectedkeySet.size()-trailingNans, expectedkeySet.size()).stream().allMatch(k -> importedData.containsKey(k));
-		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching: trailing NaNs", null);
+		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching: trailing NaNs" + 
+																									" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
 		
 		Set<Date> actualKeySet = importedData.keySet();
 		allMatch = actualKeySet.stream().allMatch(k -> exactMapFromQuotations.containsKey(k));
-		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching quotations keys set with additionnal keys.", null);
+		if (!allMatch) {
+			ArrayList<Date> actualKeyList = new ArrayList<Date>(actualKeySet);
+			List<Date> notMatching =  actualKeyList.subList(headingNans, actualKeyList.size()-trailingNans).stream()
+					.filter(k -> !exactMapFromQuotations.containsKey(k))
+					.collect(Collectors.toList());
+			throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching quotations keys set and has " + notMatching.size() + " additionnal keys: " + notMatching.toString() + 
+																						" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
+		}
 		
 	}
 	

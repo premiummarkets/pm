@@ -105,7 +105,7 @@ public class IfOperation extends Operation {
 
 	@Override
 	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
 		if (value0 != null) {
 			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
 		} else {
@@ -115,7 +115,7 @@ public class IfOperation extends Operation {
 	
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isIdemPotent(targetStock));
 		} else {
@@ -125,7 +125,7 @@ public class IfOperation extends Operation {
 
 	@Override
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isNoOverrideDeltaOnly(targetStock));
 		} else {
@@ -145,7 +145,7 @@ public class IfOperation extends Operation {
 	
 	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
 		if (value0 != null) {
 			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift));
 		} else {

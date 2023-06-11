@@ -370,6 +370,21 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="buyAndHoldOperation">
+            <reference>buyAndHold</reference>
+            <description>Returns -1 at start date and +1 after start date.</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Dates keys set references</reference>
+                    <description>Dates keys set references</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bestShiftOperation">
             <reference>bestShift</reference>
             <description>Calculate the more profitable shift (best shift) for given operation formulae. If &gt; 0 =&gt; Buy, If &lt; 0 =&gt; Sell</description>

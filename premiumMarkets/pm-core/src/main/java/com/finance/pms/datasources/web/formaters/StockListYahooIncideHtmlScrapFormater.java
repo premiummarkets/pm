@@ -83,7 +83,7 @@ public class StockListYahooIncideHtmlScrapFormater extends LineFormater {
 				retour.add(
 						new Stock(symbol, symbol, name, true, StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-						market,"", TradingMode.CONTINUOUS, 0L));
+						market,"", TradingMode.CONTINUOUS, 0l));
 			}
 		} catch (InvalidAlgorithmParameterException e) {
 			throw new StopParseErrorException(retour,e.toString(),"");

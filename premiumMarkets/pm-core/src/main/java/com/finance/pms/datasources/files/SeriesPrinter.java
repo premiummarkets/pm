@@ -175,7 +175,7 @@ public class SeriesPrinter {
     //Over Write with Generated file name
     public static String printo(String fileName, String subFolder, LinkedHashMap<String, List<String>> headersPrefixes, LinkedHashMap<String, SortedMap<Date, double[]>> series, String ...forcedBaseFileName) {
 
-    	Boolean printOutputs = MainPMScmd.getMyPrefs().getBoolean("print.outputs", true);
+    	Boolean printOutputs = Boolean.valueOf(MainPMScmd.getMyPrefs().get("print.outputs", "true"));
     	if (!printOutputs) return "NONE";
 
         String baseFileName = (forcedBaseFileName == null || forcedBaseFileName.length != 1)?SeriesPrinter.appRunStamp.toString():forcedBaseFileName[0];

@@ -74,8 +74,8 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 
-	public UserPortfolio(UserPortfolio portfolio) {
-		super(portfolio);
+	public UserPortfolio(UserPortfolio portfolio, String newName) {
+		super(portfolio, newName);
 	}
 
 	@Override

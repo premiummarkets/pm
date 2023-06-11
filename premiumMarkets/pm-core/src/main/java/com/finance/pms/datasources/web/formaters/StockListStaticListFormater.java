@@ -74,7 +74,7 @@ public class StockListStaticListFormater extends LineFormater {
 						true, this.stockCategorie,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						this.marketVal,
-						strArray[2].trim(),TradingMode.CONTINUOUS,0l));
+						strArray[2].trim(),TradingMode.CONTINUOUS, 0l));
 			}
 			return retour;
 			

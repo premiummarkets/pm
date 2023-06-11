@@ -223,6 +223,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						Callable<Value<?>> callable = new Callable<Value<?>>() {
 							@Override
 							public Value<?> call() throws Exception {
+								
+								MyLogger.threadLocal.set(targetStock.getStock().getSymbol());
+								
 								if (!literalsOnly) {
 									OutputReference myOutputReferenceUnfinished = new OutputReference(operand, operand.getOutputSelector());
 									try {
@@ -243,7 +246,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 									} catch (StackException e) {
 										throw e;
 									} catch (Exception e) {
-										throw new StackException("Failing operand in " + thisCallStack + "\n" + operand.toFormulae(), e);
+										throw new StackException("Failing operand in \n" + thisCallStack + "\nOperand " + "(" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(), e);
 									} finally {
 										synchronized (targetStock) {
 											targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
@@ -272,7 +275,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 							operandsOutputs.set(j, output);
 						}
 					} catch (Exception e) {
-						//LOGGER.error("Operand Calculation failed: " + e);
+						if (e.getCause() instanceof StackException) throw (StackException) e.getCause();
 						throw new RuntimeException(e);
 					}
 				});
@@ -306,10 +309,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				return operationOutput;
 			}
 
+		} catch (RuntimeException e) {
+			failed.set(true);
+			throw e;
 		} catch (Exception e) {
 			failed.set(true);
-			//LOGGER.warn("Operation calculation error " + this, e);
-			throw new RuntimeException(e);
+			throw new StackException(e);
 		}
 
 	}
@@ -318,7 +323,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		for (int i = 0; i < someOperands.size(); i++) {
 			Operation operand = someOperands.get(i);
 			if (!operand.isQuotationsDataSensitive()) {
-				Value<?> output = operand.run(targetStock, operand.shortOutputReference(), 0);								
+				Value<?> output = operand.run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + operand.shortOutputReference(), 0);								
 				operand.setParameter(output);
 			}
 		}
@@ -609,8 +614,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				}
 			}
 			if (this.defaultValue != null) clone.defaultValue = (Value<?>) this.defaultValue.clone();
-			if (this.parameter != null) clone.parameter = (Value<?>) this.parameter.clone();
-
+			//if (this.parameter != null) clone.parameter = (Value<?>) this.parameter.clone();
+			if (this.parameter != null && this instanceof LeafOperation) {
+				clone.parameter = (Value<?>) this.parameter.clone();
+			} else {
+				clone.parameter = null; //We do not clone the parameter as it is a new operation clone and may need recalculation.
+			}
+			
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);

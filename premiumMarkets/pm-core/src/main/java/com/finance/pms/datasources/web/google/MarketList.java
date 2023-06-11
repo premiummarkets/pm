@@ -109,7 +109,7 @@ public class MarketList {
 						stockCategories, 
 						new SymbolMarketQuotationProvider(marketQuotationsProviders,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
 						new MarketValuation(market),
-						"",TradingMode.CONTINUOUS,capD.longValue());
+						"",TradingMode.CONTINUOUS, capD.longValue());
 
 				list.add(s);
 			} catch (InvalidAlgorithmParameterException e) {

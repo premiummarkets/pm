@@ -23,9 +23,9 @@ public class MainPMScmdTest {
 	
 	@Test
 	public void testGetMyPrefsB() {	
-		Boolean toto = MainPMScmd.getMyPrefs().getBoolean("totob", false);
+		Boolean toto = Boolean.valueOf(MainPMScmd.getMyPrefs().get("totob", "false"));
 		assertEquals(false, toto);
-		Boolean toto2 = MainPMScmd.getMyPrefs().getBoolean("totob", true);
+		Boolean toto2 = Boolean.valueOf(MainPMScmd.getMyPrefs().get("totob", "true"));
 		assertEquals(true, toto2);
 	}
 	
@@ -44,11 +44,11 @@ public class MainPMScmdTest {
 	@Test
 	public void testGetMyPrefs2B() {	
 
-		Boolean toto = MainPMScmd.getMyPrefs().getBoolean("totob", false);
+		Boolean toto = Boolean.valueOf(MainPMScmd.getMyPrefs().get("totob", "false"));
 		assertEquals(false, toto);
 		
 		MainPMScmd.getMyPrefs().putBoolean("totob", true);
-		Boolean toto2 = MainPMScmd.getMyPrefs().getBoolean("totob", false);
+		Boolean toto2 = Boolean.valueOf(MainPMScmd.getMyPrefs().get("totob", "false"));
 		assertEquals(true, toto2);
 	
 	}

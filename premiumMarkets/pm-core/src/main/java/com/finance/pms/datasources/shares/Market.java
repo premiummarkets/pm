@@ -102,7 +102,9 @@ public enum Market implements Serializable {
 	
 	CRYPTOS ("CRYPTOS", "CRYPTOS", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4), //US time zone
 
-	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4); //US time zone
+	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4), //US time zone
+	
+	MISCELLANEOUS ("MISCELLANEOUS", "Miscellaneous", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "MISCELLANEOUS", "MISCELLANEOUS", false, new String[]{}, "world", -4); //US time zone
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);

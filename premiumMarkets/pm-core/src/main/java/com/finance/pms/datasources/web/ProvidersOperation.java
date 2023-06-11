@@ -51,7 +51,7 @@ public class ProvidersOperation extends Providers implements QuotationProvider {
 			throw new OperationNotSupportedException("There is no operation defined with name: " + operationIdHint);
 		}
 		TargetStockInfo targetStock = new TargetStockInfo(QUOTE_UPDATE, eventInfo, AnalysisClient.ANY_STOCK, start, end); 
-		Value<?> output = operation.run(targetStock, eventInfo.getReference(), 0);
+		Value<?> output = operation.run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + eventInfo.getReference(), 0);
 		
 		if (output == null || !(output instanceof DoubleArrayMapValue)) {
 			throw new OperationNotSupportedException("Ouput value type not supported." + operationIdHint + ". " + output);

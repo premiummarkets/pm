@@ -100,6 +100,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	private Set<AlertOnThreshold> alertsOnThreshold;
 	private Set<AlertOnEvent> alertsOnEvent;
 	private String externalAccount;
+	private Double weight;
 
 	//Hib
 	public PortfolioShare() {
@@ -114,11 +115,28 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.portfolio = portfolioShare.getPortfolio();
 		this.alertsOnThreshold = new HashSet<AlertOnThreshold>();
 		for (AlertOnThreshold alert : portfolioShare.getAlertsOnThreshold()) {
-			this.alertsOnThreshold.add(new AlertOnThreshold(alert, this));
+			this.alertsOnThreshold.add(new AlertOnThreshold(this, alert));
 		}
 		this.alertsOnEvent = new HashSet<AlertOnEvent>();
 		for (AlertOnEvent alert : portfolioShare.getAlertsOnEvent()) {
-			this.alertsOnEvent.add(new AlertOnEvent(alert, this));
+			this.alertsOnEvent.add(new AlertOnEvent(this, alert));
+		}
+		this.externalAccount = portfolioShare.getExternalAccount();
+
+	}
+	
+	public PortfolioShare(AbstractSharesList abstractSharesList, PortfolioShare portfolioShare) {
+		this.stock = portfolioShare.getStock();
+		this.monitorLevel = portfolioShare.getMonitorLevel();
+		this.transactionCurrency = portfolioShare.getTransactionCurrency();
+		this.portfolio = abstractSharesList;
+		this.alertsOnThreshold = new HashSet<AlertOnThreshold>();
+		for (AlertOnThreshold alert : portfolioShare.getAlertsOnThreshold()) {
+			this.alertsOnThreshold.add(new AlertOnThreshold(this, alert));
+		}
+		this.alertsOnEvent = new HashSet<AlertOnEvent>();
+		for (AlertOnEvent alert : portfolioShare.getAlertsOnEvent()) {
+			this.alertsOnEvent.add(new AlertOnEvent(this, alert));
 		}
 		this.externalAccount = portfolioShare.getExternalAccount();
 
@@ -592,6 +610,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	public BigDecimal getQuantity(Date currentDate) {
 		return getQuantity(null, currentDate);
+	}
+
+	public void setWeight(Double weight) {
+		this.weight = weight;
+	}
+	
+	public Double getWeight() {
+		return weight;
 	}
 
 

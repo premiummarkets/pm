@@ -143,6 +143,8 @@ public class Quotations {
 	
 	public Quotations(Quotations quotations) {
 		
+		//MyLogger.threadLocal.set(quotations.stock.getSymbol());
+		
 		this.targetCurrency = quotations.targetCurrency;
 		this.keepCache = quotations.keepCache;
 		this.splitOption = quotations.splitOption;
@@ -154,12 +156,15 @@ public class Quotations {
 		this.thisCacheQuotationData = quotations.thisCacheQuotationData;
 		
 		this.firstQuotationDateFromDB = quotations.firstQuotationDateFromDB;
+
 	}
 
 	//Called in indicator calculation and event composition calculations via Quotations Factory getQuotationsInstance
 	Quotations(
 			Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexLeftShift, 
 			SplitOption splitOption, ValidityFilter... otherFilters) throws NoQuotationsException {
+		
+		MyLogger.threadLocal.set(stock.getSymbol());
 		
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;

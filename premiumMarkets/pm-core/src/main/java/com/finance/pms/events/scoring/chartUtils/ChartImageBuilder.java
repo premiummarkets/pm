@@ -69,7 +69,7 @@ public class ChartImageBuilder {
     			"periods " + eventsPeriods.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e)  + 
     			" with main " + eventInfo.getEventDefinitionRef());
 
-        Boolean generateSmaCmpOutChart = MainPMScmd.getMyPrefs().getBoolean("autoporfolio.generatepng", true);
+        Boolean generateSmaCmpOutChart = Boolean.valueOf(MainPMScmd.getMyPrefs().get("autoporfolio.generatepng", "true"));
         if (!generateSmaCmpOutChart) return NO_CHART_AVAILABLE;
 
 		Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));

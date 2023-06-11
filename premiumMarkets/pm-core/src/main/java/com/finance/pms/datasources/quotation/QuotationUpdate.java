@@ -230,7 +230,9 @@ public class QuotationUpdate {
 	 * @throws QuotationUpdateException
 	 */
 	public void getQuotes(StockList stockList, Boolean forceReset, Boolean forceUpdate) throws QuotationUpdateException {
-
+		
+		if (DateFactory.isEndDateSet()) return; //No quotation update in end date tampering test mode.
+ 
 		Iterator<Stock> stockListIterator = stockList.iterator();
 
 		dlance = System.currentTimeMillis();

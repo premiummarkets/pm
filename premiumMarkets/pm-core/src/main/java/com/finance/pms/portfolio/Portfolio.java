@@ -103,14 +103,14 @@ public class Portfolio extends AbstractSharesList {
 		this.transactions = new TreeSet<TransactionElement>();
 	}
 
-	public Portfolio(Portfolio portfolio) {
-		super(portfolio);
+	public Portfolio(Portfolio portfolio, String newName) {
+		super(portfolio, newName);
 		this.buyPonderationRule = portfolio.buyPonderationRule;
 		this.sellPonderationRule = portfolio.sellPonderationRule;
 		this.portfolioCurrency = portfolio.portfolioCurrency;
 		this.transactions = new TreeSet<TransactionElement>();
 		for (TransactionElement transactionElement : portfolio.getTransactions()) {
-			this.transactions.add(new TransactionElement(transactionElement));
+			this.transactions.add(new TransactionElement(this, transactionElement));
 		}
 	}
 
@@ -139,24 +139,26 @@ public class Portfolio extends AbstractSharesList {
 	public PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date currentDate, BigDecimal buyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException {
 
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, trCurrency);
-		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {
-			shareTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
+		
+		if (quantity.compareTo(BigDecimal.ZERO) > 0 && buyPrice.compareTo(BigDecimal.ZERO) > 0) {//Non null transaction
+//			registerTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
+//			new AlertsMgrDelegate(portfolioShare).addBuyAlerts(buyPrice, currentDate);
+			updateShare(portfolioShare, quantity, currentDate, buyPrice, trType);
+			if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) portfolioShare.setMonitorLevel(mLevel);
 		}
-		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(buyPrice, currentDate);
-		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) > 0) portfolioShare.setMonitorLevel(mLevel);
-
+		
 		return portfolioShare;
 
 	}
 
-	private void shareTransaction(PortfolioShare recipientPS, BigDecimal quantity, Date buyDate, BigDecimal lastQuotation, TransactionType movement) throws InvalidQuantityException {
+	private void registerTransaction(PortfolioShare recipientPS, BigDecimal quantity, Date buyDate, BigDecimal lastQuotation, TransactionType movement) throws InvalidQuantityException {
 
 		Transaction transaction = new Transaction(quantity, lastQuotation, movement, buyDate);
 		if (transaction.getTransactionSharePrice().compareTo(BigDecimal.ZERO) == 0) {
 			throw new InvalidQuantityException("The amount is too small. Amount must be >= 0.0001 in transaction " + transaction, new Throwable());
 		}
 		if (transaction.getQuantity().compareTo(BigDecimal.ZERO) == 0 ) {
-			LOGGER.warn("Ignoring. Trying to sell with a quantity of zero : " + transaction + " and " + recipientPS);
+			LOGGER.warn("Ignoring. Trying to sell with a quantity of zero: " + transaction + " and " + recipientPS);
 		}
 
 		TransactionElement transactionElement = recipientPS.createTransactionElement(transaction);
@@ -164,7 +166,7 @@ public class Portfolio extends AbstractSharesList {
 
 	}
 
-	public PortfolioShare addOrUpdateShareForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
+	public PortfolioShare addOrUpdateShareAtDayCloseForQuantity(Stock stock, BigDecimal quantity, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException, NoQuotationsException  {
 
 		BigDecimal valueAtDate = BigDecimal.ZERO;
 		if (quantity.compareTo(BigDecimal.ZERO) > 0) {
@@ -175,7 +177,7 @@ public class Portfolio extends AbstractSharesList {
 		return addOrUpdateShare(stock, quantity, currentDate, valueAtDate, monitorLevel, transactionCurrency, TransactionType.AIN);
 	}
 
-	public PortfolioShare addOrUpdateShareForAmount(Stock stock, BigDecimal unitAmount, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException {
+	public PortfolioShare addOrUpdateShareAtDayCloseForAmount(Stock stock, BigDecimal unitAmount, Date currentDate, MonitorLevel monitorLevel, Currency transactionCurrency) throws InvalidQuantityException, InvalidAlgorithmParameterException {
 
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
@@ -190,7 +192,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 
-	public PortfolioShare addOrUpdateShareWithoutTransaction(Stock stock, String account, Currency transactionCurrency, Date currentDate) {
+	public PortfolioShare addOrUpdateShareAtDayClose(Stock stock, String account, Currency transactionCurrency, Date currentDate) {
 
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, transactionCurrency);
 		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
@@ -204,7 +206,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
-		shareTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
+		registerTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
 		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(trPrice, currentDate);
 	}
 
@@ -525,7 +527,7 @@ public class Portfolio extends AbstractSharesList {
 		endDateCal.setTime(currentEndDate);
 		endDateCal.add(Calendar.DATE, +1);
 		currentEndDate = DateFactory.midnithDate(endDateCal.getTime());
-		if (currentStartDate == null || currentStartDate.equals(DateFactory.dateAtZero())) { //left bound
+		if (currentStartDate == null || currentStartDate.equals(DateFactory.dateAtZero())) { //right bound only
 			return inputTransactions.headSet(new TransactionElement(null,null, null, currentEndDate, null, null, null)); 
 		} else { //right and left bound
 			currentStartDate = DateFactory.midnithDate(currentStartDate);

@@ -31,8 +31,10 @@ package com.finance.pms.datasources.files;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -51,7 +53,6 @@ import org.hibernate.annotations.ForeignKey;
 
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.Portfolio;
 
 @Entity
@@ -61,7 +62,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	private static final long serialVersionUID = -257553176773712060L;
 	
 	
-	private Long id;
+	private String id;
 	private Stock stock;
 	
 	private Date date;
@@ -80,6 +81,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	
 	public TransactionElement(Stock stock, Portfolio portfolio, String externalAccount, Date date, BigDecimal price, BigDecimal quantity, Currency currency) {
 		super();
+		this.id = UUID.randomUUID().toString();
 		this.stock = stock;
 		this.portfolio= portfolio;
 		this.externalAccount = externalAccount;
@@ -87,24 +89,26 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		this.price = price;
 		this.quantity = quantity;
 		this.currency = currency;
-		
-		this.id = DateFactory.milliSecStamp();
 	}
 
-	public TransactionElement(TransactionElement transactionElement) {
-		this.id = transactionElement.getId();
+	public TransactionElement(Portfolio portfolio, TransactionElement transactionElement) {
+		this.id = UUID.randomUUID().toString();
 		this.stock = transactionElement.getStock();
 		this.date = transactionElement.getDate();
 		this.quantity = transactionElement.getQuantity();
 		this.price = transactionElement.getPrice();
 		this.currency = transactionElement.getCurrency();
-		this.portfolio = transactionElement.getPortfolio();
+		this.portfolio = portfolio;
 		this.externalAccount = transactionElement.getExternalAccount();
 	}
 
 	@Override
 	public String toString() {
 		return "TransactionElement [symbol=" + stock + ", accountName=" + externalAccount + ", portfolio=" + ((portfolio != null)?portfolio.getName():null) +  ", date=" + date + ", quantity="+ quantity + ", price=" + price + "]";
+	}
+	
+	public String toChart() {
+		return  date + " / inv. " + quantity.multiply(price).setScale(2, RoundingMode.HALF_EVEN);
 	}
 
 	public int compareTo(TransactionElement o) {
@@ -175,12 +179,12 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 
 	//@Id  @GeneratedValue
 	@Id
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
 	@SuppressWarnings("unused")
-	private void setId(Long id) {
+	private void setId(String id) {
 		this.id = id;
 	}
 

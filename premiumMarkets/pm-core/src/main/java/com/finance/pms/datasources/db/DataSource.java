@@ -79,6 +79,7 @@ import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.WeatherEventKey;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.mas.RestartServerException;
@@ -231,7 +232,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		String originConstraint = (ignoreUserEntries)? "AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 		
 		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
-		String endConstraint = hasEndDateContraint? testEndConstraint() : "";
+		String endConstraint = hasEndDateContraint? testQuotationsEndConstraint() : "";
 
 		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + 
 				" where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
@@ -240,15 +241,20 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return this.getLastFormerQuote(stock, ignoreUserEntries, hasEndDateContraint, q);
 	}
 
-	private String testEndConstraint() {
-			String endConstraint = " AND " + QUOTATIONS.DATE_FIELD + " <= ? ";
+	private String testQuotationsEndConstraint() {
+			String endConstraint = " AND " + QUOTATIONS.DATE_FIELD + " < ? ";
 			return endConstraint;
+	}
+	
+	private String testEventsEndConstraint() {
+		String endConstraint = " AND " + EVENTS.DATE_FIELD + " < ? ";
+		return endConstraint;
 	}
 
 	public Date getFirstQuotationDateFromQuotations(Stock stock) {
 		
 		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
-		String endConstraint = hasEndDateContraint? testEndConstraint() : "";
+		String endConstraint = hasEndDateContraint? testQuotationsEndConstraint() : "";
 		
 		String q = 
 				"select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
@@ -370,7 +376,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public ArrayList<QuotationUnit> loadStripedQuotationsAfter(final Stock stock, Date firstDate) {
 
 		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
-		String endConstraint = hasEndDateContraint? testEndConstraint() : "";
+		String endConstraint = hasEndDateContraint? testQuotationsEndConstraint() : "";
 		
 		Query query = new QuotationQuery(
 				"select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
@@ -406,7 +412,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		if (indexShift == 0) return  new ArrayList<QuotationUnit>();
 		
-		if (DateFactory.isEndDateSet()) refDate = (refDate.after(DateFactory.getNowEndDate()))?refDate:DateFactory.getNowEndDate();
+		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateContraint? testQuotationsEndConstraint() : "";
 
 		String infOrEqual = " < ";
 		if (includeRefDate) {
@@ -416,7 +423,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		Query query = new QuotationQuery("select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
 				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ?  AND "
-				+ QUOTATIONS.DATE_FIELD + infOrEqual + " ? order by date desc") {
+				+ QUOTATIONS.DATE_FIELD + infOrEqual + " ? " +  endConstraint + "order by date desc") {
 
 			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
 
@@ -436,16 +443,49 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		query.addValue(stock.getSymbol());
 		query.addValue(stock.getIsin());
 		query.addValue(refDate);
+		if (hasEndDateContraint) query.addValue(new java.sql.Date(DateFactory.getNowEndDate().getTime()));
 		List<? extends Object> retour = this.executeQuery(query, indexShift*2);
 
 		if (!retour.isEmpty()) {
-			int lastIndexShiftAvailable = Math.max(0,retour.size() - indexShift);
+			int lastIndexShiftAvailable = Math.max(0, retour.size() - indexShift);
 			retour.subList(retour.size() - lastIndexShiftAvailable, retour.size()).clear();
 			Collections.reverse(retour);
 			return (ArrayList<QuotationUnit>) retour;
 		} else {
 			return new ArrayList<QuotationUnit>();
 		}
+	}
+	
+	
+	public QuotationUnit hackQuotationUnitAtCurrentDateUnconstrained(Stock stock, Date currentDate) throws NoQuotationsException {
+		
+		Query query = new QuotationQuery("select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
+				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.SYMBOL_FIELD + " = ? AND "
+				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.ISIN_FIELD + " = ?  AND " 
+				+ QUOTATIONS.TABLE_NAME + "." + QUOTATIONS.DATE_FIELD + " >= ? "
+				+ "order by date asc") {
+			
+			public void resultParse(List<Object> retour, ResultSet rs) throws SQLException {
+				retour.add(new QuotationUnit(
+						stock, Currency.valueOf(rs.getString(QUOTATIONS.CURRENCY_FIELD)),
+						rs.getDate(QUOTATIONS.DATE_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_OPEN_FIELD), 
+						rs.getBigDecimal(QUOTATIONS.DAY_HIGH_FIELD), rs.getBigDecimal(QUOTATIONS.DAY_LOW_FIELD),
+						rs.getBigDecimal(QUOTATIONS.DAY_CLOSE_FIELD), rs.getLong(QUOTATIONS.DAY_VOLUME_FIELD),
+						ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)], BigDecimal.ONE, rs.getBigDecimal(QUOTATIONS.SPLIT_FIELD)));
+			};
+		};
+		query.addValue(stock.getSymbol());
+		query.addValue(stock.getIsin());
+		query.addValue(currentDate);
+		
+		List<QuotationUnit> qus = executeQuery(query, 1);
+		
+		if (qus.size() == 1) {
+			return qus.get(0);
+		} else {
+			throw new NoQuotationsException(stock.toString());
+		}
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -458,22 +498,24 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			sep = "' , '";
 		}
 		eventListConstraint += "' ) ";
+		
+		Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
 
 		//FIXME this should be a join
 		String queryString = "SELECT "
 				+ eventsTableName + ".*," 
-				+ SHARES.TABLE_NAME+ ".*" 
+				+ SHARES.TABLE_NAME + ".*" 
 				+ " FROM " + eventsTableName + "," + SHARES.TABLE_NAME 
 				+ " WHERE "
 				+ eventsTableName + "." + EVENTS.DATE_FIELD + " >= ? AND " 
-				+ eventsTableName + "." + EVENTS.DATE_FIELD + " <= ? AND " 
-				+ eventsTableName + "." + EVENTS.ANALYSE_NAME + " in "+eventListConstraint
-				+ eventDefinitionConstraint(eventDefinitions)+ " AND "
-				+ eventsTableName + "." + EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
-				+ SHARES.TABLE_NAME + "."+ SHARES.SYMBOL_FIELD + "=" + eventsTableName + "." + EVENTS.SYMBOL_FIELD + " AND "
-				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + eventsTableName + "." + EVENTS.ISIN_FIELD;
-
-		LOGGER.info(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate));
+				+ eventsTableName + "." + EVENTS.DATE_FIELD + " <= ? AND "
+				+ eventsTableName + "." + EVENTS.ANALYSE_NAME + " in " + eventListConstraint
+				+ eventDefinitionConstraint(eventDefinitions) + " AND "
+				+ eventsTableName + "." + EVENTS.EVENTTYPE_FIELD + " <> '" + EventType.INFO.getEventTypeChar() + "' AND " 
+				+ SHARES.TABLE_NAME + "." + SHARES.SYMBOL_FIELD + "=" + eventsTableName + "." + EVENTS.SYMBOL_FIELD + " AND "
+				+ SHARES.TABLE_NAME + "." + SHARES.ISIN_FIELD + "=" + eventsTableName + "." + EVENTS.ISIN_FIELD 
+				+ endConstraint;
 
 		Query select = new Query(queryString) {
 
@@ -507,6 +549,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		select.addValue(startDate);
 		select.addValue(endDate);
+		if (hasEndDateConstraint) select.addValue(DateFactory.getNowEndDate());
 
 		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery() + " with startDate: " + startDate + " and endDate:	" + endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
@@ -526,20 +569,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			}
 			eventListConstraint += "' ) ";
 		}
+		
+		Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
 
 		String queryString = "SELECT "
 				+ "*"
 				+ " FROM " + eventsTableName
 				+ " WHERE "
 				+ EVENTS.DATE_FIELD + " >= ? AND " 
-				+ EVENTS.DATE_FIELD + " <= ? AND " 
-				+ EVENTS.ANALYSE_NAME + " in "+eventListConstraint
-				+ eventDefinitionConstraint(eventDefinitions)+ " AND "
-				+ EVENTS.EVENTTYPE_FIELD + " <> '"+EventType.INFO.getEventTypeChar()+"' AND " 
+				+ EVENTS.DATE_FIELD + " <= ? AND "
+				+ EVENTS.ANALYSE_NAME + " in " + eventListConstraint
+				+ eventDefinitionConstraint(eventDefinitions) + " AND "
+				+ EVENTS.EVENTTYPE_FIELD + " <> '" + EventType.INFO.getEventTypeChar() + "' AND " 
 				+ EVENTS.SYMBOL_FIELD + " = ? AND "
-				+ EVENTS.ISIN_FIELD+" = ?";
-
-		if (LOGGER.isDebugEnabled()) LOGGER.debug(String.format(queryString.replaceAll("\\?", "%s"), startDate, endDate, stock.getSymbol(), stock.getIsin()));
+				+ EVENTS.ISIN_FIELD + " = ? "
+				+ endConstraint;
 
 		Query select = new Query(queryString) {
 
@@ -562,6 +607,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(endDate);
 		select.addValue(stock.getSymbol());
 		select.addValue(stock.getIsin());
+		if (hasEndDateConstraint) select.addValue(DateFactory.getNowEndDate());
 
 		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery()+" with startDate:"+startDate+ " and endDate:	"+endDate);
 		List<? extends Object> lret = exectuteSelect(Object.class, select);
@@ -640,6 +686,9 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			sep = "' , '";
 		}
 		eventTypeConstraint += "' ) ";
+		
+		Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
 
 		Query select = new Query(
 				"SELECT "
@@ -657,7 +706,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.ISIN_FIELD + " = ? AND " 
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.SYMBOL_FIELD + " = ? AND " 
 						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.EVENTDEF_FIELD + " = ? AND "
-						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " <= ? "
+						+ EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " <= ? " + endConstraint
 						+ " ORDER BY " + EVENTS.EVENTS_TABLE_NAME + "." + EVENTS.DATE_FIELD + " DESC ") {
 
 			@Override
@@ -681,6 +730,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		select.addValue(stock.getSymbol());
 		select.addValue(EventDefinition.SCREENER.getEventDefinitionRef());
 		select.addValue(endDate);
+		if (hasEndDateConstraint) select.addValue(DateFactory.getNowEndDate());
 
 		if (LOGGER.isDebugEnabled()) LOGGER.debug(select.getQuery());
 		List<EventValue> eventValues = executeQuery(select, 1);
@@ -693,10 +743,14 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	//ALTER TABLE EVENTS  ADD INDEX `EVENTS_STOCK_ANAME_DATE_DEF` (`ANALYSENAME`,`SYMBOL`,`ISIN`,`DATE`,`EVENTDEF`);
 	public Date getEdgeEventDateFor(String minMax, Stock stock, String analyseName, String eventDef) {
+		
+		Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
+		
 		String q = new String("Select " + minMax + "(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where " +
 				EVENTS.ANALYSE_NAME + " = ? AND " +
-				EVENTS.SYMBOL_FIELD + " = ? AND "+ EVENTS.ISIN_FIELD + " = ? AND "+
-				EVENTS.EVENTDEF_FIELD + " = ?");
+				EVENTS.SYMBOL_FIELD + " = ? AND " + EVENTS.ISIN_FIELD + " = ? AND " +
+				EVENTS.EVENTDEF_FIELD + " = ? " + endConstraint);
 		Date retour;
 		MyDBConnection scnx = this.getConnection(true);
 		try {
@@ -707,6 +761,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.setString(2, stock.getSymbol());
 			pst.setString(3, stock.getIsin());
 			pst.setString(4, eventDef);
+			if (hasEndDateConstraint) pst.setDate(5, new java.sql.Date(DateFactory.getNowEndDate().getTime()));
 			rs = pst.executeQuery();
 			Date d = (rs.next()) ? rs.getDate(1) : null;
 			if (d != null) {
@@ -732,7 +787,11 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	}
 
 	public Date getLastEventDateForAnalysis(String analysisName) {
-		String q = new String("Select max(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where "+EVENTS.ANALYSE_NAME + " like ? ");
+		
+		Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+		String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
+		
+		String q = new String("Select max(" + EVENTS.DATE_FIELD + ") from " + EVENTS.EVENTS_TABLE_NAME + " where " + EVENTS.ANALYSE_NAME + " like ? " + endConstraint);
 		Date retour;
 		MyDBConnection scnx = this.getConnection(true);
 		try {
@@ -740,6 +799,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			PreparedStatement pst;
 			pst = scnx.getConn().prepareStatement(q);
 			pst.setString(1,analysisName);
+			if (hasEndDateConstraint) pst.setDate(2, new java.sql.Date(DateFactory.getNowEndDate().getTime()));
 			rs = pst.executeQuery();
 			Date d = (rs.next()) ? rs.getDate(1) : null;
 			if (d != null) {
@@ -769,17 +829,21 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 
 			String eventDefConstraint = eventDefinitionConstraint(eventDefinitions);
-			String query = DataSource.EVENTS.getDelete(eventsTableName) + eventDefConstraint;
-			LOGGER.info(String.format(query.replaceAll("\\?", "%s"), analyseName, start, end));
-
+			
+			Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+			String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
+			
+			String query = DataSource.EVENTS.getDelete(eventsTableName) + eventDefConstraint + endConstraint;
+			
 			Query iq = new Query(query);
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
+			if (hasEndDateConstraint) iq.addValue(DateFactory.getNowEndDate());
 			executeUpdate(iq, 1200);
 
 		} catch (SQLException e) {
-			LOGGER.warn("Ignoring deletion error: ",e);
+			LOGGER.warn("Ignoring deletion error: ", e);
 		}
 	}
 
@@ -787,7 +851,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 		try {
 			String query = "DELETE FROM " + eventTableName + " WHERE " + EVENTS.ANALYSE_NAME + " = ?";
-			LOGGER.info(String.format(query.replaceAll("\\?", "%s"), analyseName));
 			Query iq = new Query(query);
 			iq.addValue(analyseName);
 			executeUpdate(iq, 1200);
@@ -802,10 +865,12 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		try {
 
 			String eventDefConstraint = eventDefinitionConstraint(eventDefinitions);
+			Boolean hasEndDateConstraint = DateFactory.isEndDateSet();
+			String endConstraint = hasEndDateConstraint? testEventsEndConstraint() : "";
 			String preparedQuery = 
-					"DELETE FROM "+ eventTableName + " WHERE "+
-							EVENTS.SYMBOL_FIELD+"= ? AND "+ EVENTS.ISIN_FIELD+"= ? AND "+EVENTS.ANALYSE_NAME+" = ? AND "+EVENTS.DATE_FIELD+" >= ? AND "+EVENTS.DATE_FIELD+" <= ?"+ eventDefConstraint;
-			LOGGER.info(String.format(preparedQuery.replaceAll("\\?", "%s"), stock.getSymbol(), stock.getIsin(), analyseName, start, end));
+					"DELETE FROM " + eventTableName + 
+					" WHERE "  +  EVENTS.SYMBOL_FIELD + "= ? AND " +  EVENTS.ISIN_FIELD + "= ? AND " + EVENTS.ANALYSE_NAME + " = ? AND " +
+								  EVENTS.DATE_FIELD + " >= ? AND " + EVENTS.DATE_FIELD + " <= ? " +  eventDefConstraint + endConstraint;
 
 			Query iq = new Query(preparedQuery);
 			iq.addValue(stock.getSymbol());
@@ -813,6 +878,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			iq.addValue(analyseName);
 			iq.addValue(start);
 			iq.addValue(end);
+			if (hasEndDateConstraint) iq.addValue(DateFactory.getNowEndDate());
 			executeUpdate(iq, 1200);
 
 		} catch (SQLException e) {
@@ -1382,7 +1448,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 
 		public static String getDelete(String eventTableName) {
-			return "DELETE FROM "+ eventTableName + " WHERE "+EVENTS.ANALYSE_NAME+" = ? AND "+EVENTS.DATE_FIELD+" >= ? AND "+EVENTS.DATE_FIELD+" <= ?";
+			return "DELETE FROM " + eventTableName + " WHERE " + EVENTS.ANALYSE_NAME + " = ? AND " + EVENTS.DATE_FIELD + " >= ? AND " + EVENTS.DATE_FIELD + " <= ?";
 		}
 	}
 

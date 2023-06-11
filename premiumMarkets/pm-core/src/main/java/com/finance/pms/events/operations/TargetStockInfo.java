@@ -71,7 +71,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 public class TargetStockInfo {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
-
+	
 	public class Output {
 
 		private OutputReference outputReference;
@@ -166,10 +166,11 @@ public class TargetStockInfo {
 	private Set<Date> missingKeys = new HashSet<>();
 
 
-	public TargetStockInfo(
-			String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) 
-			throws WarningException {
+	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
 		super();
+		
+		//MyLogger.threadLocal.set(stock.getSymbol());
+		
 		this.analysisName = analysisName;
 		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperationHolder;
 		this.stock = stock;
@@ -193,7 +194,7 @@ public class TargetStockInfo {
 		this.gatheredChartableOutputs = new ArrayList<>();
 		this.chartedOutputGroups = new ArrayList<>();
 		this.outputAnalysers = new HashMap<>();
-
+		
 	}
 	
 	private Output getCalculatedOutputsCacheFor(OutputReference outputReference) {
@@ -305,15 +306,11 @@ public class TargetStockInfo {
 			NumericableMapValue selectorOutputValue = ((MultiSelectorsValue) outputValue).getValue(((MultiSelectorsValue) outputValue).getCalculationSelector());
 			if (isInChart)  this.gatheredChartableOutputsAdd(new Output(new OutputReference(operation, operation.getOutputSelector()), selectorOutputValue, operationRequiredStartShift));
 		} else if (outputValue instanceof DoubleArrayMapValue) {
-			Output outputHolder = new Output(
-					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
-					outputValue, operationRequiredStartShift);
+			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, operationRequiredStartShift);
 			if (isCachable) putCalculatedOutputsCache(outputHolder);
 			if (isInChart)  this.gatheredChartableOutputsAdd(outputHolder);
 		} else {
-			Output outputHolder = new Output(
-					new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), 
-					outputValue, operationRequiredStartShift);
+			Output outputHolder = new Output(new OutputReference(operation, outputDiscriminator.orElse(operation.getOutputSelector())), outputValue, operationRequiredStartShift);
 			if (isCachable) putCalculatedOutputsCache(outputHolder);
 			if (isInChart) this.gatheredChartableOutputsAdd(outputHolder);
 		}

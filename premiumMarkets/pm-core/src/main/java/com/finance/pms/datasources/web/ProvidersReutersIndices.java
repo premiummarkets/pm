@@ -32,11 +32,13 @@ package com.finance.pms.datasources.web;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.http.HttpException;
+import org.python.google.common.collect.Maps;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -111,9 +113,9 @@ public class ProvidersReutersIndices extends ProvidersList {
 
 	@SuppressWarnings("unchecked")
 	@Override//TODO merge with nse indices => create market indices related Provider : probably add an interface alike MarketListProvider
-	protected Set<Stock> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
+	protected Map<Stock, Double> fetchStockList(MarketQuotationProviders marketQuotationsProviders) throws HttpException {
 
-		Set<Stock> listFromWeb = new TreeSet<Stock>(getNewStockComparator());
+		TreeMap<Stock, Double> listFromWeb = new TreeMap<Stock, Double>(getNewStockComparator());
 
 		for (Indice indice : indices) {
 
@@ -134,7 +136,7 @@ public class ProvidersReutersIndices extends ProvidersList {
 					LOGGER.error(e, e);
 				}
 
-				listFromWeb.addAll(listOfIndiceStocks);
+				listFromWeb.putAll(Maps.asMap(new TreeSet<Stock>(listOfIndiceStocks), k -> Double.valueOf(0)));
 				if (listOfIndiceStocks.size() <= 1) break;
 
 			}

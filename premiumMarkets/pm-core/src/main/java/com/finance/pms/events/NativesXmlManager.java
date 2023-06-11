@@ -47,6 +47,7 @@ import com.finance.pms.events.operations.TargetStockDelegateOperation;
 import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.BandRatioNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.BestShiftOperation;
+import com.finance.pms.events.operations.nativeops.BuyAndHoldOperation;
 import com.finance.pms.events.operations.nativeops.ConcatStringOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.DataTypeCheckOperation;
@@ -174,6 +175,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(pmMChaikinOperation);
 		PMBollingerOperation bollingerOperation = new PMBollingerOperation();
 		nativeOperations.addOperation(bollingerOperation);
+		BuyAndHoldOperation buyAndHoldOperation = new BuyAndHoldOperation();
+		nativeOperations.addOperation(buyAndHoldOperation);
 
 		//Data manipulation
 		MathOperation mathOperation = new MathOperation();

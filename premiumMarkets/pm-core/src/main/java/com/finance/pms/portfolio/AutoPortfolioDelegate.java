@@ -46,14 +46,11 @@ import java.util.NavigableSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.files.TransactionComparator;
-import com.finance.pms.datasources.files.TransactionElement;
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -66,10 +63,7 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.ConfigFreePonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.events.quotations.QuotationDataType;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -90,6 +84,8 @@ public class AutoPortfolioDelegate {
 	private final BigDecimal minimumTransactionAmount; //= BigDecimal.ONE;
 	private final int maximumNumberOfLines; // = 1;
 	protected final BigDecimal initialCash; //= minTransactionAmount.multiply(new BigDecimal(maximumNumberOfLines));
+	
+	private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
 	
 	private TransactionHistory transactionHistory;
@@ -97,7 +93,7 @@ public class AutoPortfolioDelegate {
 	public enum BuyStrategy { 
 		REINVEST, //The profit is reinvested in new transactions. Starting with nominalTransactionAmount*maximumNumberOfLines of cash. Buy only if not owned. Sell the full line.
 		LIMITROWS, //Buys of nominalTransactionAmount are maid until the maximumNumberOfLines is reached. Buy only if not owned. Sell the full line.
-		INFINITCASH, //Buys of nominalTransactionAmount are maid on buy events if not already bought.Buy only if not owned. Sell the full line.
+		INFINITCASH, //Buys of nominalTransactionAmount are maid on buy events if not already bought. Buy only if not owned. Sell the full line.
 		INFINITQUANTITY //Buys of nominalTransactionAmount are maid on buy events disregarding everything else. Buy even if owned. Sells for the nominalTransactionAmount. 
 		};
 
@@ -105,9 +101,9 @@ public class AutoPortfolioDelegate {
 
 	public AutoPortfolioDelegate(AutoPortfolioWays autoPortfolio, Boolean isFileLogged) {
 		
-		nominalTransactionAmount = new BigDecimal(MainPMScmd.getMyPrefs().getInt("autoporfolio.nominal.transaction.amount", 2000)).setScale(4);
-		minimumTransactionAmount = new BigDecimal(MainPMScmd.getMyPrefs().getInt("autoporfolio.min.transaction.amount", 1)).setScale(4);
-		maximumNumberOfLines = MainPMScmd.getMyPrefs().getInt("autoporfolio.max.lines", 5);
+		nominalTransactionAmount = new BigDecimal(MainPMScmd.getMyPrefs().get("autoporfolio.nominal.transaction.amount", "2000")).setScale(4);
+		minimumTransactionAmount = new BigDecimal(MainPMScmd.getMyPrefs().get("autoporfolio.min.transaction.amount", "1")).setScale(4);
+		maximumNumberOfLines = Integer.valueOf(MainPMScmd.getMyPrefs().get("autoporfolio.max.lines", "5"));
 		initialCash = nominalTransactionAmount.multiply(new BigDecimal(maximumNumberOfLines));
 		
 		this.thisPortfolio = autoPortfolio;
@@ -279,11 +275,18 @@ public class AutoPortfolioDelegate {
 		return null;
 	}
 
+	/**
+	 * To be valid the event date as to be at most on currentDate - 1 
+	 * @param currentDate
+	 * @param latestEventDateAndNewBuyDate
+	 * @throws IgnoredEventDateException
+	 */
 	private void isValidEventDate(Date currentDate, Date latestEventDateAndNewBuyDate) throws IgnoredEventDateException {
-		LOGGER.info("Is valid event date: is event date: " + latestEventDateAndNewBuyDate + " (strictly before?) iteration current date: " + currentDate + ". ");
-		if ((latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) >= 0) {
+		boolean isInvalidEvent = (latestEventDateAndNewBuyDate == null) || latestEventDateAndNewBuyDate.compareTo(currentDate) >= 0;
+		LOGGER.info("Is valid event date: is event date: " + df.format(latestEventDateAndNewBuyDate) + " (strictly before?) iteration current date: " + df.format(currentDate) + ": " + !isInvalidEvent);
+		if (isInvalidEvent) {
 			throw new IgnoredEventDateException(
-					"Event date: " + latestEventDateAndNewBuyDate + " and current iteration date: " + currentDate + ". " +
+					"Event date: " + df.format(latestEventDateAndNewBuyDate) + " and current iteration date: " + df.format(currentDate) + ". " +
 					"Event should be processed later: ", new Throwable());
 		}
 	}
@@ -307,23 +310,27 @@ public class AutoPortfolioDelegate {
 		Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null) ? stock.getMarketValuation().getCurrency() : this.thisPortfolio.getPortfolioCurrency();
 
 		try {
-			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
-			BigDecimal openPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.OPEN);
-			BigDecimal highPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.HIGH);
-			BigDecimal lowPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.LOW);
-			BigDecimal closePrice = quotations.getClosestCloseForDate(currentDate);
-			double fee = 0.01;
+			//Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+			//BigDecimal buyPrice = closePrice.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
+			QuotationUnit hackLastQuotationUnitUnconstrained = DataSource.getInstance().hackQuotationUnitAtCurrentDateUnconstrained(stock, currentDate);
+			BigDecimal openPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getOpenSplit();
+			BigDecimal highPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getHighSplit();
+			BigDecimal lowPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getLowSplit();
+			BigDecimal closePrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getCloseSplit();
+			double fee = 0.0; //0.01;
 			BigDecimal buyPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
 									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
 									.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
+
 
 			BigDecimal availableCash = canBuy(buyStrategy);
 			if (availableCash.compareTo(minimumTransactionAmount) >= 0) {
 				BigDecimal requestedAmount = (availableCash.compareTo(nominalTransactionAmount) >= 0)? nominalTransactionAmount : availableCash;
 				BigDecimal effectiveAmountWithDrawn = thisPortfolio.withdrawCash(currentDate, requestedAmount, transactionCurrency);
 				BigDecimal quantity = effectiveAmountWithDrawn.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
-				LOGGER.info("Buying: " + quantity + " " + stock + " on the " + currentDate + ". " +
-							"Requested " + transactionCurrency + " amount: " + requestedAmount + ". Effective " + thisPortfolio.getPortfolioCurrency() + "  amount: " + effectiveAmountWithDrawn + ". " +
+				LOGGER.info("Buying: " + quantity + " of " + stock + " on the " + currentDate + ". " +
+							"Requested " + transactionCurrency + " amount: " + requestedAmount + ". " +
+							"Effective " + thisPortfolio.getPortfolioCurrency() + "  amount: " + effectiveAmountWithDrawn + ". " +
 							"Triggering event " + symbolEvents);
 
 				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
@@ -331,7 +338,7 @@ public class AutoPortfolioDelegate {
 				}
 				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
 				
-				LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left : " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
+				LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
 
 				// Log
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
@@ -457,14 +464,18 @@ public class AutoPortfolioDelegate {
 
 	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal sellAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
 
+		Stock stock = portfolioShare.getStock();
+		
 		try {
-			Quotations quotations =  QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
-
-			BigDecimal openPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.OPEN);
-			BigDecimal highPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.HIGH);
-			BigDecimal lowPrice = (BigDecimal) quotations.getClosestFieldForDate(currentDate, QuotationDataType.LOW);
-			BigDecimal closePrice = quotations.getClosestCloseForDate(currentDate);
-			double fee = 0.01;
+//			Quotations quotations =  QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
+//			BigDecimal sellPrice = closePrice.multiply(new BigDecimal(1 - (fee/(1+fee)))).setScale(10, RoundingMode.HALF_EVEN); //In reality the price is unknown at that point of iteration as this is the next day market price ..
+			
+			QuotationUnit hackLastQuotationUnitUnconstrained = DataSource.getInstance().hackQuotationUnitAtCurrentDateUnconstrained(stock, currentDate);
+			BigDecimal openPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getOpenSplit();
+			BigDecimal highPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getHighSplit();
+			BigDecimal lowPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getLowSplit();
+			BigDecimal closePrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getCloseSplit();
+			double fee = 0.0; //0.01;
 			BigDecimal sellPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
 									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
 									.multiply(new BigDecimal(1 - (fee/(1+fee)) )).setScale(10, RoundingMode.HALF_EVEN);
@@ -479,7 +490,7 @@ public class AutoPortfolioDelegate {
 			}
 
 			thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, sellPrice, TransactionType.AOUT);
-			LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left : " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
+			LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
 
 			//log
 			return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, sellPrice, currentDate);

@@ -35,9 +35,8 @@ import java.util.Map;
 import com.finance.pms.admin.config.Config;
 
 public class ConfigThreadLocal {
-
-    private static ThreadLocal<Map<String,Config>> configs = new ThreadLocal<Map<String,Config>>() {
-
+	
+    private static ThreadLocal<Map<String, Config>> threadLocalConfigs = new ThreadLocal<Map<String,Config>>() {
 		@Override
 		protected Map<String, Config> initialValue() {
 			return new HashMap<String, Config>();
@@ -46,13 +45,17 @@ public class ConfigThreadLocal {
     
    
     public static Config get(String configName)  {
-    	if (null != configs.get().get(configName)) return configs.get().get(configName);
-        throw new IllegalArgumentException("The config name has not been initialised : " + configName);
+    	Config config = threadLocalConfigs.get().get(configName);
+		if (null != config) {
+    		return config;
+    	}
+        throw new IllegalArgumentException("The config name has not been initialised: " + configName);
     }
     
 	public static Map<String, Config> get(String configName, String ...configNames) {
 		Map<String, Config> configs = new HashMap<String, Config>();
-		configs.put(configName, ConfigThreadLocal.get(configName));
+		Config config = ConfigThreadLocal.get(configName);
+		configs.put(configName, config);
 		for (String optConfigName : configNames) {
 			configs.put(optConfigName, ConfigThreadLocal.get(optConfigName));
 		}
@@ -61,16 +64,19 @@ public class ConfigThreadLocal {
 	
     //TODO getAll strict?
     public static Map<String,Config> getAll() {
-    	return configs.get();
+    	return threadLocalConfigs.get();
     }
 	
     public static void set(String configName, Config config) {
-    	configs.get().put(configName, config);
+//    	String myLoggerThreadLocal = config.getMyLoggerThreadLocal();
+//    	if (myLoggerThreadLocal != null) MyLogger.threadLocal.set(myLoggerThreadLocal);
+    	threadLocalConfigs.get().put(configName, config);
     }
     
     public static void setAll(Map<String, Config> configs) {
     	for (String configKey : configs.keySet()) {
-			set(configKey,configs.get(configKey));
+    		Config config = configs.get(configKey);	
+			set(configKey,config);
 		}
     }
 

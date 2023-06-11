@@ -40,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -65,27 +64,27 @@ import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.screening.ScreeningSupplementedStock;
 
-public class ProvidersYahooPythonIndices extends ProvidersList {
+public class ProvidersSlickStockPythonIndices extends ProvidersList {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersYahooPythonIndices.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersSlickStockPythonIndices.class);
 
 	private SortedSet<Indice> indices;
 
 	private Path python_py;
 
-	protected ProvidersYahooPythonIndices() {
+	protected ProvidersSlickStockPythonIndices() {
 		super();
 		this.indices = new TreeSet<Indice>();
 	}
 
-	public ProvidersYahooPythonIndices(String pathToProps) {
+	public ProvidersSlickStockPythonIndices(String pathToProps) {
 		super();
 		this.httpSource = new HttpSourceYahooIndices(pathToProps, this);
 		this.indices = new TreeSet<Indice>();
 		
 		try {
-			python_py = Files.createTempFile("components", "py");
-			try (InputStream stream = ProvidersYahooPython.class.getResourceAsStream("/yahooQuotes/components.py")) {
+			python_py = Files.createTempFile("indice_components", "py");
+			try (InputStream stream = ProvidersSlickStockPythonIndices.class.getResourceAsStream("/tableReaders/indice_components.py")) {
 				Files.copy(stream, python_py, StandardCopyOption.REPLACE_EXISTING);
 				PosixFileAttributeView view = Files.getFileAttributeView(python_py, PosixFileAttributeView.class);
 				if (view != null) {
@@ -100,7 +99,7 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
 		}
 	}
 	
-	public ProvidersYahooPythonIndices(String pathToProps, List<Indice> indices) {
+	public ProvidersSlickStockPythonIndices(String pathToProps, List<Indice> indices) {
 		this(pathToProps);
 		this.indices = new TreeSet<Indice>(indices);
 	}
@@ -109,7 +108,7 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
     	try {
 			Files.delete(python_py);
 		} catch (IOException e) {
-			System.out.println("Error closing ProvidersYahooPython : " + e);
+			System.out.println("Error closing ProvidersStockSymbolApi: " + e);
 			e.printStackTrace();
 		}
     }
@@ -146,6 +145,8 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
 		return new Comparator<Stock>() {
 			
 			public int compare(Stock o1, Stock o2) {
+				int compareTo = o1.getCapitalisation().compareTo(o2.getCapitalisation());
+				if (compareTo != 0) return compareTo;
 				return o1.getSymbol().compareTo(o2.getSymbol());
 			}
 			
@@ -158,24 +159,23 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
 		
 		for (Indice indice : indices) {
 				
-			String indiceStr = "^" + indice.getName();
+			String indiceStr = indice.getName();
 				
 			try {
 				String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
 				ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString(), URLEncoder.encode(indiceStr, StandardCharsets.UTF_8.toString()));
 				Process p = pb.start();
-				
+			
 				try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));) {
 					String line = null;
 					in.readLine(); //header
 					while ((line = in.readLine()) != null) {
-						String[] symbolNName = line.split(",");
-						if (symbolNName.length >= 2) {
-							String name = Arrays.asList(symbolNName).subList(1, symbolNName.length).stream().reduce("", (a,e) -> a + e);
-							listFromWeb.put(
-								new Stock(symbolNName[0], symbolNName[0], name, true, StockCategories.DEFAULT_CATEGORY,
-								new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO, SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-								new MarketValuation(indice.getMarket()), "", TradingMode.CONTINUOUS, 0l), 0d);
+						String[] lineSplit = line.split(",");
+						if (lineSplit.length == 3) {
+							Stock stock = new Stock(lineSplit[1], lineSplit[1], lineSplit[0], true, StockCategories.DEFAULT_CATEGORY,
+							new SymbolMarketQuotationProvider(MarketQuotationProviders.YAHOO, SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
+							new MarketValuation(indice.getMarket()), "", TradingMode.CONTINUOUS, 0l);
+							listFromWeb.put(stock, Double.valueOf(lineSplit[2]));
 						} else {
 							LOGGER.warn("Invalid line for " + indiceStr + ": "  + line);
 						}
@@ -222,7 +222,7 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		ProvidersYahooPythonIndices clone = (ProvidersYahooPythonIndices) super.clone();
+		ProvidersSlickStockPythonIndices clone = (ProvidersSlickStockPythonIndices) super.clone();
 		clone.python_py = this.python_py;
 		return clone;
 	}

@@ -91,12 +91,11 @@ public abstract class AbstractSharesList extends Observable {
 		this.name=name;
 	}
 
-	public AbstractSharesList(AbstractSharesList portfolio) {
+	public AbstractSharesList(AbstractSharesList portfolio, String newName) {
 		this();
-
-		this.name = portfolio.name;
+		this.name = newName;
 		for (PortfolioShare portfolioShare: portfolio.getListShares().values()) {
-			this.listShares.put(portfolioShare.getStock(), new PortfolioShare(portfolioShare));
+			this.listShares.put(portfolioShare.getStock(), new PortfolioShare(this, portfolioShare));
 		}
 	}
 
@@ -173,12 +172,12 @@ public abstract class AbstractSharesList extends Observable {
 
 	@Id
 	public String getName() {
-		return (name != null)?name.trim():null;
+		return (name != null)? name.trim() : null;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(this.name+" : [ ");
+		StringBuilder sb = new StringBuilder(this.name + " : [ ");
 		for (PortfolioShare portfolioShare : getListShares().values()) {
 			sb.append(portfolioShare.toString() + " ; ");
 		}

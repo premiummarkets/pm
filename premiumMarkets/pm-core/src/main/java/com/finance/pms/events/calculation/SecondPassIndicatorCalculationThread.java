@@ -51,8 +51,8 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 //TODO To facilitate error handling : move initializations from the constructor to calculateEventsFor method
@@ -168,7 +168,7 @@ public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationT
 
     @Override
     public void cleanEventsFor(Stock stock, EventInfo eventInfo, String eventListName) {
-        EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
+    	TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock, eventListName, eventInfo);
     }
 
 }

@@ -128,7 +128,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 			chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
 			chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
+			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
 
 			chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 3);
 
@@ -547,7 +547,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor(), chartTarget.getPlotChartDimensions());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
 
 	}
 

@@ -86,7 +86,7 @@ public class AssVieFormater extends LineFormater {
 							new Stock(isin, isin, name, true,
 							StockCategories.SICAV, new SymbolMarketQuotationProvider(MarketQuotationProviders.INVESTIR,SymbolNameResolver.UNKNOWNEXTENSIONCLUE), 
 							new MarketValuation(Market.EURONEXT),
-							"",TradingMode.CONTINUOUS,0l);
+							"",TradingMode.CONTINUOUS, 0l);
 					
 					ret.add(stock);
 				} catch (InvalidAlgorithmParameterException e) {

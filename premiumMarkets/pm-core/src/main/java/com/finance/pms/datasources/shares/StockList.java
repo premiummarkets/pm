@@ -121,7 +121,7 @@ public class StockList extends ArrayList<Stock> {
 							StockCategories.valueOfString(toktbl[3]),
 							new SymbolMarketQuotationProvider(MarketQuotationProviders.valueOfCmd(toktbl[6]),SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 							new MarketValuation(Market.valueOf(toktbl[4]),new BigDecimal(toktbl[5])),
-							"",TradingMode.CONTINUOUS,0l);
+							"",TradingMode.CONTINUOUS, 0l);
 					this.add(newStock);
 				}
 				line = fileReader.readLine();
@@ -141,7 +141,7 @@ public class StockList extends ArrayList<Stock> {
 			try {
 				Stock newStock = new Stock(listIt.next().toUpperCase(),null,null,true,StockCategories.DEFAULT_CATEGORY,
 						new SymbolMarketQuotationProvider(MarketQuotationProviders.DEFAULT,SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
-						new MarketValuation(Market.UNKNOWN),"",TradingMode.CONTINUOUS,0l);
+						new MarketValuation(Market.UNKNOWN),"",TradingMode.CONTINUOUS, 0l);
 				newStock.setSymbolMarketQuotationProvider(marketListProvider);
 				this.add(newStock);
 			} catch (InvalidAlgorithmParameterException e) {

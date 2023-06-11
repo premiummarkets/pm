@@ -87,7 +87,7 @@ public class StockListNASDAQFormater extends LineFormater {
 						this.stockCategorie,
 						new SymbolMarketQuotationProvider(this.marketQuotationsProviders, SymbolNameResolver.UNKNOWNEXTENSIONCLUE),
 						new MarketValuation(Market.NASDAQ),
-						"",TradingMode.CONTINUOUS,0l));
+						"",TradingMode.CONTINUOUS, 0l));
 			}
 			return retour;
 			

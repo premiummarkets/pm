@@ -68,6 +68,7 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
 	private EventSignalConfig eventSignalConfig;
 	
+	//Not used??
 	private String[] additionalPortfolioEventListNames = new String[0];
 
 
@@ -76,8 +77,8 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		//Hibernate
 	}
 
-	public AutoPortfolio(AutoPortfolio portfolio) {
-		super(portfolio);
+	public AutoPortfolio(AutoPortfolio portfolio, String newName) {
+		super(portfolio, newName);
 		eventSignalConfig = portfolio.eventSignalConfig;
 		additionalPortfolioEventListNames = portfolio.additionalPortfolioEventListNames;
 	}
