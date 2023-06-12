@@ -246,7 +246,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	public BigDecimal getGainUnrealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
 		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
 		if (basis.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.warn("Basis is zero for "+this);
+			LOGGER.warn("Basis is zero for " + this);
 			return BigDecimal.ZERO;
 		} else {
 			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 10, RoundingMode.HALF_EVEN);
@@ -261,7 +261,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	@Transient
-	public BigDecimal geGainRealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getGainRealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
 		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
 		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
 		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);

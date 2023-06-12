@@ -101,7 +101,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	public BigDecimal getTodaysGainRealPercent() {
-		return super.geGainRealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+		return super.getGainRealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public BigDecimal getGainTotalWeightedPercent() {

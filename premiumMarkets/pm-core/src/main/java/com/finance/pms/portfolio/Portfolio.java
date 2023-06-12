@@ -505,7 +505,6 @@ public class Portfolio extends AbstractSharesList {
 		} else {
 			return totalMoneyInvested.divide(totalQuantityBought, 10, RoundingMode.HALF_EVEN);
 		}
-
 	}
 
 	public SortedSet<TransactionElement> headTransactionsTo(Date currentStartDate, Date currentEndDate) {
