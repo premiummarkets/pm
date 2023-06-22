@@ -71,7 +71,7 @@ public class EventsStatusCheckerTest {
         checker = new EventsStatusChecker(tunedConf);
         
         //when
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(previousStart, previousEnd);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(previousStart, previousEnd, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.NONE, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -100,7 +100,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-21");
         Date endRequested = simpleDateFormat.parse("2017-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.IGNORE, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -131,7 +131,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-20");
         Date endRequested = simpleDateFormat.parse("2017-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -161,7 +161,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-21");
         Date endRequested = simpleDateFormat.parse("2017-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -191,7 +191,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2010-12-21");
         Date endRequested = simpleDateFormat.parse("2017-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -221,7 +221,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2008-12-21");
         Date endRequested = simpleDateFormat.parse("2012-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -251,7 +251,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-20");
         Date endRequested = simpleDateFormat.parse("2017-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RESET, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -281,7 +281,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2000-12-20");
         Date endRequested = simpleDateFormat.parse("2009-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RESET, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -311,7 +311,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2017-12-21");
         Date endRequested = simpleDateFormat.parse("2019-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RESET, autoCalcAndSetDatesBounds.getCalcStatus());

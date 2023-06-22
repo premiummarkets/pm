@@ -78,9 +78,11 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
 		try {
+			MyLogger.threadLocal.set(stock.getSymbol());
+
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
-
+			
 			LOGGER.guiInfo("Calculating " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
 			LOGGER.guiInfo("Finishing " + eventInfo.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
@@ -107,36 +109,33 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
 		TunedConf tunedConf = (tunedConfOpt.isPresent())?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
-		synchronized (tunedConf) {
 
-			//FIXME delete needs the calculator..
-			//			try {
-			//				//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
-			//				if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
-			//			} catch (Exception e) {
-			//				LOGGER.error(e,e);
-			//			}
+		synchronized (tunedConf) {
 
 			//FIXME operations method should not be called outside of the operation.run loop and delegated to the event info. 
 			TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, DateFactory.dateAtZero(), DateFactory.dateAtZero());
-			boolean isNonIdempotentOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent(dummyTargetStock);
-			boolean isNoOverrideDeltaOnlyOpsCompo = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock);
+			boolean isNonIdempotent = eventInfo instanceof EventInfoOpsCompoOperation && !((EventInfoOpsCompoOperation) eventInfo).isIdemPotent(dummyTargetStock);
+			boolean isNoOverrideDeltaOnly = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock);
+			boolean isSystematicReset = isNonIdempotent && !isNoOverrideDeltaOnly;
+			boolean isNoOverride = isNonIdempotent && isNoOverrideDeltaOnly; //We still want to calculate the full range as the operation is not idempotent but without overriding the existing data in the db
 			
 			CalculationBounds calcBounds;			
 			try {
 				EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
-				calcBounds = checker.autoCalcAndSetDatesBounds(start, end);
-				if (isNonIdempotentOpsCompo) {
-					if (isNoOverrideDeltaOnlyOpsCompo && calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
-						calcBounds = new CalculationBounds(CalcStatus.RIGHT_INC, start, end, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
-					} else {
-						calcBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
-					}
+				if (isSystematicReset) { //Not idempotent and can override
+					calcBounds = new CalculationBounds(CalcStatus.RESET, start, end, start, end);
+				} else {
+					calcBounds = checker.autoCalcAndSetDatesBounds(start, end, isNoOverride);
 				}
 			} catch (InvalidAlgorithmParameterException e1) {
 				//Recoverable we leave the tunedConf as is
 				LOGGER.error("Failed invalid calculation dates for " + stock + " using analysis " + eventListName + ": from " + start + " to " + end, e1);
+				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
+				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
+			} finally { //Something wrong with the tunedconf bounds: we need to reset it ..
+				LOGGER.info("Updating tunedConf: " + tunedConf + " with calculation bounds: " + null);
+				TunedConfMgr.getInstance().updateConf(tunedConf, true, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
 			}
 
 			Boolean dirty = true;
@@ -173,15 +172,24 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						
 						//FIXME the storage should be delegated to the eventInfo or calculator
 						//FIXME And the control of the calculation state in db, here, should be done through tunedConf only.
+						//FIXME also separate calculation boundaries from storage boundaries ..
 						//isNoOverrideDeltaOnly
-						if (isNonIdempotentOpsCompo) {
-							if (isNoOverrideDeltaOnlyOpsCompo && calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
-									Date lastEventInDb = tunedConf.getLastCalculationEnd();
-									LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to tail from " + lastEventInDb);
-									calculatorEvents = calculatorEvents.entrySet().stream()
-										.filter(e -> e.getKey().getDate().after(lastEventInDb))
-										.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-									LOGGER.info("Received (to be stored) " + calculatorEvents.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+						if (isNoOverride) {//Fixing the events boundaries to return only the new ones we want to store with no override of the existing ones
+							if (calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
+								Date lastEventInDb = tunedConf.getLastCalculationEnd();
+								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to tail from " + lastEventInDb);
+								calculatorEvents = calculatorEvents.entrySet().stream()
+									.filter(e -> e.getKey().getDate().after(lastEventInDb))
+									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+								LOGGER.info("Received (to be stored) " + calculatorEvents.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + lastEventInDb + " to " + adjustedEnd);
+							}
+							if (calcBounds.getCalcStatus().equals(CalcStatus.LEFT_INC)) {
+								Date firstEventInDb = tunedConf.getLastCalculationStart();
+								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to head to " + firstEventInDb);
+								calculatorEvents = calculatorEvents.entrySet().stream()
+									.filter(e -> e.getKey().getDate().before(firstEventInDb))
+									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+								LOGGER.info("Received (to be stored) " + calculatorEvents.size() + " events for " + symbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + firstEventInDb);
 							}
 						}
 						
@@ -198,6 +206,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					}
 
 				} else {//No calculation needed
+					
 					LOGGER.info(
 							"Recalculation requested for " + stock + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() +
 							" from " + adjustedStart + " to " + adjustedEnd + ". " +
@@ -205,25 +214,33 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					dirty = false;
 					symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 					symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
-
+					
 				}
 
 			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
-				LOGGER.error(	"Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " +
+				LOGGER.error( "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " +
 								eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
 				dirty = false; //Not recoverable issue
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
-
+				
 			} catch (Throwable e) {
-				// Recoverable??
-				LOGGER.error(
-						"Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and "+
-								eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
-				dirty = true; //Recoverable issue ??
+				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
+				if (isNoOverride) { //We don't want to override the existing calculations even if this round has failed. dirty = false;
+					LOGGER.error( "Failed calculation (isNoOverride: " + isNoOverride + ") for " +
+							stock + " using analysis " + eventListName +  " and " +
+							eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
+					dirty = false;
+				} else {
+					//Recoverable?? => we set dirty to force recalculation
+					LOGGER.error( "Failed (Empty Recoverable??) calculation for " +
+									stock + " using analysis " + eventListName +  " and " +
+									eventInfo.getEventDefinitionRef() + " from " + calcBounds.getPmStart() + " to " + calcBounds.getPmEnd(), e);
+					dirty = true; //Recoverable issue ??
+				}
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
@@ -258,9 +275,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		Class<IndicatorsOperator> eventCompositionCalculator = (Class<IndicatorsOperator>) Class.forName(eventCompositionCalculatorStr);
 		try {
 
-			Constructor<IndicatorsOperator> constructor = 
-					eventCompositionCalculator.getConstructor(
-							EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
+			Constructor<IndicatorsOperator> constructor = eventCompositionCalculator.getConstructor(EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
 			return constructor.newInstance(eventInfo, stock, startDate, endDate, stock.getMarketValuation().getCurrency(), eventListName, observers);
 
 		} catch (InvocationTargetException e) {
@@ -268,7 +283,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				if (e.getCause() instanceof NotEnoughDataException || (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException) ) {
 					LOGGER.warn("Failed calculation : Not Enough Data " + warnMessage(stock, eventInfo.toString(), startDate, endDate));
 				} else {
-					LOGGER.warn("Failed calculation : " + warnMessage(stock, eventInfo.toString(), startDate, endDate)+ " cause : \n" + e.getCause());
+					LOGGER.warn("Failed calculation : " + warnMessage(stock, eventInfo.toString(), startDate, endDate) + " cause : \n" + e.getCause());
 				}
 				if (e.getCause() != null) throw e.getCause();
 			} else if (e.getCause() instanceof ErrorException) {

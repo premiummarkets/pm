@@ -36,6 +36,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
@@ -224,13 +225,11 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	@Transient
 	public BigDecimal getGainTotalPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
 		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
-		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
-		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
 		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Cash in is zero for "+this);
 			return BigDecimal.ZERO;
 		} else {
-			return value.add(cashout).subtract(cashin).divide(cashin, 10, RoundingMode.HALF_EVEN);
+			BigDecimal gainTotal = getGainTotal(currentStartDate, currentEndDate, currency);
+			return gainTotal.divide(cashin, 10, RoundingMode.HALF_EVEN);
 		}
 	}
 
@@ -243,50 +242,24 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	@Transient
-	public BigDecimal getGainUnrealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
-		if (basis.compareTo(BigDecimal.ZERO) == 0) {
-			LOGGER.warn("Basis is zero for " + this);
-			return BigDecimal.ZERO;
-		} else {
-			return getValue(currentStartDate, currentEndDate, currency).subtract(basis).divide(basis, 10, RoundingMode.HALF_EVEN);
-		}
-	}
-
-	@Transient
-	public BigDecimal getGainUnreal(Date currentStartDate, Date currentEndDate, Currency currency) {
+	public Optional<BigDecimal> getPotentialYield(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
+		BigDecimal remainingInvested = cashin.subtract(cashout);
+		if (remainingInvested.compareTo(BigDecimal.ZERO) <= 0) return Optional.empty();
 		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
-		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
-		return value.subtract(basis);
+		if (value.compareTo(BigDecimal.ZERO) == 0) return Optional.of(BigDecimal.ZERO);
+		return Optional.of(value.subtract(remainingInvested).divide(remainingInvested, 10, RoundingMode.HALF_EVEN));
 	}
 
 	@Transient
-	public BigDecimal getGainRealPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
-		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
-		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
-		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Cash in is zero for "+this);
-			return BigDecimal.ZERO;
-		} else {
-			return ( (basis.add(cashout)) .subtract(cashin) ) .divide(cashin, 10, RoundingMode.HALF_EVEN);
-		}
-	}
-
-	@Transient
-	public BigDecimal getGainReal(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal basis = getBasis(currentStartDate, currentEndDate, currency);
-		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
-		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
-		return (basis.add(cashout)).subtract(cashin);
-	}
-
-	@Transient
-	public BigDecimal getGainTotalWeightedPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getInflatWeightedGainTotalPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
 		try {
-			InOutWeighted weightedInOut = getWeightedInvested(currentStartDate, currentEndDate, currency);
-			BigDecimal weightedInvestedStillIn = weightedInOut.getWeightedInvestedStillIn();
-			return 	getValue(currentStartDate, currentEndDate, currency).subtract(weightedInvestedStillIn).divide(weightedInOut.getIn(), 10, RoundingMode.HALF_EVEN); 
+			InOutWeighted cashInOutWeighted = getInflatWeightedInvested(currentStartDate, currentEndDate, currency);
+			BigDecimal cashInSubtractOutWeighted = cashInOutWeighted.getWeightedInvestedStillIn();
+			BigDecimal cashinWeighted = cashInOutWeighted.getIn();
+			BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
+			return 	value.subtract(cashInSubtractOutWeighted).divide(cashinWeighted, 10, RoundingMode.HALF_EVEN); 
 		} catch (ArithmeticException e) {
 			return BigDecimal.ZERO;
 		}
@@ -309,11 +282,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	@Transient
 	public BigDecimal getPriceAvgBuy(Date currentStartDate, Date currentEndDate, Currency currency) {
 		return getPortfolio().getPriceAvgBuyFor(this, currentStartDate, currentEndDate, currency);
-	}
-
-	@Transient
-	public BigDecimal getBasis(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return getPortfolio().getBasisFor(this, currentStartDate, currentEndDate, currency);
 	}
 
 	@Transient
@@ -439,8 +407,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	@Transient
-	public InOutWeighted getWeightedInvested(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return getPortfolio().getWeightedInvestedFor(this, currentEndDate, currency);
+	public InOutWeighted getInflatWeightedInvested(Date currentStartDate, Date currentEndDate, Currency currency) {
+		return getPortfolio().getInflatWeightedInvestedFor(this, currentEndDate, currency);
 	}
 
 	InOutWeighted calculateInflationAndExpectationWeightedInvestedCash(Date currentEndDate, SortedSet<TransactionElement> transactionsForStock, Currency currency)  throws InvalidAlgorithmParameterException {
@@ -582,14 +550,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 * Gets the sell price for zero loss if cash in and out are weighted with inflation ( = inflation weighted avg buy price) : (Ow-Iw)/quantity
 	 */
 	@Transient
-	public BigDecimal getPriceZeroGainWeighted(Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getInflatWeightedZeroGainPrice(Date currentStartDate, Date currentEndDate, Currency currency) {
 
-		InOutWeighted weightedInOut = getWeightedInvested(currentStartDate, currentEndDate, currency);
-		BigDecimal weightedInvested = weightedInOut.getWeightedInvestedStillIn();
+		InOutWeighted cashInOutWeighted = getInflatWeightedInvested(currentStartDate, currentEndDate, currency);
+		BigDecimal cashInSubtractOutWeighted = cashInOutWeighted.getWeightedInvestedStillIn();
 		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
 		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
-		BigDecimal sellLimitGuardPrice = weightedInvested.divide(quantity, 10, RoundingMode.HALF_EVEN);
-		return sellLimitGuardPrice;
+		BigDecimal costPerUnitWeighted = cashInSubtractOutWeighted.divide(quantity, 10, RoundingMode.HALF_EVEN);
+		return costPerUnitWeighted;
 
 	}
 

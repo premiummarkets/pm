@@ -66,7 +66,7 @@ public class TunedConfMgr {
 			NONE, //No calculation is done/required
 			LEFT_INC, RIGHT_INC, //Only a missing (head/tail) increment is calculated
 			RESET, //Delete previous and recalculate from scratch
-			IGNORE //Calculate as requested ignoring the values in db
+			@Deprecated IGNORE //Calculate as requested ignoring the values in db
 		};
 
 	@Autowired
@@ -107,7 +107,7 @@ public class TunedConfMgr {
 	
 	@Deprecated
 	/**
-	 * @deprecated If related to first and second pass IndicatorCalculationThread
+	 * @Deprecated If only related to first and second pass IndicatorCalculationThread. Use @EventStatusCheker instead
 	 * 
 	 * @param tunedConf
 	 * @param stock

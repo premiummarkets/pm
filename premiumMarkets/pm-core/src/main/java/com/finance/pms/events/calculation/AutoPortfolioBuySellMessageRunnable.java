@@ -115,7 +115,7 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyStrategy, buyPonderationRule, sellPonderationRule);
 			sendTransactionHistory(calculationTransactions);
 
-			LOGGER.info("Processing message completed : " + getAnalysisName() + " with " + reducedEvents.size() + " events set(s).");
+			LOGGER.info("Processing message completed: " + getAnalysisName() + " with " + reducedEvents.size() + " events set(s).");
 
 		} catch (Exception e) {
 			LOGGER.error("Error in " + this.toString(), e);

@@ -44,7 +44,7 @@ public class CalculationBounds {
     public String toString() {
     	SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         return "CalculationBounds [calcStatus=" + calcStatus + 
-        		", pmStart=" + df.format(pmStart) + ", pmEnd=" + df.format(pmEnd) + 
+        		", pmStart=" + ((pmStart != null)?df.format(pmStart):"null") + ", pmEnd=" + ((pmEnd != null)?df.format(pmEnd):"null") + 
         		", newTunedConfStart=" + df.format(newTunedConfStart) + ", newTunedConfEnd=" + df.format(newTunedConfEnd) + "]";
     }
 

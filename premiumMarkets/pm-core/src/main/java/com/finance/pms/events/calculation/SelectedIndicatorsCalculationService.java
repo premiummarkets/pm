@@ -78,8 +78,7 @@ public class SelectedIndicatorsCalculationService {
 		futureTracker = new HashSet<>();
 	}
 
-	public List<SymbolEvents> calculate(
-			Date startDate, Date endDate, String eventListName, Map<Stock, List<EventInfo>> stocksEventInfos, Observer... observers) throws IncompleteDataSetException {
+	public List<SymbolEvents> calculate(Date startDate, Date endDate, String eventListName, Map<Stock, List<EventInfo>> stocksEventInfos, Observer... observers) throws IncompleteDataSetException {
 
 		Boolean isDataSetComplete = true;
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
@@ -95,7 +94,7 @@ public class SelectedIndicatorsCalculationService {
 			Arrays.stream(observers).forEach(o -> o.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, obsSize)));
 
 			SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy HH:mm:ss");
-			for(Stock stock: stocksEventInfos.keySet()) {
+			for (Stock stock: stocksEventInfos.keySet()) {
 
 				try {
 
@@ -115,11 +114,11 @@ public class SelectedIndicatorsCalculationService {
 
 				} catch (Exception e1) {
 					LOGGER.warn("Could not proceed with initialisation of calculation for " + stock + ": " + e1.getMessage());
-					//We update the tunedConfs to NOT dirty assuming subsequent calculations will fail as well.
-					stocksEventInfos.get(stock).stream().forEach( ei -> {
-						Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
-						tunedConf.ifPresent(tc -> TunedConfMgr.getInstance().updateConf(tc, false));
-					});
+//					//We update the tunedConfs to NOT dirty assuming subsequent same calculations will fail as well.//XXX would this need a third state like FAILED???
+//					stocksEventInfos.get(stock).stream().forEach( ei -> {
+//						Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
+//						tunedConf.ifPresent(tc -> TunedConfMgr.getInstance().updateConf(tc, false));
+//					});
 					isDataSetComplete = false;
 					failingStocks.add(stock);
 				}
@@ -173,20 +172,21 @@ public class SelectedIndicatorsCalculationService {
 			} catch (Exception e) { 
 				isDataSetComplete = false;
 				if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
-					LOGGER.warn("Intercepted : " + e + " -> IncompleteDataset");
+					LOGGER.warn("Intercepted: " + e + " -> IncompleteDataset");
 				} else {
-					LOGGER.error(e,e);
+					LOGGER.error(e, e);
 				}
 			}
 
 		} catch (Throwable e) {
-			LOGGER.error(e);
+			isDataSetComplete = false;
+			LOGGER.error(e, e);
 		} finally {
 			executor.shutdownNow();
 		}
 
 		if (!isDataSetComplete) {
-			throw new IncompleteDataSetException(failingStocks, allEvents, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned : " + failingStocks);
+			throw new IncompleteDataSetException(failingStocks, allEvents, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned: " + failingStocks);
 		}
 
 		return allEvents;
@@ -199,19 +199,19 @@ public class SelectedIndicatorsCalculationService {
 		if (minimumStartDate.before(startDate) || minimumStartDate.equals(startDate)) {
 			minimumStartDate = startDate;
 		} else {
-			LOGGER.info("Start date calculation adjusted : for stock " + stock.toString() + " is now starting on " + minimumStartDate);
+			LOGGER.info("Start date calculation adjusted: for stock " + stock.toString() + " is now starting on " + minimumStartDate);
 		}
 		if (minimumStartDate.after(endDate) || minimumStartDate.equals(endDate)) {
-			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock " + stock.toString() + " between " + minimumStartDate + " and " + endDate);
+			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds): for stock " + stock.toString() + " between " + minimumStartDate + " and " + endDate);
 		}
 		Date maximumEndDate = TunedConfMgr.getInstance().maximumEndDate(stock);
 		if (maximumEndDate.after(endDate) || maximumEndDate.equals(endDate)) {
 			maximumEndDate = endDate;
 		} else {
-			LOGGER.info("End Date calculation adjusted : events for stock " + stock.toString() + " is now ending on  " + maximumEndDate);
+			LOGGER.info("End Date calculation adjusted: events for stock " + stock.toString() + " is now ending on  " + maximumEndDate);
 		}
 		if (maximumEndDate.before(minimumStartDate) || maximumEndDate.equals(minimumStartDate)) {
-			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds) : for stock " + stock.toString() + " between " + minimumStartDate + " and " + maximumEndDate);
+			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds): for stock " + stock.toString() + " between " + minimumStartDate + " and " + maximumEndDate);
 		}
 
 		return new QuotesBounds(minimumStartDate, maximumEndDate);

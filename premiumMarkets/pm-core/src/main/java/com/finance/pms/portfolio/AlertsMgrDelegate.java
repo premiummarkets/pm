@@ -130,10 +130,11 @@ public class AlertsMgrDelegate {
 		this.removeAlertOnThresholdFor(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT);	
 
 		BigDecimal sellLimitGuardPriceRate;
-		InOutWeighted weightedInOut = latestOnlyPortfolioShare.getWeightedInvested(null, currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
+		InOutWeighted weightedInOut = latestOnlyPortfolioShare.getInflatWeightedInvested(null, currentDate, latestOnlyPortfolioShare.getTransactionCurrency());
 		BigDecimal sellLimitGuardPrice;
 		if (!weightedInOut.isEmpty()) {
 			sellLimitGuardPrice = weightedInOut.getWeightedInvestedStillIn().divide(latestOnlyPortfolioShare.getQuantity(currentDate), 10, RoundingMode.HALF_EVEN);
+			if (sellLimitGuardPrice.compareTo(BigDecimal.ZERO) <= 0) sellLimitGuardPrice = BigDecimal.ZERO;
 			sellLimitGuardPriceRate = (avgBuyPrice.compareTo(BigDecimal.ZERO) > 0)?
 					sellLimitGuardPrice.divide(avgBuyPrice, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4)):
 					BigDecimal.ZERO;

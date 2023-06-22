@@ -301,7 +301,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 						//or
 						//first date <= start && end <= last date
 						else if (endDate.compareTo(lastLineDate) <= 0) {
-							if (startDateShifted.before(firstLineDate)) { //start is beyond: fixing shit to first date
+							if (startDateShifted.before(firstLineDate)) { //start is beyond: fixing shift to first date
 								int fixedShift = QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), firstLineDate, startDate, filterFor);
 								rightShiftGapDataPoints = - (thisOutputRequiredStartShiftFromParent - fixedShift);
 								rightShiftGapDataPoints += -QuotationsFactories.getFactory().nbDataPointsBetweenFor(targetStock.getStock(), firstLineDate, endDate, filterFor);

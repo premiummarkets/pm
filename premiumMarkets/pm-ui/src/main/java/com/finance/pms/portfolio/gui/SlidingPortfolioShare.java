@@ -31,6 +31,7 @@ package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
@@ -89,23 +90,19 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	public InOutWeighted getTodaysWeightedInvested() {
-		return super.getWeightedInvested(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+		return super.getInflatWeightedInvested(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public BigDecimal getTodaysPriceClose() {
 		return super.getPriceClose(calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public BigDecimal getTodaysGainUnrealPercent() {
-		return super.getGainUnrealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
-	}
-
-	public BigDecimal getTodaysGainRealPercent() {
-		return super.getGainRealPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public Optional<BigDecimal> getTodaysPotentialYield() {
+		return super.getPotentialYield(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public BigDecimal getGainTotalWeightedPercent() {
-		return super.getGainTotalWeightedPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+		return super.getInflatWeightedGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public BigDecimal getTodaysValue() {
@@ -113,7 +110,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	public BigDecimal getTodaysPriceZeroGainWeighted() {
-		return super.getPriceZeroGainWeighted(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+		return super.getInflatWeightedZeroGainPrice(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public Date calcSlidingEndDate() {
@@ -155,11 +152,6 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	public Color getColor() {
 		return color;
 	}
-
-	public BigDecimal getTodaysGainUnreal() {
-		return super.getGainUnreal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
-	}
-
 
 	public BigDecimal getTodaysGainTotalPercent() {
 		return super.getGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
@@ -231,10 +223,6 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 
 	public BigDecimal getTodaysGainTotal() {
 		return super.getGainTotal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
-	}
-
-	public BigDecimal getTodaysGainReal() {
-		return super.getGainReal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public Currency getDisplayedCurrency() {

@@ -31,7 +31,7 @@ package com.finance.pms.events.calculation;
 
 public class ErrorException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 3885053975533492747L;
 
 	public ErrorException() {
 		super();
@@ -49,6 +49,4 @@ public class ErrorException extends Exception {
 		super(cause);
 	}
 	
-	
-
 }

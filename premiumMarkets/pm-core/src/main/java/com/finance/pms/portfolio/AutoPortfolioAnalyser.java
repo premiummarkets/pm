@@ -34,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Optional;
 
 import com.finance.pms.events.calculation.DateFactory;
 
@@ -65,16 +66,14 @@ public class AutoPortfolioAnalyser {
 			try {
 				
 				BigDecimal value = ((Portfolio) portfolioWays).getValue(null, nowEndDate);
-				BigDecimal basis = ((Portfolio) portfolioWays).getBasis(null, nowEndDate);
 				BigDecimal gainTotal = ((Portfolio) portfolioWays).getGainTotal(null, nowEndDate);
 				BigDecimal gainTotalPercent = ((Portfolio) portfolioWays).getGainTotalPercent(null, nowEndDate);
-				BigDecimal gainUnReal = ((Portfolio) portfolioWays).getGainUnReal(null, nowEndDate);
-				BigDecimal gainUnRealPercent = ((Portfolio) portfolioWays).getGainUnRealPercent(null, nowEndDate);
-				BigDecimal totalInAmountEver = ((Portfolio) portfolioWays).getTotalInAmountEver(null, nowEndDate);
-				BigDecimal totalOutAmountEver = ((Portfolio) portfolioWays).getTotalOutAmountEver(null, nowEndDate);
+				Optional<BigDecimal> gainUnRealPercent = ((Portfolio) portfolioWays).getPotentialYield(null, nowEndDate);
+				BigDecimal totalInAmountEver = ((Portfolio) portfolioWays).getCashInForAll(null, nowEndDate);
+				BigDecimal totalOutAmountEver = ((Portfolio) portfolioWays).getCashOutForAll(null, nowEndDate);
 				
-				msg = msg + "Value : "+ value + ", Basis : " + basis + "\n";
-				msg = msg +	"GainTotal : " + gainTotal + ", GainUnreal : " + gainUnReal + "\n";
+				msg = msg + "Value : "+ value + "\n";
+				msg = msg +	"GainTotal : " + gainTotal + "\n";
 				msg = msg + "GainTotalPercent : " + gainTotalPercent + ", GainUnRealPercent : " + gainUnRealPercent + "\n";
 				msg = msg + "TotalInAmountEver : " + totalInAmountEver + ", TotalOutAmountEver : " + totalOutAmountEver + "\n" ;
 			

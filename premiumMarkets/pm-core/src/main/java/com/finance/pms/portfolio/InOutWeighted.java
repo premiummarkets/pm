@@ -58,7 +58,7 @@ public class InOutWeighted {
 	
 	BigDecimal getWeightedInvestedStillIn() {
 		BigDecimal weightedInvestedStillIn = in.subtract(out);
-		if (weightedInvestedStillIn.compareTo(BigDecimal.ZERO) < 0) weightedInvestedStillIn = BigDecimal.ZERO;
+		//if (weightedInvestedStillIn.compareTo(BigDecimal.ZERO) < 0) weightedInvestedStillIn = BigDecimal.ZERO;
 		return weightedInvestedStillIn;
 	}
 	

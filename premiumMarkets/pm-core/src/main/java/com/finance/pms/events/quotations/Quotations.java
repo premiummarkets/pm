@@ -164,7 +164,7 @@ public class Quotations {
 			Stock stock, Date firstDate, Date lastDate, Boolean keepCache, Currency targetCurrency, Integer firstIndexLeftShift, 
 			SplitOption splitOption, ValidityFilter... otherFilters) throws NoQuotationsException {
 		
-		MyLogger.threadLocal.set(stock.getSymbol());
+		//MyLogger.threadLocal.set(stock.getSymbol());
 		
 		if (targetCurrency == null) targetCurrency = stock.getMarketValuation().getCurrency(); //TODO use Currency.NAN instead of null
 		this.targetCurrency = targetCurrency;

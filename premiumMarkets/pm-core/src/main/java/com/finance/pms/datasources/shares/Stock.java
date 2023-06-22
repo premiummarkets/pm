@@ -411,7 +411,7 @@ public class Stock implements Validatable {
 
 	@Transient
 	public String getFriendlyName() {
-		return this.getName().replaceAll("([,;/])"," ")+" ("+this.getSymbol()+" / "+this.getIsin()+")";
+		return this.getName().replaceAll("([,;/])"," ") + " (" + this.getSymbol() + " / " + this.getIsin() + ")";
 	}
 
 }

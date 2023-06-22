@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -272,7 +273,6 @@ public class Portfolio extends AbstractSharesList {
 			portfolioShare = new PortfolioShare(this, stock, MonitorLevel.NONE, transactionCurrency);
 			addShareToList(portfolioShare);
 		}
-
 		return portfolioShare;
 
 	}
@@ -307,36 +307,31 @@ public class Portfolio extends AbstractSharesList {
 	@Transient
 	public BigDecimal getGainTotal(Date currentStartDate, Date currentEndDate) {
 		BigDecimal value = this.getValue(currentStartDate, currentEndDate);
-		BigDecimal totalOutAmountEver = getTotalOutAmountEver(currentStartDate, currentEndDate);
-		BigDecimal totalInAmountEver = getTotalInAmountEver(currentStartDate, currentEndDate);
-		return value.add(totalOutAmountEver).subtract(totalInAmountEver);
+		BigDecimal cashout = getCashOutForAll(currentStartDate, currentEndDate);
+		BigDecimal cashin = getCashInForAll(currentStartDate, currentEndDate);
+		return value.add(cashout).subtract(cashin);
 	}
 
 	@Transient
 	public BigDecimal getGainTotalPercent(Date currentStartDate, Date currentEndDate) {
-		BigDecimal basis = this.getBasis(currentStartDate, currentEndDate);
-		if (basis.compareTo(BigDecimal.ZERO) == 0) {
-			if (this.getListShares().size() > 0) LOGGER.warn("getGainTotalPercent : Basis is zero for Portfolio "+this.name+" using dates from "+currentStartDate + " to " + currentEndDate+". Also not empty.");
+		BigDecimal cashin = getCashInForAll(currentStartDate, currentEndDate);
+		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
+			if (this.getListShares().size() > 0) LOGGER.warn("getGainTotalPercent: Cashin is zero for Portfolio " + this.name + " using dates from " + currentStartDate + " to " + currentEndDate + ". Also not empty.");
 			return BigDecimal.ZERO;
 		}
-		BigDecimal gainAmountForDate = this.getGainTotal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(basis, 10, RoundingMode.HALF_EVEN);
+		BigDecimal gainTotalForDate = this.getGainTotal(currentStartDate, currentEndDate);
+		return gainTotalForDate.divide(cashin, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Transient
-	public BigDecimal getGainUnReal(Date currentStartDate, Date currentEndDate) {
-		return this.getValue(currentStartDate, currentEndDate).subtract(this.getBasis(currentStartDate, currentEndDate));
-	}
-
-	@Transient
-	public BigDecimal getGainUnRealPercent(Date currentStartDate, Date currentEndDate) {
-		BigDecimal basis = this.getBasis(currentStartDate, currentEndDate);
-		if (basis.compareTo(BigDecimal.ZERO) == 0) {
-			if (this.getListShares().size() > 0) LOGGER.warn("getGainUnRealPercent : Total basis in is zero for Portfolio "+this.name+" using end dates "+currentStartDate + " to " + currentEndDate+". Also not empty.");
-			return BigDecimal.ZERO;
-		}
-		BigDecimal gainAmountForDate = this.getGainUnReal(currentStartDate, currentEndDate);
-		return gainAmountForDate.divide(basis, 10, RoundingMode.HALF_EVEN);
+	public Optional<BigDecimal> getPotentialYield(Date currentStartDate, Date currentEndDate) {
+		BigDecimal cashin = getCashInForAll(currentStartDate, currentEndDate);
+		BigDecimal cashout = getCashOutForAll(currentStartDate, currentEndDate);
+		BigDecimal remainingInvested = cashin.subtract(cashout);
+		if (remainingInvested.compareTo(BigDecimal.ZERO) <= 0) return Optional.empty();
+		BigDecimal value = this.getValue(currentStartDate, currentEndDate);
+		if (value.compareTo(BigDecimal.ZERO) == 0) return Optional.of(BigDecimal.ZERO);
+		return Optional.of(value.subtract(remainingInvested).divide(remainingInvested, 10, RoundingMode.HALF_EVEN));
 	}
 
 	public void rawRemoveShare(PortfolioShare portfolioShare) {
@@ -389,12 +384,12 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Transient
-	public BigDecimal getTotalInAmountEver(Date currentStartDate, Date currentEndDate) {
-		return getTotalInAmountEver(currentStartDate, currentEndDate, inferPortfolioCurrency());
+	public BigDecimal getCashInForAll(Date currentStartDate, Date currentEndDate) {
+		return getCashInForAll(currentStartDate, currentEndDate, inferPortfolioCurrency());
 	}
 
 	@Transient
-	public BigDecimal getTotalInAmountEver(Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
+	public BigDecimal getCashInForAll(Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal ret = BigDecimal.ZERO;
 		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
 		for (TransactionElement te : headTransactionsTo) {
@@ -407,12 +402,12 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Transient
-	public BigDecimal getTotalOutAmountEver(Date currentStartDate, Date currentEndDate) {
-		return getTotalOutAmountEver(currentStartDate, currentEndDate, inferPortfolioCurrency());
+	public BigDecimal getCashOutForAll(Date currentStartDate, Date currentEndDate) {
+		return getCashOutForAll(currentStartDate, currentEndDate, inferPortfolioCurrency());
 	}
 
 	@Transient
-	public BigDecimal getTotalOutAmountEver(Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
+	public BigDecimal getCashOutForAll(Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
 		BigDecimal ret = BigDecimal.ZERO;
 		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
 		for (TransactionElement te : headTransactionsTo) {
@@ -423,7 +418,6 @@ public class Portfolio extends AbstractSharesList {
 		}
 		return ret.abs();
 	}
-
 
 	public BigDecimal getBasis(Date currentStartDate, Date currentEndDate) {
 
@@ -565,7 +559,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Override
-	public InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
+	public InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
 
 		try {
 			SortedSet<TransactionElement> transactionsForStock = new TreeSet<TransactionElement>();

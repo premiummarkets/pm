@@ -66,7 +66,7 @@ public class IndepShareList extends AbstractSharesList {
 	}
 
 	@Override
-	public InOutWeighted getWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
+	public InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
 		return new InOutWeighted(BigDecimal.ONE, BigDecimal.ZERO, currentEndDate);
 	}
 

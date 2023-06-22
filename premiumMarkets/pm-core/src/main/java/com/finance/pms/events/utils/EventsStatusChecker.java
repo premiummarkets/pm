@@ -39,7 +39,7 @@ public class EventsStatusChecker {
         }
     }
 
-    public CalculationBounds autoCalcAndSetDatesBounds(Date startDate, Date endDate) throws InvalidAlgorithmParameterException {
+    public CalculationBounds autoCalcAndSetDatesBounds(Date startDate, Date endDate, boolean isNoOverride) throws InvalidAlgorithmParameterException {
         
         endDateToLastEventConsistencyCheck(endDate);
         
@@ -60,9 +60,9 @@ public class EventsStatusChecker {
 		
 		if (currentTunedConfEnd.equals(DateFactory.dateAtZero())) {//No previous calculation
             LOGGER.info(
-                    "New dates for " + stock + ": No previous event was found for this calculation => IGNORE first calculation. "  +
+                    "New dates for " + stock + ": No previous event was found for this calculation => RESET. First calculation. "  +
                     calcIsFrom + calcWasFrom + "New calculation will be from " + startDateStr + " to " + endDateStr);
-            return new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, startDate, endDate);
+            return new CalculationBounds(CalcStatus.RESET, startDate, endDate, startDate, endDate);
         }
 
         //New calculation is fully outside previous => RESET to avoid blank gaps
@@ -75,21 +75,29 @@ public class EventsStatusChecker {
 
         //New calculation ends within previous => LEFT_INC
         if (startDate.compareTo(currentTunedConfStart) < 0 && endDate.compareTo(currentTunedConfStart) >= 0 && endDate.compareTo(currentTunedConfEnd) <= 0) {
+        	Date rightIncCalcEnd = currentTunedConfEnd;
+        	if (isNoOverride) {
+        		rightIncCalcEnd = endDate;
+        	}
             LOGGER.info(
                     "New dates for " + stock + ": New calculation ends within previous => LEFT_INC. " +
                     calcIsFrom + calcWasFrom +  "New calculation will be from " + startDateStr + " to " +  currCfStartStr);
-            return new CalculationBounds(CalcStatus.LEFT_INC, startDate, currentTunedConfStart, startDate, currentTunedConfEnd);
+            return new CalculationBounds(CalcStatus.LEFT_INC, startDate, rightIncCalcEnd, startDate, currentTunedConfEnd);
         }
 
         //New calculation starts within previous => RIGHT_INC
         if (startDate.compareTo(currentTunedConfStart) >= 0 && startDate.compareTo(currentTunedConfEnd) <= 0 && endDate.compareTo(currentTunedConfEnd) > 0) {
+            Date rightIncCalcStart = currentTunedConfEnd;
+        	if (isNoOverride) {
+        		rightIncCalcStart = startDate;
+        	}
             LOGGER.info(
                     "New dates for " + stock + ": New calculation starts within previous => RIGHT_INC. " +
                     calcIsFrom + calcWasFrom +  "New calculation will be from " + currCfEndStr + " to " + endDateStr);
-            return new CalculationBounds(CalcStatus.RIGHT_INC, currentTunedConfEnd, endDate, currentTunedConfStart, endDate);
+			return new CalculationBounds(CalcStatus.RIGHT_INC, rightIncCalcStart, endDate, currentTunedConfStart, endDate);
         }
 
-        //New calculation fully within previous => NONE
+        //New calculation fully within previous => NONE. It being noOverride or not, we don't do any recalculation
         if (startDate.compareTo(currentTunedConfStart) >= 0 && endDate.compareTo(currentTunedConfEnd) <= 0) {
             LOGGER.info(
                     "New dates for " + stock + ": New calculation fully within previous => NONE. " +
