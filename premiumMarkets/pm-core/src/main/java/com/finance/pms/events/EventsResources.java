@@ -1127,9 +1127,16 @@ public class EventsResources {
 	 * @param indicators
 	 */
 	public void crudDeleteEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
+		
+		if (indicators.length == 0) return;
 
 		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
 
+		//Check removable
+		if (!TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, indicators)) {
+			throw new RuntimeException("Can't delete analysis: " + stock + " and " + analysisName + " and " + indicators + " as it contains non removable events!");
+		}
+		
 		for (EventInfo eventInfo : indicators) {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 		}
@@ -1156,13 +1163,20 @@ public class EventsResources {
 			DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
 		}
 
-		//For safe consistency
-		TunedConfMgr.getInstance().resetTunedConfDatesFor(stock, analysisName, indicators);
+		//Reset confs
+		TunedConfMgr.getInstance().resetTunedConfFor(stock, analysisName, indicators);
 	}
 
 	public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
+		
+		if (indicators.length == 0) return;
 
 		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
+		
+		//Check removable
+		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName, indicators)) {
+			throw new RuntimeException("Can't delete analysis: " + analysisName + " and " + indicators + " as it contains non removable events!");
+		}
 
 		Date datedeb = DateFactory.DEFAULT_DATE;
 		Date datefin = DateFactory.getNowEndDate();
@@ -1192,13 +1206,30 @@ public class EventsResources {
 			DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
 		}
 
-		//For safe consistency
-		TunedConfMgr.getInstance().resetTunedConfDatesFor(analysisName, indicators);
+		//Reset confs
+		TunedConfMgr.getInstance().resetTunedConfFor(analysisName, indicators);
+	}
+	
+	/**
+	 * @deprecated use crudDeleteForciblyEventsForAnalysisName as analysis clean should always ignore the isRemovable tag
+	 */
+	@Deprecated
+	public void crudDeleteEventsForAnalysisName(String analysisName) {
+		//Check removable
+		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
+			throw new RuntimeException("Can't delete analysis: " + analysisName + " as it contains non removable events!");
+		}
+		crudDeleteForciblyEventsForAnalysisName(analysisName);
 	}
 
-	public void crudDeleteEventsForAnalysisName(String analysisName) {
+	public void crudDeleteForciblyEventsForAnalysisName(String analysisName) {
 
 		LOGGER.info("DELETE events for " + analysisName);
+		
+		//Check removable
+		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
+			throw new RuntimeException("Can't delete analysis: " + analysisName + " as it contains non removable events!");
+		}
 
 		//Cache
 		if (isEventCached) {
@@ -1216,8 +1247,8 @@ public class EventsResources {
 			DataSource.getInstance().cleanEventsForAnalysisName(EVENTSTABLE, analysisName);
 		}
 
-		//For safe consistency
-		TunedConfMgr.getInstance().resetTunedConfDatesFor(analysisName);
+		//Reset confs
+		TunedConfMgr.getInstance().resetTunedConfFor(analysisName);
 	}
 
 	public void cleanPersistedEventsCache() throws SQLException {

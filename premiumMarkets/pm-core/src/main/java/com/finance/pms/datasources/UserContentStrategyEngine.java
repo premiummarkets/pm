@@ -55,13 +55,13 @@ import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateExce
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
-import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -134,12 +134,12 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 								.filter(e -> e instanceof EventDefinition)
 								.map(e -> ((EventInfo) e))
 								.toArray(EventInfo[]::new);
-						TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), eiArray);
+						EventsResources.getInstance().crudDeleteEventsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), eiArray);
 
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
-								.filter(e -> e instanceof  EventInfoOpsCompoOperation)
-								.forEach(e -> TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), new EventInfo[]{((EventInfoOpsCompoOperation) e)}));
+								.filter(e -> e instanceof EventInfoOpsCompoOperation)
+								.forEach(e -> EventsResources.getInstance().crudDeleteEventsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), (EventInfoOpsCompoOperation) e));
 					});
 					viewStateParams[1] = null;
 				}
@@ -222,7 +222,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					". Will delete : " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
 			
 			if (eventDefsArray.length > 0) { //None selected means no delete
-				TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock((Stock)stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
+				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
 			}
 
 			for (Observer observer : engineObservers) {

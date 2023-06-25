@@ -61,8 +61,8 @@ public class EventsStatusCheckerTest {
         Date previousStart = simpleDateFormat.parse("2009-12-21");
         Date previousEnd = simpleDateFormat.parse("2017-12-20");
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -71,7 +71,7 @@ public class EventsStatusCheckerTest {
         checker = new EventsStatusChecker(tunedConf);
         
         //when
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(previousStart, previousEnd, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(previousStart, previousEnd, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.NONE, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -88,8 +88,8 @@ public class EventsStatusCheckerTest {
         Date previousStart = DateFactory.dateAtZero(); //simpleDateFormat.parse("2009-12-21");
         Date previousEnd = DateFactory.dateAtZero(); //simpleDateFormat.parse("2017-12-20");
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -100,7 +100,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-21");
         Date endRequested = simpleDateFormat.parse("2017-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.IGNORE, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -119,8 +119,8 @@ public class EventsStatusCheckerTest {
         Date previousEnd = simpleDateFormat.parse("2017-12-20");
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -131,7 +131,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-20");
         Date endRequested = simpleDateFormat.parse("2017-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -149,8 +149,8 @@ public class EventsStatusCheckerTest {
         Date previousEnd = simpleDateFormat.parse("2017-12-20");
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -161,7 +161,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-21");
         Date endRequested = simpleDateFormat.parse("2017-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -179,8 +179,8 @@ public class EventsStatusCheckerTest {
         Date previousEnd = simpleDateFormat.parse("2015-12-20");
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -191,7 +191,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2010-12-21");
         Date endRequested = simpleDateFormat.parse("2017-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -209,8 +209,8 @@ public class EventsStatusCheckerTest {
         Date previousEnd = simpleDateFormat.parse("2015-12-20");
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -221,7 +221,7 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2008-12-21");
         Date endRequested = simpleDateFormat.parse("2012-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
@@ -240,8 +240,8 @@ public class EventsStatusCheckerTest {
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
 
         
         PowerMock.replayAll();
@@ -251,10 +251,10 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2009-12-20");
         Date endRequested = simpleDateFormat.parse("2017-12-21");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.RESET, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.FULL_RANGE, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
@@ -269,8 +269,8 @@ public class EventsStatusCheckerTest {
         Date previousEnd = simpleDateFormat.parse("2017-12-20");
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -281,10 +281,10 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2000-12-20");
         Date endRequested = simpleDateFormat.parse("2009-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.RESET, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.FULL_RANGE, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
@@ -299,8 +299,8 @@ public class EventsStatusCheckerTest {
         Date previousEnd = simpleDateFormat.parse("2017-12-20");
         
 
-        EasyMock.expect(tunedConf.getLastCalculationStart()).andReturn(previousStart);
-        EasyMock.expect(tunedConf.getLastCalculationEnd()).andReturn(previousEnd);
+        EasyMock.expect(tunedConf.getFisrtStoredEventCalculationStart()).andReturn(previousStart);
+        EasyMock.expect(tunedConf.getLastStoredEventCalculationEnd()).andReturn(previousEnd);
         EasyMock.expect(tunedConf.getTunedConfId()).andReturn(new TunedConfId(stock, analysisName, eventDef.getEventDefinitionRef()));
 
         
@@ -311,10 +311,10 @@ public class EventsStatusCheckerTest {
         //when
         Date startRequested = simpleDateFormat.parse("2017-12-21");
         Date endRequested = simpleDateFormat.parse("2019-12-20");
-        CalculationBounds autoCalcAndSetDatesBounds = checker.autoCalcAndSetDatesBounds(startRequested, endRequested, false);
+        CalculationBounds autoCalcAndSetDatesBounds = checker.setDatesBounds(startRequested, endRequested, false);
         
         //then
-        assertEquals(TunedConfMgr.CalcStatus.RESET, autoCalcAndSetDatesBounds.getCalcStatus());
+        assertEquals(TunedConfMgr.CalcStatus.FULL_RANGE, autoCalcAndSetDatesBounds.getCalcStatus());
         assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
         assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
         assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());

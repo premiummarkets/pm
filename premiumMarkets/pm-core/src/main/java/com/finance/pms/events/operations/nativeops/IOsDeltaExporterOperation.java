@@ -257,12 +257,14 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).getParameter();
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
-		if (Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getParameter()).getValue(targetStock))) {
+		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getParameter()).getValue(targetStock));
+		if (isAppending) {
 			
 			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 			
 			boolean fileExists = Files.exists(Path.of(URI.create("file://" + baseFilePath))) && new File(baseFilePath).length() > 0;
 			if (!fileExists) {
+				LOGGER.info("Re initialising. File does not exists: " + baseFilePath); 
 				isInit = true;
 			} else {
 				
@@ -291,6 +293,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 
 						//Check date intersections 
 						if (firstLineDate == null || lastLineDate == null) {
+							LOGGER.info("Re initialising. File is empty: " + baseFilePath); 
 							isInit = true;
 						}
 						//start || end < first date
@@ -352,12 +355,13 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 					}
 					
 				} catch (NotEnoughDataException | NoQuotationsException e) {
-					isInit = true;
 					LOGGER.warn("Using " + baseFilePath + ". Append was requested but is not possible: " + e);
+					isInit = true;
 				}
 			}
 			
 		} else {
+			LOGGER.info("Re initialising. Appending was not requested. isAppending: " + isAppending); 
 			isInit = true;
 		}
 		
@@ -374,8 +378,10 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 			
 			LOGGER.info("NOT APPENDING. Append was requested but is NOT POSSIBLE as the file is empty, inexistent or corrupted. " +
 					"Using " + baseFilePath + ". " +
-					"Delta shift fix TRANSLATED in DATA POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
-					"+ input shift " + lagAmount + " required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " +  ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount +leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+					"Delta shift fix TRANSLATED in DATA POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " + 
+					dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+					"+ input shift " + lagAmount + " required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " +  ": " + 
+					dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints + lagAmount)) + ". " +
 					"Requested boundaries: ["+ dflog.format(startDateShifted) + "," + dflog.format(endDate) + "]. " +
 					"Resulting outputs ranges: " + 
 					"operands Output: " +

@@ -48,7 +48,6 @@ import com.finance.pms.datasources.events.OnTheFlyRevesreCalcPeriod;
 import com.finance.pms.datasources.events.TunedConfDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.QuotationDataType;
@@ -65,7 +64,7 @@ public class TunedConfMgr {
 	public enum CalcStatus {
 			NONE, //No calculation is done/required
 			LEFT_INC, RIGHT_INC, //Only a missing (head/tail) increment is calculated
-			RESET, //Delete previous and recalculate from scratch
+			FULL_RANGE, //Delete previous and recalculate from scratch
 			@Deprecated IGNORE //Calculate as requested ignoring the values in db
 		};
 
@@ -86,8 +85,8 @@ public class TunedConfMgr {
 		return Optional.ofNullable(stockPrevTunedConf);
 	}
 	
-	public synchronized TunedConf saveUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition) {
-			TunedConf newTunedConf = new TunedConf(stock, configListFileName, eventDefinition);
+	public synchronized TunedConf saveUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition, Boolean isRemovable) {
+			TunedConf newTunedConf = new TunedConf(stock, configListFileName, eventDefinition, isRemovable);
 			tunedConfDAO.saveOrUpdateTunedConfs(newTunedConf);
 			return newTunedConf;
 	}
@@ -118,7 +117,7 @@ public class TunedConfMgr {
 	public CalculationBounds autoCalcAndSetDatesBounds(TunedConf tunedConf, Stock stock, Date startDate, Date endDate) {
 
 		LOGGER.info(
-				stock.getSymbol() + " TunedConf before calculating bounds from " + tunedConf.getLastCalculationStart() + " to " + tunedConf.getLastCalculationEnd() + ". " +
+				stock.getSymbol() + " TunedConf before calculating bounds from " + tunedConf.getFisrtStoredEventCalculationStart() + " to " + tunedConf.getLastStoredEventCalculationEnd() + ". " +
 				"Requested calculation is from " + startDate + " to " + endDate + ". "
 				);
 
@@ -130,32 +129,32 @@ public class TunedConfMgr {
 		//What is the start date for this calculation
 		Date pmEvtsCalcStart = null;
 		String infoMsg = "";
-		if (!startDate.before(tunedConf.getLastCalculationStart()) && !startDate.after(tunedConf.getLastCalculationEnd())) {//start is included into the last calculation
+		if (!startDate.before(tunedConf.getFisrtStoredEventCalculationStart()) && !startDate.after(tunedConf.getLastStoredEventCalculationEnd())) {//start is included into the last calculation
 			//inc calc, tuned config start stays the same
 			pmEvtsCalcStart = startDate;
 			calcStatus = CalcStatus.RIGHT_INC;
-			infoMsg = "New dates for "+stock+" starts within the previous calc : we do INCREMENTAL calc. ";
+			infoMsg = "New dates for " + stock + " starts within the previous calc : we do INCREMENTAL calc. ";
 
 		} else {//start outside the last calculation
 			//recalc from new date, reset tuned start
 			pmEvtsCalcStart = startDate;
-			tunedConf.setLastCalculationStart(pmEvtsCalcStart);
-			calcStatus = CalcStatus.RESET;
-			infoMsg = "New dates for "+stock+" DO NOT starts within the previous calc : we RESET the calculation dates. " ;
+			tunedConf.setFisrtStoredEventCalculationStart(pmEvtsCalcStart);
+			calcStatus = CalcStatus.FULL_RANGE;
+			infoMsg = "New dates for " + stock + " DO NOT starts within the previous calc : we RESET the calculation dates. " ;
 
 		}
 
 		//What is the end date for this calculation
 		Date pmEvtsCalcEnd = null;
-		boolean newEndSpansAfterPreviousCalc = endDate.after(tunedConf.getLastCalculationEnd());
-		if (calcStatus.equals(CalcStatus.RESET)) {//End date outside previous calc (ie Reset calc)
+		boolean newEndSpansAfterPreviousCalc = endDate.after(tunedConf.getLastStoredEventCalculationEnd());
+		if (calcStatus.equals(CalcStatus.FULL_RANGE)) {//End date outside previous calc (ie Reset calc)
 			pmEvtsCalcEnd = endDate;
-			tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
+			tunedConf.setLastStoredEventCalculationEnd(pmEvtsCalcEnd);
 		}
 		else if (calcStatus.equals(CalcStatus.RIGHT_INC)) {//Start date within previous calc
 			if (newEndSpansAfterPreviousCalc) { //End date after previous calc => inc calc
 				pmEvtsCalcEnd = endDate;
-				tunedConf.setLastCalculationEnd(pmEvtsCalcEnd);
+				tunedConf.setLastStoredEventCalculationEnd(pmEvtsCalcEnd);
 			} else { //End date within the previous calc => no re calc needed
 				calcStatus = CalcStatus.NONE;
 			}
@@ -163,7 +162,7 @@ public class TunedConfMgr {
 
 		LOGGER.info(
 				infoMsg +
-				"TunedConf after calculating bounds from " + tunedConf.getLastCalculationStart() + " to " + tunedConf.getLastCalculationEnd() + 
+				"TunedConf after calculating bounds from " + tunedConf.getFisrtStoredEventCalculationStart() + " to " + tunedConf.getLastStoredEventCalculationEnd() + 
 				". Requested calculation is from " + startDate + " to " + endDate + ". " + 
 				"New calculation status is " + calcStatus + " and will either be from " + pmEvtsCalcStart + " to " + pmEvtsCalcEnd  + " or is not needed if " + CalcStatus.NONE + ".");
 
@@ -171,22 +170,14 @@ public class TunedConfMgr {
 
 	}
 
-	private void setDirty(TunedConf tunedConf) {
-		updateConf(tunedConf, true, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
+	private void resetTunedConf(TunedConf tunedConf) {
+		updateConf(tunedConf, DateFactory.dateAtZero(), DateFactory.dateAtZero());
 	}
 
-	private void resetDates(TunedConf tunedConf) {
-		updateConf(tunedConf, tunedConf.getDirty(), DateFactory.dateAtZero(), DateFactory.dateAtZero());
-	}
-
-	public void updateConf(TunedConf tunedConf, Boolean dirty) {
-		this.updateConf(tunedConf, dirty, tunedConf.getLastCalculationStart(), tunedConf.getLastCalculationEnd());
-	}
-
-	public void updateConf(TunedConf tunedConf, Boolean dirty, Date lastCalculationStart, Date lastCalculationEnd) {
-		tunedConf.setLastCalculationStart(lastCalculationStart);
-		tunedConf.setLastCalculationEnd(lastCalculationEnd);
-		tunedConf.setDirty(dirty);
+	public void updateConf(TunedConf tunedConf, Date lastCalculationStart, Date lastCalculationEnd) {
+		tunedConf.setFisrtStoredEventCalculationStart(lastCalculationStart);
+		tunedConf.setLastStoredEventCalculationEnd(lastCalculationEnd);
+		//tunedConf.setStaled(dirty);
 		tunedConfDAO.saveOrUpdateTunedConfs(tunedConf);
 	}
 
@@ -196,7 +187,7 @@ public class TunedConfMgr {
 		return periodSpliter.splitBackward(dateDeb, dateFin, tuneFreq, Calendar.MONTH);
 	}
 
-	public Date minimumStartDate(Stock stock) throws NotEnoughDataException {//200 days after first quotation available
+	public Date minimumStartDate(Stock stock) throws NotEnoughDataException {
 		Date firstQuotationDateFromQuotations = DataSource.getInstance().getFirstQuotationDateFromQuotations((Stock) stock);
 		Calendar adjustedStartCal = Calendar.getInstance();
 		adjustedStartCal.setTime(firstQuotationDateFromQuotations);
@@ -217,12 +208,12 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void resetTunedConfDatesFor(String analysisName, EventInfo... indicators) { 
+	public void resetTunedConfFor(String analysisName, EventInfo... indicators) { 
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		loadAllTunedConfs.stream()
-		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
-		.forEach(tc -> resetDates(tc));
+		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
+		.forEach(tc -> resetTunedConf(tc));
 	}
 
 	/**
@@ -232,61 +223,31 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void resetTunedConfDatesFor(Stock stock, String analysisName, EventInfo[] indicators) {
+	public void resetTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
+		if (indicators.length == 0) throw new UnsupportedOperationException();
 		for(EventInfo ei: indicators) {
 			Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-			if (tc.isPresent()) resetDates(tc.get());
+			if (tc.isPresent()) resetTunedConf(tc.get());
 		}
-	}
-
-	/**
-	 * Deletes Events, Reset calculation dates AND set Dirty.
-	 * @param analysisName
-	 * @param indicators
-	 */
-	public void deleteEventsDirtyConfsForIndicators(String analysisName, EventInfo... indicators) {
-		
-		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
-
-		if (indicators != null && indicators.length > 0) {
-			EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, indicators);
-
-			List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
-			loadAllTunedConfs.stream()
-				.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && eis.contains(tc.getTunedConfId().getEventDefinition()))
-				.forEach(tc -> setDirty(tc));
-		}
-
 	}
 	
-	public void deleteEventsDirtyConfsForAnalysisName(String analysisName) {
-			
-		EventsResources.getInstance().crudDeleteEventsForAnalysisName(analysisName);
-
+	public boolean isRemovableFor(String analysisName, EventInfo... indicators) {
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
-		loadAllTunedConfs.stream()
-			.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName))
-			.forEach(tc -> setDirty(tc));
+		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
+		return loadAllTunedConfs.stream()
+		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
+		.map(tc -> tc.getIsRemovable())
+		.reduce(true, (a, isRm) -> a && isRm);
+	}
 	
+	public boolean isRemovableFor(Stock stock, String analysisName, EventInfo[] indicators) {
+		if (indicators.length == 0) throw new UnsupportedOperationException();
+		return Arrays.stream(indicators)
+			.map(ei -> {
+				Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
+				return tc.map(a -> a.getIsRemovable()).orElse(true);
+			})
+			.reduce(true, (a, isRm) -> a && isRm);
 	}
-
-	/**
-	 * Deletes Events, Reset calculation dates AND set Dirty. //XXX FIXME separation of concern
-	 * @param stock
-	 * @param analysisName
-	 * @param indicators
-	 */
-	public void deleteEventsDirtyConfsForStock(Stock stock, String analysisName, EventInfo... indicators) {
-
-		if (indicators != null && indicators.length > 0) {
-			EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, indicators);
-
-			for(EventInfo ei: indicators) {
-				Optional<TunedConf> storedTunedConf = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-				storedTunedConf.ifPresent(tc -> setDirty(tc));
-			}
-		}
-
-	}
-
+	
 }

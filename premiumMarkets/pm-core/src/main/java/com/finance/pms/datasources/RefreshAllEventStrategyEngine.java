@@ -50,11 +50,11 @@ import com.finance.pms.datasources.web.MarketListProvider;
 import com.finance.pms.datasources.web.ProvidersList;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
-import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.portfolio.SharesList;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -148,7 +148,7 @@ public class RefreshAllEventStrategyEngine extends EventModelStrategyEngine<Coll
 		tamperEventConfig((Collection<EventInfo>) viewStateParams[0]);
 
 		EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
-		TunedConfMgr.getInstance().deleteEventsDirtyConfsForIndicators(SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
+		EventsResources.getInstance().crudDeleteEventsForIndicators(SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
 
 		//Delete all
 		postCallBackForClean(true);

@@ -49,6 +49,7 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
+import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.FormulaUtils;
@@ -62,8 +63,6 @@ import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
-import com.finance.pms.events.scoring.TunedConf;
-import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
  * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
@@ -239,14 +238,13 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+		 
+		Boolean isIdempotent = isIdemPotent(targetStock);
+		Boolean forbidEventsOverride = isNoOverrideDeltaOnly(targetStock);
 		
-		Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(targetStock.getStock(), targetStock.getAnalysisName(), this.getEventDefinitionRef());
-		Boolean hasPreviousCalculations = tunedConf.isPresent();
-		Boolean hasDirtyCalculations = hasPreviousCalculations && tunedConf.get().getDirty(); 
-		Boolean isNotIdempotent = !isIdemPotent(targetStock);
-		Boolean grantsEventsOverride = !isNoOverrideDeltaOnly(targetStock);
+		boolean isAlterableOverridable = !isIdempotent && !forbidEventsOverride;
 		
-		if (hasDirtyCalculations || (hasPreviousCalculations && isNotIdempotent && grantsEventsOverride) ) {
+		if (isAlterableOverridable) {
 			//EventsResources.getInstance().crudDeleteEventsForStock(targetStock.getStock(), targetStock.getAnalysisName(), new EventInfo[] {this});
 			invalidateAllNonIdempotentOperands(targetStock, targetStock.getAnalysisName(), Optional.of(targetStock.getStock()));
 		}
@@ -257,9 +255,9 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		if (stock.isPresent()) {
-			TunedConfMgr.getInstance().deleteEventsDirtyConfsForStock(stock.get(), analysisName, this);
+			EventsResources.getInstance().crudDeleteEventsForStock(stock.get(), analysisName, this);
 		} else {
-			TunedConfMgr.getInstance().deleteEventsDirtyConfsForIndicators(analysisName, this);
+			EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, this);
 		}
 	}
 

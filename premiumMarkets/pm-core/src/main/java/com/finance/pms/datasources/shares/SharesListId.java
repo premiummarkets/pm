@@ -262,23 +262,25 @@ public class SharesListId  {
 			}
 		}
 			
-		try (Reader in = new FileReader(marketListFilePath.toFile());) {
-			JsonArray marketJsons = new JsonParser().parse(in).getAsJsonArray();
-			for (JsonElement marketElement : marketJsons) {
-				JsonObject market = marketElement.getAsJsonObject();
-				JsonArray indexJsonArray = market.get("index").getAsJsonArray();
-				if (indexJsonArray.size() > 0) {
-					for (JsonElement indiceElement : indexJsonArray) {
-						JsonObject indice = indiceElement.getAsJsonObject();
-						String[] indiceSplit = indice.get("id").getAsString().split(":"); // <= NASDAQ:NDX
-						ret.add(indiceSplit[1] + ":" + indiceSplit[0]); // => NDX:NASDAQ
+		if (Files.exists(marketListFilePath)) {
+			try (Reader in = new FileReader(marketListFilePath.toFile());) {
+				JsonArray marketJsons = new JsonParser().parse(in).getAsJsonArray();
+				for (JsonElement marketElement : marketJsons) {
+					JsonObject market = marketElement.getAsJsonObject();
+					JsonArray indexJsonArray = market.get("index").getAsJsonArray();
+					if (indexJsonArray.size() > 0) {
+						for (JsonElement indiceElement : indexJsonArray) {
+							JsonObject indice = indiceElement.getAsJsonObject();
+							String[] indiceSplit = indice.get("id").getAsString().split(":"); // <= NASDAQ:NDX
+							ret.add(indiceSplit[1] + ":" + indiceSplit[0]); // => NDX:NASDAQ
+						}
+					} else {
+						ret.add("ALL:" + market.get("market").getAsString().toUpperCase()); // => ALL:AMERICA
 					}
-				} else {
-					ret.add("ALL:" + market.get("market").getAsString().toUpperCase()); // => ALL:AMERICA
 				}
+			} catch (Exception e) {
+				LOGGER.error(e, e);
 			}
-		} catch (Exception e) {
-			LOGGER.error(e, e);
 		}
 		
 		return ret.toArray(new String[0]);

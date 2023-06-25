@@ -58,6 +58,8 @@ import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -166,18 +168,22 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 					ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, IndicatorsCalculationThread.this.configs.get(Config.EVENT_SIGNAL_NAME));
 					ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME, IndicatorsCalculationThread.this.configs.get(Config.INDICATOR_PARAMS_NAME));
 
-					Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
-					TunedConf tunedConf = (tunedConfOpt.isPresent())?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, evtCalculator.getEventDefinition().getEventDefinitionRef());
 					try {
-						//The check on dirty is just a safe check as making dirty should also have previously deleted the events.
-						if (!evtCalculator.isIdemPotent() || tunedConf.getDirty()) {
-							cleanEventsFor(stock, evtCalculator.getEventDefinition(), eventListName);
+						
+						EventInfo eventInfo = evtCalculator.getEventDefinition();
+						TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, DateFactory.dateAtZero(), DateFactory.dateAtZero());
+						boolean grantsEventsOverride = !(eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock));
+						
+						Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+						boolean hasPreviousCalculations = tunedConfOpt.isPresent();
+						TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), grantsEventsOverride);
+	
+						boolean isIdempotent = evtCalculator.isIdemPotent();
+						boolean isAlterableOveridable = !isIdempotent && grantsEventsOverride;
+						
+						if (isAlterableOveridable) {
+							cleanEventsFor(stock, eventInfo, eventListName);
 						}
-					} catch (Exception e) {
-						LOGGER.error(e,e);
-					}
-
-					try {
 
 						synchronized (tunedConf) {
 
@@ -188,9 +194,9 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 							}
 							if (passOneCalcMode.equals("reset")) {
 								endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
-								tunedConf.setLastCalculationStart(startDate);
-								tunedConf.setLastCalculationEnd(endDate);
-								calculationBounds = new CalculationBounds(CalcStatus.RESET, startDate, endDate, null, null);
+								tunedConf.setFisrtStoredEventCalculationStart(startDate);
+								tunedConf.setLastStoredEventCalculationEnd(endDate);
+								calculationBounds = new CalculationBounds(CalcStatus.FULL_RANGE, startDate, endDate, null, null);
 							}
 
 							startDate = calculationBounds.getPmStart();
@@ -205,47 +211,47 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 									if (calculatedEventsForCalculator != null && !calculatedEventsForCalculator.isEmpty()) {
 										//Add events to total
-										symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
+										symbolEventsForStock.addEventResultElement(calculatedEventsForCalculator, eventInfo);
 
 										//Add events to composer and send
 										SymbolEvents symbolEventsForStockAndCalculator = new SymbolEvents(stock);
-										symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, evtCalculator.getEventDefinition());
-										sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), evtCalculator.getEventDefinition());
+										symbolEventsForStockAndCalculator.addEventResultElement(calculatedEventsForCalculator, eventInfo);
+										sendEvent(eventListName, symbolEventsForStockAndCalculator, evtCalculator.getSource(), calculatedEventsForCalculator.lastKey().getEventType(), eventInfo);
 									}
 									//Add output to total
-									symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), evtCalculator.calculationOutput());
+									symbolEventsForStock.addCalculationOutput(eventInfo, evtCalculator.calculationOutput());
 
 								} catch (NoQuotationsException | TalibException e) {
 									LOGGER.warn(e);
-									failing.add(evtCalculator.getEventDefinition());
-									symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+									failing.add(eventInfo);
+									symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
 								} catch (Exception e) {
 									LOGGER.error(e, e);
-									failing.add(evtCalculator.getEventDefinition());
-									symbolEventsForStock.addCalculationOutput(evtCalculator.getEventDefinition(), new TreeMap<Date, double[]>());
+									failing.add(eventInfo);
+									symbolEventsForStock.addCalculationOutput(eventInfo, new TreeMap<Date, double[]>());
 								}
 
 							} else {
 								LOGGER.info(
-										"Events recalculation requested for "+stock.getSymbol()+" and "+evtCalculator.getEventDefinition().getEventDefinitionRef()+" using analysis "+eventListName+" from "+startDate+" to "+endDate+". "+
-												"No recalculation needed calculation bound is "+ calculationBounds.toString());
+										"Events recalculation requested for " + stock.getSymbol() + " and " + eventInfo.getEventDefinitionRef() + " using analysis " + eventListName + " from " + startDate + " to " + endDate + ". " + 
+												"No recalculation needed calculation bound is " + calculationBounds.toString());
 							}
 
 							if (!failing.isEmpty()) {//Error(s) as occurred. This should invalidate tuned conf
 								if (LOGGER.isEnabledFor(Level.ERROR)) {
-									failing.stream().forEach(e ->  LOGGER.error("Failing calculation : "+e));
+									failing.stream().forEach(e ->  LOGGER.error("Failing calculation : " + e));
 								}
 								//We will make the tunedConf clean assuming a subsequent calculation will also fail. FIXME calculation date have been changed however.
 							}
 
 						}//End synchronized
 
-					} catch (InvalidAlgorithmParameterException e) {
-						LOGGER.error(e);
+					} catch (Exception e) {
+						LOGGER.error(e, e);
 					} finally {
 						//We update the tunedConf
 						//Dirty is set to false as we assume that no retry will occur in case of failure?
-						TunedConfMgr.getInstance().updateConf(tunedConf, false);
+						//TunedConfMgr.getInstance().updateConf(tunedConf, false);
 					}
 				}
 			};

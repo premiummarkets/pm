@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -25,7 +24,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ObserverMsg;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -136,16 +134,19 @@ public class SelectedIndicatorsCalculationService {
 						stockAllSymbolEvents.addEventResultElement(symbolEvents);
 						stockAllSymbolEvents.addAllCalculationOutput(symbolEvents.getCalculationOutputs());
 					} catch (ExecutionException executionException) {
-						LOGGER.warn("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
 						Throwable cause = executionException.getCause();
 						if (cause instanceof IncompleteDataSetException) {
+							LOGGER.warn("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
 							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> {
 								stockAllSymbolEvents.addEventResultElement(se);
 								stockAllSymbolEvents.addAllCalculationOutput(se.getCalculationOutputs());
 							});
-							isDataSetComplete = false;
-							failingStocks.add(stock);
+						} else {
+							LOGGER.error(executionException, executionException);
+							LOGGER.error("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
 						}
+						isDataSetComplete = false;
+						failingStocks.add(stock);
 					} catch (Exception e) {
 						LOGGER.error(e, e);
 						LOGGER.error("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), e);
@@ -199,7 +200,7 @@ public class SelectedIndicatorsCalculationService {
 		if (minimumStartDate.before(startDate) || minimumStartDate.equals(startDate)) {
 			minimumStartDate = startDate;
 		} else {
-			LOGGER.info("Start date calculation adjusted: for stock " + stock.toString() + " is now starting on " + minimumStartDate);
+			LOGGER.warn("Start date calculation adjusted: for stock " + stock.toString() + " is now starting on " + minimumStartDate);
 		}
 		if (minimumStartDate.after(endDate) || minimumStartDate.equals(endDate)) {
 			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds): for stock " + stock.toString() + " between " + minimumStartDate + " and " + endDate);
@@ -208,7 +209,7 @@ public class SelectedIndicatorsCalculationService {
 		if (maximumEndDate.after(endDate) || maximumEndDate.equals(endDate)) {
 			maximumEndDate = endDate;
 		} else {
-			LOGGER.info("End Date calculation adjusted: events for stock " + stock.toString() + " is now ending on  " + maximumEndDate);
+			LOGGER.warn("End Date calculation adjusted: events for stock " + stock.toString() + " is now ending on  " + maximumEndDate);
 		}
 		if (maximumEndDate.before(minimumStartDate) || maximumEndDate.equals(minimumStartDate)) {
 			throw new RuntimeException("Not enough quotations to calculate (invalid date bounds): for stock " + stock.toString() + " between " + minimumStartDate + " and " + maximumEndDate);

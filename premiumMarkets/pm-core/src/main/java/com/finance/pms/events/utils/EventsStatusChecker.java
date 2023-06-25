@@ -20,16 +20,12 @@ public class EventsStatusChecker {
     private Date currentTunedConfEnd;
     private Date currentTunedConfStart;
 
-	private Boolean isDirtyConf;
-
 
     public EventsStatusChecker(TunedConf tunedConf) {
         super();
         this.stock = tunedConf.getTunedConfId().getStock();
-        this.currentTunedConfStart = tunedConf.getLastCalculationStart();
-        this.currentTunedConfEnd = tunedConf.getLastCalculationEnd();
-        this.isDirtyConf = tunedConf.getDirty();
-
+        this.currentTunedConfStart = tunedConf.getFisrtStoredEventCalculationStart();
+        this.currentTunedConfEnd = tunedConf.getLastStoredEventCalculationEnd();
     }
 
     private void endDateToLastEventConsistencyCheck(Date endDate) throws InvalidAlgorithmParameterException {
@@ -39,7 +35,7 @@ public class EventsStatusChecker {
         }
     }
 
-    public CalculationBounds autoCalcAndSetDatesBounds(Date startDate, Date endDate, boolean isNoOverride) throws InvalidAlgorithmParameterException {
+    public CalculationBounds setDatesBounds(Date startDate, Date endDate, boolean isNoOverride) throws InvalidAlgorithmParameterException {
         
         endDateToLastEventConsistencyCheck(endDate);
         
@@ -51,26 +47,19 @@ public class EventsStatusChecker {
 		String calcIsFrom = "Requested calculation is from " + startDateStr + " to " + endDateStr + ". ";
 		String calcWasFrom = "Previous calculation was from " + currCfStartStr + " to " + currCfEndStr + ". ";
 		
-        if ( isDirtyConf ) {
-            LOGGER.info(
-                    "New dates for " + stock + ": Old Calculation is dirty => RESET. " +
-                    calcIsFrom + calcWasFrom + "New calculation will be from " + startDateStr + " to " + endDateStr);
-            return new CalculationBounds(CalcStatus.RESET, startDate, endDate, startDate, endDate);
-        }
-		
 		if (currentTunedConfEnd.equals(DateFactory.dateAtZero())) {//No previous calculation
             LOGGER.info(
                     "New dates for " + stock + ": No previous event was found for this calculation => RESET. First calculation. "  +
-                    calcIsFrom + calcWasFrom + "New calculation will be from " + startDateStr + " to " + endDateStr);
-            return new CalculationBounds(CalcStatus.RESET, startDate, endDate, startDate, endDate);
+                    calcIsFrom + calcWasFrom + "New calculation will be from " + startDate + " to " + endDate);
+            return new CalculationBounds(CalcStatus.FULL_RANGE, startDate, endDate, startDate, endDate);
         }
 
         //New calculation is fully outside previous => RESET to avoid blank gaps
         if (startDate.compareTo(currentTunedConfEnd) > 0 || endDate.compareTo(currentTunedConfStart) < 0 || (startDate.compareTo(currentTunedConfStart) < 0 && currentTunedConfEnd.compareTo(endDate) < 0) ) {
             LOGGER.info(
                     "New dates for " + stock + ": New calculation is fully outside previous => RESET to avoid blank gaps. " +
-                    calcIsFrom + calcWasFrom + "New calculation will be from " + startDateStr + " to " + endDateStr);
-            return new CalculationBounds(CalcStatus.RESET, startDate, endDate, startDate, endDate);
+                    calcIsFrom + calcWasFrom + "New calculation will be from " + startDate + " to " + endDate);
+            return new CalculationBounds(CalcStatus.FULL_RANGE, startDate, endDate, startDate, endDate);
         }
 
         //New calculation ends within previous => LEFT_INC
@@ -80,8 +69,8 @@ public class EventsStatusChecker {
         		rightIncCalcEnd = endDate;
         	}
             LOGGER.info(
-                    "New dates for " + stock + ": New calculation ends within previous => LEFT_INC. " +
-                    calcIsFrom + calcWasFrom +  "New calculation will be from " + startDateStr + " to " +  currCfStartStr);
+                    "New dates for " + stock + ": New calculation ends within previous => LEFT_INC. " + "(isNoOverride: " + isNoOverride + ") " +
+                    calcIsFrom + calcWasFrom +  "New calculation will be from " + startDate + " to " +  rightIncCalcEnd);
             return new CalculationBounds(CalcStatus.LEFT_INC, startDate, rightIncCalcEnd, startDate, currentTunedConfEnd);
         }
 
@@ -92,17 +81,23 @@ public class EventsStatusChecker {
         		rightIncCalcStart = startDate;
         	}
             LOGGER.info(
-                    "New dates for " + stock + ": New calculation starts within previous => RIGHT_INC. " +
-                    calcIsFrom + calcWasFrom +  "New calculation will be from " + currCfEndStr + " to " + endDateStr);
+                    "New dates for " + stock + ": New calculation starts within previous => RIGHT_INC. " + "(isNoOverride: " + isNoOverride + ") " +
+                    calcIsFrom + calcWasFrom +  "New calculation will be from " + rightIncCalcStart + " to " + endDate);
 			return new CalculationBounds(CalcStatus.RIGHT_INC, rightIncCalcStart, endDate, currentTunedConfStart, endDate);
         }
 
         //New calculation fully within previous => NONE. It being noOverride or not, we don't do any recalculation
         if (startDate.compareTo(currentTunedConfStart) >= 0 && endDate.compareTo(currentTunedConfEnd) <= 0) {
+        	Date rightIncCalcEnd = null;
+        	Date rightIncCalcStart = null;
+        	if (isNoOverride) {
+        		rightIncCalcStart = startDate;
+        		rightIncCalcEnd = endDate;
+        	}
             LOGGER.info(
                     "New dates for " + stock + ": New calculation fully within previous => NONE. " +
-                    calcIsFrom + calcWasFrom +  "New calculation is not necessary");
-            return new CalculationBounds(CalcStatus.NONE, null, null, currentTunedConfStart, currentTunedConfEnd);
+                    calcIsFrom + calcWasFrom +  "New calculation will be from " + rightIncCalcStart + " to " + rightIncCalcEnd);
+            return new CalculationBounds(CalcStatus.NONE, rightIncCalcStart, rightIncCalcEnd, currentTunedConfStart, currentTunedConfEnd);
         }
 
         throw new RuntimeException(String.format("Case not handled start %s, end %s, first event %s, last event %s", startDateStr, endDateStr, currCfStartStr, currCfEndStr));

@@ -106,13 +106,14 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 	private void checkAlertCrossingDown(QuotationUnit quotation, Map<EventKey, EventValue> edata) {
 
-		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown() != null) {
-			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown());
+		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
+		if (alertsMgrDelegate.getAlertsOnThresholdDown() != null) {
+			Set<AlertOnThreshold> alertsSetDown =  new HashSet<AlertOnThreshold>(alertsMgrDelegate.getAlertsOnThresholdDown());
 			BigDecimal todaysQuotation = quotation.getCloseSplit();
 			for (AlertOnThreshold alert : alertsSetDown) {
 
 				if (alert.getValue().compareTo(todaysQuotation) > 0) {
-					new AlertsMgrDelegate(portfolioShare).resetCrossDown(alert, todaysQuotation);
+					alertsMgrDelegate.resetCrossDown(alert, todaysQuotation);
 
 					EventDefinition eventDefinition = EventDefinition.ALERTTHRESHOLD;
 					Date nowEndDate = DateFactory.getNowEndDate();
@@ -144,14 +145,15 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 	private void checkAlertCrossingUp(QuotationUnit quotation, Map<EventKey, EventValue> edata) {
 
-		if (new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp() != null) {
-			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp());
+		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
+		if (alertsMgrDelegate.getAlertsOnThresholdUp() != null) {
+			Set<AlertOnThreshold> alertsSetUp = new HashSet<AlertOnThreshold>(alertsMgrDelegate.getAlertsOnThresholdUp());
 			BigDecimal todaysQuotation = quotation.getCloseSplit();
 			for (AlertOnThreshold alert : alertsSetUp) {
 
 				if (alert.getValue().compareTo(todaysQuotation) < 0) {
 
-					new AlertsMgrDelegate(portfolioShare).resetCrossUp(alert, todaysQuotation);
+					alertsMgrDelegate.resetCrossUp(alert, todaysQuotation);
 
 					//TODO improved rules
 					if (AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())) {

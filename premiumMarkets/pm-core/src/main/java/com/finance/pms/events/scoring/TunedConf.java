@@ -31,6 +31,7 @@ package com.finance.pms.events.scoring;
 
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -45,15 +46,23 @@ import com.finance.pms.events.calculation.DateFactory;
 
 @Entity
 @Table(name="TUNEDCONF")
+/**
+ * Monitor the storage status of the event
+ * - dirty(staled): the decrepency of the stored events V the operation
+ * - lastCalculationStart(fisrtStoredEventCalculationStart): first stored event calculation start
+ * - lastCalculationEnd(lastStoredEventCalculationEnd): last stored event calculation end
+ * @author guil
+ *
+ */
 public class TunedConf {
 
 	static MyLogger LOGGER = MyLogger.getLogger(TunedConf.class);
 
 	private TunedConfId tunedConfId;
 
-	private Boolean dirty;
-	private Date lastCalculationStart;
-	private Date lastCalculationEnd;
+	private Boolean isRemovable;
+	private Date fisrtStoredEventCalculationStart; //fisrtStoredEventCalculationStart
+	private Date lastStoredEventCalculationEnd; //lastStoredEventCalculationEnd
 
 	@SuppressWarnings("unused")
 	private TunedConf() {
@@ -61,35 +70,37 @@ public class TunedConf {
 		// Hib
 	}
 
-	public TunedConf(Stock stock, String configFile, String eventDefinition) {
+	public TunedConf(Stock stock, String configFile, String eventDefinition, Boolean isRemovable) {
 		super();
 		this.tunedConfId = new TunedConfId(stock, configFile, eventDefinition);
-		this.dirty = true;
-		this.lastCalculationStart = DateFactory.dateAtZero();
-		this.lastCalculationEnd =  DateFactory.dateAtZero();
+		this.isRemovable = isRemovable;
+		this.fisrtStoredEventCalculationStart = DateFactory.dateAtZero();
+		this.lastStoredEventCalculationEnd = DateFactory.dateAtZero();
 	}
 
 	@Temporal(TemporalType.DATE)
-	public Date getLastCalculationStart() {
-		return lastCalculationStart;
+	@Column(name="LASTCALCULATIONSTART")
+	public Date getFisrtStoredEventCalculationStart() {
+		return fisrtStoredEventCalculationStart;
 	}
 
-	public void setLastCalculationStart(Date lastCalculationStart) {
-		this.lastCalculationStart = lastCalculationStart;
+	public void setFisrtStoredEventCalculationStart(Date lastCalculationStart) {
+		this.fisrtStoredEventCalculationStart = lastCalculationStart;
 	}
 
 	@Temporal(TemporalType.DATE)
-	public Date getLastCalculationEnd() {
-		return lastCalculationEnd;
+	@Column(name="LASTCALCULATIONEND")
+	public Date getLastStoredEventCalculationEnd() {
+		return lastStoredEventCalculationEnd;
 	}
 
-	public void setLastCalculationEnd(Date lastCalculationEnd) {
-		this.lastCalculationEnd = lastCalculationEnd;
+	public void setLastStoredEventCalculationEnd(Date lastCalculationEnd) {
+		this.lastStoredEventCalculationEnd = lastCalculationEnd;
 	}
 
 	@Override
 	public String toString() {
-		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + lastCalculationStart + ", lastCalculationEnd=" + lastCalculationEnd + ", dirty=" + dirty + "]";
+		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + fisrtStoredEventCalculationStart + ", lastCalculationEnd=" + lastStoredEventCalculationEnd + "]";
 	}
 
 	@EmbeddedId
@@ -101,18 +112,19 @@ public class TunedConf {
 		this.tunedConfId = tunedConfId;
 	}
 
-	public Boolean getDirty() {
-		return dirty;
+	@Column(name="DIRTY")
+	public Boolean getIsRemovable() {
+		return isRemovable;
 	}
 
 	//Hib
-	public void setDirty(Boolean dirty) {
-		this.dirty = dirty;
+	public void setIsRemovable(Boolean dirty) {
+		this.isRemovable = dirty;
 	}
-
+	
 	@Transient
-	public Boolean isValid(Date start, Date end) {
-		return !getDirty() && lastCalculationStart.compareTo(start) <= 0 && lastCalculationEnd.compareTo(end) >= 0;
+	public Boolean isEmpty() {
+		return DateFactory.dateAtZero().equals(lastStoredEventCalculationEnd);
 	}
 
 }

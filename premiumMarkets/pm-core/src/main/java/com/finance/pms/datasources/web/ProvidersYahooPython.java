@@ -140,7 +140,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 					
 					validatables.addAll(lineValidatables);
 				} catch (StopParseErrorException e) {
-					LOGGER.warn(e, e);
+					LOGGER.warn(e);
 					throw new IOException(
 							"Stop parsing response from python for " + symbol + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
 									"Reason : " + ((StopParseErrorException) e).getReason());

@@ -183,24 +183,25 @@ public class AddAlertDialog extends Dialog {
 					public void mouseDown(MouseEvent evt) {
 						BigDecimal value = new BigDecimal(sharePriceText.getText());
 
+						AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
 						switch(combo.getSelectionIndex()) {
 							case 0 :
 							case 1 :
 								ThresholdType threshold;
 								threshold = ThresholdType.values()[combo.getSelectionIndex()];
-								new AlertsMgrDelegate(portfolioShare).addSimpleAlertOnThreshold(threshold, value, commentText.getText());
+								alertsMgrDelegate.addSimpleAlertOnThreshold(threshold, value, commentText.getText());
 								break;
 							case 2 :
-								new AlertsMgrDelegate(portfolioShare).addBuyAlerts(value, DateFactory.getNowEndDate());
+								alertsMgrDelegate.addBuyAlerts(value, DateFactory.getNowEndDate());
 								break;
 							case 3 :
-								new AlertsMgrDelegate(portfolioShare).addAboveTakeProfitAlert(value,commentText.getText());
+								alertsMgrDelegate.addAboveTakeProfitAlert(value,commentText.getText());
 								break;
 							case 4 :
-								new AlertsMgrDelegate(portfolioShare).addWeightedZeroProfitAlertGuardSetter(value,commentText.getText());
+								alertsMgrDelegate.addWeightedZeroProfitAlertGuardSetter(value,commentText.getText());
 								break;
 							default : 
-								LOGGER.error("Nothing to do! "+combo.getSelectionIndex());
+								LOGGER.error("Nothing to do! " + combo.getSelectionIndex());
 						}
 						updateDownTable();
 						updateUpTable();
@@ -250,7 +251,8 @@ public class AddAlertDialog extends Dialog {
 	private void updateDownTable() {
 		
 		alertTableDown.removeAll();
-		for (AlertOnThreshold alert : new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdDown()) {
+		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
+		for (AlertOnThreshold alert : alertsMgrDelegate.getAlertsOnThresholdDown()) {
 			TableItem item = new TableItem(alertTableDown, SWT.NONE);
 			item.setData(alert);
 			item.setText(0, alert.toString());
@@ -262,7 +264,7 @@ public class AddAlertDialog extends Dialog {
 				TableItem[] selection = alertTableDown.getSelection();
 				if (selection != null && selection.length > 0) {
 					TableItem tableItem = selection[0];
-					new AlertsMgrDelegate(portfolioShare).removeAlertOnThreshold((AlertOnThreshold)tableItem.getData());
+					alertsMgrDelegate.removeAlertOnThreshold((AlertOnThreshold)tableItem.getData());
 					tableItem.dispose();
 				}
 			}
@@ -274,7 +276,8 @@ public class AddAlertDialog extends Dialog {
 	private void updateUpTable() {
 		
 		alertTableUp.removeAll();
-		for (AlertOnThreshold alert : new AlertsMgrDelegate(portfolioShare).getAlertsOnThresholdUp()) {
+		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
+		for (AlertOnThreshold alert : alertsMgrDelegate.getAlertsOnThresholdUp()) {
 			TableItem item = new TableItem(alertTableUp, SWT.NONE);
 			item.setData(alert);
 			item.setText(0, alert.toString());
@@ -286,7 +289,7 @@ public class AddAlertDialog extends Dialog {
 				TableItem[] selection = alertTableUp.getSelection();
 				if (selection != null && selection.length > 0) {
 					TableItem tableItem = selection[0];
-					new AlertsMgrDelegate(portfolioShare).removeAlertOnThreshold((AlertOnThreshold)tableItem.getData());
+					alertsMgrDelegate.removeAlertOnThreshold((AlertOnThreshold)tableItem.getData());
 					tableItem.dispose();
 				}
 			}

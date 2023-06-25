@@ -311,6 +311,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			recalculationButton.setEnabled(true);
 			recalculationButton.redraw();
 			recalculationButton.setFocus();
+			
 		} else {
 			//Disabling should happened in the EventSelectionListener itself.
 		}
@@ -650,9 +651,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			Group recalcGroup = new Group(popusGroup, SWT.SHADOW_NONE);
 			RowLayout recalcGroupL = new RowLayout(SWT.VERTICAL);
 			recalcGroupL.justify = true;
-			recalcGroupL.fill=true;
-			recalcGroupL.wrap=false;
-			recalcGroupL.marginHeight=0;
+			recalcGroupL.fill = true;
+			recalcGroupL.wrap = false;
+			recalcGroupL.marginHeight = 0;
 			recalcGroup.setLayout(recalcGroupL);
 			{
 				recalculationButton = new Button(recalcGroup, SWT.PUSH);

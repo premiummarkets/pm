@@ -304,7 +304,6 @@ public class EventRefreshController implements SelectionListener { //MouseListen
         };
 
         Boolean isLastRunTheSame = EventTaskQueue.getSingleton().isLastTask(requestedTask);
-
         return !isLastRunTheSame;
     }
 

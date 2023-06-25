@@ -1576,11 +1576,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 									@Override
 									public void action() {
 
-										new AlertsMgrDelegate(selectedShare).clearAlertOnEvent();
+										AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(selectedShare);
+										alertsMgrDelegate.clearAlertOnEvent();
 										if (!selectedEventDefs.isEmpty()) {
 											selectedShare.setMonitorLevel(MonitorLevel.ANY);
 											for (EventInfo selectedEvt : selectedEventDefs) {
-												new AlertsMgrDelegate(selectedShare).addAlertOnEvent(selectedEvt.getEventDefinitionRef(), MonitorLevel.ANY, "");
+												alertsMgrDelegate.addAlertOnEvent(selectedEvt.getEventDefinitionRef(), MonitorLevel.ANY, "");
 											}
 											EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
 											tabUpdateTableItem(table.getSelection()[0], selectedShare);

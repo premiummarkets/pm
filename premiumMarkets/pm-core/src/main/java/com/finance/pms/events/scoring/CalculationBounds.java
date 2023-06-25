@@ -45,7 +45,8 @@ public class CalculationBounds {
     	SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         return "CalculationBounds [calcStatus=" + calcStatus + 
         		", pmStart=" + ((pmStart != null)?df.format(pmStart):"null") + ", pmEnd=" + ((pmEnd != null)?df.format(pmEnd):"null") + 
-        		", newTunedConfStart=" + df.format(newTunedConfStart) + ", newTunedConfEnd=" + df.format(newTunedConfEnd) + "]";
+        		", newTunedConfStart=" + ((newTunedConfStart !=null)?df.format(newTunedConfStart):"null") + 
+        		", newTunedConfEnd=" + ((newTunedConfEnd != null)?df.format(newTunedConfEnd):"null") + "]";
     }
 
 }

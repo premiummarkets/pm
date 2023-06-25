@@ -127,11 +127,13 @@ public class Portfolio extends AbstractSharesList {
 
 		PortfolioShare oldPortfolioShare;
 		if (sourcePortfolio != null && (oldPortfolioShare = sourcePortfolio.getShareForSymbolAndIsin(portfolioShare.getSymbol(), portfolioShare.getIsin())) != null) {
-			for (AlertOnThreshold alert: new AlertsMgrDelegate(oldPortfolioShare).getAlertsOnThresholdFor(AlertOnThresholdType.MANUALUP)) {
-				new AlertsMgrDelegate(portfolioShare).addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
+			AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(oldPortfolioShare);
+			AlertsMgrDelegate alertsMgrDelegateNew = new AlertsMgrDelegate(portfolioShare);
+			for (AlertOnThreshold alert: alertsMgrDelegate.getAlertsOnThresholdFor(AlertOnThresholdType.MANUALUP)) {
+				alertsMgrDelegateNew.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
 			}
-			for (AlertOnThreshold alert: new AlertsMgrDelegate(oldPortfolioShare).getAlertsOnThresholdFor(AlertOnThresholdType.MANUALDOWN)) {
-				new AlertsMgrDelegate(portfolioShare).addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
+			for (AlertOnThreshold alert: alertsMgrDelegate.getAlertsOnThresholdFor(AlertOnThresholdType.MANUALDOWN)) {
+				alertsMgrDelegateNew.addAlertOnThreshold(alert.getThresholdType(), alert.getValue(), alert.getAlertType(), alert.getOptionalMessage());
 			}
 		}
 
@@ -196,7 +198,8 @@ public class Portfolio extends AbstractSharesList {
 	public PortfolioShare addOrUpdateShareAtDayClose(Stock stock, String account, Currency transactionCurrency, Date currentDate) {
 
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, transactionCurrency);
-		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
+		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
+		alertsMgrDelegate.addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account);
 		if (portfolioShare.getQuantity(currentDate).compareTo(BigDecimal.ZERO) == 0) {
 			portfolioShare.setMonitorLevel(MonitorLevel.NONE);
@@ -208,7 +211,8 @@ public class Portfolio extends AbstractSharesList {
 
 	public void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException {
 		registerTransaction(portfolioShare, quantity, currentDate, trPrice, trType);
-		new AlertsMgrDelegate(portfolioShare).addBuyAlerts(trPrice, currentDate);
+		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
+		alertsMgrDelegate.addBuyAlerts(trPrice, currentDate);
 	}
 
 	@Lob
