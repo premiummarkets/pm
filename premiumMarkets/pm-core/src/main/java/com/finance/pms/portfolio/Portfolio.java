@@ -431,11 +431,10 @@ public class Portfolio extends AbstractSharesList {
 		}
 		return ret;
 	}
-
-	@Override
-	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
+	
+	protected BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestTransactionOnly) {
 		BigDecimal ret = BigDecimal.ZERO;
-		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate, isLatestTransactionOnly);
 		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
@@ -446,9 +445,13 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Override
-	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
+	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
+		return this.getCashInFor(portfolioShare, currentStartDate, currentEndDate, targetCurrency, isLatestTransactionsOnly());
+	}
+	
+	protected BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestTransacitonOnly) {
 		BigDecimal ret = BigDecimal.ZERO;
-		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate, isLatestTransacitonOnly);
 		for (TransactionElement te : headTransactionsTo) {
 			if (te.transactionType().equals(TransactionType.AOUT) && te.getStock().equals(portfolioShare.getStock())) {
 				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
@@ -459,15 +462,24 @@ public class Portfolio extends AbstractSharesList {
 	}
 
 	@Override
-	public BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency) {
+		return this.getCashOutFor(portfolioShare, currentStartDate, currentEndDate, targetCurrency, isLatestTransactionsOnly());
+	}
+
+	protected BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestTransactionOnly) {
 		BigDecimal ret = BigDecimal.ZERO;
-		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate);
+		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate, isLatestTransactionOnly);
 		for (TransactionElement te : headTransactionsTo) {
 			if (te.getStock().equals(portfolioShare.getStock())) {
 				ret = ret.add(te.getQuantity());
 			}
 		}
 		return ret;
+	}
+	
+	@Override
+	public BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+		return this.getQuantityFor(portfolioShare, currentStartDate, currentEndDate, isLatestTransactionsOnly());
 	}
 
 	public void rawAddTransaction(TransactionElement element) {
@@ -504,9 +516,13 @@ public class Portfolio extends AbstractSharesList {
 			return totalMoneyInvested.divide(totalQuantityBought, 10, RoundingMode.HALF_EVEN);
 		}
 	}
+	
+	private SortedSet<TransactionElement> headTransactionsTo(Date currentStartDate, Date currentEndDate) {
+		return this.headTransactionsTo(currentStartDate, currentEndDate, isLatestTransactionsOnly());
+	}
 
-	public SortedSet<TransactionElement> headTransactionsTo(Date currentStartDate, Date currentEndDate) {
-		if (isLatestTransactionsOnly()) {
+	private SortedSet<TransactionElement> headTransactionsTo(Date currentStartDate, Date currentEndDate, Boolean isLatestTransactionsOnly) {
+		if (isLatestTransactionsOnly) {
 			return headTransactionsTo(latestTransactions(), currentStartDate, currentEndDate);
 		}
 		return headTransactionsTo(transactions, currentStartDate, currentEndDate);
@@ -561,13 +577,11 @@ public class Portfolio extends AbstractSharesList {
 					return u;
 				});
 	}
-
-	@Override
-	public InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
-
+	
+	protected InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency, boolean isLatestTransactionsOnly) {
 		try {
 			SortedSet<TransactionElement> transactionsForStock = new TreeSet<TransactionElement>();
-			SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(null, currentEndDate);
+			SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(null, currentEndDate, isLatestTransactionsOnly);
 			for (TransactionElement te : headTransactionsTo) {
 				if (te.getStock().equals(portfolioShare.getStock())) {
 					transactionsForStock.add(te);
@@ -575,11 +589,15 @@ public class Portfolio extends AbstractSharesList {
 			}
 			return portfolioShare.calculateInflationAndExpectationWeightedInvestedCash(currentEndDate, transactionsForStock, currency);
 		} catch (InvalidAlgorithmParameterException e) {
-			BigDecimal cashin = portfolioShare.getCashin(null, currentEndDate, currency);
-			BigDecimal cashout = portfolioShare.getCashout(null, currentEndDate, currency);
+			BigDecimal cashin = this.getCashInFor(portfolioShare, null, currentEndDate, currency, isLatestTransactionsOnly);
+			BigDecimal cashout = this.getCashOutFor(portfolioShare, null, currentEndDate, currency, isLatestTransactionsOnly);
 			return new InOutWeighted(cashin, cashout, currentEndDate);
 		}
+	}
 
+	@Override
+	public InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
+		return this.getInflatWeightedInvestedFor(portfolioShare, currentEndDate, currency, isLatestTransactionsOnly());
 	}
 
 	public String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable {
@@ -799,6 +817,19 @@ public class Portfolio extends AbstractSharesList {
 
 	public void setLatestTransactionsOnly(Boolean latestTransactionsOnly) {
 		this.latestTransactionsOnly = latestTransactionsOnly;
+	}
+	
+	protected BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly) {
+		BigDecimal quantity = this.getQuantityFor(portfolioShare, currentStartDate, currentEndDate, isLatestTransactionOnly);
+		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		BigDecimal cashout = this.getCashOutFor(portfolioShare, currentStartDate, currentEndDate, currency, isLatestTransactionOnly);
+		BigDecimal cashin = this.getCashInFor(portfolioShare, currentStartDate, currentEndDate, currency, isLatestTransactionOnly);
+		return cashin.subtract(cashout).divide(quantity, 10, RoundingMode.HALF_EVEN);
+	}
+
+	@Override
+	public BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return this.getPriceUnitCostFor(portfolioShare, currentStartDate, currentEndDate, currency, isLatestTransactionsOnly());
 	}
 
 }

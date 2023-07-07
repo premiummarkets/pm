@@ -91,7 +91,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			return symbolEvents;
 
 		} catch (IncompleteDataSetException e) {
-			LOGGER.error("UnHandled error: While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
+			LOGGER.error("IncompleteDataSet: While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error("UnHandled error: While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
@@ -115,11 +115,12 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		
 		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
 		boolean hasPreviousCalculations = tunedConfOpt.isPresent();
-		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), !forbidEventsOverride);
+		boolean isAlterableOverridable = !isIdempotent && !forbidEventsOverride;
+		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), isAlterableOverridable);
 		
 		//When xx, we still want to calculate the full range as the operation is not idempotent but without overriding the existing data in the db
 		boolean isFullCalculationForbidOverride = !isIdempotent && forbidEventsOverride;
-		boolean isFullCalculationGrantOverride =  !isIdempotent && !forbidEventsOverride;
+		boolean isFullCalculationGrantOverride =  isAlterableOverridable;
 		
 		LOGGER.info(
 				"CalculationBounds constraints: isIdempotent " + isIdempotent + ", forbidEventsOverride " + forbidEventsOverride + 
@@ -213,7 +214,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
 				LOGGER.error( "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " +
-								eventInfo.getEventDefinitionRef() + " with calculation bounds:" + calcBounds, e);
+								eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
@@ -222,7 +223,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
 				LOGGER.error( "Failed (Empty Recoverable??) calculation (isNoOverride: " + isFullCalculationForbidOverride + ") for " +
 						stock + " using analysis " + eventListName +  " and " +
-						eventInfo.getEventDefinitionRef() + " with calculation bounds:" + calcBounds, e);
+						eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
 				symbolEvents.addCalculationOutput(eventInfo, new TreeMap<>());
 				symbolEvents.addEventResultElement(new TreeMap<>(), eventInfo);
 				throw new IncompleteDataSetException(stock, symbolEvents, "Some calculations have failed! Are failing: " + eventInfo);

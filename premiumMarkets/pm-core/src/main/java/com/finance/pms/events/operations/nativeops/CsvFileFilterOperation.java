@@ -29,8 +29,6 @@ public class CsvFileFilterOperation extends StringerOperation {
 			new StringOperation("string","pattern", "Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.", new StringValue("NONE")),
 			new StringOperation("string","default", "Default value.", new StringValue("NONE")));
 	}
-	
-	
 
 	@Override
 	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftFromParent) {
@@ -88,9 +86,9 @@ public class CsvFileFilterOperation extends StringerOperation {
 		String result = defaultValue;
 		if (!matchingLines.isEmpty()) {
 			result = matchingLines.get(matchingLines.size()-1); //The last match prevails
-			LOGGER.info("Results: " + result + " for " + filterPatternString + " in " + filePath);
+			LOGGER.info("Results: " + result + " for " + this.toFormulae() + " and " +filterPatternString + " in " + filePath);
 		} else {
-			LOGGER.info("No results (empty matches), using default: " + result + " for " + filterPatternString + " in " + filePath);
+			LOGGER.info("No results (empty matches), using default: " + result + " for " + this.toFormulae() + filterPatternString + " in " + filePath);
 		}
 		
 		return new StringValue(result);

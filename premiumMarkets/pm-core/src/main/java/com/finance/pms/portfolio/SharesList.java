@@ -135,4 +135,9 @@ public class SharesList extends AbstractSharesList {
 		return new TreeSet<TransactionElement>();
 	}
 
+	@Override
+	public BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return BigDecimal.ONE;
+	}
+
 }

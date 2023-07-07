@@ -74,4 +74,9 @@ public class IndepShareList extends AbstractSharesList {
 	public SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
 		return new TreeSet<TransactionElement>();
 	}
+
+	@Override
+	public BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+		return  BigDecimal.ONE;
+	}
 }

@@ -280,6 +280,10 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	public String toFormulae() {
 		return getReference() + "()";
 	}
+	
+	public String toFormulaeDeveloped() {
+		return super.toFormulae();
+	}
 
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {

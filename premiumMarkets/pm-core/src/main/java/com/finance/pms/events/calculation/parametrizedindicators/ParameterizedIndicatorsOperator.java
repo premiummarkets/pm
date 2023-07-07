@@ -127,10 +127,13 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			CalculateThreadExecutor.getSemaphoreInstance().acquire();
 			
 			long startTime = new Date().getTime();
-			LOGGER.info("STARTING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime);
+			LOGGER.info("STARTING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime + ". "
+					+ "Formulae: " + eventInfoOpsCompoOperationHolder.toFormulaeDeveloped());
 			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder.clone()).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + eventInfoOpsCompoOperationHolder.getReference(), 0);
 			long finishTime = new Date().getTime();
-			LOGGER.info("ENDING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". Time elapsed: " + (finishTime-startTime)/1000 + " seconds.");
+			LOGGER.info("ENDING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". "
+					+ "Time elapsed: " + (finishTime-startTime)/1000 + " seconds. "
+					+ "Formulae: " + eventInfoOpsCompoOperationHolder.toFormulaeDeveloped());
 	
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
@@ -168,6 +171,8 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			eData.putAll(returnedEvents);
 			
 		} catch (Exception e) {
+			LOGGER.info("FAILED: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + ". "
+					+ "Formulae: " + eventInfoOpsCompoOperationHolder.toFormulaeDeveloped());
 			throw new ErrorException(e.toString(), e);
 		} finally {
 			CalculateThreadExecutor.getSemaphoreInstance().release();

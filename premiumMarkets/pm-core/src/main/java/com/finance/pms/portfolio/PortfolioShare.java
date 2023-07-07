@@ -267,11 +267,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	@Transient
 	public BigDecimal getPriceUnitCost(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
-		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
-		BigDecimal cashout = this.getCashout(currentStartDate, currentEndDate, currency);
-		BigDecimal cashin = this.getCashin(currentStartDate, currentEndDate, currency);
-		return cashin.subtract(cashout).divide(quantity, 10, RoundingMode.HALF_EVEN);
+		return portfolio.getPriceUnitCostFor(this, currentStartDate, currentEndDate, currency);
 	}
 
 	@Transient
@@ -471,8 +467,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 				outPreviousTransaction = transaction;
 
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Out Weighted value : "+weightedCashout);
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Out Added quantity : "+transaction.getQuantity().abs());
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Out Weighted value : " + weightedCashout);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Out Added quantity : " + transaction.getQuantity().abs());
 
 			}
 		}
