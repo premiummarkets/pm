@@ -1,6 +1,5 @@
 package com.finance.pms.events.calculation;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +21,6 @@ import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ObserverMsg;
@@ -165,19 +163,19 @@ public class SelectedIndicatorsCalculationService {
 
 			}
 
-			try {
-				Integer nbEvents = allEvents.stream().map(se -> se.getDataResultMap().size()).reduce( 0, (r, mapSize) -> r + mapSize);
-				LOGGER.guiInfo("Storing " + nbEvents + " events for " + allEvents.size() + " stocks.");
-				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName); //FIXME the storage should be delegated to the eventInfo or calculator and coupled with TunedConf update
-				LOGGER.guiInfo("Stored " + nbEvents + " events for " + allEvents.size() + " stocks.");
-			} catch (Exception e) { 
-				isDataSetComplete = false;
-				if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
-					LOGGER.warn("Intercepted: " + e + " -> IncompleteDataset");
-				} else {
-					LOGGER.error(e, e);
-				}
-			}
+//			try {
+//				Integer nbEvents = allEvents.stream().map(se -> se.getDataResultMap().size()).reduce( 0, (r, mapSize) -> r + mapSize);
+//				LOGGER.guiInfo("Storing " + nbEvents + " events for " + allEvents.size() + " stocks.");
+//				EventsResources.getInstance().crudCreateEvents(allEvents, eventListName); //FIXME the storage should be delegated to the eventInfo or calculator and coupled with TunedConf update
+//				LOGGER.guiInfo("Stored " + nbEvents + " events for " + allEvents.size() + " stocks.");
+//			} catch (Exception e) { 
+//				isDataSetComplete = false;
+//				if (e.getCause() != null && e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+//					LOGGER.warn("Intercepted: " + e + " -> IncompleteDataset");
+//				} else {
+//					LOGGER.error(e, e);
+//				}
+//			}
 
 		} catch (Throwable e) {
 			isDataSetComplete = false;

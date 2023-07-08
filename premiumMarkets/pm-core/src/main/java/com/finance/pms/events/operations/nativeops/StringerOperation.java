@@ -35,5 +35,10 @@ public abstract class StringerOperation extends Operation {
 	public StringValue emptyValue() {
 		return null;
 	}
+	
+	@Override
+	public void setParameter(Value<?> parameter) {
+		//Always re check the upstream operands (eg. file system, web end point, random values ..)
+	}
 
 }

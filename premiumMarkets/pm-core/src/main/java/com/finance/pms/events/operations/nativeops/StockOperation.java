@@ -157,4 +157,11 @@ public class StockOperation extends DoubleMapOperation {
 		}
 	}
 
+	@Override
+	public String toFormulaeDevelopped() {
+		return this.toFormulae();
+	}
+	
+	
+
 }

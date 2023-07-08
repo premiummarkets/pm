@@ -31,12 +31,6 @@ public class CsvFileFilterOperation extends StringerOperation {
 	}
 
 	@Override
-	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftFromParent) {
-		this.setParameter(null); //Always re check the file system
-		return super.run(targetStock, parentCallStack, thisOutputRequiredStartShiftFromParent);
-	}
-
-	@Override
 	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		String filePath = ((StringValue) inputs.get(0)).getValue(targetStock);
@@ -108,6 +102,6 @@ public class CsvFileFilterOperation extends StringerOperation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//Nothing
-	}
+	}	
 
 }

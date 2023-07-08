@@ -93,7 +93,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
 	
-	private static Boolean isDisplay = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true"));
+	protected final Boolean isDisplay;
 
 	private String formulae;
 	
@@ -128,47 +128,61 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	protected Operation() {
 		super();
+		this.isDisplay = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true"));
+		
 		this.operands = new ArrayList<>();
 		this.availableOutputSelectors = new ArrayList<String>();
 		this.disabled = false;
+		
 	}
 
 	@SuppressWarnings("unchecked")
 	public Operation(String reference, String description, ArrayList<? extends Operation> operands) {
 		super();
+		this.isDisplay = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true"));
+		
 		this.reference = reference;
 		this.description = description;
+		
 		this.operands = (ArrayList<Operation>) operands;
 		this.availableOutputSelectors = new ArrayList<String>();
-
+		this.disabled = false;
+		
 		this.operationReference = reference;
 
-		this.disabled = false;
+		
 	}
 
 	public Operation(String reference, String description) {
 		super();
+		this.isDisplay = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true"));
+		
 		this.reference = reference;
 		this.description = description;
+		
 		this.operands = new ArrayList<>();
 		this.availableOutputSelectors = new ArrayList<String>();
 
 		this.operationReference = reference;
+		
 	}
 
 
 	public Operation(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
 		super();
+		this.isDisplay = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true"));
+		
 		this.reference = reference;
 		this.referenceAsOperand = referenceAsOperand;
 		this.description = description;
 		this.defaultValue = (Value<?>) defaultValue;
+		
 		this.operands = new ArrayList<>();
 		this.availableOutputSelectors = new ArrayList<String>();
+		this.disabled = false;
 
 		this.operationReference = reference;
-
-		this.disabled = false;
+		
 	}
 
 	/**
@@ -187,7 +201,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			return parameter;
 		}
 		else {
-			runNonDataSensiftives(targetStock, operands);
+			runNonDataSensitives(targetStock, operands);
 		}
 
 		//Quotation sensitives
@@ -319,7 +333,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
-	protected void runNonDataSensiftives(TargetStockInfo targetStock, List<Operation> someOperands) {
+	protected void runNonDataSensitives(TargetStockInfo targetStock, List<Operation> someOperands) {
 		for (int i = 0; i < someOperands.size(); i++) {
 			Operation operand = someOperands.get(i);
 			if (!operand.isQuotationsDataSensitive()) {
@@ -554,6 +568,18 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
 		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + ")";
+	}
+	
+	public String toFormulaeDevelopped() {
+
+		if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
+			return ((StringableValue) this.getParameter()).getValueAsString();
+		} else if (operands.isEmpty()) {
+			return this.getOperationReference();
+		}
+
+		String selector = (outputSelector != null)? ":" + outputSelector : "";
+		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeDevelopped(), (a, b) -> a + b) + ")";
 	}
 
 	public void setFormulae(String formula) {
@@ -821,7 +847,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking " + getReference() + " for invalidation.");
 		if (!this.isIdemPotent(targetStock)) {
-			LOGGER.info("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
 			this.invalidateOperation(analysisName, stock);
 		}
 		operands.stream().forEach(

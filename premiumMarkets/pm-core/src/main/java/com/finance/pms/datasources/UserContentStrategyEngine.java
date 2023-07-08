@@ -62,6 +62,7 @@ import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMe
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -110,7 +111,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 		for (int i = 0; i < analysers.length; i++) {
 
-			LOGGER.guiInfo("Running task : Analysing from " + datedeb + " to " + datefin);
+			LOGGER.guiInfo("Running task: Analysing from " + datedeb + " to " + datefin);
 
 			SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean(analysers[i]);
 
@@ -139,7 +140,13 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
 								.filter(e -> e instanceof EventInfoOpsCompoOperation)
-								.forEach(e -> EventsResources.getInstance().crudDeleteEventsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), (EventInfoOpsCompoOperation) e));
+								.forEach(e -> {
+									String analysisName = SelectedIndicatorsCalculationService.getAnalysisName();
+									EventInfoOpsCompoOperation e2 = (EventInfoOpsCompoOperation) e;
+									if (TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, new EventInfo[] {e2})) {
+										EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, e2);
+									}
+								});
 					});
 					viewStateParams[1] = null;
 				}
@@ -215,11 +222,11 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 		for (Stock stock : builtStockList) {
 
-			LOGGER.guiInfo("Running task : Deleting previous events and set config as dirty for " + ((Stock)stock).getFriendlyName() +
-					" and event definitions requested : "+
+			LOGGER.guiInfo("Running task: Deleting previous events and set config as dirty for " + ((Stock)stock).getFriendlyName() +
+					" and event definitions requested: "+
 					((viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null)?
 							viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected") +
-					". Will delete : " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
+					". Will delete: " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
 			
 			if (eventDefsArray.length > 0) { //None selected means no delete
 				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);

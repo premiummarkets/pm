@@ -175,6 +175,9 @@ public class TunedConfMgr {
 	}
 
 	public void updateConf(TunedConf tunedConf, Date lastCalculationStart, Date lastCalculationEnd) {
+		
+		LOGGER.info("Update tunedConf " + tunedConf + " with " + lastCalculationStart + " and " + lastCalculationEnd);
+
 		tunedConf.setFisrtStoredEventCalculationStart(lastCalculationStart);
 		tunedConf.setLastStoredEventCalculationEnd(lastCalculationEnd);
 		//tunedConf.setStaled(dirty);
@@ -208,7 +211,10 @@ public class TunedConfMgr {
 	 * @param analysisName
 	 * @param indicators
 	 */
-	public void resetTunedConfFor(String analysisName, EventInfo... indicators) { 
+	public void resetTunedConfFor(String analysisName, EventInfo... indicators) {
+		
+		LOGGER.info("RESET tunedConf " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
+
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		loadAllTunedConfs.stream()
@@ -225,6 +231,9 @@ public class TunedConfMgr {
 	 */
 	public void resetTunedConfFor(Stock stock, String analysisName, EventInfo[] indicators) {
 		if (indicators.length == 0) throw new UnsupportedOperationException();
+		
+		LOGGER.info("RESET tunedConf " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
+
 		for(EventInfo ei: indicators) {
 			Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
 			if (tc.isPresent()) resetTunedConf(tc.get());
@@ -236,7 +245,7 @@ public class TunedConfMgr {
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		return loadAllTunedConfs.stream()
 		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
-		.map(tc -> tc.getIsRemovable())
+		.map(tc -> tc.getIsRemovable()  || tc.isEmpty())
 		.reduce(true, (a, isRm) -> a && isRm);
 	}
 	
@@ -245,7 +254,7 @@ public class TunedConfMgr {
 		return Arrays.stream(indicators)
 			.map(ei -> {
 				Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-				return tc.map(a -> a.getIsRemovable()).orElse(true);
+				return tc.map(a -> a.getIsRemovable() || a.isEmpty()).orElse(true);
 			})
 			.reduce(true, (a, isRm) -> a && isRm);
 	}

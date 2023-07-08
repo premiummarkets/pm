@@ -23,7 +23,7 @@ public class StringEqualsOperation extends StringerOperation {
 
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		String firstString = ((StringValue)inputs.get(0)).getValueAsString();
+		String firstString = ((StringValue) inputs.get(0)).getValueAsString();
 		boolean allEquals = inputs.stream().allMatch(s -> ((StringValue)s).getValueAsString().equals(firstString));
 		return (allEquals)?new StringValue("TRUE"):new StringValue("FALSE");
 	}

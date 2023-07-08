@@ -254,7 +254,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		Date startDateShifted = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
 		Date startDate = targetStock.getStartDate(0);
 		Date endDate = targetStock.getEndDate();
-		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).getParameter();
+		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
 		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getParameter()).getValue(targetStock));

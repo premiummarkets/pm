@@ -10,7 +10,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
-public class TargetStockInfoOperation extends Operation {
+public class TargetStockInfoOperation extends StringerOperation {
 	
 	public TargetStockInfoOperation(String reference, String description, Operation ... operands) {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
@@ -19,8 +19,8 @@ public class TargetStockInfoOperation extends Operation {
 	public TargetStockInfoOperation() {
 		//FIXME we don't use output selector in order to select the returned value but an operand instead
 		//Operations with no operands are actually considered as operations with an indeterministic (undeterministic) N number of operands with N > 0 ..
-		this("targetStockInfo", "Return informations about the targeted stock and dates bondaries",
-		new StringOperation("string", "TargetStockInfo retreived", "TargetStockInfo retreived", new StringValue("symbol")));
+		this("targetStockInfo", "Return informations about the parent operation targeted stock. Implemented only: the stock symbol.",
+		new StringOperation("string", "stockInfoRetreived", "Info retreived from the target stock", new StringValue("symbol")));
 		//setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"symbol"})));
 	}
 
@@ -44,11 +44,6 @@ public class TargetStockInfoOperation extends Operation {
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
-	}
-
-	@Override
-	public Value<?> emptyValue() {
-		return null;
 	}
 
 }

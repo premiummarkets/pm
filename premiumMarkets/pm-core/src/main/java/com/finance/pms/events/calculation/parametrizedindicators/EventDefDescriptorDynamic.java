@@ -32,8 +32,8 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -148,7 +149,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	protected void initDescriptionsList() {
 		List<ChartedOutputGroup> chartedOutputGroups = getChartedOutputGroups();
 
-		outputDescrFlatList = new HashMap<>();
+		outputDescrFlatList = new ConcurrentHashMap<>();
 		for (int groupIdx = 0; groupIdx < chartedOutputGroups.size(); groupIdx++) {
 			ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(groupIdx);
 			OutputDescr mainOutput = chartedOutputGroup.getThisGroupMainOutputDescription();
@@ -188,7 +189,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		});
 		sortedGroups.addAll(chartedOutputGroups);
 
-		this.chartedOutputGroups = new ArrayList<>(sortedGroups);
+		this.chartedOutputGroups =  Collections.synchronizedList(new ArrayList<>(sortedGroups));
 
 		if (invisibleGroup != null) {
 			this.chartedOutputGroups.add(invisibleGroup);

@@ -37,6 +37,16 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	public String toFormulae() {
 		return "$" + ((StringableValue) getParameter()).getValueAsString() + "$";
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public String toFormulaeDevelopped() {
+		if (this.getParameter() != null) {
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).toFormulaeDevelopped();
+		} else {
+			throw new RuntimeException();
+		}
+	}
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {

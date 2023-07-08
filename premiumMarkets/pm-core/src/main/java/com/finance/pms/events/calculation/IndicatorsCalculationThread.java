@@ -175,11 +175,13 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 						boolean grantsEventsOverride = !(eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock));
 						
 						Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
-						boolean hasPreviousCalculations = tunedConfOpt.isPresent();
+						boolean hasPreviousCalculations = tunedConfOpt.isPresent()  && !tunedConfOpt.get().isEmpty();
 						boolean isIdempotent = evtCalculator.isIdemPotent();
 						boolean isAlterableOveridable = !isIdempotent && grantsEventsOverride;
 						
-						TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), isAlterableOveridable);
+						TunedConf tunedConf = hasPreviousCalculations?
+												tunedConfOpt.get():
+												TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), isAlterableOveridable);
 	
 						if (isAlterableOveridable) {
 							cleanEventsFor(stock, eventInfo, eventListName);
@@ -233,18 +235,19 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 							} else {
 								LOGGER.info(
-										"Events recalculation requested for " + stock.getSymbol() + " and " + eventInfo.getEventDefinitionRef() + " using analysis " + eventListName + " from " + startDate + " to " + endDate + ". " + 
+										"Events recalculation requested for " + stock.getSymbol() + " and " + eventInfo.getEventDefinitionRef() + " " +
+												"using analysis " + eventListName + " from " + startDate + " to " + endDate + ". " + 
 												"No recalculation needed calculation bound is " + calculationBounds.toString());
 							}
 
 							if (!failing.isEmpty()) {//Error(s) as occurred. This should invalidate tuned conf
 								if (LOGGER.isEnabledFor(Level.ERROR)) {
-									failing.stream().forEach(e ->  LOGGER.error("Failing calculation : " + e));
+									failing.stream().forEach(e ->  LOGGER.error("Failing calculation: " + e));
 								}
-								//We will make the tunedConf clean assuming a subsequent calculation will also fail. FIXME calculation date have been changed however.
+								//We will make the tunedConf clean assuming a subsequent calculation will also fail. //FIXME calculation date have been changed however.
 							}
 
-						}//End synchronized
+						}//End synchronised
 
 					} catch (Exception e) {
 						LOGGER.error(e, e);

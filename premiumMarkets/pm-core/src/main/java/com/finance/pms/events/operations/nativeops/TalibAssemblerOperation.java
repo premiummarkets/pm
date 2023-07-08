@@ -172,7 +172,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				String orElse = inputListToArray.get(InputToArrayReturn.TRAILINGNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
 													.reduce((a, e) -> a + " " + e)
 													.orElse("");
-				throw new Exception("FIXME " + this.getReference() + ": " + this.toFormulae() + " has trailing NaNs " + 
+				throw new Exception("FIXME (trailing nans)" + this.getReference() + ": " + this.toFormulae() + " has trailing NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
 															.orElse("") + ": " +
@@ -182,7 +182,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				String orElse = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
 																								.reduce((a, e) -> a + " " + e)
 																								.orElse("");
-				LOGGER.warn("FIXME " + this.getReference() + ": " + this.toFormulae() + " has NaNs " + 
+				LOGGER.warn("FIXME (other nans)" + this.getReference() + ": " + this.toFormulae() + " has NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
 															.orElse("") + ": " +
