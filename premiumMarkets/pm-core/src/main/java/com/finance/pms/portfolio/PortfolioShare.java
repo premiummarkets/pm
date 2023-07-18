@@ -36,10 +36,10 @@ import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -169,24 +169,32 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	@Transient
 	public Date getLastTransactionDate() {
-		return getPortfolio().getLastDateTransactionFor(this, null, DateFactory.getNowEndDate());
+		return getPortfolio().getLastDateTransactionFor(this, null, DateFactory.getNowEndDate(), false);
 	}
 
 	@Transient
-	public SortedSet<TransactionElement> getTransactions() {
-		return getPortfolio().getTransactionsFor(this, null, DateFactory.getNowEndDate());
+	public SortedSet<TransactionElement> getTransactions(Boolean isLatestOnly) {
+		return getPortfolio().getTransactionsFor(this, null, DateFactory.getNowEndDate(), isLatestOnly);
+	}
+	
+	public BigDecimal getCashin(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return getPortfolio().getCashInFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, isRealisedOnly);
 	}
 
-	public BigDecimal getCashin(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return getPortfolio().getCashInFor(this, currentStartDate, currentEndDate, currency);
+	public BigDecimal getCashin(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return getPortfolio().getCashInFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, false);
+	}
+	
+	public BigDecimal getCashout(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return getPortfolio().getCashOutFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, isRealisedOnly);
 	}
 
-	public BigDecimal getCashout(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return getPortfolio().getCashOutFor(this, currentStartDate, currentEndDate, currency);
+	public BigDecimal getCashout(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return getPortfolio().getCashOutFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, false);
 	}
 
-	public BigDecimal getQuantity(Date currentStartDate, Date currentEndDate) {
-		return getPortfolio().getQuantityFor(this, currentStartDate, currentEndDate);
+	public BigDecimal getQuantity(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
+		return getPortfolio().getQuantityFor(this, currentStartDate, currentEndDate, isLatestOnly);
 	}
 
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
@@ -222,43 +230,96 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return closeQuotationFor(stock, currency, currentDate);
 	}
 
+	/**
+	 * ((Value + out) - in) / in
+	 * @param currentStartDate
+	 * @param currentEndDate
+	 * @param currency
+	 * @param isLatestOnly
+	 * @return
+	 */
 	@Transient
-	public BigDecimal getGainTotalPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
-		if (cashin.compareTo(BigDecimal.ZERO) == 0) {
-			return BigDecimal.ZERO;
-		} else {
-			BigDecimal gainTotal = getGainTotal(currentStartDate, currentEndDate, currency);
-			return gainTotal.divide(cashin, 10, RoundingMode.HALF_EVEN);
-		}
+	public BigDecimal getGainTotalPercent(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency, isLatestOnly);
+		if (cashin.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		BigDecimal gainTotal = getGainTotal(currentStartDate, currentEndDate, currency, isLatestOnly);
+		return gainTotal.divide(cashin, 10, RoundingMode.HALF_EVEN);
 	}
 
+	/**
+	 *  (Value + out) - in
+	 * @param currentStartDate
+	 * @param currentEndDate
+	 * @param currency
+	 * @param isLatestOnly
+	 * @return
+	 */
 	@Transient
-	public BigDecimal getGainTotal(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
-		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
-		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
+	public BigDecimal getGainTotal(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency, isLatestOnly);
+		BigDecimal value = getValue(currentStartDate, currentEndDate, currency, isLatestOnly);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency, isLatestOnly);
 		return value.add(cashout).subtract(cashin);
 	}
-
+	
+	/**
+	 * For realised transactions only: (avg sell price - avg buy price) / avg buy price
+	 * @param currentStartDate
+	 * @param currentEndDate
+	 * @param currency
+	 * @return
+	 */
 	@Transient
-	public Optional<BigDecimal> getPotentialYield(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency);
-		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency);
-		BigDecimal remainingInvested = cashin.subtract(cashout);
-		if (remainingInvested.compareTo(BigDecimal.ZERO) <= 0) return Optional.empty();
-		BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
-		if (value.compareTo(BigDecimal.ZERO) == 0) return Optional.of(BigDecimal.ZERO);
-		return Optional.of(value.subtract(remainingInvested).divide(remainingInvested, 10, RoundingMode.HALF_EVEN));
+	public BigDecimal getGainRealisedPercent(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		BigDecimal avgBuyPrice = getPriceAvgBuy(currentStartDate, currentEndDate, currency, isLatestOnly, true);
+		if (avgBuyPrice.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		BigDecimal avgSellPrice = getPriceAvgSell(currentStartDate, currentEndDate, currency, isLatestOnly, true);
+		if (avgSellPrice.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		return avgSellPrice.subtract(avgBuyPrice).divide(avgBuyPrice, 10, RoundingMode.HALF_EVEN);
+	}
+	
+	/**
+	 * (1+Cumulative Return)^(365/Days Held) -1
+	 * @param currentStartDate
+	 * @param currentEndDate
+	 * @param currency
+	 * @param isLatestOnly
+	 * @return
+	 */
+	@Transient
+	public BigDecimal getGainAnnualised(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		double cummulativeReturn = getGainTotalPercent(currentStartDate, currentEndDate, currency, isLatestOnly).doubleValue();
+		double nbDays = TimeUnit.DAYS.convert(currentEndDate.getTime() - currentStartDate.getTime(), TimeUnit.MILLISECONDS);
+		LOGGER.info("getGainAnnualised, nb days since first transaction: " + nbDays + " for " + this);
+		if (nbDays == 0) return BigDecimal.ZERO;
+		double annualReturn = Math.pow(1 + cummulativeReturn, 365d/nbDays) - 1;
+		return BigDecimal.valueOf(annualReturn);
+	}
+
+	/**
+	 * For latest transactions only: (value + out - in) / in
+	 * @param currentStartDate
+	 * @param currentEndDate
+	 * @param currency
+	 * @param isLatestOnly
+	 * @return
+	 */
+	@Transient
+	public BigDecimal getGainRemaingPotentialReturn(Date currentStartDate, Date currentEndDate, Currency currency) {
+		BigDecimal cashin = getCashin(currentStartDate, currentEndDate, currency, true);
+		if (cashin.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+		BigDecimal value = getValue(currentStartDate, currentEndDate, currency, true);
+		BigDecimal cashout = getCashout(currentStartDate, currentEndDate, currency, true);
+		return value.add(cashout).subtract(cashin).divide(cashin, 10, RoundingMode.HALF_EVEN);
 	}
 
 	@Transient
-	public BigDecimal getInflatWeightedGainTotalPercent(Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getGainTotalWeightedPercent(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
 		try {
-			InOutWeighted cashInOutWeighted = getInflatWeightedInvested(currentStartDate, currentEndDate, currency);
+			InOutWeighted cashInOutWeighted = getInflatWeightedInvested(currentStartDate, currentEndDate, currency, isLatestOnly);
 			BigDecimal cashInSubtractOutWeighted = cashInOutWeighted.getWeightedInvestedStillIn();
 			BigDecimal cashinWeighted = cashInOutWeighted.getIn();
-			BigDecimal value = getValue(currentStartDate, currentEndDate, currency);
+			BigDecimal value = getValue(currentStartDate, currentEndDate, currency, isLatestOnly);
 			return 	value.subtract(cashInSubtractOutWeighted).divide(cashinWeighted, 10, RoundingMode.HALF_EVEN); 
 		} catch (ArithmeticException e) {
 			return BigDecimal.ZERO;
@@ -266,23 +327,28 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	@Transient
-	public BigDecimal getPriceUnitCost(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return portfolio.getPriceUnitCostFor(this, currentStartDate, currentEndDate, currency);
+	public BigDecimal getPriceUnitCost(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return portfolio.getPriceUnitCostFor(this, currentStartDate, currentEndDate, currency, isLatestOnly);
 	}
 
 	@Transient
-	public BigDecimal getPriceUnitCost(Date currentEndDate, Currency currency) {
-		return getPriceUnitCost(null, currentEndDate, currency);
+	public BigDecimal getPriceUnitCost(Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return getPriceUnitCost(null, currentEndDate, currency, isLatestOnly);
 	}
 
 	@Transient
-	public BigDecimal getPriceAvgBuy(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return getPortfolio().getPriceAvgBuyFor(this, currentStartDate, currentEndDate, currency);
+	public BigDecimal getPriceAvgBuy(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return getPortfolio().getPriceAvgBuyFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, isRealisedOnly);
+	}
+	
+	@Transient
+	public BigDecimal getPriceAvgSell(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return getPortfolio().getPriceAvgSellFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, isRealisedOnly);
 	}
 
 	@Transient
-	public BigDecimal getValue(Date currentStartDate, Date currentEndDate, Currency currency) {
-		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
+	public BigDecimal getValue(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate, isLatestOnly);
 		BigDecimal priceClose = getPriceClose(currentEndDate, currency);
 		return quantity.multiply(priceClose).setScale(10, RoundingMode.HALF_EVEN);
 	}
@@ -350,7 +416,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 		BigDecimal quantity = transaction.getQuantity();
 		if (transaction.getModtype().equals(TransactionType.AOUT)) {
-			if (quantity.compareTo(this.getQuantity(transaction.getDate())) > 0) {
+			if (quantity.compareTo(this.getQuantity(transaction.getDate(), false)) > 0) {
 				throw new InvalidQuantityException("Trying to sell more than available. The quantity can't be negative!", null);
 			}
 			quantity = quantity.multiply(new BigDecimal(-1));
@@ -361,12 +427,12 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 
-	BigDecimal getCashout(Date currentDate, Currency transactionCurrency) {
-		return getCashout(null, currentDate, transactionCurrency);
+	BigDecimal getCashout(Date currentDate, Currency transactionCurrency, Boolean isLatestOnly) {
+		return getCashout(null, currentDate, transactionCurrency, isLatestOnly);
 	}
 
-	BigDecimal getCashin(Date currentDate, Currency transactionCurrency) {
-		return getCashin(null, currentDate, transactionCurrency);
+	BigDecimal getCashin(Date currentDate, Currency transactionCurrency, Boolean isLatestOnly) {
+		return getCashin(null, currentDate, transactionCurrency, isLatestOnly);
 	}
 
 	@Transient
@@ -403,8 +469,8 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	}
 
 	@Transient
-	public InOutWeighted getInflatWeightedInvested(Date currentStartDate, Date currentEndDate, Currency currency) {
-		return getPortfolio().getInflatWeightedInvestedFor(this, currentEndDate, currency);
+	public InOutWeighted getInflatWeightedInvested(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return getPortfolio().getInflatWeightedInvestedFor(this, currentEndDate, currency, isLatestOnly);
 	}
 
 	InOutWeighted calculateInflationAndExpectationWeightedInvestedCash(Date currentEndDate, SortedSet<TransactionElement> transactionsForStock, Currency currency)  throws InvalidAlgorithmParameterException {
@@ -533,7 +599,11 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return inflationRate;
 
 	}
-
+	
+	public Boolean isOwned(Date end, Boolean isLatestOnly) {
+		return getPriceAvgBuy(end, getTransactionCurrency(), isLatestOnly, false).compareTo(BigDecimal.ZERO) > 0;
+	}
+	
 	public String getExternalAccount() {
 		return externalAccount;
 	}
@@ -544,13 +614,14 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	/**
 	 * Gets the sell price for zero loss if cash in and out are weighted with inflation ( = inflation weighted avg buy price) : (Ow-Iw)/quantity
+	 * @param isLatestOnly 
 	 */
 	@Transient
-	public BigDecimal getInflatWeightedZeroGainPrice(Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getZeroPriceWeighted(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
 
-		InOutWeighted cashInOutWeighted = getInflatWeightedInvested(currentStartDate, currentEndDate, currency);
+		InOutWeighted cashInOutWeighted = getInflatWeightedInvested(currentStartDate, currentEndDate, currency, isLatestOnly);
 		BigDecimal cashInSubtractOutWeighted = cashInOutWeighted.getWeightedInvestedStillIn();
-		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate);
+		BigDecimal quantity = this.getQuantity(currentStartDate, currentEndDate, isLatestOnly);
 		if (quantity.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
 		BigDecimal costPerUnitWeighted = cashInSubtractOutWeighted.divide(quantity, 10, RoundingMode.HALF_EVEN);
 		return costPerUnitWeighted;
@@ -568,12 +639,12 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		this.alertsOnEvent = alertsOnEvent;
 	}
 
-	public BigDecimal getPriceAvgBuy(Date currentDate, Currency transactionCurrency) {
-		return getPriceAvgBuy(null, currentDate, transactionCurrency);
+	public BigDecimal getPriceAvgBuy(Date currentDate, Currency transactionCurrency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return getPriceAvgBuy(null, currentDate, transactionCurrency, isLatestOnly, isRealisedOnly);
 	}
 
-	public BigDecimal getQuantity(Date currentDate) {
-		return getQuantity(null, currentDate);
+	public BigDecimal getQuantity(Date currentDate, Boolean isLatestOnly) {
+		return getQuantity(null, currentDate, isLatestOnly);
 	}
 
 	public void setWeight(Double weight) {

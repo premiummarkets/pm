@@ -63,7 +63,7 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	}
 
 	@Override
-	public Number[] targetShareData(SlidingPortfolioShare portfolioShare,  Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public Number[] targetShareData(SlidingPortfolioShare portfolioShare, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		if (arbitraryStartDate != null && arbitraryEndDate != null) {
 
@@ -73,9 +73,9 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 			endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 			BigDecimal investPerUnit = BigDecimal.ZERO; 
 			if (includeMoneyOut) {
-				investPerUnit = portfolioShare.getPriceUnitCost(portfolioShare.calcSlidingEndDate(), portfolioShare.getTransactionCurrency());
+				investPerUnit = portfolioShare.getPriceUnitCost(portfolioShare.calcSlidingEndDate(), portfolioShare.getTransactionCurrency(), false);
 			} else {
-				investPerUnit = portfolioShare.getPriceAvgBuy(portfolioShare.calcSlidingEndDate(), portfolioShare.getTransactionCurrency());
+				investPerUnit = portfolioShare.getPriceAvgBuy(portfolioShare.calcSlidingEndDate(), portfolioShare.getTransactionCurrency(), false, false);
 			}
 
 			return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex, investPerUnit);

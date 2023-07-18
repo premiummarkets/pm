@@ -47,6 +47,7 @@ public interface PortfolioDAO {
 	//User portfolio
 	public List<Portfolio> loadVisiblePortfolios();
 	public List<String> loadUserPortfolioNames();
+	AutoPortfolio loadAutoPortfolio(String autoPortfolioName);
 
 	//Share lists
 	public void delete(AbstractSharesList portfolio);
@@ -71,6 +72,5 @@ public interface PortfolioDAO {
 	//Independent share lists
 	public IndepShareList loadIndepShareList(String shareListName);
 	public List<String> loadIndepShareListNames();
-
 
 }

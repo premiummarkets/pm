@@ -88,7 +88,7 @@ public abstract class AbstractSharesList extends Observable {
 
 	public AbstractSharesList(String name) {
 		this();
-		this.name=name;
+		this.name = name;
 	}
 
 	public AbstractSharesList(AbstractSharesList portfolio, String newName) {
@@ -214,14 +214,16 @@ public abstract class AbstractSharesList extends Observable {
 		return retSet;
 	}
 
-	public abstract Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
-	public abstract SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
-	public abstract BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	public abstract BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	public abstract BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate);
-	public abstract BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	public abstract BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency);
-	public abstract InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency);
-	public abstract BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency);
+	public abstract Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public abstract SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public abstract BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly, Boolean isRealisedOnly);
+	public abstract BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly, Boolean isRealisedOnly);
+	public abstract BigDecimal getQuantityFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public abstract BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly);
+	public abstract BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestTransactionOnly, Boolean isRealisedOnly);
+	public abstract BigDecimal getPriceAvgSellFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly,  Boolean isRealisedOnly);
+	public abstract InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly);
+	public abstract BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly);
+
 }
 

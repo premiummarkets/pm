@@ -647,12 +647,12 @@ public class ChartMain extends Chart {
 				listShares.stream()
 					.forEach(ps -> {
 						if (ps.getDisplayOnChart() && ps.isChartTransactions()) {
-							ps.getTransactions().stream()
+							ps.getTransactions(false).stream()
 							.forEach(t -> {
 								Paint lineColor = (t.getQuantity().compareTo(BigDecimal.ZERO) > 0)?Color.cyan:Color.blue;
 								addVTrans(
 										t.getDate().getTime(), t.toChart() + " / gain " + 
-										PERCENTAGE_FORMAT.format(ps.getGainTotalPercent(null, t.getDate(), ps.getTransactionCurrency())), lineColor);
+										PERCENTAGE_FORMAT.format(ps.getGainTotalPercent(null, t.getDate(), ps.getTransactionCurrency(), false)), lineColor);
 							});
 						}
 				});

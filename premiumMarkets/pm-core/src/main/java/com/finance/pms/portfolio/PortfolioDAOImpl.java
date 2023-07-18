@@ -201,9 +201,17 @@ public class PortfolioDAOImpl extends HibernateDaoSupport implements PortfolioDA
 
 
 	@SuppressWarnings("unchecked")
+	@Override
 	@Transactional(readOnly=true)
 	public List<String> loadUserPortfolioNames() {
 		return new ArrayList<String>((Collection<? extends String>) this.getHibernateTemplate().find("select name from UserPortfolio"));
+	}
+	
+	@Override
+	@Transactional(readOnly=true)
+	public AutoPortfolio loadAutoPortfolio(String autoPortfolioName) {
+		AutoPortfolio autoPortfolio = (AutoPortfolio) this.getHibernateTemplate().get(AutoPortfolio.class, autoPortfolioName);
+		return autoPortfolio;
 	}
 
 

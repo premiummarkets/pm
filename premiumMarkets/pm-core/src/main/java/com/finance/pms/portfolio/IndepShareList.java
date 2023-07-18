@@ -36,47 +36,52 @@ public class IndepShareList extends AbstractSharesList {
 	}
 
 	@Override
-	public Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+	public Date getLastDateTransactionFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
 		return new Date(0);
 	}
 
 	@Override
-	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getQuantityFor(PortfolioShare portfolioShare,Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
 		return BigDecimal.ONE;
 	}
 
 	@Override
-	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return BigDecimal.ONE;
+	}
+
+	@Override
+	public BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly, Boolean isRealisedOnly) {
+		return BigDecimal.ONE;
+	}
+	
+	@Override
+	public BigDecimal getPriceAvgSellFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly,  Boolean isRealisedOnly) {
 		return BigDecimal.ZERO;
 	}
 
 	@Override
-	public BigDecimal getQuantityFor(PortfolioShare portfolioShare,Date currentStartDate, Date currentEndDate) {
-		return BigDecimal.ONE;
-	}
-
-	@Override
-	public BigDecimal getBasisFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
-		return BigDecimal.ONE;
-	}
-
-	@Override
-	public BigDecimal getPriceAvgBuyFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
-		return BigDecimal.ONE;
-	}
-
-	@Override
-	public InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency) {
+	public InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly) {
 		return new InOutWeighted(BigDecimal.ONE, BigDecimal.ZERO, currentEndDate);
 	}
 
 	@Override
-	public SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate) {
+	public SortedSet<TransactionElement> getTransactionsFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
 		return new TreeSet<TransactionElement>();
 	}
 
 	@Override
-	public BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency) {
+	public BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly) {
 		return  BigDecimal.ONE;
+	}
+
+	@Override
+	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return BigDecimal.ONE;
+	}
+
+	@Override
+	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly, Boolean isRealisedOnly) {
+		return BigDecimal.ZERO;
 	}
 }

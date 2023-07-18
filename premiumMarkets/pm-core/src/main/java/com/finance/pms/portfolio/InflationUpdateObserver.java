@@ -53,8 +53,9 @@ public class InflationUpdateObserver implements Observer {
 					if (alertOnThr.getAlertType().equals(AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT)) {
 						alertsMgrDelegate
 							.addWeightedZeroProfitAlertGuardSetter(
-									ps.getPriceUnitCost(DateFactory.getNowEndDate(), 
-									ps.getTransactionCurrency()), DateFactory.getNowEndDate());
+										ps.getPriceUnitCost(DateFactory.getNowEndDate(), ps.getTransactionCurrency(), false), 
+										DateFactory.getNowEndDate()
+									);
 					}
 				}
 			}

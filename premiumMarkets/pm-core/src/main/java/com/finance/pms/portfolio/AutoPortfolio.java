@@ -59,6 +59,11 @@ import com.finance.pms.threads.ObserverMsg;
 @DiscriminatorValue("AutoPortfolio")
 public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
+	@Override
+	public Currency inferPortfolioCurrency() {
+		return getPortfolioCurrency();
+	}
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
 
 	public static final String NAME  = "AutoPortfolio";
@@ -96,7 +101,9 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	@Transient
 	public BigDecimal getAvailableCash() {
 		Date nowEndDate = DateFactory.getNowEndDate();
-		BigDecimal inMinusOut = getCashInForAll(null, nowEndDate).subtract(getCashOutForAll(null, nowEndDate)).setScale(2, RoundingMode.HALF_EVEN);
+		BigDecimal inMinusOut = getCashIn(null, nowEndDate, inferPortfolioCurrency(), false, false)
+								.subtract(getCashOut(null, nowEndDate, inferPortfolioCurrency(), false, false))
+								.setScale(2, RoundingMode.HALF_EVEN);
 		return getAutoPortfolioDelegate().initialCash.subtract(inMinusOut);
 	}
 

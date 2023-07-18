@@ -722,7 +722,7 @@ public class MyLogger {
 
 					transport.close();
 				} catch (Exception e) {
-					System.out.println("Could not send logging email");
+					System.out.println("Could not send logging email: " + errorMsg);
 					e.printStackTrace();
 				}
 			}

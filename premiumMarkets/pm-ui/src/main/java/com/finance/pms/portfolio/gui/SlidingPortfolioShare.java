@@ -31,8 +31,8 @@ package com.finance.pms.portfolio.gui;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.eclipse.swt.graphics.Color;
 
@@ -55,7 +55,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	private PortfolioShare underLyingPortfolioShare;
 
 	private Boolean displayOnChart;
-	private Boolean chartTransactions;
+	private Boolean isChartTransactions;
 	private Color color;
 
 	private Boolean slidingEnd;
@@ -67,7 +67,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	private Currency displayedCurrency;
 
 
-	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color) {
+	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color, Boolean isLatestOnly) {
 		super(portfolioShare);
 		this.underLyingPortfolioShare = portfolioShare;
 		this.start = start;
@@ -75,86 +75,80 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		this.slidingEnd = slidingEnd;
 		this.slidingStart = slidingStart;
 		this.color = color;
-		this.displayOnChart = portfolioShare.getPriceAvgBuy(end, portfolioShare.getTransactionCurrency()).compareTo(BigDecimal.ZERO) > 0;
-		this.chartTransactions = false;
+		this.displayOnChart = isOwned(end, isLatestOnly);
+		this.isChartTransactions = false;
 
 		this.displayedCurrency = portfolioShare.getTransactionCurrency();
 	}
 
-	public BigDecimal getTodaysCashin() {
-		return super.getCashin(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public BigDecimal getTodaysCashin(Boolean isLatestOnly) {
+		return super.getCashin(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public BigDecimal getTodaysCashout() {
-		return super.getCashout(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public BigDecimal getTodaysCashout(Boolean isLatestOnly) {
+		return super.getCashout(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public InOutWeighted getTodaysWeightedInvested() {
-		return super.getInflatWeightedInvested(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public InOutWeighted getTodaysWeightedInvested(Boolean isLatestOnly) {
+		return super.getInflatWeightedInvested(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public BigDecimal getTodaysPriceClose() {
+	public BigDecimal getTodaysPriceClose(Boolean isLatestOnly) {
 		return super.getPriceClose(calcSlidingEndDate(), displayedCurrency);
 	}
 
-	public Optional<BigDecimal> getTodaysPotentialYield() {
-		return super.getPotentialYield(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public BigDecimal getTodaysPotentialReturn() {
+		return super.getGainRemaingPotentialReturn(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	}
+	
+	public BigDecimal getTodaysGainRealisedPercent(Boolean isLatestOnly) {
+		return super.getGainRealisedPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
+	}
+	
+	public BigDecimal getTodaysValue(Boolean isLatestOnly) {
+		return super.getValue(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public BigDecimal getGainTotalWeightedPercent() {
-		return super.getInflatWeightedGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public BigDecimal getTodaysGainTotalWeightedPercent(Boolean isLatestOnly) {
+		return super.getGainTotalWeightedPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public BigDecimal getTodaysValue() {
-		return super.getValue(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public BigDecimal getTodaysZeroPriceWeighted(Boolean isLatestOnly) {
+		return super.getZeroPriceWeighted(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public BigDecimal getTodaysPriceZeroGainWeighted() {
-		return super.getInflatWeightedZeroGainPrice(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+	public BigDecimal getTodaysGainTotalPercent(Boolean isLatestOnly) {
+		return super.getGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
+	}
+	public BigDecimal getTodaysPriceUnitCost(Boolean isLatestOnly) {
+		return super.getPriceUnitCost(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 	}
 
-	public Date calcSlidingEndDate() {
-		Date currentDate;
-		if (slidingEnd) {
-			currentDate = end;
+	public BigDecimal getTodaysPriceAvgBuy(Boolean isLatestOnly) {
+		return super.getPriceAvgBuy(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly, false);
+	}
+
+	public BigDecimal getTodaysQuantity(Boolean isLatestOnly) {
+		return super.getQuantity(calcSlidingStartDate(), calcSlidingEndDate(), isLatestOnly);
+	}
+
+	public BigDecimal getTodaysGainTotal(Boolean isLatestOnly) {
+		return super.getGainTotal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency, isLatestOnly);
+	}
+	
+	@Override
+	public SortedSet<TransactionElement> getTransactions(Boolean isLatestOnly) {
+		return getPortfolio().getTransactionsFor(this, calcSlidingStartDate(), calcSlidingEndDate(), isLatestOnly);
+	}
+	
+	public BigDecimal getTodaysGainAnnualised(Boolean isLatestOnly) {
+		SortedSet<TransactionElement> transactions = this.getTransactions(isLatestOnly);
+		if (transactions.size() > 0) {
+			Date firstTransactionDate = transactions.first().getDate();
+			return super.getGainAnnualised(firstTransactionDate, calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 		} else {
-			currentDate = DateFactory.getNowEndDate();
-		}
-		return currentDate;
-	}
-
-	private Date calcSlidingStartDate() {
-		Date currentDate;
-		if (slidingStart) {
-			currentDate = start;
-		} else {
-			currentDate = DateFactory.dateAtZero();
-		}
-		return currentDate;
-	}
-
-	public void setSlidingEnd(Boolean sliding) {
-		this.slidingEnd = sliding;
-	}
-
-	public void setStart(Date start) {
-		this.start = start;
-	}
-
-	public void setEnd(Date end) {
-		this.end = end;
-	}
-
-	public void setSlidingStart(Boolean slidingStart) {
-		this.slidingStart = slidingStart;
-	}
-
-	public Color getColor() {
-		return color;
-	}
-
-	public BigDecimal getTodaysGainTotalPercent() {
-		return super.getGainTotalPercent(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
+			return BigDecimal.ZERO;
+		}	
 	}
 
 	@Override
@@ -201,28 +195,14 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		return "";
 	}
 
+	@Override
 	public Set<AlertOnThreshold> getAlertsOnThreshold() {
 		return underLyingPortfolioShare.getAlertsOnThreshold();
 	}
 
+	@Override
 	public Set<AlertOnEvent> getAlertsOnEvent() {
 		return underLyingPortfolioShare.getAlertsOnEvent();
-	}
-
-	public BigDecimal getTodaysPriceUnitCost() {
-		return super.getPriceUnitCost(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
-	}
-
-	public BigDecimal getTodaysPriceAvgBuy() {
-		return super.getPriceAvgBuy(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
-	}
-
-	public BigDecimal getTodaysQuantity() {
-		return super.getQuantity(calcSlidingStartDate(), calcSlidingEndDate());
-	}
-
-	public BigDecimal getTodaysGainTotal() {
-		return super.getGainTotal(calcSlidingStartDate(), calcSlidingEndDate(), displayedCurrency);
 	}
 
 	public Currency getDisplayedCurrency() {
@@ -234,11 +214,51 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 
 	public Boolean isChartTransactions() {
-		return chartTransactions;
+		return isChartTransactions;
 	}
 
-	public void setChartTransactions(Boolean chartTransactions) {
-		this.chartTransactions = chartTransactions;
+	public void setIsChartTransactions(Boolean chartTransactions) {
+		this.isChartTransactions = chartTransactions;
+	}
+	
+	public Date calcSlidingEndDate() {
+		Date currentDate;
+		if (slidingEnd) {
+			currentDate = end;
+		} else {
+			currentDate = DateFactory.getNowEndDate();
+		}
+		return currentDate;
+	}
+
+	private Date calcSlidingStartDate() {
+		Date currentDate;
+		if (slidingStart) {
+			currentDate = start;
+		} else {
+			currentDate = DateFactory.dateAtZero();
+		}
+		return currentDate;
+	}
+
+	public void setSlidingEnd(Boolean sliding) {
+		this.slidingEnd = sliding;
+	}
+
+	public void setStart(Date start) {
+		this.start = start;
+	}
+
+	public void setEnd(Date end) {
+		this.end = end;
+	}
+
+	public void setSlidingStart(Boolean slidingStart) {
+		this.slidingStart = slidingStart;
+	}
+
+	public Color getColor() {
+		return color;
 	}
 
 	

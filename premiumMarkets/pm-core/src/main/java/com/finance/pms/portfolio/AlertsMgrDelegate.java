@@ -339,9 +339,9 @@ public class AlertsMgrDelegate {
 
 			BigDecimal sellLimitBelowPriceRate = getEventsConfig().getSellLimitBelowPrice();
 
-			BigDecimal cashin = portfolio.getCashInFor(portfolioShare, null, currentDate, psCurrency, true);
+			BigDecimal cashin = portfolio.getCashInFor(portfolioShare, null, currentDate, psCurrency, true, false);
 			BigDecimal reducedCashin = BigDecimal.ONE.subtract(sellLimitBelowPriceRate).multiply(cashin).setScale(10, RoundingMode.HALF_EVEN);
-			BigDecimal cashout = portfolio.getCashOutFor(portfolioShare, null, currentDate, psCurrency, true);
+			BigDecimal cashout = portfolio.getCashOutFor(portfolioShare, null, currentDate, psCurrency, true, false);
 			BigDecimal quantity = portfolio.getQuantityFor(portfolioShare, null, currentDate, true);
 			BigDecimal belowSellLimit = reducedCashin.subtract(cashout).divide(quantity, 10, RoundingMode.HALF_EVEN);
 			BigDecimal resultingPercentBelowAvgPrice = calculationPrice.divide(belowSellLimit, 10, RoundingMode.HALF_EVEN).subtract(BigDecimal.ONE.setScale(4));

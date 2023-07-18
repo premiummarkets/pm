@@ -35,28 +35,28 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import com.finance.pms.portfolio.PortfolioShare;
+import com.finance.pms.datasources.shares.Stock;
 
-public class PortfolioSharesAndEvents {
+public class StockAndEvents {
 
-	private SortedSet<PortfolioShare> portfolioShares;
+	private SortedSet<Stock> portfolioShares;
 	private SortedMap<EventInfo, List<EventValue>> events;
 
-	public PortfolioSharesAndEvents() {
+	public StockAndEvents() {
 		super();
 		this.events = new TreeMap<EventInfo, List<EventValue>>();
-		this.portfolioShares = new TreeSet<PortfolioShare>();
+		this.portfolioShares = new TreeSet<Stock>();
 	}
 
 	public SortedMap<EventInfo, List<EventValue>> getEvents() {
 		return events;
 	}
 
-	public void add(PortfolioShare portfolioShare) {
+	public void add(Stock portfolioShare) {
 		this.portfolioShares.add(portfolioShare);
 	}
 
-	public SortedSet<PortfolioShare> getPortfolioShares() {
+	public SortedSet<Stock> getPortfolioShares() {
 		return portfolioShares;
 	}
 }

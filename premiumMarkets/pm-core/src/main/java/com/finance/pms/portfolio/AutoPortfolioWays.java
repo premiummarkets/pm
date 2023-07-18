@@ -56,14 +56,14 @@ public interface AutoPortfolioWays {
 	BigDecimal withdrawCash(Date currentDate, BigDecimal amount, Currency transactionCurrency) throws NoCashAvailableException;
 	BigDecimal getAvailableCash();
 	
-	Currency getPortfolioCurrency();
+	Currency inferPortfolioCurrency();
 	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
 	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException;
 
 	//The transactions thing
 	TransactionHistory getTransactionHistory();
 	void log(TransactionRecord transactionRecord);
-	String extractPortfolioTransactionLog(Date startDate, Date endDate) throws Throwable;
+	String extractPortfolioTransactionLog(Date startDate, Date endDate, Boolean isLatestTransactionOnly) throws Throwable;
 	SortedSet<TransactionElement> getTransactions();
 	
 	//Other things

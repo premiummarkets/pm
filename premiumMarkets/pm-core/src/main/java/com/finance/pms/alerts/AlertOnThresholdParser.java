@@ -79,7 +79,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculate alerts for: " + portfolioShare);
 
-			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());
+			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate(), false);
 			QuotationUnit quotation = quotations.get(quotationIndex);
 
 			if (quantity.compareTo(BigDecimal.ZERO) > 0 && !portfolioShare.getLastTransactionDate().after(quotation.getDate())) {
@@ -127,7 +127,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 					if (
 							(
 									AlertOnThresholdType.BELOW_PRICE_CHANNEL.equals(alert.getAlertType()) && 
-									portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency()).compareTo(todaysQuotation) > 0
+									portfolioShare.getPriceUnitCost(DateFactory.getNowEndDate(), portfolioShare.getTransactionCurrency(), false).compareTo(todaysQuotation) > 0
 							) || 
 							AlertOnThresholdType.BELOW_ZERO_WEIGHTED_PROFIT_LIMIT.equals(alert.getAlertType())
 						) 
@@ -183,7 +183,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 	private String additionnalMessage(BigDecimal todaysQuotation, Date today) {
 		Date nowEndDate = DateFactory.getNowEndDate();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(nowEndDate, portfolioShare.getTransactionCurrency());
+		BigDecimal pricePerUnitCost = portfolioShare.getPriceUnitCost(nowEndDate, portfolioShare.getTransactionCurrency(), false);
 		return ".\n\nFYI:\n current price: " + todaysQuotation + " and cost per unit: " + pricePerUnitCost + " on the " + df.format(today) + ".";
 	}
 

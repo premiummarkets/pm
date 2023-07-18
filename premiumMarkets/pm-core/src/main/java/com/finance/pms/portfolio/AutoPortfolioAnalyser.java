@@ -34,7 +34,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Optional;
 
 import com.finance.pms.events.calculation.DateFactory;
 
@@ -54,7 +53,7 @@ public class AutoPortfolioAnalyser {
 			File transactions = new File(System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + portfolioWays.getName()+"_TransactionsExport.csv");
 			Date nowEndDate = DateFactory.getNowEndDate();
 			
-			String extractTransactionLog = portfolioWays.extractPortfolioTransactionLog(DateFactory.dateAtZero(), nowEndDate);
+			String extractTransactionLog = portfolioWays.extractPortfolioTransactionLog(DateFactory.dateAtZero(), nowEndDate, false);
 			FileWriter fileWriter = new FileWriter(transactions);
 			fileWriter.write(extractTransactionLog);
 		
@@ -65,12 +64,12 @@ public class AutoPortfolioAnalyser {
 			msg = msg + "Totals : \n";
 			try {
 				
-				BigDecimal value = ((Portfolio) portfolioWays).getValue(null, nowEndDate);
-				BigDecimal gainTotal = ((Portfolio) portfolioWays).getGainTotal(null, nowEndDate);
-				BigDecimal gainTotalPercent = ((Portfolio) portfolioWays).getGainTotalPercent(null, nowEndDate);
-				Optional<BigDecimal> gainUnRealPercent = ((Portfolio) portfolioWays).getPotentialYield(null, nowEndDate);
-				BigDecimal totalInAmountEver = ((Portfolio) portfolioWays).getCashInForAll(null, nowEndDate);
-				BigDecimal totalOutAmountEver = ((Portfolio) portfolioWays).getCashOutForAll(null, nowEndDate);
+				BigDecimal value = ((Portfolio) portfolioWays).getValue(null, nowEndDate, false);
+				BigDecimal gainTotal = ((Portfolio) portfolioWays).getGainTotal(null, nowEndDate, false);
+				BigDecimal gainTotalPercent = ((Portfolio) portfolioWays).getGainTotalPercent(null, nowEndDate, false);
+				BigDecimal gainUnRealPercent = ((Portfolio) portfolioWays).getGainRemaingPotential(null, nowEndDate);
+				BigDecimal totalInAmountEver = ((Portfolio) portfolioWays).getCashIn(null, nowEndDate, portfolioWays.inferPortfolioCurrency(), false, false);
+				BigDecimal totalOutAmountEver = ((Portfolio) portfolioWays).getCashOut(null, nowEndDate, portfolioWays.inferPortfolioCurrency(), false, false);
 				
 				msg = msg + "Value : "+ value + "\n";
 				msg = msg +	"GainTotal : " + gainTotal + "\n";

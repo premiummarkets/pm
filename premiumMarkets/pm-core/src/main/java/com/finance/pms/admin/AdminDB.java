@@ -142,9 +142,9 @@ public class AdminDB {
 			Map<Stock, PortfolioShare> listShares = portfolio.getListShares();
 			for (PortfolioShare portfolioShare : listShares.values()) {
 				
-				if (portfolioShare.getPriceAvgBuy(null, null).intValue() == 0) {//FIXME
-					BigDecimal quantity = portfolioShare.getQuantity(null, null);
-					BigDecimal cashin = portfolioShare.getCashin(null, null, null);//FIXME
+				if (portfolioShare.getPriceAvgBuy(null, null, false, false).intValue() == 0) {//FIXME
+					BigDecimal quantity = portfolioShare.getQuantity(null, null, false);
+					BigDecimal cashin = portfolioShare.getCashin(null, null, null, false);//FIXME
 					if (quantity.compareTo(BigDecimal.ZERO) != 0 && cashin.compareTo(BigDecimal.ZERO) != 0) {
 					} else {
 						System.out.println("Can't update portfolioShare :"+

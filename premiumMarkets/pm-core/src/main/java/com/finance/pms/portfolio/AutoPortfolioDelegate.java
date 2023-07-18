@@ -248,8 +248,7 @@ public class AutoPortfolioDelegate {
 
 		//Check if already bought
 		PortfolioShare alreadyBoughtShare  = thisPortfolio.getListShares().get(symbolEvents.getStock());
-		if (	!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) &&
-				(alreadyBoughtShare != null && alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) > 0)
+		if (	!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) && (alreadyBoughtShare != null && alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), false))
 		) {
 			LOGGER.info("Won't buy at " + currentDate + " with " + symbolEvents.getSymbol() + ". Already bought (buy once policy).");
 			return null;
@@ -307,7 +306,7 @@ public class AutoPortfolioDelegate {
 
 		Stock stock = symbolEvents.getStock();
 		// XXX what if we buy twice the same share but with a different currency?
-		Currency transactionCurrency = (this.thisPortfolio.getPortfolioCurrency() == null) ? stock.getMarketValuation().getCurrency() : this.thisPortfolio.getPortfolioCurrency();
+		Currency transactionCurrency = (this.thisPortfolio.inferPortfolioCurrency() == null) ? stock.getMarketValuation().getCurrency() : this.thisPortfolio.inferPortfolioCurrency();
 
 		try {
 			//Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
@@ -330,7 +329,7 @@ public class AutoPortfolioDelegate {
 				BigDecimal quantity = effectiveAmountWithDrawn.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
 				LOGGER.info("Buying: " + quantity + " of " + stock + " on the " + currentDate + ". " +
 							"Requested " + transactionCurrency + " amount: " + requestedAmount + ". " +
-							"Effective " + thisPortfolio.getPortfolioCurrency() + "  amount: " + effectiveAmountWithDrawn + ". " +
+							"Effective " + thisPortfolio.inferPortfolioCurrency() + "  amount: " + effectiveAmountWithDrawn + ". " +
 							"Triggering event " + symbolEvents);
 
 				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
@@ -338,7 +337,7 @@ public class AutoPortfolioDelegate {
 				}
 				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
 				
-				LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
+				LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate(), false));
 
 				// Log
 				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
@@ -427,8 +426,7 @@ public class AutoPortfolioDelegate {
 		isValidEventDate(currentDate, latestEventDateAndNewBuyDate);
 
 		PortfolioShare alreadyBoughtShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
-		if ( alreadyBoughtShare == null || 
-			  alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).compareTo(BigDecimal.ZERO) == 0 ) {
+		if ( alreadyBoughtShare == null || !alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), false) ) {
 			LOGGER.info("Won't sell at " + currentDate + " with " + symbolEvents.getSymbol() + ": is not in owned at present.");
 			return null;
 		}
@@ -441,7 +439,7 @@ public class AutoPortfolioDelegate {
 
 			LOGGER.info("Selling at " + currentDate + " with " + symbolEvents.getSymbol());
 			BigDecimal amount = (BuyStrategy.INFINITQUANTITY.equals(buyStrategy))?
-					BigDecimal.valueOf((Math.max(alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate()).doubleValue(), nominalTransactionAmount.doubleValue()))):
+					BigDecimal.valueOf((Math.max(alreadyBoughtShare.getQuantity(DateFactory.getNowEndDate(), false).doubleValue(), nominalTransactionAmount.doubleValue()))):
 					null;
 			TransactionRecord sellTransactionRecord = sell(symbolEvents, currentDate, amount, alreadyBoughtShare);
 			thisPortfolio.setChanged();
@@ -481,7 +479,7 @@ public class AutoPortfolioDelegate {
 									.multiply(new BigDecimal(1 - (fee/(1+fee)) )).setScale(10, RoundingMode.HALF_EVEN);
 
 			BigDecimal quantityProrata;
-			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate());
+			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate(), false);
 			if (sellAmount != null) {
 				quantityProrata = sellAmount.divide(sellPrice, 10, RoundingMode.HALF_EVEN);
 				quantityProrata = quantityProrata.min(quantity);
@@ -490,7 +488,7 @@ public class AutoPortfolioDelegate {
 			}
 
 			thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, sellPrice, TransactionType.AOUT);
-			LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate()));
+			LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate(), false));
 
 			//log
 			return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, sellPrice, currentDate);

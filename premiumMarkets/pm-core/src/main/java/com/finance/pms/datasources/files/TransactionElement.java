@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -48,6 +49,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.ForeignKey;
 
@@ -79,11 +81,14 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		//Hib
 	}
 	
-	public TransactionElement(Stock stock, Portfolio portfolio, String externalAccount, Date date, BigDecimal price, BigDecimal quantity, Currency currency) {
+	public TransactionElement(
+			@NotNull Stock stock, 
+			Portfolio portfolio, String externalAccount, 
+			@NotNull Date date, @NotNull BigDecimal price, @NotNull BigDecimal quantity, Currency currency) {
 		super();
 		this.id = UUID.randomUUID().toString();
 		this.stock = stock;
-		this.portfolio= portfolio;
+		this.portfolio = portfolio;
 		this.externalAccount = externalAccount;
 		this.date = date;
 		this.price = price;
@@ -104,7 +109,8 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 
 	@Override
 	public String toString() {
-		return "TransactionElement [symbol=" + stock + ", accountName=" + externalAccount + ", portfolio=" + ((portfolio != null)?portfolio.getName():null) +  ", date=" + date + ", quantity="+ quantity + ", price=" + price + "]";
+		String portfolioName = (portfolio != null)? portfolio.getName() : null; //FIXME how can the portfolio name be null or is it for Hib reflection compat??
+		return "TransactionElement [id=" + id + ", symbol=" + stock + ", accountName=" + externalAccount + ", portfolio=" + portfolioName + ", date=" + date + ", quantity=" + quantity + ", price=" + price + "]";
 	}
 	
 	public String toChart() {
@@ -138,7 +144,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yy");
 		StringBuffer reportPrint = new StringBuffer();
-		reportPrint.append("elements.add(new TransactionElement(stock").append(", \""+externalAccount+"\"");
+		reportPrint.append("elements.add(new TransactionElement(stock").append(", \"" + externalAccount + "\"");
 		reportPrint.append(", simpleDateFormat.parse(\"").append(simpleDateFormat.format(getDate())).append("\")");
 		reportPrint.append(", new BigDecimal(").append(getPrice()).append(")");
 		reportPrint.append(", new BigDecimal(").append(getQuantity()).append(")");
@@ -194,17 +200,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((externalAccount == null) ? 0 : externalAccount.hashCode());
-		result = prime * result + ((portfolio == null) ? 0 : portfolio.hashCode());
-		result = prime * result + ((currency == null) ? 0 : currency.hashCode());
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((price == null) ? 0 : price.hashCode());
-		result = prime * result + ((quantity == null) ? 0 : quantity.hashCode());
-		result = prime * result + ((stock == null) ? 0 : stock.hashCode());
-		return result;
+		return Objects.hash(id);
 	}
 
 	@Override
@@ -216,44 +212,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 		if (getClass() != obj.getClass())
 			return false;
 		TransactionElement other = (TransactionElement) obj;
-		if (externalAccount == null) {
-			if (other.externalAccount != null)
-				return false;
-		} else if (!externalAccount.equals(other.externalAccount))
-			return false;
-		if (portfolio == null) {
-			if (other.portfolio != null)
-				return false;
-		} else if (!portfolio.equals(other.portfolio))
-			return false;
-		if (currency != other.currency)
-			return false;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (date.compareTo(other.date) != 0)
-			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		if (price == null) {
-			if (other.price != null)
-				return false;
-		} else if (!price.equals(other.price))
-			return false;
-		if (quantity == null) {
-			if (other.quantity != null)
-				return false;
-		} else if (!quantity.equals(other.quantity))
-			return false;
-		if (stock == null) {
-			if (other.stock != null)
-				return false;
-		} else if (!stock.equals(other.stock))
-			return false;
-		return true;
+		return Objects.equals(id, other.id);
 	}
 
 	@Enumerated(EnumType.STRING)

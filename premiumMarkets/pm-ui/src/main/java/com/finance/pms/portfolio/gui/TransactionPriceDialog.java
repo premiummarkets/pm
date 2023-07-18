@@ -109,8 +109,8 @@ public class TransactionPriceDialog extends Dialog {
 		super(new Shell(new Shell(parent,SWT.ON_TOP), SWT.DIALOG_TRIM));
 		
 		this.transaction = transaction;
-		this.fullAmountIn= slidingPortfolioShare.getCashin(null, transaction.getDate(), slidingPortfolioShare.getTransactionCurrency());
-		this.fullAmountOut= slidingPortfolioShare.getCashout(null, transaction.getDate(), slidingPortfolioShare.getTransactionCurrency());;
+		this.fullAmountIn = slidingPortfolioShare.getCashin(null, transaction.getDate(), slidingPortfolioShare.getTransactionCurrency(), false);
+		this.fullAmountOut = slidingPortfolioShare.getCashout(null, transaction.getDate(), slidingPortfolioShare.getTransactionCurrency(), false);
 		
 		this.portfolioShare = slidingPortfolioShare;
 		

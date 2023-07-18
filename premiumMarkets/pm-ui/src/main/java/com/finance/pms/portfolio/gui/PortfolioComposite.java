@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -164,6 +163,7 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.portfolio.AlertsMgrDelegate;
+import com.finance.pms.portfolio.InOutWeighted;
 import com.finance.pms.portfolio.InvalidQuantityException;
 import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.Portfolio;
@@ -462,19 +462,17 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				ObserverMsg observerMsg = (ObserverMsg) arg;
 
 				if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) {
-
 					getDisplay().asyncExec(
-							new Runnable() {
-								public void run(){
+						new Runnable() {
+							public void run(){
 
-									int tabIndex = portfolioCTabFolder.getSelectionIndex();
-									if (isVisible() && tabIndex != -1) {
-										tabUpdateItemsColors(tabIndex);
-									}
-
+								int tabIndex = portfolioCTabFolder.getSelectionIndex();
+								if (isVisible() && tabIndex != -1) {
+									tabUpdateItemsColors(tabIndex);
 								}
-							});
 
+							}
+						});
 				}
 			}
 
@@ -599,7 +597,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			synchronized (this.portfolio) {
 
 				this.portfolio.setIsUiDirty(false);
-				this.portfolio.setLatestTransactionsOnly(true);
 
 				try {
 
@@ -607,10 +604,10 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 					Collections.sort(listOfShares, new Comparator<SlidingPortfolioShare>() {
 						public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
-							BigDecimal o2TodaysGainTotalPercent = o2.getTodaysGainTotalPercent();
-							BigDecimal o1TodaysGainTotalPercent = o1.getTodaysGainTotalPercent();
-							if (o2.getTodaysQuantity().compareTo(BigDecimal.ZERO) == 0) o2TodaysGainTotalPercent = new BigDecimal(-9999);
-							if (o1.getTodaysQuantity().compareTo(BigDecimal.ZERO) == 0) o1TodaysGainTotalPercent = new BigDecimal(-9999);
+							BigDecimal o2TodaysGainTotalPercent = o2.getTodaysGainTotalPercent(isLatestTransactionsOnly.getSelection());
+							BigDecimal o1TodaysGainTotalPercent = o1.getTodaysGainTotalPercent(isLatestTransactionsOnly.getSelection());
+							if (o2.getTodaysQuantity(isLatestTransactionsOnly.getSelection()).compareTo(BigDecimal.ZERO) == 0) o2TodaysGainTotalPercent = new BigDecimal(-9999);
+							if (o1.getTodaysQuantity(isLatestTransactionsOnly.getSelection()).compareTo(BigDecimal.ZERO) == 0) o1TodaysGainTotalPercent = new BigDecimal(-9999);
 							int ret = o2TodaysGainTotalPercent.compareTo(o1TodaysGainTotalPercent);
 							ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 							return ret;
@@ -640,15 +637,25 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	private enum Titles {
 		Symbol ("Symbol^", "Symbol"),
-		Name ("Stock^", "Stock name"),
+		Name ("Stock^", "Stock denomination"),
 		Value ("Value^", "Value at date"),
 		Close ("Close", "Last close price available"),
-		AvgBuyPrc ("Avg buy price", "Average buy transaction price.\nFormula: Sum(buy transaction quantity*price) / Sum(bought quantity)"),
+		AvgBuyPrc ("Avg buy price", "Average buy transaction price.\nFormula: Sum(buy transaction quantity * price) / Sum(bought quantity)"),
+		
+		//Overall perfs
+		TotalGain ("Total gain", "Total gain ~ Cumulative Return (from the initialisation of the line).\nFormula: (Value + out) - in"),
+		TotalPercentGain ("Total %gain^", "Total %gain.\nFormula: ((Value + out) - in) / in"),
+		AnnualisedPercentGain ("Annualised %gain^", "Annualised %gain.\nFormula: (1+Cumulative Return)^(365/Days Held)​−1"),
+		//Past perfs (inc. out)
 		CostPerUnit ("Unit cost", "Effective cost per unit when including money out.\nFormula: (in - out) / actual quantity"),
-		ZeroWGainPrc ("Zero price", "Minimum unit sell price for no loss when including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : (Inflated(in) - Inflated(out)) / actual quantity"),
-		TotalPercentGain ("Potential gain^", "Potential gain.\nFormula: ( (Value + out) - in ) / in"),
-		WTotalPercentGain ("Potential gain inflated^", "Potential gain if including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : ( (actual value + Inflated(out)) - Inflated(in) ) / Inflated(in)"),
-		UrPercentGain ("Potential yield^", "Potential yield of the remaining.\nFormula: (Value - (in - out)) / (in - out)"),
+		RealizedPercentGain("Realised %gain^", "Gain of realised transactions.\nFormula: (avg sell price - avg buy price) / avg buy price"),
+		//Future perfs (ex. out)
+		UrPercentGain ("Potential return^", "Potential return of the remaining (~Total gain but from the last reset of the line only).\nFormula: ((Value + out) - in) / in"),
+		//Inflated Perfs
+		//ZeroWGainPrc ("Zero price", "Minimum unit sell price for no loss when including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : (Inflated(in) - Inflated(out)) / actual quantity"),
+		//WTotalPercentGain ("Potential gain inflated^", "Potential gain if including inflation (Based on The Consumer Price Index (CPI-U) compiled by the Bureau of Labor Statistics and is based upon a 1982 Base of 100. A Consumer Price Index of 158 indicates 58% inflation since 1982.).\nFormula : ( (actual value + Inflated(out)) - Inflated(in) ) / Inflated(in)"),
+		
+		//Other
 		DisplayedCurrency("Currency^", "You can choose to display the amounts using another currency.\nDouble click to edit"),
 		Monitor("Monitor", "Alert monitor level.\nDouble click to edit.\nAll lines with a monitor level different from NONE will generate notifications");
 
@@ -680,9 +687,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 		Value ("Actual value", ""),
 		TotalInvested ("Total invested","Formula: in - out"),
-		TotalGain ("Potential gain","Formula: Value + out - in"),
-		TotalGainPercent ("Potential gain ratio","Formula:  ((Value + out - in) / in)"),
-		UnrGainPercent ("Potential yield of remaining", "Potential yield. Formula: ((Value - (in - out)) / (in - out))"),
+		TotalGain ("Total gain","Formula: Value + out - in"),
+		TotalGainPercent ("Total %gain","Formula:  ((Value + out - in) / in)"),
+		RealisedGainPercent ("Realised %gain", "Formula: sum((avg sell price - avg buy price) * sold quantity) / sum(avg buy price * sold quantity)"),
+		UnrGainPercent ("Potential return", "Potential return of the remaining (~Total gain but from the last reset of each line only). Formula: ((Value + out - in)) / in"),
+		AnnualisedGainPercent ("Annualised %gain", "Formula: (1+Cumulative Return)^(365/Days Held)​−1"),
 		MoneyIn ("Money in", ""),
 		MoneyOut ("Money out", "");
 
@@ -1109,6 +1118,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							}
 
 						});
+						isLatestTransactionsOnly.setSelection(true);
 					}
 				}
 				refreshPortfolioTotalsInfos(portfolioCTabFolder.getSelectionIndex());
@@ -1125,9 +1135,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		int si = selectedPortfolioIdx();
 
 		if (si != -1) {
-			Portfolio currentPortfolio = modelControler.getPortfolio(si);
-			currentPortfolio.setLatestTransactionsOnly(isLatestTransactionsOnly.getSelection());
-
 			List<SlidingPortfolioShare> slidingPSs = modelControler.getSlidingSharesInTab(si);
 			if (slidingPSs.size() > 0) {
 				try {
@@ -1176,14 +1183,20 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				item.setForeground(Titles.AvgBuyPrc.ordinal(),fgColor);
 				item.setBackground(Titles.CostPerUnit.ordinal(),bgColor);
 				item.setForeground(Titles.CostPerUnit.ordinal(),fgColor);
-				item.setBackground(Titles.ZeroWGainPrc.ordinal(),bgColor);
-				item.setForeground(Titles.ZeroWGainPrc.ordinal(),fgColor);
+//				item.setBackground(Titles.ZeroWGainPrc.ordinal(),bgColor);
+//				item.setForeground(Titles.ZeroWGainPrc.ordinal(),fgColor);
 				item.setBackground(Titles.TotalPercentGain.ordinal(),bgColor);
 				item.setForeground(Titles.TotalPercentGain.ordinal(),fgColor);
+				item.setBackground(Titles.TotalGain.ordinal(),bgColor);
+				item.setForeground(Titles.TotalGain.ordinal(),fgColor);
+				item.setBackground(Titles.AnnualisedPercentGain.ordinal(),bgColor);
+				item.setForeground(Titles.AnnualisedPercentGain.ordinal(),fgColor);
 				item.setBackground(Titles.UrPercentGain.ordinal(),bgColor);
 				item.setForeground(Titles.UrPercentGain.ordinal(),fgColor);
-				item.setBackground(Titles.WTotalPercentGain.ordinal(),bgColor);
-				item.setForeground(Titles.WTotalPercentGain.ordinal(),fgColor);
+				item.setBackground(Titles.RealizedPercentGain.ordinal(),bgColor);
+				item.setForeground(Titles.RealizedPercentGain.ordinal(),fgColor);
+//				item.setBackground(Titles.WTotalPercentGain.ordinal(),bgColor);
+//				item.setForeground(Titles.WTotalPercentGain.ordinal(),fgColor);
 
 			}
 
@@ -1303,7 +1316,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				for (final PortfolioShare pS : portfolio.getListShares().values()) {
 
 					final Date today = DateFactory.getNowEndDate();
-					if (pS.getQuantity(chartsComposite.getSlidingStartDate(), today).compareTo(BigDecimal.ZERO) > 0) {
+					if (pS.getQuantity(chartsComposite.getSlidingStartDate(), today, isLatestTransactionsOnly.getSelection()).compareTo(BigDecimal.ZERO) > 0) {
 						try {
 
 							Runnable loadQRunnable = new Runnable() {
@@ -1765,7 +1778,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							if (itemIdx != -1) {
 								SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
 								Stock stock = ss.getStock();
-								SortedSet<TransactionElement> transactions = ss.getTransactions();
+								SortedSet<TransactionElement> transactions = ss.getTransactions(false);
 
 								Map<Date, Object[]> cumQu = new HashMap<Date, Object[]>();
 								for (TransactionElement te : transactions) {
@@ -1893,7 +1906,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							final int itemIdx = table.getSelectionIndex();
 							if (itemIdx != -1) {
 								SlidingPortfolioShare ss = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), itemIdx);
-								ss.setChartTransactions(allowOverride.getSelection());
+								ss.setIsChartTransactions(allowOverride.getSelection());
 								refreshChartData();
 							}
 						}
@@ -2004,13 +2017,22 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						}
 
 						infoItems[0] = selectedShare.getFriendlyName();
-						infoItems[1] = "Last quotation date : " + lastCloseDate + " (Source: " + origin + ")";
-						infoItems[2] = "Actual quantity : " + quantiesFormat.format(selectedShare.getTodaysQuantity());
-						infoItems[3] = "Flows: " +
-								"Potential Gain " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysGainTotal()) +
-								" / In " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysCashin()) + 
-								" / Out " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysCashout()) + " " + displayedCurrency;
-						infoItems[4] = "Listed in: ";
+						infoItems[1] = "Last quotation date: " + lastCloseDate + " (Source: " + origin + ")";
+						boolean isLatestOnly = isLatestTransactionsOnly.getSelection();
+						infoItems[2] = "Actual quantity: " + quantiesFormat.format(selectedShare.getTodaysQuantity(isLatestOnly));
+						BigDecimal todaysCashin = selectedShare.getTodaysCashin(isLatestOnly);
+						BigDecimal todaysCashout = selectedShare.getTodaysCashout(isLatestOnly);
+						infoItems[3] = "Cash flows: " +
+								" In " + signumRoundedFormat(moneysFormat, todaysCashin) + 
+								" / Out " + signumRoundedFormat(moneysFormat, todaysCashout) +
+								" / In-Out " + signumRoundedFormat(moneysFormat, todaysCashin.subtract(todaysCashout)) + " " + displayedCurrency;
+//						infoItems[4] = "Listed in: ";
+						InOutWeighted todaysWeightedInvested = selectedShare.getTodaysWeightedInvested(isLatestOnly);
+						infoItems[4] = "Inflated Flows: " +
+								"Infl. in " + signumRoundedFormat(moneysFormat, todaysWeightedInvested.getIn()) +
+								" / Infl. out " + signumRoundedFormat(moneysFormat, todaysWeightedInvested.getOut()) +
+								" / Infl. %gain " + signumRoundedFormat(percentFormat, selectedShare.getTodaysGainTotalWeightedPercent(isLatestOnly)) +
+								" / Zero price " + signumRoundedFormat(moneysFormat, selectedShare.getTodaysZeroPriceWeighted(isLatestOnly));
 
 						String shareInfo = infoItems[0] + "\n" + infoItems[1] + "\n" + infoItems[2] + "\n" + infoItems[3] + "\n" + infoItems[4];
 
@@ -2018,29 +2040,29 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						Point map = getDisplay().map((Control)event.widget, null, point);
 						tableRowToolTip = showTooltip(selectedShare.hashCode(), null, map.x, map.y, shareInfo);
 
-						Runnable runnable = new Runnable() {
-							public void run() {
-								List<PortfolioShare> portfolioSharesForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadPortfolioShareForStock(selectedShare.getStock());
-								String shareListsForStock = "";
-								String sep = "\n";
-								for (PortfolioShare portfolioShare : portfolioSharesForStock) {
-									shareListsForStock = shareListsForStock + sep + portfolioShare.getPortfolio().getName();
-									sep = "\n";
-								}
-								final String fshareListsForStock = shareListsForStock; //.substring(0, Math.min(shareListsForStock.length(), 80));
-								Runnable runnable2 = new Runnable() {
-									public void run() {
-										//updateTooltip(selectedShare.hashCode(), fshareListsForStock);
-										if (tableRowToolTip != null && !tableRowToolTip.isDisposed()) tableRowToolTip.dispose();
-										tableRowToolTip = showTooltip(selectedShare.hashCode(), null, map.x, map.y, shareInfo + fshareListsForStock);
-									}
-								};
-								getDisplay().asyncExec(runnable2);
-
-							}
-						};
-						Thread thread = new Thread(runnable); 
-						thread.start();
+//						Runnable runnable = new Runnable() {
+//							public void run() {
+//								List<PortfolioShare> portfolioSharesForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadPortfolioShareForStock(selectedShare.getStock());
+//								String shareListsForStock = "";
+//								String sep = "\n";
+//								for (PortfolioShare portfolioShare : portfolioSharesForStock) {
+//									shareListsForStock = shareListsForStock + sep + portfolioShare.getPortfolio().getName();
+//									sep = "\n";
+//								}
+//								final String fshareListsForStock = shareListsForStock; //.substring(0, Math.min(shareListsForStock.length(), 80));
+//								Runnable runnable2 = new Runnable() {
+//									public void run() {
+//										//updateTooltip(selectedShare.hashCode(), fshareListsForStock);
+//										if (tableRowToolTip != null && !tableRowToolTip.isDisposed()) tableRowToolTip.dispose();
+//										tableRowToolTip = showTooltip(selectedShare.hashCode(), null, map.x, map.y, shareInfo + fshareListsForStock);
+//									}
+//								};
+//								getDisplay().asyncExec(runnable2);
+//
+//							}
+//						};
+//						Thread thread = new Thread(runnable); 
+//						thread.start();
 
 					}
 				}
@@ -2215,7 +2237,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			} catch (Exception e1) {
 				LOGGER.warn(e1);
 			}
-			BigDecimal proposedQuantity = pstmp.getQuantity(newDate);
+			BigDecimal proposedQuantity = pstmp.getQuantity(newDate, isLatestTransactionsOnly.getSelection());
 			switch (transactionType) { 
 			case AIN: //Buy
 			{
@@ -2330,6 +2352,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	}
 
 	void refreshPortfolioTotalsInfos(final Integer currentPortfolioTab) {
+		
+		boolean isLatestOnly = isLatestTransactionsOnly.getSelection();
 
 		Runnable runnable = new Runnable() {
 			public void run() {
@@ -2337,16 +2361,6 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 					Portfolio currentPortfolio = modelControler.getPortfolio(currentPortfolioTab);
 					final Currency portfolioCurrency = currentPortfolio.inferPortfolioCurrency();
-
-					if (LOGGER.isDebugEnabled()) {
-						try {
-							if (LOGGER.isDebugEnabled()) LOGGER.debug(currentPortfolio.extractPortfolioTransactionLog(
-									(slidingStartAnchor.getSelection()) ? chartsComposite.getSlidingStartDate() : DateFactory.dateAtZero(),
-											(slidingEndAnchor.getSelection()) ? chartsComposite.getSlidingEndDate() : DateFactory.getNowEndDate()));
-						} catch (Throwable e) {
-							e.printStackTrace();
-						}
-					}
 
 					final Date currentStartDate = DateFactory.dateAtZero();
 					final Date currentEndDate = DateFactory.getNowEndDate();
@@ -2367,9 +2381,11 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					BigDecimal basis;
 					BigDecimal gainTotal;
 					BigDecimal gainTotalPercent;
-					Optional<BigDecimal> gainOfRemaining;
+					BigDecimal gainOfRemaining;
 					BigDecimal totalInAmountEver;
 					BigDecimal totalOutAmountEver;
+					BigDecimal gainAnnualised;
+					BigDecimal gainRealised;
 					try {
 						Runnable cursorOn = new Runnable() {
 							public void run() {
@@ -2380,14 +2396,21 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 							}
 						};
 						getDisplay().syncExec(cursorOn);
-
-						value = currentPortfolio.getValue(currentStartDate, currentEndDate);
-						gainTotal = currentPortfolio.getGainTotal(currentStartDate, currentEndDate);
-						gainTotalPercent = currentPortfolio.getGainTotalPercent(currentStartDate, currentEndDate);
-						gainOfRemaining = currentPortfolio.getPotentialYield(currentStartDate, currentEndDate);
-						totalInAmountEver = currentPortfolio.getCashInForAll(currentStartDate, currentEndDate);
-						totalOutAmountEver = currentPortfolio.getCashOutForAll(currentStartDate, currentEndDate);
+						
+						value = currentPortfolio.getValue(currentStartDate, currentEndDate,  isLatestOnly);
+						gainTotal = currentPortfolio.getGainTotal(currentStartDate, currentEndDate, isLatestOnly);
+						gainTotalPercent = currentPortfolio.getGainTotalPercent(currentStartDate, currentEndDate, isLatestOnly);
+						gainOfRemaining = currentPortfolio.getGainRemaingPotential(currentStartDate, currentEndDate);
+						totalInAmountEver = currentPortfolio.getCashIn(currentStartDate, currentEndDate, currentPortfolio.inferPortfolioCurrency(), isLatestOnly, false);
+						totalOutAmountEver = currentPortfolio.getCashOut(currentStartDate, currentEndDate, currentPortfolio.inferPortfolioCurrency(), isLatestOnly, false);
 						basis = totalInAmountEver.subtract(totalOutAmountEver);
+						SortedSet<TransactionElement> transactionsSortedByDate = currentPortfolio.transactionsSortedByDate(currentStartDate, currentEndDate, isLatestOnly);
+						if (transactionsSortedByDate.size() > 0) {
+							gainAnnualised = currentPortfolio.getGainAnnualisedPercent(transactionsSortedByDate.first().getDate(), currentEndDate, isLatestOnly);
+						} else {
+							gainAnnualised = BigDecimal.ZERO;
+						}
+						gainRealised = currentPortfolio.getGainRealisedPercent(currentStartDate, currentEndDate, isLatestOnly);
 
 					} catch (Exception e) {
 						throw new RuntimeException(e);
@@ -2403,23 +2426,19 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					Runnable runnable = new Runnable() {
 						public void run() {
 
-							if (currentPortfolioTab != getCurrentTabSelection())
-								return;
-
-							isLatestTransactionsOnly.setSelection(currentPortfolio.isLatestTransactionsOnly());
+							if (currentPortfolioTab != getCurrentTabSelection()) return;
 
 							TableItem item = portfolioInfosTable.getItem(0);
 
 							item.setText(PortfolioInfosTitles.Value.ordinal(), moneysFormat.format(value) + " " + portfolioCurrency.toString());
 							item.setText(PortfolioInfosTitles.TotalInvested.ordinal(), moneysFormat.format(basis) + " " + portfolioCurrency.toString());
-							item.setText(PortfolioInfosTitles.TotalGain.ordinal(),
-									signumRoundedFormat(moneysFormat, gainTotal) + " " + portfolioCurrency.toString());
+							item.setText(PortfolioInfosTitles.TotalGain.ordinal(), signumRoundedFormat(moneysFormat, gainTotal) + " " + portfolioCurrency.toString());
 							item.setText(PortfolioInfosTitles.TotalGainPercent.ordinal(), signumRoundedFormat(percentFormat, gainTotalPercent));
-							item.setText(PortfolioInfosTitles.UnrGainPercent.ordinal(), (gainOfRemaining.isPresent())?signumRoundedFormat(percentFormat, gainOfRemaining.get()):"infinity");
-							item.setText(PortfolioInfosTitles.MoneyIn.ordinal(),
-									moneysFormat.format(totalInAmountEver) + " " + portfolioCurrency.toString());
-							item.setText(PortfolioInfosTitles.MoneyOut.ordinal(),
-									moneysFormat.format(totalOutAmountEver) + " " + portfolioCurrency.toString());
+							item.setText(PortfolioInfosTitles.RealisedGainPercent.ordinal(), signumRoundedFormat(percentFormat, gainRealised));
+							item.setText(PortfolioInfosTitles.UnrGainPercent.ordinal(), signumRoundedFormat(percentFormat, gainOfRemaining));
+							item.setText(PortfolioInfosTitles.AnnualisedGainPercent.ordinal(), signumRoundedFormat(percentFormat, gainAnnualised));
+							item.setText(PortfolioInfosTitles.MoneyIn.ordinal(), moneysFormat.format(totalInAmountEver) + " " + portfolioCurrency.toString());
+							item.setText(PortfolioInfosTitles.MoneyOut.ordinal(), moneysFormat.format(totalOutAmountEver) + " " + portfolioCurrency.toString());
 
 							packColumns(portfolioInfosTable, PortfolioInfosTitles.values().length, 80);
 							portfolioInfosGroup.layout();
@@ -2453,15 +2472,18 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		ti.setText(Titles.Symbol.ordinal(), ps.getSymbol() + " / " + ps.getIsin());
 
 		//
-		if (ps.getPriceAvgBuy(chartsComposite.getSlidingEndDate(), ps.getDisplayedCurrency()).compareTo(BigDecimal.ZERO) > 0) {
-			BigDecimal todaysPriceClose = ps.getTodaysPriceClose();
-			BigDecimal todaysValue = ps.getTodaysValue();
-			BigDecimal todaysPriceAvgBuy = ps.getTodaysPriceAvgBuy();
-			BigDecimal todaysPriceUnitCost = ps.getTodaysPriceUnitCost();
-			BigDecimal todaysGainTotalPercent = ps.getTodaysGainTotalPercent();
-			Optional<BigDecimal> todaysGainUnrealPercent = ps.getTodaysPotentialYield();
-			BigDecimal todaysPriceZeroGainWeighted = ps.getTodaysPriceZeroGainWeighted();
-			BigDecimal gainTotalWeightedPercent = ps.getGainTotalWeightedPercent();
+		if (ps.isOwned(chartsComposite.getSlidingEndDate(), isLatestTransactionsOnly.getSelection())) {
+			BigDecimal todaysPriceClose = ps.getTodaysPriceClose(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysValue = ps.getTodaysValue(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysPriceAvgBuy = ps.getTodaysPriceAvgBuy(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysPriceUnitCost = ps.getTodaysPriceUnitCost(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysGainTotalPercent = ps.getTodaysGainTotalPercent(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysGainUnrealPercent = ps.getTodaysPotentialReturn();
+//			BigDecimal todaysPriceZeroGainWeighted = ps.getTodaysPriceZeroGainWeighted(isLatestTransactionsOnly.getSelection());
+//			BigDecimal gainTotalWeightedPercent = ps.getGainTotalWeightedPercent(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysGainRealisedPercent = ps.getTodaysGainRealisedPercent(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysGainTotal = ps.getTodaysGainTotal(isLatestTransactionsOnly.getSelection());
+			BigDecimal todaysGainAnnualisedPercent = ps.getTodaysGainAnnualised(isLatestTransactionsOnly.getSelection());
 
 
 			ti.setText(Titles.Close.ordinal(), moneysFormat.format(todaysPriceClose));
@@ -2470,11 +2492,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			ti.setText(Titles.CostPerUnit.ordinal(), moneysFormat.format(todaysPriceUnitCost));
 
 			ti.setText(Titles.TotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainTotalPercent));
-			ti.setText(Titles.UrPercentGain.ordinal(), (todaysGainUnrealPercent.isPresent())?signumRoundedFormat(percentFormat, todaysGainUnrealPercent.get()):"infinity");
+			ti.setText(Titles.UrPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainUnrealPercent));
+			
+			ti.setText(Titles.RealizedPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainRealisedPercent));
+			ti.setText(Titles.TotalGain.ordinal(), signumRoundedFormat(moneysFormat, todaysGainTotal));
+			ti.setText(Titles.AnnualisedPercentGain.ordinal(), signumRoundedFormat(percentFormat, todaysGainAnnualisedPercent));
 
-			ti.setText(Titles.ZeroWGainPrc.ordinal(), moneysFormat.format(todaysPriceZeroGainWeighted));
-
-			ti.setText(Titles.WTotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, gainTotalWeightedPercent));
+//			ti.setText(Titles.ZeroWGainPrc.ordinal(), moneysFormat.format(todaysPriceZeroGainWeighted));
+//			ti.setText(Titles.WTotalPercentGain.ordinal(), signumRoundedFormat(percentFormat, gainTotalWeightedPercent));
 		}
 		//
 
@@ -2514,7 +2539,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		case Value:
 			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
 				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
-					int ret = o2.getTodaysValue().compareTo(o1.getTodaysValue());
+					int ret = o2.getTodaysValue(isLatestTransactionsOnly.getSelection()).compareTo(o1.getTodaysValue(isLatestTransactionsOnly.getSelection()));
 					ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 					return ret;
 				}						
@@ -2523,8 +2548,8 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		case TotalPercentGain:
 			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
 				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
-					BigDecimal o2TodaysGainTotalPercent = o2.getTodaysGainTotalPercent();
-					BigDecimal o1TodaysGainTotalPercent = o1.getTodaysGainTotalPercent();
+					BigDecimal o2TodaysGainTotalPercent = o2.getTodaysGainTotalPercent(isLatestTransactionsOnly.getSelection());
+					BigDecimal o1TodaysGainTotalPercent = o1.getTodaysGainTotalPercent(isLatestTransactionsOnly.getSelection());
 					int ret = o2TodaysGainTotalPercent.compareTo(o1TodaysGainTotalPercent);
 					ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 					return ret;
@@ -2534,25 +2559,47 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		case UrPercentGain:
 			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
 				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
-					BigDecimal o2TodaysGainUnrealPercent = o2.getTodaysPotentialYield().orElseGet(() -> BigDecimal.valueOf(Double.MAX_VALUE));
-					BigDecimal o1TodaysGainUnrealPercent = o1.getTodaysPotentialYield().orElseGet(() -> BigDecimal.valueOf(Double.MAX_VALUE));
+					BigDecimal o2TodaysGainUnrealPercent = o2.getTodaysPotentialReturn();
+					BigDecimal o1TodaysGainUnrealPercent = o1.getTodaysPotentialReturn();
 					int ret = o2TodaysGainUnrealPercent.compareTo(o1TodaysGainUnrealPercent);
 					ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 					return ret;
 				}						
 			});
 			break;
-		case WTotalPercentGain:
+		case RealizedPercentGain:
 			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
 				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
-					BigDecimal o2GainTotalWeightedPercent = o2.getGainTotalWeightedPercent();
-					BigDecimal o1GainTotalWeightedPercent = o1.getGainTotalWeightedPercent();
-					int ret = o2GainTotalWeightedPercent.compareTo(o1GainTotalWeightedPercent);
+					BigDecimal o2TodaysGainUnrealPercent = o2.getTodaysGainRealisedPercent(isLatestTransactionsOnly.getSelection());
+					BigDecimal o1TodaysGainUnrealPercent = o1.getTodaysGainRealisedPercent(isLatestTransactionsOnly.getSelection());
+					int ret = o2TodaysGainUnrealPercent.compareTo(o1TodaysGainUnrealPercent);
 					ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
 					return ret;
-				}
+				}						
 			});
 			break;
+		case AnnualisedPercentGain:
+			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
+				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
+					BigDecimal o2TodaysGainUnrealPercent = o2.getTodaysGainAnnualised(isLatestTransactionsOnly.getSelection());
+					BigDecimal o1TodaysGainUnrealPercent = o1.getTodaysGainAnnualised(isLatestTransactionsOnly.getSelection());
+					int ret = o2TodaysGainUnrealPercent.compareTo(o1TodaysGainUnrealPercent);
+					ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
+					return ret;
+				}						
+			});
+		break;
+//		case WTotalPercentGain:
+//			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
+//				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
+//					BigDecimal o2GainTotalWeightedPercent = o2.getGainTotalWeightedPercent(isLatestTransactionsOnly.getSelection());
+//					BigDecimal o1GainTotalWeightedPercent = o1.getGainTotalWeightedPercent(isLatestTransactionsOnly.getSelection());
+//					int ret = o2GainTotalWeightedPercent.compareTo(o1GainTotalWeightedPercent);
+//					ret = (ret == 0)? o1.getStock().compareTo(o2.getStock()):ret;
+//					return ret;
+//				}
+//			});
+//			break;
 		case DisplayedCurrency :
 			Collections.sort(sPss, new Comparator<SlidingPortfolioShare>() {
 				public int compare(SlidingPortfolioShare o1, SlidingPortfolioShare o2) {
@@ -2601,14 +2648,15 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 	private SlidingPortfolioShare tabBuildSlidingPortfolioShare(PortfolioShare ps) {
 
 		Color psColor = new Color (getDisplay(), 0xC0,0xC0,0xC0); //Grey
-		if (ps.getPriceAvgBuy(chartsComposite.getSlidingEndDate(), ps.getTransactionCurrency()).compareTo(BigDecimal.ZERO) > 0) {
+		boolean isLatestOnlySelection = isLatestTransactionsOnly.getSelection();
+		if (ps.isOwned(chartsComposite.getSlidingEndDate(), isLatestOnlySelection)) {
 			java.awt.Color paint = (java.awt.Color) PortfolioComposite.PAINTS[getNextColor()];
 			psColor = new Color(getDisplay(),paint.getRed(),paint.getGreen(),paint.getBlue());
 		}
 		SlidingPortfolioShare slidingPS = new SlidingPortfolioShare(ps, 
 				chartsComposite.getSlidingStartDate(), chartsComposite.getSlidingEndDate(), 
 				slidingStartAnchor.getSelection(), slidingEndAnchor.getSelection(),
-				psColor);
+				psColor, isLatestOnlySelection);
 
 		return slidingPS;
 	}
@@ -3274,7 +3322,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		TransactionExtractor te = new TransactionExtractor() {	
 			@Override
 			protected String run() throws Throwable {
-				return portfolio.extractPortfolioTransactionLog(startDate, endDate);
+				return portfolio.extractPortfolioTransactionLog(startDate, endDate, isLatestTransactionsOnly.getSelection());
 			}
 		};
 
@@ -3363,7 +3411,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 					TransactionExtractor te = new TransactionExtractor() {	
 						@Override
 						protected String run() throws Throwable {
-							return portfolio.extractTransposedTransactionLog(startDate, endDate, targetCurrency , cpgPeriodStart, cpgPeriodEnd, transactionFee, exchangeFee);
+							return portfolio.extractTransposedTransactionLog(startDate, endDate, targetCurrency , cpgPeriodStart, cpgPeriodEnd, transactionFee, exchangeFee, isLatestTransactionsOnly.getSelection());
 						}
 					};
 
