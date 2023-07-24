@@ -366,6 +366,24 @@ public class Portfolio extends AbstractSharesList {
 			.reduce(BigDecimal.ZERO, (a, e) -> a.add(e));
 		return realisedGain.divide(realisedIn, 10, RoundingMode.HALF_EVEN);
 	}
+	
+	//TODO: check gnucash (FIFO??)
+//	public BigDecimal getGainRealisedTaxableFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly) {
+//		BigDecimal quantitySold = getQuantitySellFor(portfolioShare, currentStartDate, currentEndDate, inferPortfolioCurrency(), isLatestOnly, true);
+//		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate, isLatestOnly, true);
+//		Iterator<TransactionElement> transactionsIterator = headTransactionsTo.iterator();
+//		for (TransactionElement te : headTransactionsTo) {
+//			if (te.transactionType().equals(TransactionType.AIN) && te.getStock().equals(portfolioShare.getStock())) {
+//				BigDecimal convertedPrice = getCurrencyConverter().convert(te.getCurrency(), targetCurrency, te.getPrice(), te.getDate());
+//				if (quantitySold.compareTo(BigDecimal.ZERO) > 0) {
+//					
+//				}
+//				ret = ret.add(convertedPrice.multiply(te.getQuantity()).setScale(10, RoundingMode.HALF_EVEN));
+//			}
+//		}
+//		}
+//		return null;
+//	}
 
 	/**
 	 * For latest transactions only: (value + out - in) / in
@@ -483,8 +501,7 @@ public class Portfolio extends AbstractSharesList {
 		return ret;
 	}
 	
-	public BigDecimal getCashInFor(
-			PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestTransactionOnly, Boolean isRealisedOnly) {
+	public BigDecimal getCashInFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestTransactionOnly, Boolean isRealisedOnly) {
 		BigDecimal ret = BigDecimal.ZERO;
 		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate, isLatestTransactionOnly, isRealisedOnly);
 		for (TransactionElement te : headTransactionsTo) {
@@ -497,9 +514,7 @@ public class Portfolio extends AbstractSharesList {
 	}
 	
 	@Override
-	public BigDecimal getCashOutFor(
-			PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, 
-			Boolean isLatestTransacitonOnly, Boolean isRealisedOnly) {
+	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestTransacitonOnly, Boolean isRealisedOnly) {
 		BigDecimal ret = BigDecimal.ZERO;
 		SortedSet<TransactionElement> headTransactionsTo = headTransactionsTo(currentStartDate, currentEndDate, isLatestTransacitonOnly, isRealisedOnly);
 		for (TransactionElement te : headTransactionsTo) {

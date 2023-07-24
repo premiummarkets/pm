@@ -30,7 +30,6 @@
 package com.finance.pms.portfolio;
 
 import java.math.BigDecimal;
-import java.security.InvalidAlgorithmParameterException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +57,7 @@ public interface AutoPortfolioWays {
 	
 	Currency inferPortfolioCurrency();
 	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
-	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException, InvalidAlgorithmParameterException;
+	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException;
 
 	//The transactions thing
 	TransactionHistory getTransactionHistory();

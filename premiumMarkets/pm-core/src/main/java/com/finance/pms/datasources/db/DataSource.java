@@ -456,7 +456,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 	
-	
+	/**
+	 * Bypasses the end date constraint
+	 * @deprecated can only be used in back testing
+	 * @param stock
+	 * @param currentDate
+	 * @return
+	 * @throws NoQuotationsException
+	 */
+	@Deprecated
 	public QuotationUnit hackQuotationUnitAtCurrentDateUnconstrained(Stock stock, Date currentDate) throws NoQuotationsException {
 		
 		Query query = new QuotationQuery("select distinct " + QUOTATIONS.TABLE_NAME + ".* from " + QUOTATIONS.TABLE_NAME + " where "
@@ -483,7 +491,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		if (qus.size() == 1) {
 			return qus.get(0);
 		} else {
-			throw new NoQuotationsException(stock.toString());
+			throw new NoQuotationsException(stock.toString() + " at " + currentDate);
 		}
 		
 	}

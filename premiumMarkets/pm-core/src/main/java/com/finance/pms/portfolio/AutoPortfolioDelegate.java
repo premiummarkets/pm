@@ -36,7 +36,6 @@ import java.math.RoundingMode;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -63,7 +61,9 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.ConfigFreePonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.quotations.NoQuotationsException;
-import com.finance.pms.events.quotations.QuotationUnit;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
+import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -91,10 +91,10 @@ public class AutoPortfolioDelegate {
 	private TransactionHistory transactionHistory;
 	
 	public enum BuyStrategy { 
-		REINVEST, //The profit is reinvested in new transactions. Starting with nominalTransactionAmount*maximumNumberOfLines of cash. Buy only if not owned. Sell the full line.
-		LIMITROWS, //Buys of nominalTransactionAmount are maid until the maximumNumberOfLines is reached. Buy only if not owned. Sell the full line.
-		INFINITCASH, //Buys of nominalTransactionAmount are maid on buy events if not already bought. Buy only if not owned. Sell the full line.
-		INFINITQUANTITY //Buys of nominalTransactionAmount are maid on buy events disregarding everything else. Buy even if owned. Sells for the nominalTransactionAmount. 
+		REINVEST, //The profit is reinvested in new transactions. Starting with nominalTransactionAmount*maximumNumberOfLines of cash: Buy only if not owned. Sell the full line.
+		LIMITROWS, //Buys of nominalTransactionAmount are maid until the maximumNumberOfLines is reached: Buy only if not owned. Sell the full line.
+		INFINITCASH, //Buys of nominalTransactionAmount are maid on buy events if not already bought: Buy only if not owned. Sell the full line.
+		INFINITQUANTITY //Buys of nominalTransactionAmount are maid on buy events disregarding everything else: Buy even if owned. Sells for the nominalTransactionAmount. 
 		};
 
 	protected AutoPortfolioWays thisPortfolio;
@@ -174,9 +174,7 @@ public class AutoPortfolioDelegate {
 		SymbolEvents symbolEventsThreshold = 
 				new SymbolEvents(
 						new Stock() {
-
 							private static final long serialVersionUID = 1L;
-
 							public String getSymbol() {
 								return "~";
 							}
@@ -205,7 +203,7 @@ public class AutoPortfolioDelegate {
 
 		};
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("Threshold event: " + symbolEventsThreshold);
+		LOGGER.info("Buy event: Ponderation rule " + symbolEventComparator.getClass().getSimpleName() + ", threshold " + symbolEventsThreshold);
 
 		SortedSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
@@ -248,7 +246,8 @@ public class AutoPortfolioDelegate {
 
 		//Check if already bought
 		PortfolioShare alreadyBoughtShare  = thisPortfolio.getListShares().get(symbolEvents.getStock());
-		if (	!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) && (alreadyBoughtShare != null && alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), false))
+		if (
+				!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) && (alreadyBoughtShare != null && alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), false))
 		) {
 			LOGGER.info("Won't buy at " + currentDate + " with " + symbolEvents.getSymbol() + ". Already bought (buy once policy).");
 			return null;
@@ -265,7 +264,7 @@ public class AutoPortfolioDelegate {
 
 			return buyTransactionRecord;
 
-		} catch (InvalidAlgorithmParameterException e) {
+		} catch (NoQuotationsException e) {
 			LOGGER.warn("Can't buy " + symbolEvents.getStock() + " in AutoPortfolio - no quotations: " + thisPortfolio.getName());
 		} catch (InvalidQuantityException e) {
 			LOGGER.error("Can't buy " + symbolEvents.getStock() + " in AutoPortfolio - invalid quantity: " + thisPortfolio.getName(), e);
@@ -302,61 +301,59 @@ public class AutoPortfolioDelegate {
 		}
 	}
 
-	protected TransactionRecord buy(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) throws InvalidAlgorithmParameterException, InvalidQuantityException, NoCashAvailableException {
+	protected TransactionRecord buy(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) throws InvalidQuantityException, NoCashAvailableException, NoQuotationsException {
 
 		Stock stock = symbolEvents.getStock();
 		// XXX what if we buy twice the same share but with a different currency?
 		Currency transactionCurrency = (this.thisPortfolio.inferPortfolioCurrency() == null) ? stock.getMarketValuation().getCurrency() : this.thisPortfolio.inferPortfolioCurrency();
 
-		try {
-			//Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
-			//BigDecimal buyPrice = closePrice.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
-			QuotationUnit hackLastQuotationUnitUnconstrained = DataSource.getInstance().hackQuotationUnitAtCurrentDateUnconstrained(stock, currentDate);
-			BigDecimal openPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getOpenSplit();
-			BigDecimal highPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getHighSplit();
-			BigDecimal lowPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getLowSplit();
-			BigDecimal closePrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getCloseSplit();
-			double fee = 0.0; //0.01;
-			BigDecimal buyPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
-									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
-									.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
+		Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
+		BigDecimal closePrice = quotations.get(quotations.size()-1).getCloseSplit();
+		double fee = 0.01;
+		BigDecimal buyPrice = closePrice.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
+		
+//		QuotationUnit hackLastQuotationUnitUnconstrained = DataSource.getInstance().hackQuotationUnitAtCurrentDateUnconstrained(stock, currentDate);
+//		BigDecimal openPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getOpenSplit();
+//		BigDecimal highPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getHighSplit();
+//		BigDecimal lowPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getLowSplit();
+//		BigDecimal closePrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getCloseSplit();
+//		double fee = 0.0; //0.01;
+//		BigDecimal buyPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
+//								.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
+//								.multiply(new BigDecimal(1 + fee)).setScale(10, RoundingMode.HALF_EVEN);
 
 
-			BigDecimal availableCash = canBuy(buyStrategy);
-			if (availableCash.compareTo(minimumTransactionAmount) >= 0) {
-				BigDecimal requestedAmount = (availableCash.compareTo(nominalTransactionAmount) >= 0)? nominalTransactionAmount : availableCash;
-				BigDecimal effectiveAmountWithDrawn = thisPortfolio.withdrawCash(currentDate, requestedAmount, transactionCurrency);
-				BigDecimal quantity = effectiveAmountWithDrawn.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
-				LOGGER.info("Buying: " + quantity + " of " + stock + " on the " + currentDate + ". " +
-							"Requested " + transactionCurrency + " amount: " + requestedAmount + ". " +
-							"Effective " + thisPortfolio.inferPortfolioCurrency() + "  amount: " + effectiveAmountWithDrawn + ". " +
-							"Triggering event " + symbolEvents);
+		BigDecimal availableCash = canBuy(buyStrategy);
+		if (availableCash.compareTo(minimumTransactionAmount) >= 0) {
+			BigDecimal requestedAmount = (availableCash.compareTo(nominalTransactionAmount) >= 0)? nominalTransactionAmount : availableCash;
+			BigDecimal effectiveAmountWithDrawn = thisPortfolio.withdrawCash(currentDate, requestedAmount, transactionCurrency);
+			BigDecimal quantity = effectiveAmountWithDrawn.divide(buyPrice, 10, RoundingMode.HALF_EVEN);
+			LOGGER.info("Buying: " + quantity + " of " + stock + " on the " + currentDate + ". " +
+						"Requested " + transactionCurrency + " amount: " + requestedAmount + ". " +
+						"Effective " + thisPortfolio.inferPortfolioCurrency() + " amount: " + effectiveAmountWithDrawn + ". " +
+						"Triggering event " + symbolEvents);
 
-				if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
-					throw new NoQuotationsException("Invalid stock " + stock + " with price " + buyPrice + " on " + currentDate + ". Can't be bought");
-				}
-				PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
-				
-				LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate(), false));
-
-				// Log
-				return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
-				
-			} else {
-				throw new NoCashAvailableException("Cash left : " + availableCash + ", buyStrategy: " + buyStrategy + ", minimum required: " + minimumTransactionAmount + ". Can't buy: " + symbolEvents);
+			if (buyPrice.compareTo(BigDecimal.ZERO) == 0) {
+				throw new NoQuotationsException("Invalid stock " + stock + " with price " + buyPrice + " on " + currentDate + ". Can't be bought");
 			}
+			PortfolioShare portfolioShare = thisPortfolio.addOrUpdateShare(stock, quantity, currentDate, buyPrice, MonitorLevel.ANY, transactionCurrency, TransactionType.AIN);
+			
+			LOGGER.info("Bought: " + quantity + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate(), false));
 
-		} catch (NoQuotationsException e) {
-			LOGGER.warn(e);
-			throw new InvalidAlgorithmParameterException(e);
+			// Log
+			return log("buy", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantity, buyPrice, currentDate);
+			
+		} else {
+			throw new NoCashAvailableException("Cash left : " + availableCash + ", buyStrategy: " + buyStrategy + ", minimum required: " + minimumTransactionAmount + ". Can't buy: " + symbolEvents);
 		}
+			
 	}
 
 	private TransactionHistory checkSellSignals(BuyStrategy buyStrategy, Date currentDate, List<SymbolEvents> listEvents, PonderationRule symbolEventComparator) {
 		
 		LOGGER.info("Checking sell signals at " + currentDate + " with " + listEvents);
 
-		SymbolEvents symbolEventThreshold = new SymbolEvents(
+		SymbolEvents symbolEventsThreshold = new SymbolEvents(
 				new Stock() {
 
 					private static final long serialVersionUID = 1L;
@@ -387,13 +384,13 @@ public class AutoPortfolioDelegate {
 				return "Event sell threshold = " + getWeight(null);
 			}
 		};
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("Threshold event: " + symbolEventThreshold);
+		LOGGER.info("Sell event: Ponderation rule " + symbolEventComparator.getClass().getSimpleName() + ", threshold " + symbolEventsThreshold);
 
 		NavigableSet<SymbolEvents> sortedSymbolEvents = new TreeSet<SymbolEvents>(symbolEventComparator);
 		sortedSymbolEvents.addAll(listEvents);
 		LOGGER.trace("Total bearish events: " + sortedSymbolEvents);
 
-		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventThreshold); //XXX PonderationRule.compare is reversed!!
+		NavigableSet<SymbolEvents> sortedSymbolEventsHead = (NavigableSet<SymbolEvents>) sortedSymbolEvents.tailSet(symbolEventsThreshold); //XXX PonderationRule.compare is reversed!!
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Filtered bearish events head: " + sortedSymbolEventsHead);
 		
 		if (sortedSymbolEventsHead.isEmpty()) {
@@ -445,7 +442,7 @@ public class AutoPortfolioDelegate {
 			thisPortfolio.setChanged();
 			return sellTransactionRecord;
 
-		} catch (InvalidAlgorithmParameterException e) 	{
+		} catch (NoQuotationsException e) 	{
 			LOGGER.warn("Can't sell " + symbolEvents.getStock() + " from " + thisPortfolio.getName( ) + 
 					" - no quotations on the " + currentDate + ": " + thisPortfolio.getListShares().get(symbolEvents.getStock()));
 		} catch (InvalidQuantityException e) {
@@ -460,43 +457,37 @@ public class AutoPortfolioDelegate {
 
 	}
 
-	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal sellAmount, PortfolioShare portfolioShare) throws InvalidAlgorithmParameterException, InvalidQuantityException {
+	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal sellAmount, PortfolioShare portfolioShare) throws InvalidQuantityException, NoQuotationsException {
 
-		Stock stock = portfolioShare.getStock();
+		Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(portfolioShare.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
+		BigDecimal closePrice = quotations.get(quotations.size()-1).getCloseSplit();
+		double fee = 0.01;
+		BigDecimal sellPrice = closePrice.multiply(new BigDecimal(1 - (fee/(1+fee)))).setScale(10, RoundingMode.HALF_EVEN); //In reality the price is unknown at that point of iteration as this is the next day market price ..
 		
-		try {
-//			Quotations quotations =  QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(symbolEvents.getStock(), currentDate, true, portfolioShare.getTransactionCurrency(), ValidityFilter.CLOSE);
-//			BigDecimal sellPrice = closePrice.multiply(new BigDecimal(1 - (fee/(1+fee)))).setScale(10, RoundingMode.HALF_EVEN); //In reality the price is unknown at that point of iteration as this is the next day market price ..
-			
-			QuotationUnit hackLastQuotationUnitUnconstrained = DataSource.getInstance().hackQuotationUnitAtCurrentDateUnconstrained(stock, currentDate);
-			BigDecimal openPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getOpenSplit();
-			BigDecimal highPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getHighSplit();
-			BigDecimal lowPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getLowSplit();
-			BigDecimal closePrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getCloseSplit();
-			double fee = 0.0; //0.01;
-			BigDecimal sellPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
-									.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
-									.multiply(new BigDecimal(1 - (fee/(1+fee)) )).setScale(10, RoundingMode.HALF_EVEN);
+//		QuotationUnit hackLastQuotationUnitUnconstrained = DataSource.getInstance().hackQuotationUnitAtCurrentDateUnconstrained(stock, currentDate);
+//		BigDecimal openPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getOpenSplit();
+//		BigDecimal highPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getHighSplit();
+//		BigDecimal lowPrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getLowSplit();
+//		BigDecimal closePrice = (BigDecimal) hackLastQuotationUnitUnconstrained.getCloseSplit();
+//		double fee = 0.0; //0.01;
+//		BigDecimal sellPrice = openPrice.add(highPrice).add(lowPrice).add(closePrice)
+//								.divide(new BigDecimal(4), 10, RoundingMode.HALF_EVEN)
+//								.multiply(new BigDecimal(1 - (fee/(1+fee)) )).setScale(10, RoundingMode.HALF_EVEN);
 
-			BigDecimal quantityProrata;
-			BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate(), false);
-			if (sellAmount != null) {
-				quantityProrata = sellAmount.divide(sellPrice, 10, RoundingMode.HALF_EVEN);
-				quantityProrata = quantityProrata.min(quantity);
-			} else {
-				quantityProrata = quantity;
-			}
-
-			thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, sellPrice, TransactionType.AOUT);
-			LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate(), false));
-
-			//log
-			return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, sellPrice, currentDate);
-
-		} catch (NoQuotationsException e) {
-			LOGGER.warn(e);
-			throw new InvalidAlgorithmParameterException(e);
+		BigDecimal quantityProrata;
+		BigDecimal quantity = portfolioShare.getQuantity(DateFactory.getNowEndDate(), false);
+		if (sellAmount != null) {
+			quantityProrata = sellAmount.divide(sellPrice, 10, RoundingMode.HALF_EVEN);
+			quantityProrata = quantityProrata.min(quantity);
+		} else {
+			quantityProrata = quantity;
 		}
+
+		thisPortfolio.updateShare(portfolioShare, quantityProrata, currentDate, sellPrice, TransactionType.AOUT);
+		LOGGER.info("Sold: " + quantityProrata + " of " + portfolioShare + ", quantity left: " + portfolioShare.getQuantity(DateFactory.getNowEndDate(), false));
+
+		//log
+		return log("sell", thisPortfolio, portfolioShare.getStock(), symbolEvents, quantityProrata, sellPrice, currentDate);
 
 	}
 
