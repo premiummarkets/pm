@@ -476,7 +476,7 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("test.endDate", props);
 
 			//Event cache
-			System.out.println("event cache is "+props.getProperty("event.cache"));
+			System.out.println("event cache is " + props.getProperty("event.cache"));
 			putInPrefs("event.cache", props);
 			
 			//Chart

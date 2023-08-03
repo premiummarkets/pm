@@ -135,37 +135,38 @@ public class OTFTuningFinalizer {
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 
 		PeriodRatingDTO period = null;
+		Date nextEvtDate = null;
 		for (EventValue eventValue: generatedEvents) {
-
-			Date eventDate = eventValue.getDate();
+			
+			nextEvtDate = eventValue.getDate();
 
 			//Ignore events after endDate if it starts a new period
-			if (eventDate.compareTo(endDate) > 0) {
+			if (nextEvtDate.compareTo(endDate) > 0) {
 				throw new NotEnoughDataException(stock, startDate, endDate, "Event: " + eventValue + " is after " + endDate, new Exception());
 			}
 			
 			//Ignore event before start date
-			if (eventDate.compareTo(startDate) < 0) {
+			if (nextEvtDate.compareTo(startDate) < 0) {
 				continue;
 			}
 
 			//Construct period
-			if (period != null && !eventDate.after(period.getFrom())) 
+			if (period != null && !nextEvtDate.after(period.getFrom())) 
 				throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents); //Check erroneous input with events on the same date
 
 			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
-			SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), eventDate);
+			SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), nextEvtDate);
 			Double closeSplitedBeforeOrAtEventDate = new BigDecimal(subMapInclusive.get(subMapInclusive.lastKey()).toString()).doubleValue();
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				if (period == null) {//First period will be bull
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
+					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
 				}
 				else if (period.getTrend().equals(EventType.BEARISH.name())) { //A Bear period is open and the event is bull. We close the period.
-					period.setTo(eventDate);
+					period.setTo(nextEvtDate);
 					period.setPriceAtTo(closeSplitedBeforeOrAtEventDate);
 					period.setRealised(true);
 					periods.add(period);
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
+					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
 				} 
 				else if (period.getTrend().equals(EventType.BULLISH.name())) {//A bull period is open and the event is bull. We ignore the event.
 					
@@ -173,14 +174,14 @@ public class OTFTuningFinalizer {
 			}
 			else if (eventValue.getEventType().equals(EventType.BEARISH)) {
 				if (period == null) {//First period  will be bear
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());
+					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());
 				}
 				else if (period.getTrend().equals(EventType.BULLISH.name())) { //A Bull period is open and the event is bear. We close the period.
-					period.setTo(eventDate);
+					period.setTo(nextEvtDate);
 					periods.add(period);
 					period.setPriceAtTo(closeSplitedBeforeOrAtEventDate);
 					period.setRealised(true);
-					period = new PeriodRatingDTO(eventDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());//Start new period.
+					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());//Start new period.
 				} else if (period.getTrend().equals(EventType.BEARISH.name())) {//A bear period is open and the event is bear. We ignore the event.
 					
 				}
@@ -188,12 +189,12 @@ public class OTFTuningFinalizer {
 		}
 
 		//Finalising unclosed last period
-		if (period != null) {
+		if (period != null && nextEvtDate != null) {
 			
 			//QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
 			Date qUnitDateBeforeOrAtEndDate =  null;
-			if (endDate.compareTo(qMap.firstKey()) >= 0) { //End date is within the available quotations map start
-				SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), endDate);
+			if (nextEvtDate.compareTo(qMap.firstKey()) >= 0) { //End date is within the available quotations map start
+				SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), nextEvtDate);
 				qUnitDateBeforeOrAtEndDate = subMapInclusive.lastKey();
 			} else { //End is before quotation map start?
 				qUnitDateBeforeOrAtEndDate = qMap.firstKey();

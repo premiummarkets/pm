@@ -600,6 +600,12 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 
 	}
 	
+	/**
+	 * isLatestOnly == false implies was owned included even if not owned any more.
+	 * @param end
+	 * @param isLatestOnly
+	 * @return
+	 */
 	public Boolean isOwned(Date end, Boolean isLatestOnly) {
 		return getPriceAvgBuy(end, getTransactionCurrency(), isLatestOnly, false).compareTo(BigDecimal.ZERO) > 0;
 	}

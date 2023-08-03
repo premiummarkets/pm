@@ -82,7 +82,8 @@ public class ChartImageBuilder {
 
         String chartFile;
         try {
-            String chartFileName = "autoPortfolioLogs" + File.separator + eventInfo.getEventDefDescriptor().getExportBaseFileName()+ "_" + analyseName + stock.getSymbol() + "_" + eventInfo.getEventReadableDef() + ".png";
+            String chartFileName = "autoPortfolioLogs" + File.separator + eventInfo.getEventDefDescriptor().getExportBaseFileName() +
+            					   "_" + analyseName + stock.getSymbol() + "_" + eventInfo.getEventReadableDef() + ".png";
             generateOutChart(chartFileName, quotationMap);
             chartFile = chartFileName;
         } catch (NotEnoughDataException e) {
@@ -103,7 +104,7 @@ public class ChartImageBuilder {
         Color blue = new Color(153, 204, 255);
         Color red = new Color(255,153,153);
         Color green = new Color(204,255,153);
-        Color grey = Color.lightGray;
+        Color grey = Color.darkGray;
 
         ChartGenerator chartGenerator = new ChartGenerator("Premium Markets predictions V. targets");
 

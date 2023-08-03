@@ -39,7 +39,9 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 		Set<Stock> filtered = new HashSet<>();
 		
 		if (updateShareList) {
+			
 			try {
+				
 				Path python_py = Files.createTempFile("screnner", "py");
 				try (InputStream stream = ProvidersYahooPython.class.getResourceAsStream("/yahooQuotes/screnner.py")) {
 					Files.copy(stream, python_py, StandardCopyOption.REPLACE_EXISTING);
@@ -83,18 +85,22 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 					System.out.println("Error deleting screnner.py: " + e);
 					e.printStackTrace();
 				}
+				
+				if (!filtered.isEmpty()) {
+					PortfolioDAO portfolioDAO = DataSource.getInstance().getPortfolioDAO();
+					IndepShareList shareList = portfolioDAO.loadIndepShareList(YAHOOINDICES_BETA_SCREENER);
+					shareList.getListShares().clear();
+					filtered.stream().forEach(e -> {
+						shareList.addShare(e);
+					});
+					portfolioDAO.saveOrUpdatePortfolio(shareList);
+				} else {
+					LOGGER.error("The screnner did not return anything usable: " + filtered);
+				}
 
 			} catch (IOException e) {
 				LOGGER.error(e, e);
 			}
-
-			PortfolioDAO portfolioDAO = DataSource.getInstance().getPortfolioDAO();
-			IndepShareList shareList = portfolioDAO.loadIndepShareList(YAHOOINDICES_BETA_SCREENER);
-			shareList.getListShares().clear();
-			filtered.stream().forEach(e -> {
-				shareList.addShare(e);
-			});
-			portfolioDAO.saveOrUpdatePortfolio(shareList);
 			
 		} else {
 			PortfolioDAO portfolioDAO = DataSource.getInstance().getPortfolioDAO();

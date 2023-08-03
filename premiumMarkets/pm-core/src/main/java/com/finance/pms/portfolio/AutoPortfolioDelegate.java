@@ -245,9 +245,9 @@ public class AutoPortfolioDelegate {
 		isValidEventDate(currentDate, latestEventDateAndNewBuyDate);
 
 		//Check if already bought
-		PortfolioShare alreadyBoughtShare  = thisPortfolio.getListShares().get(symbolEvents.getStock());
+		PortfolioShare alreadyBoughtShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
 		if (
-				!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) && (alreadyBoughtShare != null && alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), false))
+				!BuyStrategy.INFINITQUANTITY.equals(buyStrategy) && (alreadyBoughtShare != null && alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), true))
 		) {
 			LOGGER.info("Won't buy at " + currentDate + " with " + symbolEvents.getSymbol() + ". Already bought (buy once policy).");
 			return null;
@@ -423,7 +423,7 @@ public class AutoPortfolioDelegate {
 		isValidEventDate(currentDate, latestEventDateAndNewBuyDate);
 
 		PortfolioShare alreadyBoughtShare = thisPortfolio.getListShares().get(symbolEvents.getStock());
-		if ( alreadyBoughtShare == null || !alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), false) ) {
+		if ( alreadyBoughtShare == null || !alreadyBoughtShare.isOwned(DateFactory.getNowEndDate(), true) ) {
 			LOGGER.info("Won't sell at " + currentDate + " with " + symbolEvents.getSymbol() + ": is not in owned at present.");
 			return null;
 		}

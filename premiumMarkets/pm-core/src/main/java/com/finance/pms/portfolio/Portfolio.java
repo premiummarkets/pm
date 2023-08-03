@@ -145,7 +145,11 @@ public class Portfolio extends AbstractSharesList {
 //			registerTransaction(portfolioShare, quantity, currentDate, buyPrice, trType);
 //			new AlertsMgrDelegate(portfolioShare).addBuyAlerts(buyPrice, currentDate);
 			updateShare(portfolioShare, quantity, currentDate, buyPrice, trType);
-			if (portfolioShare.isOwned(currentDate, false)) portfolioShare.setMonitorLevel(mLevel);
+			if (portfolioShare.isOwned(currentDate, true)) {
+				portfolioShare.setMonitorLevel(mLevel);
+			} else {
+				portfolioShare.setMonitorLevel(MonitorLevel.NONE);
+			}
 		}
 		
 		return portfolioShare;
@@ -198,7 +202,7 @@ public class Portfolio extends AbstractSharesList {
 		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
 		alertsMgrDelegate.addBuyAlerts(portfolioShare.getPriceClose(currentDate, transactionCurrency), currentDate);
 		portfolioShare.setExternalAccount(account);
-		if (!portfolioShare.isOwned(currentDate, false)) {
+		if (!portfolioShare.isOwned(currentDate, true)) {
 			portfolioShare.setMonitorLevel(MonitorLevel.NONE);
 		}
 		
