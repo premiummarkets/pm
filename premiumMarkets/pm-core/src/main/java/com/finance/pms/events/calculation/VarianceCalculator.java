@@ -204,7 +204,7 @@ public class VarianceCalculator extends TalibIndicatorsOperator {
 			double lastDiffToMean = lastVariation - meanPreviousVariation;
 	
 			if (lastDiffToMean < -stdDev && !positiveVariation) {
-				res.setBearishCrossBellow(true);
+				res.setBearishCrossBelow(true);
 				resType = EventType.BEARISH;
 			} else 
 			if (stdDev < lastDiffToMean &&  positiveVariation){

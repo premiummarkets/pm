@@ -96,8 +96,8 @@ public class ZeroCrossMACDEventCalculator extends TalibIndicatorsOperator {
 		{
 			//BEAR : MACD below its signal line over 2 days cross below 0
 			boolean isMacdBelowSignal = (macd.getSignal()[macdIndicatorIndex] >  macd.getMacd()[macdIndicatorIndex]); 	// 1rst signal > 1rst macd
-			boolean isMacdCrossingBelowZero = (macd.getMacd()[macdIndicatorIndex-1] >= 0) && (0 > macd.getMacd()[macdIndicatorIndex]); //masc crossed bellow 0
-			res.setBearishCrossBellow(isMacdBelowSignal && isMacdCrossingBelowZero); 		
+			boolean isMacdCrossingBelowZero = (macd.getMacd()[macdIndicatorIndex-1] >= 0) && (0 > macd.getMacd()[macdIndicatorIndex]); //masc crossed below 0
+			res.setBearishCrossBelow(isMacdBelowSignal && isMacdCrossingBelowZero); 		
 		}
 		
 		return res;

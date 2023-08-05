@@ -98,7 +98,7 @@ public class RSIThreshold extends TalibIndicatorsOperator {
 		{
 			//BEAR : RSI is above upper threshold (over bought)
 			boolean isRSICrossingAbove = getUpperThreshold() < this.rsi.getRsi()[rsiIndicatorIndex]; //70 < last rsi
-			res.setBearishCrossBellow(isRSICrossingAbove);
+			res.setBearishCrossBelow(isRSICrossingAbove);
 		}
 
 		return res;

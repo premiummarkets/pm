@@ -318,10 +318,10 @@ public class OTFTuningFinalizer {
 
 		}
 
-		fileWriter.write("total, percent gain (unreal): " + tuningRes.getForecastProfitUnReal() + ", price change: " + tuningRes.getBuyNHoldProfit() + "\n");
+		fileWriter.write("total, percentage gain (r + ur): " + tuningRes.getForecastProfitUnReal() + ", price change (ur): " + tuningRes.getBuyNHoldProfit() + "\n");
 		tuningRes.setConfigRatingFile(fileName);
 
-		fileWriter.write("rating , "+calculatedRating);
+		fileWriter.write("rating , " + calculatedRating);
 		fileWriter.close();
 
 	}

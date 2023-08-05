@@ -148,7 +148,7 @@ public class StochasticDivergence_old extends TalibIndicatorsOperator {
 		{
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isStochDown = lowerHigh(stochLookBackP, upperThreshLookBackP);
-			res.setBearishCrossBellow(isPriceUp && isStochDown);
+			res.setBearishCrossBelow(isPriceUp && isStochDown);
 		
 			return res;
 		}

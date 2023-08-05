@@ -100,7 +100,7 @@ public class StandardDeviationCrossing extends TalibIndicatorsOperator {
 		if (Math.abs(currentDev) > this.standardDeviation.getStdDev()[stddevIndQuoteIndex]) {
 			boolean isPriceAboveSMA = qU.getCloseSplit().doubleValue() > sma.getSma()[smaIndicatorIndex];
 			if (currentDev < 0 && !isPriceAboveSMA) {
-				res.setBearishCrossBellow(true);
+				res.setBearishCrossBelow(true);
 				//resType = EventType.BEARISH;
 			}
 			if (currentDev > 0 && isPriceAboveSMA) {

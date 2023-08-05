@@ -114,7 +114,7 @@ public class AccumulationDistributionDivergence extends TalibIndicatorsOperator 
 
         }
         {
-            res.setBearishCrossBellow(!isPriceBelowSma65 && !isPriceBelowSma20 && isChaikinBelowSma65 && isChaikinBelowSma20);
+            res.setBearishCrossBelow(!isPriceBelowSma65 && !isPriceBelowSma20 && isChaikinBelowSma65 && isChaikinBelowSma20);
             return res;
 
         }

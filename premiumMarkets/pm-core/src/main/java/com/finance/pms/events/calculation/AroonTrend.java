@@ -105,7 +105,7 @@ public class AroonTrend extends TalibIndicatorsOperator {
         }
         {
             Boolean isArronOscCrossingDownUpper =  lowerThreshold >= aroon.getOutAroonOsc()[aroonIndex];
-            res.setBearishCrossBellow(isArronOscCrossingDownUpper); 
+            res.setBearishCrossBelow(isArronOscCrossingDownUpper); 
             return res;
 
         }

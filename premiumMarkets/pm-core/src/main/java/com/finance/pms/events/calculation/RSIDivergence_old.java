@@ -153,7 +153,7 @@ public class RSIDivergence_old extends TalibIndicatorsOperator {
 		{
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isRsiDown = lowerHigh(rsiLookBackP, upperThreshLookBackP);
-			res.setBearishCrossBellow(isPriceUp && isRsiDown);
+			res.setBearishCrossBelow(isPriceUp && isRsiDown);
 
 			return res;
 		}

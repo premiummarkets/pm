@@ -117,7 +117,7 @@ public class MFIDivergence_old extends TalibIndicatorsOperator {
 		{
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isMfiDown = lowerHigh(mfiLookBackP, upperThreshLookBackP) && mfi.getMfi()[mfiIdx - getDaysSpan()] > mfi.getUpperThreshold();
-			res.setBearishCrossBellow(isPriceUp && isMfiDown);
+			res.setBearishCrossBelow(isPriceUp && isMfiDown);
 		
 			return res;
 		}

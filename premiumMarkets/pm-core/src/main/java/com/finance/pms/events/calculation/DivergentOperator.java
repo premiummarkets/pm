@@ -128,7 +128,7 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 				}
 			}
 
-			res.setBearishCrossBellow(isOcsWithinBearThresholds && isPriceUp && isOscillatorDown);
+			res.setBearishCrossBelow(isOcsWithinBearThresholds && isPriceUp && isOscillatorDown);
 			return res;
 		}
 	}

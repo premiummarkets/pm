@@ -35,7 +35,7 @@ import com.finance.pms.events.EventDefinition;
 
 public class FormulatRes {
 	Boolean bullishCrossOver = false;
-	Boolean bearishCrossBellow = false;
+	Boolean bearishCrossBelow = false;
 	Date currentDate;
 	EventDefinition eventDefinition;
 	
@@ -61,11 +61,11 @@ public class FormulatRes {
 	public void setBullishCrossOver(Boolean bullishCrossOver) {
 		this.bullishCrossOver = bullishCrossOver;
 	}
-	public Boolean getBearishCrossBellow() {
-		return bearishCrossBellow;
+	public Boolean getBearishCrossBelow() {
+		return bearishCrossBelow;
 	}
-	public void setBearishCrossBellow(Boolean bearishCrossBellow) {
-		this.bearishCrossBellow = bearishCrossBellow;
+	public void setBearishCrossBelow(Boolean bearishCrossBelow) {
+		this.bearishCrossBelow = bearishCrossBelow;
 	}
 	/**
 	 * @return
@@ -73,8 +73,8 @@ public class FormulatRes {
 	public Integer formulaTrend() {
 		Integer ret = 0;
 		ret = (getBullishCrossOver()) ? 1 : 0;
-		ret = (getBearishCrossBellow()) ? -1 : ret;
-		ret = (getBullishCrossOver() && getBearishCrossBellow()) ? 0 : ret;
+		ret = (getBearishCrossBelow()) ? -1 : ret;
+		ret = (getBullishCrossOver() && getBearishCrossBelow()) ? 0 : ret;
 		return ret;
 	}
 	

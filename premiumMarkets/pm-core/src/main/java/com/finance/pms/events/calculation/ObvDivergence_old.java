@@ -116,7 +116,7 @@ public class ObvDivergence_old extends TalibIndicatorsOperator {
 		{
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isObvDown = lowerHigh(obvLookBackP, obvLookBackPThresh);
-			res.setBearishCrossBellow(isPriceUp && isObvDown);
+			res.setBearishCrossBelow(isPriceUp && isObvDown);
 		
 			return res;
 		}

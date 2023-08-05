@@ -92,7 +92,7 @@ public class MFIThreshold extends TalibIndicatorsOperator {
         {
             //BEAR : MFI cross above upper threshold (over bought)
             boolean isMFICrossingAbove = this.mfi.getMfi()[mfiIndicatorIndex-1]  < mfi.getUpperThreshold()  && mfi.getUpperThreshold() < this.mfi.getMfi()[mfiIndicatorIndex];// 1rst mfi < 80 < last mfi
-            res.setBearishCrossBellow(isMFICrossingAbove);
+            res.setBearishCrossBelow(isMFICrossingAbove);
         }
 
         return res;

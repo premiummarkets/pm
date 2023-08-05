@@ -1456,7 +1456,7 @@ public class MainGui extends SashForm implements RefreshableView {
 					};
 					ActionDialog dialog = new ActionDialog(getShell(), 
 							"Force request", exception + " has already been fulfilled sometime today.", 
-							"It should not need updating but you still can force and run it again by first pressing the button bellow then running your request again.",
+							"It should not need updating but you still can force and run it again by first pressing the button below then running your request again.",
 							"Reset previous request", action);
 					exceptions.clear();
 					dialog.open();

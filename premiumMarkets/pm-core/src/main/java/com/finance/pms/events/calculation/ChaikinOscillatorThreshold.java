@@ -93,7 +93,7 @@ public class ChaikinOscillatorThreshold extends TalibIndicatorsOperator {
 		{
 			//BEAR : Chaikin cross below zero
 			boolean isCrossingBelow = this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex-1] > 0 && 0 > this.chaikinOscillator.getChaikinOsc()[stochIndicatorIndex];
-			res.setBearishCrossBellow(isCrossingBelow);
+			res.setBearishCrossBelow(isCrossingBelow);
 			
 			return res;
 		}

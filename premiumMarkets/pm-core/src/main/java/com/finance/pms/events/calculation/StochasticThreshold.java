@@ -116,7 +116,7 @@ public class StochasticThreshold extends TalibIndicatorsOperator {
 					this.stochasticOscillator.getSlowK()[stochIndicatorIndex-1] > getUpperThreshold() &&
 					getUpperThreshold() > this.stochasticOscillator.getSlowK()[stochIndicatorIndex];// crosses below upper threshold
 			boolean isBelowSMA = this.stochasticOscillator.getSlowK()[stochIndicatorIndex] < this.stochasticOscillator.getSlowD()[stochIndicatorIndex];
-			res.setBearishCrossBellow(isCrossingUpperThreshold && isBelowSMA);
+			res.setBearishCrossBelow(isCrossingUpperThreshold && isBelowSMA);
 
 			return res;
 		}

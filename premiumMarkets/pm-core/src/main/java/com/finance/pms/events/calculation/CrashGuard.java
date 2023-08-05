@@ -98,7 +98,7 @@ public class CrashGuard extends TalibIndicatorsOperator {
 			
 			boolean sharpSMAFAll = (rate <= -0.15); 
 			
-			res.setBearishCrossBellow(sharpSMAFAll);	
+			res.setBearishCrossBelow(sharpSMAFAll);	
 			
 		}
 		

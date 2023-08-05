@@ -125,7 +125,7 @@ public class ChaikinOscillatorDivergence_old extends TalibIndicatorsOperator {
 		{
 			Boolean isPriceUp = higherHigh(quotationLookBackP, quotationLookBackPThresh);
 			Boolean isChaikinDown = lowerHigh(chaikinLookBackP,  chaikinThreshCurve);
-			res.setBearishCrossBellow(isPriceUp && isChaikinDown);
+			res.setBearishCrossBelow(isPriceUp && isChaikinDown);
 			return res;
 		}
 

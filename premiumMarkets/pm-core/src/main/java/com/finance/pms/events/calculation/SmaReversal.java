@@ -110,7 +110,7 @@ public class SmaReversal extends TalibIndicatorsOperator {
 			boolean isBelowSMA = this.sma.getSma()[smaIndex] > qU.getCloseSplit().doubleValue(); //  sma >  close
 			boolean isSMADown = this.sma.getSma()[smaIndex - getDaysSpan()] > this.sma.getSma()[smaIndex];
 			boolean isPreviouslyBullish = EventType.BULLISH.equals(previousTrend);
-			res.setBearishCrossBellow(isBelowSMA && isSMADown && isPreviouslyBullish);
+			res.setBearishCrossBelow(isBelowSMA && isSMADown && isPreviouslyBullish);
 			if (isSMADown && isBelowSMA) {
 				previousTrend = EventType.BEARISH;
 			} 

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
@@ -108,6 +109,14 @@ public class TuningResDTO implements Serializable, IsSerializable {
 
 	public List<PeriodRatingDTO> getPeriods() {
 		return periods;
+	}
+	
+	public List<PeriodRatingDTO> getBullPeriods() {
+		return periods.stream().filter(p -> "BULLISH".equals(p.getTrend())).collect(Collectors.toList());
+	}
+	
+	public List<PeriodRatingDTO> getBearPeriods() {
+		return periods.stream().filter(p -> "BEARISH".equals(p.getTrend())).collect(Collectors.toList());
 	}
 
 	public String getCsvLink() {

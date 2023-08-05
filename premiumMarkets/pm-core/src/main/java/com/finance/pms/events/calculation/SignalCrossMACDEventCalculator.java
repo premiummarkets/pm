@@ -95,10 +95,10 @@ public class SignalCrossMACDEventCalculator extends TalibIndicatorsOperator {
 		}
 		{
 			boolean isMacdPositive = macd.getMacd()[macdIndicatorIndex] > 0 ;
-			boolean isMacdCrossingBellowSignal = 
+			boolean isMacdCrossingBelowSignal = 
 								(macd.getMacd()[macdIndicatorIndex-1] > macd.getSignal()[macdIndicatorIndex-1]) 	//1rst macd > 1rst Signal
 								&& (macd.getMacd()[macdIndicatorIndex] < macd.getSignal()[macdIndicatorIndex]); 	//last macd < last Signal
-			res.setBearishCrossBellow(isMacdPositive && isMacdCrossingBellowSignal); 
+			res.setBearishCrossBelow(isMacdPositive && isMacdCrossingBelowSignal); 
 		}
 
 		
