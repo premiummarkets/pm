@@ -35,7 +35,6 @@ import java.awt.Paint;
 import java.awt.geom.Line2D;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -108,16 +107,7 @@ public class ChartGenerator {
 			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries, 
 			boolean includeWeekends) {
 
-		DateAxis hAxis = new DateAxis("Time line");
-		DateFormat dateFormat = new SimpleDateFormat("dd MMM yy");
-		hAxis.setTickUnit(new DateTickUnit(DateTickUnitType.MONTH, 6, dateFormat));
-		hAxis.setLowerMargin(0.0f);
-		hAxis.setUpperMargin(0.0f);
-		
-		SortedSet<Date> fullDateSet = new TreeSet<>();
-		for (SortedMap<Date, double[]> output : eventsLinesSeries.values()) {
-			fullDateSet.addAll(output.keySet());
-		}
+		DateAxis hAxis = new DateAxis();
 		
 		if (includeWeekends) {
 			LOGGER.info("Including weekends - continous quotations.");
@@ -125,6 +115,15 @@ public class ChartGenerator {
 		} else {
 			LOGGER.info("Skiping weekends.");
 			hAxis.setTimeline(SegmentedTimeline.newMondayThroughFridayTimeline());
+		}
+		
+		hAxis.setTickUnit(new DateTickUnit(DateTickUnitType.MONTH, 3, new SimpleDateFormat("MMM yy")), true, true);
+		hAxis.setLowerMargin(0.0f);
+		hAxis.setUpperMargin(0.0f);
+		
+		SortedSet<Date> fullDateSet = new TreeSet<>();
+		for (SortedMap<Date, double[]> output : eventsLinesSeries.values()) {
+			fullDateSet.addAll(output.keySet());
 		}
 
 		XYPlot plot = new XYPlot();

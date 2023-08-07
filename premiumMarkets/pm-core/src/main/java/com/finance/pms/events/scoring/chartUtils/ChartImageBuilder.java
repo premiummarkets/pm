@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventType;
@@ -76,8 +77,9 @@ public class ChartImageBuilder {
 		if (eventInfo instanceof EventInfoOpsCompoOperation) {
 			requieredStockDataTypes = ((EventInfoOpsCompoOperation) eventInfo).getRequiredStockData();
 		}
-        Quotations quotations = QuotationsFactories.getFactory()
-        		.getSplitFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 100, ValidityFilter.getFilterFor(requieredStockDataTypes));
+        Currency currency = stock.getMarketValuation().getCurrency();
+		ValidityFilter filterFor = ValidityFilter.getFilterFor(requieredStockDataTypes);
+		Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, currency, 100, filterFor);
         SortedMap<Date, Double> quotationMap = QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx());
 
         String chartFile;
