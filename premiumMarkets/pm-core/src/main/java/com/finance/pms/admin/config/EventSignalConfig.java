@@ -70,7 +70,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	private static ParameterizedIndicatorsBuilder PARAMETERIZEDINDICATORSBUILDER;
 
-	private String analysis = "";
+	private String eventDefinitionString = "";
 
 	private Double infVolatility = 0d;
 	private Double supVolatility = 0d;
@@ -107,7 +107,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 	
 	private BuyStrategy buyStrategy;
 	private Integer bNsCalcStartNbDays;
-	
+	private String portfolioSuffix;
+
 	@Deprecated
 	/**
 	 * @deprecated this is hard coded ...
@@ -149,7 +150,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 			String stopLossRate, String sellAlertRate, String maxLoss,
 			String indicators, String buyIndicators, String sellIndicators) {
 		this();
-		this.analysis = analyse;
+		this.eventDefinitionString = analyse;
 
 		this.buyEventTriggerThreshold = Integer.valueOf(buyEventTriggerThreshold);
 		this.sellEventTriggerThreshold = Integer.valueOf(sellEventTriggerThreshold);
@@ -165,11 +166,11 @@ public class EventSignalConfig extends Config implements Cloneable {
 	}
 
 	public EventSignalConfig(
-			String analyse, 
+			String eventDefinitionString, 
 			String buyPonderationRule, String sellPonderationRule, String backDaysSpan,
 			String buyThreshold, String sellThreshold, String indicators, String configListFileName) {
 		this();
-		this.analysis = analyse;
+		this.eventDefinitionString = eventDefinitionString;
 		this.buyPonderationRule = buyPonderationRule;
 		this.sellPonderationRule = sellPonderationRule;
 		this.backwardDaySpan = Integer.valueOf(backDaysSpan);
@@ -397,8 +398,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 		return buyIndicators;
 	}
 
-	public String getAnalysis() {
-		return analysis;
+	public String getEventDefinitionString() {
+		return eventDefinitionString;
 	}
 
 	public Integer getBackwardDaySpan() {
@@ -508,8 +509,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	}
 
-	public void setAnalysis(String analysis) {
-		this.analysis = analysis;
+	public void setEventDefinitionString(String eventDefinitionString) {
+		this.eventDefinitionString = eventDefinitionString;
 	}
 
 	public void setBuyPonderationRule(String buyPonderationRule) {
@@ -635,7 +636,7 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "EventSignalConfig [analyse=" + analysis + "]";
+		return "EventSignalConfig [eventDefinitionString=" + eventDefinitionString + "]";
 	}
 
 	public void setIndepIndicators(List<String> indepIndicators) {
@@ -787,6 +788,14 @@ public class EventSignalConfig extends Config implements Cloneable {
 
 	public void setbNsCalcStartNbDays(Integer bNsCalcStartNbDays) {
 		this.bNsCalcStartNbDays = bNsCalcStartNbDays;
+	}
+	
+	public String getPortfolioSuffix() {
+		return portfolioSuffix;
+	}
+
+	public void setPortfolioSuffix(String portfolioPrefix) {
+		this.portfolioSuffix = portfolioPrefix;
 	}
 
 }
