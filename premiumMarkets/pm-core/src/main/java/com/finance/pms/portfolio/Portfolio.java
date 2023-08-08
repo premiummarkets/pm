@@ -750,6 +750,8 @@ public class Portfolio extends AbstractSharesList {
 
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			SortedSet<TransactionElement> transactionsSortedByStock = transactionsSortedByStock(startDate, endDate, isLatestOnly);
+			
+			if (transactionsSortedByStock.isEmpty()) throw new Exception("The portfolio " + this.getName() + " does not have any transaction.");
 
 			CurrencyConverter currencyConverter = PortfolioMgr.getInstance().getCurrencyConverter();
 

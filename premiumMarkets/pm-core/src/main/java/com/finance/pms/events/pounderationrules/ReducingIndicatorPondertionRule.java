@@ -17,9 +17,13 @@ public class ReducingIndicatorPondertionRule extends PonderationRule {
 	private static final long serialVersionUID = 1L;
 	
 	private Integer buySellTriggerSpan;
+	int ifCount;
+	int thenCount;
 	
-	public ReducingIndicatorPondertionRule(Integer buySellTriggerSpan) {
-		this.buySellTriggerSpan = buySellTriggerSpan;
+	public ReducingIndicatorPondertionRule() {
+		this.buySellTriggerSpan = 4;
+		this.ifCount = 2;
+		this.thenCount = 2;
 	}
 
 	@Override
@@ -63,7 +67,8 @@ public class ReducingIndicatorPondertionRule extends PonderationRule {
 					lastEvtTypeCount++;
 				}
 			}
-			if (firstEventTypeCount >= 2 && lastEvtTypeCount >= 2) {
+			
+			if (firstEventTypeCount >= ifCount && lastEvtTypeCount >= thenCount) {
 				switch (lastEvent.getEventType()) {
 					case BEARISH:
 						weight = -1;
@@ -122,8 +127,8 @@ public class ReducingIndicatorPondertionRule extends PonderationRule {
 	@Override
 	public int compare(SymbolEvents o1, SymbolEvents o2) {
 		
-		PonderationRule p1 = new ReducingIndicatorPondertionRule(buySellTriggerSpan);
-		PonderationRule p2 = new ReducingIndicatorPondertionRule(buySellTriggerSpan);
+		PonderationRule p1 = new ReducingIndicatorPondertionRule();
+		PonderationRule p2 = new ReducingIndicatorPondertionRule();
 		//!!The compareCal is in inverse order
 		return super.compareCal(o1, o2, p1, p2);
 	}

@@ -175,9 +175,15 @@ public class AutoPortfolioDelegate {
 				new SymbolEvents(
 						new Stock() {
 							private static final long serialVersionUID = 1L;
+							@Override
+							public String getName() {
+								return "~";
+							}
+							@Override
 							public String getSymbol() {
 								return "~";
 							}
+							@Override
 							public String getIsin() {
 								return "~";
 							}
@@ -355,12 +361,16 @@ public class AutoPortfolioDelegate {
 
 		SymbolEvents symbolEventsThreshold = new SymbolEvents(
 				new Stock() {
-
 					private static final long serialVersionUID = 1L;
-
+					@Override
+					public String getName() {
+						return "0";
+					}
+					@Override
 					public String getSymbol() {
 						return "0";
 					}
+					@Override
 					public String getIsin() {
 						return "0";
 					}

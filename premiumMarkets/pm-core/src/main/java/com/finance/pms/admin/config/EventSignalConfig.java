@@ -97,16 +97,22 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private List<String> sellIndicators;
 	private List<String> buyIndicators;
 
+	/**
+	 * @deprecated use bNsCalcStartDuration
+	 */
+	@Deprecated
 	//TODO : different span and event thresholds for first and second pass ...
 	private Integer backwardDaySpan = Integer.valueOf(MainPMScmd.getMyPrefs().get("event.backwarddayspan", "40"));
 	//private Integer secondPassbackwardDaySpan = Integer.valueOf(MainPMScmd.prefs.get("event.backwarddayspan", "45"));
-	private String evtCalcStartDuration = MainPMScmd.getMyPrefs().get("event.evtcalcstartduration", "120m"); //10 years
+	
+	private String evtCalcStartDuration = MainPMScmd.getMyPrefs().get("event.evtcalcstartduration", "120m"); //10 years ago
 
 	private String buyPonderationRule = MainPMScmd.getMyPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getMyPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
 	
 	private BuyStrategy buyStrategy;
-	private Integer bNsCalcStartNbDays;
+	private String bNsCalcStartDuration = MainPMScmd.getMyPrefs().get("event.bnscalcstartduration", "15d"); //15 days ago
+	
 	private String portfolioSuffix;
 
 	@Deprecated
@@ -766,7 +772,6 @@ public class EventSignalConfig extends Config implements Cloneable {
 	
 
 	public String getEvtCalcStartDuration() {
-		//throw new NotImplementedException("TODO: get value from preTrainConf");
 		return evtCalcStartDuration;
 	}
 
@@ -777,17 +782,15 @@ public class EventSignalConfig extends Config implements Cloneable {
 	public BuyStrategy getBuyStrategy() {
 		return buyStrategy;
 	}
-
-	public Integer getbNsCalcStartNbDays() {
-		return bNsCalcStartNbDays;
-	}
-
 	public void setBuyStrategy(BuyStrategy buyStrategy) {
 		this.buyStrategy = buyStrategy;
 	}
 
-	public void setbNsCalcStartNbDays(Integer bNsCalcStartNbDays) {
-		this.bNsCalcStartNbDays = bNsCalcStartNbDays;
+	public String getbNsCalcStartDuration() {
+		return bNsCalcStartDuration;
+	}
+	public void setbNsCalcStartDuration(String bNsCalcStartNbDuration) {
+		this.bNsCalcStartDuration = bNsCalcStartNbDuration;
 	}
 	
 	public String getPortfolioSuffix() {
