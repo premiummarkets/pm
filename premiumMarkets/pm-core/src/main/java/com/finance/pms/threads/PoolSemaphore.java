@@ -295,14 +295,14 @@ public class PoolSemaphore {
 
     public void stopThreads() {
     	
-    	LOGGER.info("Stopping Thread pool, nb threads to stop : "+nThreads);
+    	LOGGER.info("Stopping Thread pool, nb threads to stop: " + nThreads);
     	
         for (int i = 0; i < nThreads; i++) {
         	if (null != sourceClient[i]) {
         		sourceConnector.shutdownSource(sourceClient[i], i);
-        		LOGGER.info("Stopping Thread pool, "+sourceConnector.getClass().getName()+" shutting down : "+i);
+        		LOGGER.info("Stopping Thread pool, " + sourceConnector.getClass().getName() + " shutting down: " + i);
         	} else {
-        		if (LOGGER.isDebugEnabled()) LOGGER.debug("Stopping DB Thread pool, "+sourceConnector.getClass().getName()+" is empy  : "+i);
+        		if (LOGGER.isDebugEnabled()) LOGGER.debug("Stopping DB Thread pool, " + sourceConnector.getClass().getName() + " is empty: " + i);
         	}
         }
     }

@@ -425,7 +425,8 @@ public class EventsResources {
 	public SymbolEvents crudReadEventsForStock(Stock stock, Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 
 		//Consistency checks
-		if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		if (eventDefinitions == null || eventDefinitions.isEmpty()) throw new IllegalArgumentException("eventDefinitions can't be empty: " + eventDefinitions);
+		if (eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 
 		if (!isEventCached && !isEventPersisted) {
 			String message = "Inconsistency : Events are neither persisted or cached.";
@@ -478,10 +479,11 @@ public class EventsResources {
 	 */
 	public List<SymbolEvents> crudReadEvents(Date startDate, Date endDate, Set<EventInfo> eventDefinitions, String... eventListNames) {
 
-		if (eventDefinitions != null && eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		if (eventDefinitions == null || eventDefinitions.isEmpty()) throw new IllegalArgumentException("eventDefinitions can't be empty: " + eventDefinitions);
+		if (eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 
 		if (!isEventCached && !isEventPersisted) {
-			String message = "Inconsistency : Events are neither persisted or cached.";
+			String message = "Inconsistency: Events are neither persisted or cached.";
 			LOGGER.error(message, new Exception());
 			throw new InvalidParameterException(message);
 		}
@@ -1226,7 +1228,7 @@ public class EventsResources {
 
 		LOGGER.info("DELETE events for " + analysisName);
 		
-		//Check removable
+		//Check removable //XXX should this be here if this is a forced delete?
 		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
 			throw new RuntimeException("Can't delete analysis: " + analysisName + " as it contains non removable events!");
 		}
