@@ -112,18 +112,18 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			if (message instanceof IdentifiedObjecMessage) {
 				ConfigThreadLocal.setAll(((IdentifiedObjecMessage) message).getPassedThroughConfigs());
 			} else {
-				throw new IllegalArgumentException("The message is not an IdentifiedObjecMessage : "+message.getClass().getSimpleName());
+				throw new IllegalArgumentException("The message is not an IdentifiedObjecMessage: " + message.getClass().getSimpleName());
 			}
 			if (message instanceof ExportAutoPortfolioMessage) { //Not used??  //Well, Export. This could be seen as a particular case of AbstractAnalysisClientRunnableMessage
 
 				ExportAutoPortfolioMessage m = (ExportAutoPortfolioMessage) message;
-				LOGGER.info("New export message received : " + m.getAnalyseName());
+				LOGGER.info("New export message received: " + m.getAnalyseName());
 				runAsyncTask(m.getAnalyseName(), new ExportAutoPortfolioRunnable(m));
 
 			} else if (message instanceof AbstractAnalysisClientRunnableMessage) {//Runnable Messages : screener, indicator (gwt), all stocks summaries and alerts on threshold
 
 				AbstractAnalysisClientRunnableMessage runnableMessage = (AbstractAnalysisClientRunnableMessage) message;
-				LOGGER.info("New runnable message received : "+runnableMessage.getAnalysisName()+" for "+runnableMessage.getClass().getName());
+				LOGGER.info("New runnable message received: " + runnableMessage.getAnalysisName() + " for " + runnableMessage.getClass().getName());
 				runAsyncTask(runnableMessage.getAnalysisName(), runnableMessage);
 
 			} else if (message instanceof EmailMessage) { //SymbolEvent : send email
@@ -144,11 +144,11 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 						sendEmail(symbolEventMessage, eType, source, eventListName, eventInfoRef);
 					}
 				} else {
-					LOGGER.warn("Ignored message : "+message);
+					LOGGER.warn("Ignored message: " + message);
 				}
 
 			} else {
-				throw new IllegalArgumentException("Unrecognised message type : "+message.getClass().getSimpleName());
+				throw new IllegalArgumentException("Unrecognised message type: " + message.getClass().getSimpleName());
 			}
 
 		} catch (JMSException ex) {
@@ -183,7 +183,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 	private void runAsyncTask(String analysisName, Runnable runnable) {
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("Executing executor:" + runnable.getClass().getName() + " for " + analysisName);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Executing executor: " + runnable.getClass().getName() + " for " + analysisName);
 		analysisExecutor.execute(runnable);
 
 	}
@@ -198,11 +198,11 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				return (SymbolEvents) ((ObjectMessage) message).getObject();
 			}
 		} catch (NoSuchFieldException e) {
-			LOGGER.warn("Unrecognised message : "+message+".\nEvent definition not found in this configuration (db.property, user calculator) "+e);
+			LOGGER.warn("Unrecognised message : " + message + ".\nEvent definition not found in this configuration (db.property, user calculator) " + e);
 			return null;
 		}
 
-		throw new JMSException("Unrecognised message :"+message);
+		throw new JMSException("Unrecognised message: " + message);
 	}
 
 
@@ -256,7 +256,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			break;
 		default:
 			String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
-			subject = source + " : " + stockName + eventInfoRef + " " + addEventType + " in " + eventListName;
+			subject = source + ": " + stockName + eventInfoRef + " " + addEventType + " in " + eventListName;
 		}
 
 		mail.setSubject(subject);
@@ -267,7 +267,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			this.mailSender.send(mail);
 		}
 		catch(MailException ex) {
-			LOGGER.error("Can't send email :"+subject+";"+eMailTxt+"\n\n\n"+notaBene, ex);         
+			LOGGER.error("Can't send email: " + subject + ";" + eMailTxt + "\n\n\n" + notaBene, ex);         
 		}
 	}
 
@@ -321,12 +321,12 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 			LOGGER.info("Waiting for queue to be empty and processed.");
 			int cpt = 0;
 			while (!eventQueue.isEmptyAndProcessed() && cpt++ < 60) {
-				LOGGER.info("Number of task left :"+eventQueue.messagesInProcess());
-				LOGGER.info("Task left :"+eventQueue.toString());
+				LOGGER.info("Number of task left: " + eventQueue.messagesInProcess());
+				LOGGER.info("Task left: " + eventQueue.toString());
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					LOGGER.error("Error while waiting for event queue starvation.",e);
+					LOGGER.error("Error while waiting for event queue starvation.", e);
 				}
 			}
 			LOGGER.info("Queue is now empty.");
@@ -347,7 +347,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 				try {
 					PortfolioMgr.getInstance().hibStorePortfolio();
 				} catch (Exception e) {
-					LOGGER.error("Error while closing AnalysisClient",e);
+					LOGGER.error("Error while closing AnalysisClient.", e);
 				}
 				LOGGER.info("Auto portfolios are saved.");
 			}
@@ -365,13 +365,13 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					LOGGER.info("Metrics are empty.");
 				}
 			} catch (Exception e) {
-				LOGGER.warn("Can't send metrics. Please set up your email account in Settings ...? Here they are : "+metrics);
+				LOGGER.warn("Can't send metrics. Please set up your email account in Settings ...? Here they are: " + metrics);
 			}
 
 			LOGGER.info("AnalysisClient is closed.");
 
 		} catch (Exception e) {
-			System.out.println("Error closing AnalysisClient : " + e);
+			System.out.println("Error closing AnalysisClient: " + e);
 			e.printStackTrace();
 		}
 	}

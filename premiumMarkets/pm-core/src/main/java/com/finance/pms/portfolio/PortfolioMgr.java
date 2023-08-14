@@ -117,11 +117,11 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 
 	
-	public AutoPortfolio createOverwriteAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
+	public AutoPortfolio createOverwriteAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
 
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 
-		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
+		AutoPortfolio autoPortfolio = new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
 		int index = this.portfolios.indexOf(autoPortfolio);
 		if (index != -1) {
 			removePortfolio(this.portfolios.get(index));
@@ -130,6 +130,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		this.portfolios.add(autoPortfolio);
 		portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
 		return autoPortfolio;
+		
 	}
 
 	public AbstractSharesList getPortfolio(String portfolioName) {
@@ -155,7 +156,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 	public  void addPortfolio(Portfolio portfolio) throws InvalidAlgorithmParameterException {
 		if (portfolios.contains(portfolio)) {
-			throw new InvalidAlgorithmParameterException("Portfolio "+portfolio.getName() + " already exists. Please delete");
+			throw new InvalidAlgorithmParameterException("Portfolio " + portfolio.getName() + " already exists. Please delete");
 		}
 		this.portfolios.add(portfolio);
 	}

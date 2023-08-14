@@ -89,7 +89,7 @@ public class AlertOnThresholdParser extends IndicatorsOperator {
 
 				if (!edata.isEmpty()) {
 					LOGGER.info(
-							"Alerts on Threshold crossing for share " + portfolioShare.getStock() + " in " + eventListName + ":" +
+							"Alerts on Threshold crossing for share " + portfolioShare.getStock() + " in " + eventListName + ": " +
 							"\nRegistered thresholds : " + portfolioShare.getAlertsOnThreshold() +
 							"\nResulting events : " + edata);
 				}

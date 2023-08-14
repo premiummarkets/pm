@@ -144,7 +144,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 			this.analysePortfolioCollection(startDate, endDate, portfolios);
 
 		} catch (Exception e) {
-			LOGGER.error("Error in "+this.toString(),e);
+			LOGGER.error("Error in " + this.toString(), e);
 		} finally {
 			synchronized (this.syncObject) {
 				this.syncObject.notify();
