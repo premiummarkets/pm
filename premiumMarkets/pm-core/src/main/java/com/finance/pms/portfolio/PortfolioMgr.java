@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.BeansException;
@@ -56,7 +57,6 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.events.pounderationrules.SilentPonderationRule;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 
@@ -93,26 +93,24 @@ public class PortfolioMgr implements ApplicationContextAware {
 		PortfolioMgr.singleton.portfolios   = new ArrayList<Portfolio>();
 	}
 
-	public AutoPortfolio getOrCreateAutoPortfolio(String analyseName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
+	public AutoPortfolio getOrCreateAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
 
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 
-		AutoPortfolio autoPortfolio =  new AutoPortfolio(analyseName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
-		int index = this.portfolios.indexOf(autoPortfolio);
-		if (index == -1) {	
-
+		List<Portfolio> existing = this.portfolios.stream().filter(p -> p.getName().equals(portfolioName)).collect(Collectors.toList());
+		if (existing.size() == 0) {	
+			AutoPortfolio autoPortfolio =  new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
 			this.portfolios.add(autoPortfolio);
 			portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
 			return autoPortfolio;
-
 		} else {
-
-			AutoPortfolio existingAutoPortfolio = (AutoPortfolio) this.portfolios.get(index);
+			if (!(existing.get(0) instanceof AutoPortfolio)) throw new RuntimeException(portfolioName + " already exists but is not an Autoportofolio: " + existing);
+			AutoPortfolio existingAutoPortfolio = (AutoPortfolio) existing.get(0);
 			existingAutoPortfolio.setSellPonderationRule(sellPonderationRule);
 			existingAutoPortfolio.setBuyPonderationRule(buyPonderationRule);
 			existingAutoPortfolio.setEventSignalConfig(eventSignalConfig);
+			portfolioDAO.saveOrUpdatePortfolio(existingAutoPortfolio);
 			return existingAutoPortfolio;
-
 		}
 	}
 
@@ -120,13 +118,10 @@ public class PortfolioMgr implements ApplicationContextAware {
 	public AutoPortfolio createOverwriteAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
 
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
+		
+		removePortfolio(portfolioName);
 
 		AutoPortfolio autoPortfolio = new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
-		int index = this.portfolios.indexOf(autoPortfolio);
-		if (index != -1) {
-			removePortfolio(this.portfolios.get(index));
-		}
-
 		this.portfolios.add(autoPortfolio);
 		portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
 		return autoPortfolio;
@@ -134,15 +129,12 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 
 	public AbstractSharesList getPortfolio(String portfolioName) {
-
-		int index = this.portfolios.indexOf(new Portfolio(portfolioName, new SilentPonderationRule(), new SilentPonderationRule(), null));
-
-		if (index == -1) {		
-			throw new IllegalArgumentException("Portfolio "+portfolioName+" doesn't exist");
+		List<Portfolio> existing = this.portfolios.stream().filter(p -> p.getName().equals(portfolioName)).collect(Collectors.toList());
+		if (existing.size() == 0) {		
+			throw new IllegalArgumentException("Portfolio " + portfolioName + " doesn't exist");
 		} else {
-			return (AbstractSharesList) this.portfolios.get(index);
+			return existing.get(0);
 		}
-
 	}
 
 
@@ -162,22 +154,26 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 
 
-	public void removePortfolio(AbstractSharesList portfolioToRm) {
-		this.portfolios.remove(portfolioToRm);
-		this.portfolioDAO.delete(portfolioToRm);
+	public void removePortfolio(String portfolioName) {
+		List<Portfolio> existing = this.portfolios.stream().filter(p -> p.getName().equals(portfolioName)).collect(Collectors.toList());
+		if (existing.size() > 1) throw new RuntimeException("There is more the one " + portfolioName + " in " + this.portfolios + "!!");
+		if (existing.size() == 1) {
+			this.portfolios.remove(existing.get(0));
+			this.portfolioDAO.delete(existing.get(0));
+		} else {
+			LOGGER.info(portfolioName + " does not exist yet and won't be deleted.");
+		}
 	}
 
 	public void hibStorePortfolio() {
-
 		for (AbstractSharesList portfolio: this.portfolios) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("saving : " + portfolio.getName());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("saving: " + portfolio.getName());
 			try {			
 				this.portfolioDAO.saveOrUpdatePortfolio(portfolio);
 			} catch (Exception e) {
-				LOGGER.error("Portfolio : "+portfolio,e);
+				LOGGER.error("Portfolio: " + portfolio, e);
 			}
 		}
-
 		//resetOldPortfolioList();
 	}
 
@@ -207,9 +203,9 @@ public class PortfolioMgr implements ApplicationContextAware {
 		for (AbstractSharesList portfolio : this.portfolios) {
 			if (portfolio.getName().equals(portfolioName)) {
 				for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Nb of shares for "+portfolio.getName()+" not empty : "+portfolioShare.getStock());
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Nb of shares for " + portfolio.getName() + " not empty: " + portfolioShare.getStock());
 					if (portfolioShare.getStock().getSymbol().equals(stockSymbol)) {
-						if (LOGGER.isDebugEnabled()) LOGGER.debug("Share matching : "+stockSymbol+" with "+portfolioShare.getStock().getName());
+						if (LOGGER.isDebugEnabled()) LOGGER.debug("Share matching: " + stockSymbol + " with " + portfolioShare.getStock().getName());
 						return portfolioShare;
 					}
 				}
@@ -223,7 +219,6 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 		List<PortfolioShare> portfolioShareList = new ArrayList<PortfolioShare>();
 		for (AbstractSharesList portfolio : this.portfolios) {
-
 			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
 				if (portfolioShare.getStock().equals(stock)) {
 					portfolioShareList.add(portfolioShare);
@@ -265,11 +260,10 @@ public class PortfolioMgr implements ApplicationContextAware {
 		List<AutoPortfolio> retVal = new ArrayList<AutoPortfolio>();
 		for (Portfolio portfolio : this.portfolios) {
 			if (portfolio instanceof AutoPortfolio) {
-				retVal.add((AutoPortfolio)portfolio);
+				retVal.add((AutoPortfolio) portfolio);
 			}
 		}
 		return retVal;
-
 	}
 
 	public List<String> getUserPortfolioNames() {
@@ -344,8 +338,8 @@ public class PortfolioMgr implements ApplicationContextAware {
 					if (!portfolioShare.getMonitorLevel().equals(MonitorLevel.NONE)) {//Found monitored in Portfolio
 							if (portfolioShare.getAlertsOnEvent().isEmpty()) return true; //The default is pass through
 							Optional<AlertOnEvent> findFirst = portfolioShare.getAlertsOnEvent().stream()
-							.filter(aoe -> aoe.getEventInfoReference().equals(alertKey.getEventInfo().getEventDefinitionRef()))
-							.findFirst();
+									.filter(aoe -> aoe.getEventInfoReference().equals(alertKey.getEventInfo().getEventDefinitionRef()))
+									.findFirst();
 							return findFirst.isPresent();
 						}
 					}

@@ -100,8 +100,8 @@ public class AssVieScanner implements MyBeanFactoryAware {
 	}
 	
 	public void resetAssViePortfolio(StockList assVieStockList) throws InvalidAlgorithmParameterException {
+		PortfolioMgr.getInstance().removePortfolio("CeAssVie");
 		Portfolio portfolio = new UserPortfolio("CeAssVie", Currency.EUR);
-		PortfolioMgr.getInstance().removePortfolio(portfolio);
 
 		for (Stock stock : assVieStockList) {
 

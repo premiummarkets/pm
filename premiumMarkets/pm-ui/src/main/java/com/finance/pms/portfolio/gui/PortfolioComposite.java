@@ -2975,13 +2975,13 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 		cTabItem = cTabItemTmp;
 
 		Portfolio portfolioToRm = modelControler.getPortfolio(tabindex);
-		doRemovePortfolio(portfolioToRm);
+		doRemovePortfolio(portfolioToRm.getName());
 
 		modelControler.updateMoniAndPSCachedModels();
 
 	}
 
-	private void doRemovePortfolio(Portfolio portfolioToRm) {
+	private void doRemovePortfolio(String portfolioToRm) {
 		PortfolioMgr.getInstance().removePortfolio(portfolioToRm);
 	}
 
