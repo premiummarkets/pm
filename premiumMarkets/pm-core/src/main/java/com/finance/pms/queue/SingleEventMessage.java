@@ -62,16 +62,16 @@ public class SingleEventMessage extends EmailMessage {
 
 	/**
 	 * Instantiates a new inner message.
-	 * 
+	 * @param portfolios 
+	 * @param eventKeyInMess 
 	 * @param eventInMess the event in mess
+	 * @param ptc 
 	 * 
 	 * @author Guillaume Thoreton
-	 * @param ptc 
-	 * @param eventKeyInMess 
 	 */
-	public SingleEventMessage(String analyseName, Date calculationDate, Stock stock, EventKey eventKeyInMess, EventValue eventInMess, Map<String, Config> ptc) {
-		super(analyseName.hashCode()+stock.hashCode()+eventInMess.hashCode(), ptc);
-		this.eventMessageObject = new EventMessageObject(analyseName, calculationDate, eventKeyInMess, eventInMess, stock);
+	public SingleEventMessage(String analyseName, String portfolios, Stock stock, Date calculationDate, EventKey eventKeyInMess, EventValue eventInMess, Map<String, Config> ptc) {
+		super(analyseName.hashCode() + stock.hashCode() + eventInMess.hashCode(), ptc);
+		this.eventMessageObject = new EventMessageObject(analyseName, portfolios, stock, calculationDate, eventKeyInMess, eventInMess);
 	}
 	
 
@@ -99,8 +99,7 @@ public class SingleEventMessage extends EmailMessage {
 	public SingleEventMessage(Serializable eventMessageObject, Map<String, Config> ptc) {
 		this((EventMessageObject) eventMessageObject, ptc);
 	}
-	
-	
+
 
 	/* (non-Javadoc)
 	 * @see javax.jms.ObjectMessage#getObject()

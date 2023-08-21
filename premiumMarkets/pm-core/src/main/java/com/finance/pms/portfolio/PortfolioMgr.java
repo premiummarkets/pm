@@ -304,6 +304,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 		return stocks;
 	}
 
+	//TODO filter using the portfolioNames String list??
 	public Boolean isMonitoredFor(SymbolEvents symbolEvents, String eventListName) {
 
 		SortedMap<EventKey, EventValue> sortedDataResultMap = symbolEvents.getSortedDataResultMap();
@@ -314,7 +315,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 				.filter(k -> k instanceof AlertEventKey)
 				.map(k -> isMonitoredForAlerts(symbolEvents.getStock(), eventListName, (AlertEventKey) k))
 				.reduce(false, (r,e)-> r || e);
-		LOGGER.info("SymbolEvents is "+symbolEvents+" is monitored for alerts: "+isMonitoredForAlertsOnThreshold);
+		LOGGER.info("SymbolEvents is " + symbolEvents + " is monitored for alerts: " + isMonitoredForAlertsOnThreshold);
 		if (isMonitoredForAlertsOnThreshold) return true;
 
 		//Alerts on Events. The portfolioName is here not passed but the real eventListName hence not relevant
@@ -322,7 +323,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 				.filter(k -> k instanceof ParameterizedEventKey)
 				.map(k -> isMonitoredForEvents(symbolEvents.getStock(), (ParameterizedEventKey) k))
 				.reduce(false, (r,e)-> r || e);
-		LOGGER.info("SymbolEvents "+symbolEvents+" is monitored for events: "+isMonitoredForAlertsOnThreshold);
+		LOGGER.info("SymbolEvents " + symbolEvents + " is monitored for events: " + isMonitoredForAlertsOnThreshold);
 		if (isMonitoredForAlertsOnEvents) return true;
 
 		//Other ..
@@ -331,7 +332,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 
 	}
 	
-	public Boolean isMonitoredForEvents(Stock stock, ParameterizedEventKey alertKey) {
+	private Boolean isMonitoredForEvents(Stock stock, ParameterizedEventKey alertKey) {
 		for (AbstractSharesList portfolio : this.portfolios) {
 			for(PortfolioShare portfolioShare : portfolio.getListShares().values()) {
 				if (portfolioShare.getStock().lenientSymbolEquals(stock)) {

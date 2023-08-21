@@ -105,7 +105,7 @@ public class AlertsCalculationThread extends EventsCalculationThread {
 
 				//Here eventListName must be = to portfolio name for alerts
 				EmailFilterEventSource msalert = (isUserPortfolio)? EmailFilterEventSource.PMUserAlert : EmailFilterEventSource.PMAutoAlert;
-				this.sendEvent(portfolioShare.getStock(), eventListName, eventKey, calculatedEventsForCalculator.get(eventKey), msalert, EventDefinition.ALERTTHRESHOLD);
+				this.sendEvent(eventListName, portfolioShare.getPortfolio().getName(), portfolioShare.getStock(), eventKey, calculatedEventsForCalculator.get(eventKey), msalert, EventDefinition.ALERTTHRESHOLD);
 
 			}
 

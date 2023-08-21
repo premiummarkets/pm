@@ -31,6 +31,7 @@ package com.finance.pms.events;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 import com.finance.pms.datasources.shares.Stock;
 
@@ -38,23 +39,26 @@ public class EventMessageObject implements Serializable {
 
 	private static final long serialVersionUID = 805246012496439241L;
 
+	private String eventListName;
+	private String portfolios;
 	private Stock stock;
 
 	private EventKey eventKey;
 	private EventValue eventValue;
 
-	private String eventListName;
 	private Date calculationDate;
 
 
 
-	public EventMessageObject(String eventListName, Date calculationDate, EventKey eventKey, EventValue eventValue, Stock stock) {
+
+	public EventMessageObject(String eventListName, String portfolios, Stock stock, Date calculationDate, EventKey eventKey, EventValue eventValue) {
 		super();
 		this.eventListName = eventListName;
 		this.calculationDate = calculationDate;
 		this.eventKey = eventKey;
 		this.eventValue = eventValue;
 		this.stock = stock;
+		this.portfolios = portfolios;
 	}
 
 	public Stock getStock() {
@@ -76,15 +80,14 @@ public class EventMessageObject implements Serializable {
 	public Date getCalculationDate() {
 		return calculationDate;
 	}
+	
+	public String getPortfolios() {
+		return portfolios;
+	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((eventListName == null) ? 0 : eventListName.hashCode());
-		result = prime * result + ((eventValue == null) ? 0 : eventValue.hashCode());
-		result = prime * result + ((stock == null) ? 0 : stock.hashCode());
-		return result;
+		return Objects.hash(eventListName, eventValue, stock);
 	}
 
 	@Override
@@ -96,27 +99,15 @@ public class EventMessageObject implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		EventMessageObject other = (EventMessageObject) obj;
-		if (eventListName == null) {
-			if (other.eventListName != null)
-				return false;
-		} else if (!eventListName.equals(other.eventListName))
-			return false;
-		if (eventValue == null) {
-			if (other.eventValue != null)
-				return false;
-		} else if (!eventValue.equals(other.eventValue))
-			return false;
-		if (stock == null) {
-			if (other.stock != null)
-				return false;
-		} else if (!stock.equals(other.stock))
-			return false;
-		return true;
+		return Objects.equals(eventListName, other.eventListName) && Objects.equals(eventValue, other.eventValue) && Objects.equals(stock, other.stock);
 	}
 
 	@Override
 	public String toString() {
-		return "EventMessageObject [stock=" + stock + ", eventValue=" + eventValue + ", eventListName=" + eventListName + ", calculationDate=" + calculationDate + "]";
+		return "EventMessageObject [eventListName=" + eventListName + ", portfolios=" + portfolios + ", stock=" + stock + 
+				", eventKey=" + eventKey + ", eventValue=" + eventValue + ", calculationDate=" + calculationDate + "]";
 	}
+	
+	
 
 }

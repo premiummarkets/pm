@@ -155,7 +155,7 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 						EventKey eventKey = new ParameterizedEventKey(record.getEventList().getLastDate(), eventDef, eventType);
 						EventValue eventValue = new EventValue(record.getEventList().getLastDate(), eventDef, eventType, message, record.getPortfolioName());
-						SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getDate(), record.getStock(), eventKey, eventValue, ConfigThreadLocal.getAll());
+						SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getPortfolioName(), record.getStock(), record.getDate(), eventKey, eventValue, ConfigThreadLocal.getAll());
 						infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
 						infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 						infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);

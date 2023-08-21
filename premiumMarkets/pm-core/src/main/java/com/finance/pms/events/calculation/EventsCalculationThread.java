@@ -115,7 +115,7 @@ public abstract class EventsCalculationThread extends Observable implements Call
 
     }
 
-    protected void sendEvent(final Stock stock, final String eventListName, final EventKey eventKey, final EventValue event, final EmailFilterEventSource eventSource, final EventInfo eventInfo) {
+    protected void sendEvent(String eventListName, String portfolio, Stock stock, EventKey eventKey, EventValue event, EmailFilterEventSource eventSource, EventInfo eventInfo) {
 
         if (eventQueue == null) {
             LOGGER.info("No queue available. No message required to be sent");
@@ -127,7 +127,7 @@ public abstract class EventsCalculationThread extends Observable implements Call
 
                 public Message createMessage(Session session) throws JMSException {
 
-                    SingleEventMessage message = new SingleEventMessage(eventListName, endDate, stock, eventKey, event, ConfigThreadLocal.getAll());
+                    SingleEventMessage message = new SingleEventMessage(eventListName, portfolio, stock, endDate, eventKey, event, ConfigThreadLocal.getAll());
                     message.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), eventSource); //Source
                     message.setObjectProperty(MessageProperties.TREND.getKey(), event.getEventType().name()); //Bearish or Bullish or Other?
                     message.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);

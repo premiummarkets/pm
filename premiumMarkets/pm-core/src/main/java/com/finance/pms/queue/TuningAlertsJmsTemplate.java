@@ -70,7 +70,7 @@ public class TuningAlertsJmsTemplate extends JmsTemplate {
 				
 				String portfolioName = eventMessageObject.getEventListName();
 				if (!this.portfolioName.equals(portfolioName)) {
-					throw new MessageNotReadableException(new javax.jms.MessageNotReadableException("portfolio name miss match : "+this.portfolioName+" vs "+portfolioName));
+					throw new MessageNotReadableException(new javax.jms.MessageNotReadableException("portfolio name miss match : " + this.portfolioName + " vs " + portfolioName));
 				}
 					
 				SymbolEvents symbolEvents = new SymbolEvents(eventMessageObject);

@@ -130,8 +130,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 				SymbolEvents symbolEventMessage = extractSymbolEventsObject(message);
 				if (symbolEventMessage != null) {
-					String eventListName = extractEventListName(message);
-
+					
 					EventType eType = EventType.valueOf((String) message.getObjectProperty(MessageProperties.TREND.getKey()));
 					EmailFilterEventSource source = (EmailFilterEventSource) message.getObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey());
 					String eventInfoRef = (String) message.getObjectProperty(MessageProperties.EVENT_INFO.getKey());
@@ -141,7 +140,9 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					Boolean sendEmail = (Boolean) message.getObjectProperty(MessageProperties.SEND_EMAIL.getKey());
 
 					if (sendEmail) {
-						sendEmail(symbolEventMessage, eType, source, eventListName, eventInfoRef);
+						String eventListName = extractEventListName(message);
+						String portfolioNames = extractPortfolioNames(message);
+						sendEmail(symbolEventMessage, eType, source, eventListName, portfolioNames, eventInfoRef);
 					}
 				} else {
 					LOGGER.warn("Ignored message: " + message);
@@ -156,11 +157,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		}
 	}
 
-	private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
-
-		if (LOGGER.isDebugEnabled()) LOGGER.debug(
-				"Email/Popup potential (before filtering) message preview: " + eventType.name() + " from " + source + " in " + eventListName + ": "+
-				symbolEvents.getStock().getFriendlyName() + ", " + symbolEvents.toEMail());
+	private void sendEmail(final SymbolEvents symbolEvents, EventType eventType, EmailFilterEventSource source, String eventListName, String portfolioNames, String eventInfoRef) {
 
 		Boolean sendMailEnabled = Boolean.valueOf(MainPMScmd.getMyPrefs().get("mail.infoalert.activated","false"));
 
@@ -176,8 +173,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 
 		Boolean isValidEventSource = symbolEvents.getStock().equals(ANY_STOCK) || PortfolioMgr.getInstance().isMonitoredFor(symbolEvents, eventListName);
 		if 	( sendMailEnabled && isValidEventSource && isFiltered ) {
-			LOGGER.info("Email/Popup message preview: " + eventType.name() + " " + eventInfoRef + " from " + source + " in " + eventListName + ": " + symbolEvents.getStock().getFriendlyName() + ", " + symbolEvents.toEMail());
-			this.sendMailEvent(symbolEvents, eventType, source, eventListName, eventInfoRef);
+			this.sendMailEvent(symbolEvents, eventType, source, eventListName, portfolioNames, eventInfoRef);
 		} 
 	}
 
@@ -215,8 +211,16 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 		}
 		return null;
 	}
+	
+	private String extractPortfolioNames(Message message) throws JMSException {
+		if (message instanceof SingleEventMessage) {
+			EventMessageObject eventMessageObject = (EventMessageObject)((ObjectMessage) message).getObject();
+			return eventMessageObject.getPortfolios();
+		}
+		return null;
+	}
 
-	private void sendMailEvent(SymbolEvents event, EventType eventType, EmailFilterEventSource source, String eventListName, String eventInfoRef) {
+	private void sendMailEvent(SymbolEvents event, EventType eventType, EmailFilterEventSource source, String eventListName, String portfolioNames, String eventInfoRef) {
 
 		if (this.templateMessage.getTo() == null || this.templateMessage.getTo().length == 0 || this.templateMessage.getTo()[0] == null || this.templateMessage.getTo()[0].equals("")) {
 			LOGGER.warn("No recipient set for this message. Event sending aborted!");
@@ -241,7 +245,7 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					sellTriggeringEvents = " with trigger " + eMailTxt.substring(sstartIdx, eMailTxt.indexOf("\n", sstartIdx));
 				}
 			}
-			subject = source + ": " + stockName + eventInfoRef + " " + eventType.name() + sellTriggeringEvents + " in " + eventListName;
+			subject = source + ": " + stockName + eventInfoRef + " " + eventType.name() + sellTriggeringEvents + " in " + eventListName + " " + portfolioNames;
 			break;
 		case BULLISH:
 			String buyTriggeringEvents = " ";
@@ -252,16 +256,18 @@ public class AnalysisClient  implements MessageListener, ApplicationContextAware
 					buyTriggeringEvents = " with trigger " + eMailTxt.substring(bstartIdx, eMailTxt.indexOf("\n", bstartIdx));
 				}
 			}
-			subject = source + ": " + stockName + eventInfoRef + " " + eventType.name() + buyTriggeringEvents + " in " + eventListName;
+			subject = source + ": " + stockName + eventInfoRef + " " + eventType.name() + buyTriggeringEvents + " in " + eventListName + " " + portfolioNames;
 			break;
 		default:
 			String addEventType = inferAdditionalEventTypeForOtherNInfoEventTypes(source, eMailTxt);
-			subject = source + ": " + stockName + eventInfoRef + " " + addEventType + " in " + eventListName;
+			subject = source + ": " + stockName + eventInfoRef + " " + addEventType + " in " + eventListName + " " + portfolioNames;
 		}
 
 		mail.setSubject(subject);
 		mail.setText(eMailTxt + "\n\n\n" + notaBene);
 		mail.setSentDate(event.getLastDate());
+
+		LOGGER.info("Email/Popup message preview: " + mail);
 
 		try {
 			this.mailSender.send(mail);
