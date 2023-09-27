@@ -164,7 +164,7 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 	}
 	
 	/**
-	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStatsAt(Date)}
+	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStats()}
 	 */
 	public Double[] getStats() {
 		if (tuningRes == null) return new Double[5];

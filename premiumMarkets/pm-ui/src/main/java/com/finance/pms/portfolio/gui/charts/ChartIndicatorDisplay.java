@@ -310,7 +310,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			recalculationButton.setForeground(new Color(chartTarget.getDisplay(), 255, 0, 0));
 			recalculationButton.setEnabled(true);
 			recalculationButton.redraw();
-			recalculationButton.setFocus();
+			//recalculationButton.setFocus();
 			
 		} else {
 			//Disabling should happened in the EventSelectionListener itself.

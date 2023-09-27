@@ -29,11 +29,9 @@
  */
 package com.finance.pms.datasources;
 
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -116,12 +114,12 @@ public abstract class EventModelStrategyEngine<X> {
 	public void postCallBackForClean(boolean deleteAll, Stock... cleanedStocks) {
 
 		if (deleteAll) {
-			EventModel.outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
+			EventModel.resetOutputCache();
 
 		} else {
 			SortedSet<EventInfo> eventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
-			for (Object stock : cleanedStocks) {
-				Map<EventInfo, EventDefCacheEntry> outCache4Stock = (EventModel.outputCache.get(stock) == null)?null:EventModel.outputCache.get(stock).get();
+			for (Stock stock : cleanedStocks) {
+				Map<EventInfo, EventDefCacheEntry> outCache4Stock =  EventModel.getOutputCache(stock);
 
 				if (outCache4Stock != null) {
 					for (EventInfo eventInfo : eventDefs) {
@@ -142,9 +140,9 @@ public abstract class EventModelStrategyEngine<X> {
 
 			//Update cache
 			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
-				Map<EventInfo, EventDefCacheEntry> map4Stock = (EventModel.outputCache.get(stock) == null)?null:EventModel.outputCache.get(stock).get();
+				Map<EventInfo, EventDefCacheEntry> map4Stock = EventModel.getOutputCache(stock);
 				if (map4Stock == null) {
-					EventModel.outputCache.put(stock, new SoftReference<>(callbackForlastAnalyseOutput.get(stock)));
+					EventModel.putOutputCache(callbackForlastAnalyseOutput, stock);
 				} else {
 					map4Stock.putAll(callbackForlastAnalyseOutput.get(stock));
 				}

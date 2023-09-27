@@ -111,7 +111,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			if (token instanceof CommonErrorNode) {//Parsing error
 
 				String  paramTxt = ((CommonErrorNode) token).getText();
-				System.out.println("Error node " + ((CommonErrorNode) token) + " with text "+ paramTxt);
+				//System.out.println("Error node " + ((CommonErrorNode) token) + " with text "+ paramTxt);
 
 				String offendingBit = ((CommonErrorNode) token).getText().replaceAll("\n"," ").replaceAll("\\(.*", "").replaceAll(",.*", "").trim();
 				if (offendingBit != null && !offendingBit.isEmpty()) {
@@ -122,7 +122,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 						paramType = ParamType.valueOfTokenName(offendingBit, allNativeOps);
 						//No runtime was raise so we assume the offending bit is ok as the last param <= what if it not the last one?
 						String msg = "Unfinished predicate (unfinished param) for " + currentOp.getName() + " : Valid offending bit " + offendingBit + ". Expected : " + currentOp.getShortSynoptic();
-						System.out.println(msg + " " + token);
+						//System.out.println(msg + " " + token);
 						//This is to avoid the FailedPredicateException to be raised but without having to return true.
 						//We can return true only when this param is finished.
 						//And a FailedPredicateException would mean that is param is still needed as it is not.
@@ -132,7 +132,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 					} catch (RuntimeException e) {
 
 						String msg = "Syntax error or invalid parameter '" + offendingBit + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
-						System.out.println(msg + " " + token);
+						//System.out.println(msg + " " + token);
 						currentOp.setLastParamParsed(currentParamPos, offendingBit);
 						throw new ParamsCountException(input, currentOp, msg, true, Qualifier.SYNTAX, offendingBit, whereIsThatSonOf(token));
 
@@ -142,7 +142,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 
 					//Nothing yet to check
 					String msg = "Unfinished predicate (empty param ) for " + currentOp.getName() + " : Empty offending bit " + offendingBit + ". Expected : " + currentOp.getShortSynoptic();
-					System.out.println(msg + " " + token);
+					//System.out.println(msg + " " + token);
 					currentOp.setLastParamParsed(currentParamPos, offendingBit);
 					throw new UnfinishedParameterException(input,currentOp, paramType, offendingBit);
 				}
@@ -161,7 +161,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 			if (!ParamType.DATA.equals(paramType) && !expectedParam.getParamType().equals(paramType)) {
 
 				String msg = "Wrong parameter type '" + ((paramType == null)?"Not found in ParamType.valueOfTokenName":paramType.getTypeDescr()) + "' for " + currentOp.getName() + ". Expected : " + currentOp.getShortSynoptic();
-				System.out.println(msg + " " + token);
+				//System.out.println(msg + " " + token);
 				String theSonOf = getTheSonOf(token);
 				currentOp.setLastParamParsed(currentParamPos, theSonOf);
 				throw new ParamsCountException(input, currentOp, msg, true, Qualifier.TYPE, theSonOf, whereIsThatSonOf(token));
@@ -173,7 +173,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		//Not enough params
 		if (params.size() < currentOp.getParams().size()) {
 			String msg = "Unfinished predicate (missing params in "+params+") for "+currentOp.getName()+". Expected : "+currentOp.getShortSynoptic();
-			System.out.println(msg+ " "+params);
+			//System.out.println(msg+ " "+params);
 			String paramsStr = "";
 			int [] position = null;
 			if (params.size() > 0) {
@@ -187,7 +187,7 @@ public class EditorOpsParserDelegate extends EditorParserDelegate implements Ops
 		else if ( params.size() > currentOp.getParams().size() && !currentOp.undeterministicParamCount() ) {
 			String paramsStr = getTheSonOf(params.toArray(new Object[]{}));
 			String msg = "Too many arguments '"+paramsStr+"' for "+currentOp.getName()+". Expected : "+currentOp.getShortSynoptic();
-			System.out.println(msg + " " + currentOp.getParams());
+			//System.out.println(msg + " " + currentOp.getParams());
 			//currentOp.setLastParamParsed(currentOp.getParams().size()-1, paramsStr);
 			throw new ParamsCountException(input, currentOp, msg, true, Qualifier.TOOMANYARGS, paramsStr, whereIsThatSonOf(params.get(0)));
 		}	

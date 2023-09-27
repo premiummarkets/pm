@@ -1925,7 +1925,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				
 				@Override
 				public void keyReleased(KeyEvent e) {
-					if (e.keyCode == SWT.CR) {
+					if (e.keyCode == SWT.CR) { //(e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP) 
 						int selectionIndex = table.getSelectionIndex();
 						if (selectionIndex != -1) {
 							SlidingPortfolioShare selectedShare = modelControler.getSlidingShareInTab(selectedPortfolioIdx(), selectionIndex);

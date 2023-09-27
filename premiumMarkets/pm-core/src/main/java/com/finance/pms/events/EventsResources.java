@@ -1136,7 +1136,7 @@ public class EventsResources {
 
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, indicators)) {
-			throw new RuntimeException("Can't delete analysis: " + stock + " and " + analysisName + " and " + indicators + " as it contains non removable events!");
+			throw new RuntimeException("Can't delete analysis: " + stock + " and " + analysisName + " and " + Arrays.toString(indicators) + " as it contains non removable events!");
 		}
 		
 		for (EventInfo eventInfo : indicators) {
@@ -1177,7 +1177,7 @@ public class EventsResources {
 		
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName, indicators)) {
-			throw new RuntimeException("Can't delete analysis: " + analysisName + " and " + indicators + " as it contains non removable events!");
+			throw new RuntimeException("Can't delete analysis: " + analysisName + " and " + Arrays.toString(indicators) + " as it contains non removable events!");
 		}
 
 		Date datedeb = DateFactory.DEFAULT_DATE;

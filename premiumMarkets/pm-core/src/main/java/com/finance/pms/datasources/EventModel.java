@@ -30,7 +30,6 @@
 package com.finance.pms.datasources;
 
 import java.beans.PropertyChangeListener;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -81,7 +80,35 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	protected X rootViewParam;
 	protected Collection<? extends Object>[] otherViewParams;
 
-	static Map<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>> outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
+	//static Map<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>> outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
+	static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+	public static Map<EventInfo, EventDefCacheEntry> getOutputCache(Stock stock) {
+		//return (outputCache.get(stock) == null)? null : outputCache.get(stock).get();
+		return outputCache.get(stock);
+	}
+	public static void resetOutputCache() {
+		//EventModel.outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
+		EventModel.outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+	}
+	public static void putOutputCache(Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput, Stock stock) {
+		//EventModel.outputCache.put(stock, new SoftReference<>(callbackForlastAnalyseOutput.get(stock)));
+		EventModel.outputCache.put(stock,callbackForlastAnalyseOutput.get(stock));
+	}
+	public static void dirtyCacheFor(EventInfo eventInfo) {
+		for (Stock stock : outputCache.keySet()) {
+			Map<EventInfo, EventDefCacheEntry> cache4Stock = getOutputCache(stock);
+			if (cache4Stock != null) {
+				EventDefCacheEntry eventDefCacheEntry = cache4Stock.get(eventInfo);
+				if (eventDefCacheEntry != null) {
+					UpdateStamp updateStamp = eventDefCacheEntry.getUpdateStamp();
+					if (updateStamp != null) {
+						updateStamp.setDirty();
+					}
+				}
+			}
+		}
+	}
+
 	static Long eventInfoChangeStamp = 0l;
 
 	static class EventDefCacheEntry {
@@ -196,24 +223,6 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 			throw new RuntimeException(e);
-		}
-
-	}
-
-
-	public static void dirtyCacheFor(EventInfo eventInfo) {
-
-		for (Stock stock : outputCache.keySet()) {
-			Map<EventInfo, EventDefCacheEntry> cache4Stock = (outputCache.get(stock) == null)?null:outputCache.get(stock).get();
-			if (cache4Stock != null) {
-				EventDefCacheEntry eventDefCacheEntry = cache4Stock.get(eventInfo);
-				if (eventDefCacheEntry != null) {
-					UpdateStamp updateStamp = eventDefCacheEntry.getUpdateStamp();
-					if (updateStamp != null) {
-						updateStamp.setDirty();
-					}
-				}
-			}
 		}
 
 	}
@@ -429,7 +438,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	}
 
 	public SortedMap<Date, double[]> getOutputCache(Stock stock, EventInfo eventDefinition) {
-		Map<EventInfo, EventDefCacheEntry> stockMap = (outputCache.get(stock)==null)?null:outputCache.get(stock).get();
+		Map<EventInfo, EventDefCacheEntry> stockMap = getOutputCache(stock);
 		if (stockMap != null) {
 			EventDefCacheEntry stockNeventDefCacheEntry = stockMap.get(eventDefinition);
 			if (stockNeventDefCacheEntry != null) return stockNeventDefCacheEntry.getOutputMap();
@@ -454,7 +463,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 
 		if (eventInfos.length == 0) return false;
 
-		Map<EventInfo, EventDefCacheEntry> cacheEntry4Stock = (outputCache.get(stock)==null)?null:outputCache.get(stock).get();
+		Map<EventInfo, EventDefCacheEntry> cacheEntry4Stock = getOutputCache(stock);
 		if (cacheEntry4Stock == null) {
 			notUpToDateEventInfos.addAll(Arrays.asList(eventInfos));
 			return true;
@@ -485,7 +494,6 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		return needsUpdate;
 
 	}
-
 
 	public int[] viewParamPositionsFor(TaskId taskId) {
 		return eventRefreshStrategyEngine.otherViewParamPositionsFor(taskId);

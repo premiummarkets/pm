@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.finance.pms.MainPMScmd;
@@ -84,8 +85,10 @@ public class ChartImageBuilder {
 
         String chartFile;
         try {
-            String chartFileName = "autoPortfolioLogs" + File.separator + eventInfo.getEventDefDescriptor().getExportBaseFileName() +
-            					   "_" + analyseName + stock.getSymbol() + "_" + eventInfo.getEventReadableDef() + ".png";
+            String chartFileName = "autoPortfolioLogs" + File.separator + 
+            						eventInfo.getEventDefDescriptor().getExportBaseFileName() +
+            					   "_" + analyseName + stock.getSymbol() + "_" + eventInfo.getEventReadableDef() + "_" + UUID.randomUUID() +
+            					   ".png";
             generateOutChart(chartFileName, quotationMap);
             chartFile = chartFileName;
         } catch (NotEnoughDataException e) {

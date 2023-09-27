@@ -16,6 +16,9 @@ public class SimpleIndicatorPondertionRule extends PonderationRule {
 	public Float finalWeight(SymbolEvents symbolEvents) {
 		
 		SortedMap<EventKey, EventValue> naturalOrderEvents = symbolEvents.getDataResultMap();
+		if (naturalOrderEvents.isEmpty()) {
+			return 0f;
+		}
 		EventKey lastKey = naturalOrderEvents.lastKey();
 		EventValue lastEvent = naturalOrderEvents.get(lastKey);
 		

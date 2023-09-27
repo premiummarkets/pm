@@ -20,12 +20,13 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
 import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
-public class IndicatorStatsOperation extends ArrayMapOperation {
+public class IndicatorStatsOperation extends ArrayMapOperation implements MultiValuesOutput {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorStatsOperation.class);
 	
@@ -64,10 +65,6 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 			Date endDate = targetStock.getEndDate();
 			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(targetStock.getStock(), startDate, endDate, quotations, indicatorEvents.values());
 			
-			List<PeriodRatingDTO> periods = tuningRes.getPeriods();
-			Long periodAvgLength = periods.stream().map(e -> e.getPeriodLenght()).reduce((a,pl) -> a + pl).get()/periods.size();
-			LOGGER.info(this.getReference() + " average period size: " + periodAvgLength);
-			
 			SortedMap<Date, double[]> results = new TreeMap<>();
 			quotations.keySet().stream().forEach(k -> {
 				
@@ -78,42 +75,64 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 					} else {
 						iterSliderStart.setTime(k);
 						try {
-							QuotationsFactories.getFactory().incrementDate(targetStock.getStock(),targetStock.getQuotationsDataTypes(),iterSliderStart,-periodRangeSpan.intValue()*periodAvgLength.intValue());
+							List<PeriodRatingDTO> periods = tuningRes.getPeriods();
+//							Long periodAvgLength = periods.stream().map(e -> e.getPeriodLenght()).reduce((a,pl) -> a + pl).get()/periods.size();
+//							LOGGER.info(this.getReference() + " average period size: " + periodAvgLength);
+							QuotationsFactories.getFactory().incrementDate(targetStock.getStock(),targetStock.getQuotationsDataTypes(),iterSliderStart,-periodRangeSpan.intValue());
+							Optional<PeriodRatingDTO> lastPeriodSartingBeforeShift = periods.stream().filter(p -> p.getTrend().equals("BULLISH") && p.isRealised() && p.getTo().before(iterSliderStart.getTime())).reduce((first, second) -> second);
+							if (lastPeriodSartingBeforeShift.isPresent()) {
+								iterSliderStart.setTime(lastPeriodSartingBeforeShift.get().getFrom());
+							} else {
+								iterSliderStart.setTime(startDate);
+							}
 						} catch (NotEnoughDataException e1) {
 							throw new RuntimeException(e1);
 						}
 					}
 					
 					Calendar iterSliderEnd = Calendar.getInstance();
-					if (Double.isNaN(periodRangeSpan)) {
-						iterSliderEnd.setTime(endDate);
-					} else {
-						iterSliderEnd.setTime(k);
-						//QuotationsFactories.getFactory().incrementDate(iterSliderEnd,+periodRangeSpan.intValue()*periodAvgLength.intValue());
-					}
+					iterSliderEnd.setTime(k);
 					
-					Double[] shiftStats = tuningRes.getStatsBetween(iterSliderStart.getTime(), iterSliderEnd.getTime());
-					Double shiftFailureWeight = shiftStats[2];
-					Double shiftSuccessWeight = shiftStats[3];
+//					pf.format(entry.getValue().getForecastProfit()) + "," + pf.format(entry.getValue().getForecastProfitUnReal()) + "," + pf.format(entry.getValue().getBuyNHoldProfit()) + "," +
+//					pf.format(stats[0]) + "," + pf.format(stats[1])
+//					+ "," + pf.format(Math.abs(stats[2])) + "," + ((stats[3] == 0)?10000:(stats[2] == 0)?-10000:pf.format(Math.log(Math.abs(stats[2])/stats[3])))
+//					+ "," + pf.format(stats[4]) + "," + pf.format(stats[5]) + "," + pf.format(Math.sqrt(stats[6])) + "\n"
+					
+					Date start = iterSliderStart.getTime();
+					Date end = iterSliderEnd.getTime();
+					Double[] shiftStats = tuningRes.getStatsBetween(start, end);
+					Double sFW = shiftStats[2];
+					Double sSW = shiftStats[3];
 					double shiftFailureLogweight = 0;
-					if (shiftFailureWeight == 0 && shiftSuccessWeight == 0) {//No event in the date range
+					if ( (sFW == null || sFW.isNaN() || sFW == 0) && (sSW == null || sSW.isNaN() || sSW == 0)) {//No event in the date range
 						shiftFailureLogweight = Double.NEGATIVE_INFINITY; //This is for non line breaking charting
-					} else if (shiftFailureWeight == 0) { //100% success //XXX 6 and -6 are arbitrarily set.
+					} else if (sFW == 0) { //100% success //XXX 6 and -6 are arbitrarily set.
 						shiftFailureLogweight = -6;
-					} else if (shiftSuccessWeight == 0) { //100% failure
+					} else if (sSW == 0) { //100% failure
 						shiftFailureLogweight = +6;
 					} else {
-						shiftFailureLogweight = Math.log(Math.abs(shiftFailureWeight)/shiftSuccessWeight);
+						shiftFailureLogweight = Math.log(Math.abs(sFW)/sSW);
 					}
 					
-					results.put(k, new double[] {shiftFailureLogweight});
+					double buyNHold = Double.NEGATIVE_INFINITY;
+					Double endQ = quotations.get(end);
+					Double startQ = quotations.get(start);
+					if (endQ != null && startQ != null) {
+						buyNHold = endQ/startQ-1;
+					}
+					
+					results.put(k, new double[] {
+								tuningRes.getForecastProfitBetween(start, end), tuningRes.getForecastProfitUnRealBetween(start, end), buyNHold,
+								shiftStats[0], shiftStats[1], Math.abs(shiftStats[2]), shiftFailureLogweight, shiftStats[4], shiftStats[5], Math.sqrt(shiftStats[6])
+							});
+					
 				}
 			});
 			
 			List<String> columns = new ArrayList<>();
-			columns.add("backwardShift");
+			columns.addAll(Arrays.asList("r","ur","b&h","avg","fail","fwght","flog","min","max","std"));
 			
-			return new DoubleArrayMapValue(results, columns, 0);
+			return new DoubleArrayMapValue(results, columns, mainInputPosition());
 
 		} catch (NotEnoughDataException e) {
 			LOGGER.warn(this.getReference() + ": " + e, true);
@@ -140,10 +159,18 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 		//Nothing
 	}
 
+	/**
+	 * @deprecated replace with isQuotationsDataSensitive??
+	 */
 	@Override
 	public boolean isDateSensitive() {
 		//return true; //XXX will suggest recalculating the root indicator and all its operands (not only this operand) => heavy
 		return false;
+	}
+
+	@Override
+	public int mainInputPosition() {
+		return 6;
 	}
 
 }

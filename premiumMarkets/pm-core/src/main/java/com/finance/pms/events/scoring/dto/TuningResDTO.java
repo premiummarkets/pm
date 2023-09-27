@@ -184,11 +184,11 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 
 	/**
+	 * Flog = Math.log(Math.abs(failureWeigh)/successWeigh); </br>
+	 * ROC is the rate of change of a bullish period (i.e. a predicted positive actual rate of change)
+	 * The weigh here is also out of the ROC
 	 * 
-	 * flog = Math.log(Math.abs(failureWeigh)/successWeigh);
-	 * 
-	 * @param date
-	 * @return avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance
+	 * @return avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
 	 */
 	public Double[] getStatsBetween(Date from, Date to) {
 		
@@ -225,14 +225,14 @@ public class TuningResDTO implements Serializable, IsSerializable {
 //		System.out.println(String.format("totalROC: %s", totalROC));
 		Double avgROC = totalROC / nbBullishPeriods;
 		Double failedBullishRatio = nbFailedBullishPeriod / nbBullishPeriods;
-		
-		double successTotalROC = totalROC - failedTotalROC;
-		double totalSpan = successTotalROC + Math.abs(failedTotalROC); //failedTotalROC is negative
+		 
+		double successTotalROC = totalROC - failedTotalROC; //totalROC does accumulate success and failure (ie total = success + failure) and failure is negative
+		double totalSpreadOfROC = successTotalROC + Math.abs(failedTotalROC); //failedTotalROC is negative
 //		System.out.println(String.format("Total span: %s", totalSpan));
 //		System.out.println(String.format("failedTotalROC: %s", failedTotalROC));
 //		System.out.println(String.format("successTotalROC: %s", successTotalROC));
-		Double failureWeigh = failedTotalROC / totalSpan;
-		Double successWeigh = successTotalROC / totalSpan;
+		Double failureWeigh = failedTotalROC / totalSpreadOfROC;
+		Double successWeigh = successTotalROC / totalSpreadOfROC;
 		
 		Double variance = 0d;
 		Iterator<PeriodRatingDTO> iterator2 = periods.iterator();
@@ -311,7 +311,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return getForecastProfitBetween(from, to, false);
 	}
 	
-	public Double getForecastProfitBetweenUnReal(Date from, Date to) {
+	public Double getForecastProfitUnRealBetween(Date from, Date to) {
 		return getForecastProfitBetween(from, to, true);
 	}
 	

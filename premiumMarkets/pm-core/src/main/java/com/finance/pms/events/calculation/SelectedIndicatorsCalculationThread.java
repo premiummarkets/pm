@@ -114,6 +114,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().isEmpty();
 		boolean isAlterableOverridable = !isIdempotent && !forbidEventsOverride;
 		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), isAlterableOverridable);
+		tunedConf.setIsRemovable(isAlterableOverridable);
 		
 		//When xx, we still want to calculate the full range as the operation is not idempotent but without overriding the existing data in the db
 		boolean isFullCalculationForbidOverride = !isIdempotent && forbidEventsOverride;

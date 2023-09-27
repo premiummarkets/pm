@@ -826,8 +826,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	/**
-	 * @Deprecated?? FIXME
-	 * @return
+	 * @deprecated replace with isQuotationsDataSensitive?? FIXME
 	 */
 	@Deprecated
 	public boolean isDateSensitive() {

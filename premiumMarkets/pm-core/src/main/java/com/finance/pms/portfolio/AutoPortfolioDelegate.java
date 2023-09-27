@@ -92,9 +92,9 @@ public class AutoPortfolioDelegate {
 	
 	public enum BuyStrategy { 
 		REINVEST, //The profit is reinvested in new transactions. Starting with nominalTransactionAmount*maximumNumberOfLines of cash: Buy only if not owned. Sell the full line.
-		LIMITROWS, //Buys of nominalTransactionAmount are maid until the maximumNumberOfLines is reached: Buy only if not owned. Sell the full line.
-		INFINITCASH, //Buys of nominalTransactionAmount are maid on buy events if not already bought: Buy only if not owned. Sell the full line.
-		INFINITQUANTITY //Buys of nominalTransactionAmount are maid on buy events disregarding everything else: Buy even if owned. Sells for the nominalTransactionAmount. 
+		LIMITROWS, //Buys of nominalTransactionAmount are made until the maximumNumberOfLines is reached: Buy only if not owned. Sell the full line.
+		INFINITCASH, //Buys of nominalTransactionAmount are made on buy events if not already bought: Buy only if not owned. Sell the full line.
+		INFINITQUANTITY //Buys of nominalTransactionAmount are made on buy events disregarding everything else: Buy even if owned. Sells for the nominalTransactionAmount. 
 		};
 
 	protected AutoPortfolioWays thisPortfolio;

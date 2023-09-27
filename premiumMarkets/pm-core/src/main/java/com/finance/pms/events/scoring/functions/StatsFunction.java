@@ -5,8 +5,8 @@ import java.util.SortedMap;
 
 public interface StatsFunction {
 
-	double mEvaluate(SortedMap<Date, Double > subMap);
+	double mEvaluate(SortedMap<Date, Double> subMap);
 	
-	SortedMap<Date, Double> evaluate(SortedMap<Date, Double > subMap);
+	SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap);
 
 }

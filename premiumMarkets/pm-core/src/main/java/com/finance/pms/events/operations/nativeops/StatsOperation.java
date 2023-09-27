@@ -62,10 +62,14 @@ import com.finance.pms.events.scoring.functions.StatsFunction;
 @XmlRootElement
 public class StatsOperation extends PMWithDataOperation {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StatsOperation.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(StatsOperation.class);
+	
+	protected StatsOperation(String reference, String description, Operation ... operands) {
+		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+	}
 
 	public StatsOperation() {
-		super("stat", "Moving statistics",
+		this("stat", "Moving statistics",
 				new NumberOperation("number", "movingPeriod", "Moving period in data points. 'NaN' means window == data set size", new NumberValue(21.0)),
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm"})));
@@ -127,7 +131,8 @@ public class StatsOperation extends PMWithDataOperation {
 						return normalized;
 					}
 				};
-			} else {
+			}
+			else {
 				//Default is identity
 				statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
 					@Override
