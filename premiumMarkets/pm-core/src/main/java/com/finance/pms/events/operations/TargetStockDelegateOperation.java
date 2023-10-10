@@ -15,7 +15,6 @@ import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
@@ -82,8 +81,7 @@ public class TargetStockDelegateOperation extends MapOperation {
 			}
 			
 			return output;
-		} catch (WarningException e) {
-			LOGGER.error(this.getReference() + ": " + e, e);
+			
 		} catch (NotEnoughDataException e) {
 			LOGGER.error(this.getReference() + ": " + e, e);
 		}

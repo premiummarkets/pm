@@ -109,8 +109,7 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
     	try {
 			Files.delete(python_py);
 		} catch (IOException e) {
-			System.out.println("Error closing ProvidersYahooPython : " + e);
-			e.printStackTrace();
+			LOGGER.error("Error closing ProvidersYahooPython : " + e, e);
 		}
     }
 	

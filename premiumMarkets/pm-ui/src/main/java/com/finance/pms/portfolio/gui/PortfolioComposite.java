@@ -133,6 +133,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.alerts.AlertOnEvent;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.datasources.EventRefreshController;
+import com.finance.pms.datasources.EventRefreshException;
 import com.finance.pms.datasources.EventTaskQueue;
 import com.finance.pms.datasources.InvalidEventRefreshTask;
 import com.finance.pms.datasources.QuotatationRefreshException;
@@ -3219,6 +3220,12 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			for (final Exception exception : exceptions) {
 				if (exception instanceof QuotatationRefreshException) {
 					UserDialog dialog = new UserDialog(getShell(), "Couldn't refresh all quotations\n", exceptions.toString());
+					exceptions.clear();
+					dialog.open();
+					break;
+				}
+				if (exception instanceof EventRefreshException) {
+					UserDialog dialog = new UserDialog(getShell(), "Couldn't update all trends and events calculations. Check that date bounds are not out of range.", exceptions.toString());
 					exceptions.clear();
 					dialog.open();
 					break;

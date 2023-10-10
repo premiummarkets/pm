@@ -21,9 +21,9 @@ public class ReducingIndicatorPondertionRule extends PonderationRule {
 	int thenCount;
 	
 	public ReducingIndicatorPondertionRule() {
-		this.buySellTriggerSpan = 4;
-		this.ifCount = 2;
-		this.thenCount = 2;
+		this.buySellTriggerSpan = 2; //4;
+		this.ifCount = 1; //2;
+		this.thenCount = 1; //2;
 	}
 
 	@Override

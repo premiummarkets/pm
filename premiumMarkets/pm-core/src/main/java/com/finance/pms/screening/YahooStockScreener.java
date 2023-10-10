@@ -36,11 +36,13 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 	@Override
 	public Set<Stock> calculate() {
 		
-		Set<Stock> filtered = new HashSet<>();
+		Set<Stock> returned = new HashSet<>(); 
 		
-		if (updateShareList) {
+		try {
 			
-			try {
+			if (updateShareList) {
+			
+				Set<Stock> filtered = new HashSet<>();
 				
 				Path python_py = Files.createTempFile("screnner", "py");
 				try (InputStream stream = ProvidersYahooPython.class.getResourceAsStream("/yahooQuotes/screnner.py")) {
@@ -53,7 +55,8 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 						}
 					}
 				}
-
+				
+				LOGGER.info("Screnner python file path: " + python_py.toString());
 				ProcessBuilder pb = new ProcessBuilder("python3", python_py.toString());
 				Process p = pb.start();
 
@@ -61,6 +64,7 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 
 					String line = null;
 					while ((line = in.readLine()) != null) {
+						LOGGER.info("Screnner output: " + line);
 						if (line.isEmpty()) continue;
 						String[] stockLine = line.split(",");
 						String symbol = stockLine[1];
@@ -78,15 +82,9 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 					LOGGER.error(e, e);
 					throw e;
 				}
-
-				try {
-					Files.delete(python_py);
-				} catch (IOException e) {
-					System.out.println("Error deleting screnner.py: " + e);
-					e.printStackTrace();
-				}
 				
 				if (!filtered.isEmpty()) {
+					
 					PortfolioDAO portfolioDAO = DataSource.getInstance().getPortfolioDAO();
 					IndepShareList shareList = portfolioDAO.loadIndepShareList(YAHOOINDICES_BETA_SCREENER);
 					shareList.getListShares().clear();
@@ -94,21 +92,29 @@ public class YahooStockScreener implements ScreenerCalculator<Set<Stock>> {
 						shareList.addShare(e);
 					});
 					portfolioDAO.saveOrUpdatePortfolio(shareList);
+					
+					try {
+						Files.delete(python_py);
+					} catch (IOException e) {
+						LOGGER.error("Error deleting screnner.py: " + e, e);
+					}
+					
 				} else {
-					LOGGER.error("The screnner did not return anything usable: " + filtered);
+					LOGGER.error("The screnner did not return anything usable: " + filtered + " for script: " + python_py.toString());
 				}
-
-			} catch (IOException e) {
-				LOGGER.error(e, e);
+				
 			}
 			
-		} else {
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+			
+		} finally {
 			PortfolioDAO portfolioDAO = DataSource.getInstance().getPortfolioDAO();
 			IndepShareList shareList = portfolioDAO.loadIndepShareList(YAHOOINDICES_BETA_SCREENER);
-			filtered.addAll(shareList.getListShares().keySet());
+			returned.addAll(shareList.getListShares().keySet());
 		}
 		
-		return filtered;
+		return returned;
 	}
 
 }

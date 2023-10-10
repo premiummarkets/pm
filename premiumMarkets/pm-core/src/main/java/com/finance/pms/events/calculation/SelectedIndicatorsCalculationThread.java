@@ -101,7 +101,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 	}
 
 	//TODO Only handle EventInfoOpsCompoOperation and get rid of First and Second pass
-	protected SymbolEvents calculate(Date start, Date end) throws IncompleteDataSetException, Exception {
+	protected SymbolEvents calculate(Date start, Date end) throws IncompleteDataSetException {
 
 		SymbolEvents returnedSymbolEvents = new SymbolEvents(stock);
 
@@ -213,29 +213,37 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					emptyReturn(returnedSymbolEvents);
 				}
 				
+				LOGGER.info("Updating tunedConf (on successful calculation): " + tunedConf + " with calculation bounds: " + calcBounds);
+				if (calcBounds != null) {
+					TunedConfMgr.getInstance().updateConf(tunedConf, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
+				}
+				
 			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
 				// Unrecoverable
 				LOGGER.error( "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " +
 								eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
+				LOGGER.info("Updating tunedConf (on unrecovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
+				if (calcBounds != null) {
+					TunedConfMgr.getInstance().updateConf(tunedConf, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
+				}
+				
 				emptyReturn(returnedSymbolEvents);
 				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
 				
 			} catch (Throwable e) {
 				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
-				LOGGER.error( "Failed (Empty Recoverable??) calculation (isNoOverride: " + isFullCalculationForbidOverride + ") for " +
-						stock + " using analysis " + eventListName +  " and " +
+				LOGGER.error( "Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and " +
 						eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
+				LOGGER.info("Updating tunedConf (on recovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
+				if (calcBounds != null) {
+					TunedConfMgr.getInstance().updateConf(tunedConf, tunedConf.getFisrtStoredEventCalculationStart(), tunedConf.getLastStoredEventCalculationEnd());
+				}
+				
 				emptyReturn(returnedSymbolEvents);
 				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
 
-			} finally {
-				LOGGER.info("Updating tunedConf: " + tunedConf + " with calculation bounds: " + calcBounds);
-				if (calcBounds != null) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
-				}
 			}
-
 		}
 
 		return returnedSymbolEvents;

@@ -108,8 +108,7 @@ public class ProvidersSlickStockPythonIndices extends ProvidersList {
     	try {
 			Files.delete(python_py);
 		} catch (IOException e) {
-			System.out.println("Error closing ProvidersStockSymbolApi: " + e);
-			e.printStackTrace();
+			LOGGER.error("Error closing ProvidersStockSymbolApi: " + e, e);
 		}
     }
 	

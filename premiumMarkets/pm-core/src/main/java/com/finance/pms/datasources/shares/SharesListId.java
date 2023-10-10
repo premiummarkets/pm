@@ -253,8 +253,7 @@ public class SharesListId  {
 				try {
 					Files.delete(python_py);
 				} catch (IOException e) {
-					System.out.println("Error deleting StockSymbolApi market list init py: " + e);
-					e.printStackTrace();
+					LOGGER.error("Error deleting StockSymbolApi market list init py: " + e, e);
 				}
 				
 			} catch (IOException e) {

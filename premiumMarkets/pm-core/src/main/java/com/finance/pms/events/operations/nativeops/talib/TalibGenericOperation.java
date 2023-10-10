@@ -218,7 +218,7 @@ public class TalibGenericOperation extends TalibOperation {
 			throw new TalibException("Ooops", e);
 		} 
 
-		if (!rc.equals(RetCode.Success)) throw new TalibException("", new Exception());
+		if (!rc.equals(RetCode.Success)) throw new TalibException(this.getReference() + ": " + this.getFormulae(), new Exception());
 
 		//N selector ~ N outputs
 		if (getAvailableOutputSelectors().isEmpty()) {

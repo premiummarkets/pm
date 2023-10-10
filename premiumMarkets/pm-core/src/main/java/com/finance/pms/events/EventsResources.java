@@ -1132,12 +1132,16 @@ public class EventsResources {
 		
 		if (indicators.length == 0) return;
 
-		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
-
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, indicators)) {
 			throw new RuntimeException("Can't delete analysis: " + stock + " and " + analysisName + " and " + Arrays.toString(indicators) + " as it contains non removable events!");
 		}
+		
+		crudDeleteForciblyEventsForStock(stock, analysisName, indicators);
+	}
+
+	public void crudDeleteForciblyEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
+		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
 		
 		for (EventInfo eventInfo : indicators) {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");

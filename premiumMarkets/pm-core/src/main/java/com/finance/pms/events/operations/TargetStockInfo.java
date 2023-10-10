@@ -49,7 +49,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.DateFactory;
-import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
@@ -166,7 +165,7 @@ public class TargetStockInfo {
 	private Set<Date> missingKeys = new HashSet<>();
 
 
-	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) throws WarningException {
+	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) {
 		super();
 		
 		//MyLogger.threadLocal.set(stock.getSymbol());
@@ -186,7 +185,7 @@ public class TargetStockInfo {
 //		}
 		this.endDate = endDate;
 
-		if (stock.getLastQuote().before(startDate)) throw new WarningException("No enough quotations to calculate: " + stock.toString());
+		if (stock.getLastQuote().before(startDate)) throw new RuntimeException("No enough quotations to calculate: " + stock.toString());
 		this.startDate = startDate;
 
 		this.calculatedOutputsCache = new ConcurrentHashMap<>();

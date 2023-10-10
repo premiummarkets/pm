@@ -806,7 +806,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			for (Exception exception : exceptions) {
 				if (exception instanceof EventRefreshException) {
 					String errorMessage = 
-							"Trends and calculators could not all be updated for "+chartTarget.getHightlitedEventModel().getViewParamRoot().getFriendlyName()+".\n"
+							"Trends and calculators could not all be updated for " + chartTarget.getHightlitedEventModel().getViewParamRoot().getFriendlyName() + ".\n"
 									+ "Check that date bounds are not out of range and that the appropriate quotations are available.\n"
 									+ "Also keep in mind that some calculators need full OLHC and Volume in order to be calculated.";
 					String addMessage = exceptions.toString();
