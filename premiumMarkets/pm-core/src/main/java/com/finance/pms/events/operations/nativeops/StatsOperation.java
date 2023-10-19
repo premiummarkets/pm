@@ -73,8 +73,8 @@ public class StatsOperation extends PMWithDataOperation {
 	public StatsOperation() {
 		this("stat", "Moving statistics",
 				new NumberOperation("number", "movingPeriod", "Moving period in data points. 'NaN' means window == data set size", new NumberValue(21.0)),
-				new DoubleMapOperation(), 
-				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null)); //Optional
+				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null),
+				new DoubleMapOperation()); //Optional
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm", "specificStat"})));
 	}
 
@@ -92,7 +92,7 @@ public class StatsOperation extends PMWithDataOperation {
 		//Param check
 		Double period = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		@SuppressWarnings("unchecked")
-		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(1, 2);
+		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(2, 3);
 
 		try {
 			
@@ -141,7 +141,7 @@ public class StatsOperation extends PMWithDataOperation {
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("specificStat")) {
 				
-				Operation specificOperation = (Operation) ((OperationReferenceValue<?>) inputs.get(2)).getValue(targetStock);
+				Operation specificOperation = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock);
 				
 				statFunction = new StatsFunction() {
 

@@ -635,17 +635,17 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>historical data</reference>
-                    <description>Time series of real historical data or resulting of calculations</description>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
                     <referenceAsOperand>specificStat</referenceAsOperand>
                     <description>Specific stat operation to be used. This is optional and only used for specificStat selector</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>historical data</reference>
+                    <description>Time series of real historical data or resulting of calculations</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
