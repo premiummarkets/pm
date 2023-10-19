@@ -107,7 +107,7 @@ public class CommonIndicatorCalculationService extends IndicatorsCalculationServ
 		try {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(dateDeb);
-			Integer minDiff = Integer.valueOf("-" + MainPMScmd.getMyPrefs().get("talib.daysbackwardday", "10"));
+			//FIXME Integer minDiff = Integer.valueOf("-" + MainPMScmd.getMyPrefs().get("talib.daysbackwardday", "10"));
 			//FIXME QuotationsFactories.getFactory().incrementDate(calendar, -minDiff);
 			dateDeb =  calendar.getTime();
 

@@ -170,20 +170,20 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						if (isFullCalculationForbidOverride) {//Fixing the events boundaries to return only the new ones we want to store with no override of the existing ones
 							if (calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
 								Date lastEventInDb = tunedConf.getLastStoredEventCalculationEnd();
-								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to tail from " + lastEventInDb);
+								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing new stored events to tail from " + lastEventInDb);
 								storedEvents = calculatorEvents.entrySet().stream()
 									.filter(e -> e.getKey().getDate().after(lastEventInDb))
 									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
 							}
 							if (calcBounds.getCalcStatus().equals(CalcStatus.LEFT_INC)) {
 								Date firstEventInDb = tunedConf.getFisrtStoredEventCalculationStart();
-								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to head to " + firstEventInDb);
+								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing new stored events to head to " + firstEventInDb);
 								storedEvents = calculatorEvents.entrySet().stream()
 									.filter(e -> e.getKey().getDate().before(firstEventInDb))
 									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
 							}
 							if (calcBounds.getCalcStatus().equals(CalcStatus.NONE)) {
-								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing result to none");
+								LOGGER.info(((EventInfoOpsCompoOperation) eventInfo).getReference() + " for " + stock + " reducing new stored events to none");
 								storedEvents = new TreeMap<>();
 							}
 						}
@@ -201,7 +201,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						
 						LOGGER.warn("Failed (null returned) calculation for " + returnedSymbolEvents.getSymbol() + " using analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						emptyReturn(returnedSymbolEvents);
-						throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
+						throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo + "\nCause: nothing returned.");
 						
 					}
 
@@ -229,19 +229,19 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				}
 				
 				emptyReturn(returnedSymbolEvents);
-				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
+				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo + "\nCause: " + e.getMessage());
 				
 			} catch (Throwable e) {
 				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
 				LOGGER.error( "Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and " +
 						eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
-				LOGGER.info("Updating tunedConf (on recovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
+				LOGGER.info("Rolling back tunedConf (on recovarable exception): " + tunedConf + ", attempted calculation bounds: " + calcBounds);
 				if (calcBounds != null) {
 					TunedConfMgr.getInstance().updateConf(tunedConf, tunedConf.getFisrtStoredEventCalculationStart(), tunedConf.getLastStoredEventCalculationEnd());
 				}
 				
 				emptyReturn(returnedSymbolEvents);
-				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo);
+				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfo + "\nCause: " + e.getMessage());
 
 			}
 		}

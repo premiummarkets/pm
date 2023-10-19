@@ -173,4 +173,11 @@ public class IndicatorStatsOperation extends ArrayMapOperation implements MultiV
 		return 6;
 	}
 
+	@Override
+	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
+		return false;
+	}
+	
+	
+
 }

@@ -29,6 +29,8 @@
  */
 package com.finance.pms;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -201,6 +203,8 @@ public class UserDialog extends Dialog {
 		}
 		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
+		
+		cleanMessage = Arrays.stream(cleanMessage.split("\n")).reduce("", (a, s) -> a + "\n" + s.split("(?<=\\G.{160})")[0]);
 
 		return cleanMessage+"\n";
 	}

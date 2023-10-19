@@ -553,7 +553,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				}
 
 			} catch (Exception e) {
-				LOGGER.info(this.getClass().getSimpleName() + ", Error solving : " + formulaParser + ". Disabling. Cause : " + e);
+				LOGGER.info(this.getClass().getSimpleName() + ", Error solving: " + formulaParser + ". Disabling. Cause: " + e);
 				formulaParser.shutdown();
 				moveToTrash(formulaParser.getOperationName());
 			}

@@ -159,14 +159,13 @@ public abstract class EventModelStrategyEngine<X> {
 			Boolean isAllEventsOk = true;
 			String msg = "";
 			for (Stock stock : stockList) {
-
 				Boolean isAllEventsOkForStock = true;
 				for (EventInfo eventDefinition : indicators) {
 					if (EventDefinition.AAAZERO.equals(eventDefinition)) continue;
 					Map<EventInfo, EventDefCacheEntry> map = callbackForlastAnalyseOutput.get(stock);
 					EventDefCacheEntry evtDefRes = (map != null)?map.get(eventDefinition):null;
 					if (evtDefRes == null || evtDefRes.getUpdateStamp() == null || evtDefRes.getUpdateStamp().isFailing()) {
-						msg = msg + "'" + eventDefinition.getEventReadableDef() + "' has failed for " + stock.getFriendlyName() + ". No output was found/generated.\n";
+						msg = msg + "\n'" + eventDefinition.getEventReadableDef() + "' has failed for " + stock.getFriendlyName() + ". No output was found/generated.\n";
 						if (evtDefRes != null && evtDefRes.getUpdateStamp() != null) msg = msg + evtDefRes.getUpdateStamp().getCause();
 						isAllEventsOkForStock = false;
 					} 
@@ -174,7 +173,7 @@ public abstract class EventModelStrategyEngine<X> {
 				isAllEventsOk = isAllEventsOk && isAllEventsOkForStock;
 			}
 
-			if (!isAllEventsOk) throw new RuntimeException("\nCause :\n" + msg);
+			if (!isAllEventsOk) throw new RuntimeException("\nCause:\n" + msg);
 
 		}
 	}

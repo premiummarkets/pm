@@ -748,9 +748,9 @@ public class MyLogger {
 			private StringBuffer createMsgBodyFirstLines(Throwable error, String errorStr, Integer sizeMax) {
 				StringBuffer msgBoddy = new StringBuffer("Text : " + errorStr + "\n");
 				if (error != null) {
-					msgBoddy.append("Error :" + error + "\n"); 
-					msgBoddy.append("Message :" + error.getMessage() + "\n");
-					msgBoddy.append("Cause :" + error.getCause() + "\n");
+					msgBoddy.append("Error: " + error + "\n");
+					msgBoddy.append("Message: " + error.getMessage() + "\n");
+					msgBoddy.append("Cause: " + error.getCause() + "\n");
 					StackTraceElement[] ste = error.getStackTrace();
 					for (int i = 0; i < Math.min(ste.length,sizeMax); i++) {
 						msgBoddy.append(ste[i] + "\n"); 

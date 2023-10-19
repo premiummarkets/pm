@@ -55,7 +55,11 @@ public class EventsStatusChecker {
         }
 
         //New calculation is fully outside previous => RESET to avoid blank gaps
-        if (startDate.compareTo(currentTunedConfEnd) > 0 || endDate.compareTo(currentTunedConfStart) < 0 || (startDate.compareTo(currentTunedConfStart) < 0 && currentTunedConfEnd.compareTo(endDate) < 0) ) {
+        if (!isNoOverride && 
+        	(startDate.compareTo(currentTunedConfEnd) > 0 || endDate.compareTo(currentTunedConfStart) < 0 || 
+        			(startDate.compareTo(currentTunedConfStart) < 0 && currentTunedConfEnd.compareTo(endDate) < 0)
+        	)
+        ) {
             LOGGER.info(
                     "New dates for " + stock + ": New calculation is fully outside previous => RESET to avoid blank gaps. " +
                     calcIsFrom + calcWasFrom + "New calculation will be from " + startDate + " to " + endDate);
@@ -100,7 +104,7 @@ public class EventsStatusChecker {
             return new CalculationBounds(CalcStatus.NONE, rightIncCalcStart, rightIncCalcEnd, currentTunedConfStart, currentTunedConfEnd);
         }
 
-        throw new RuntimeException(String.format("Case not handled start %s, end %s, first event %s, last event %s", startDateStr, endDateStr, currCfStartStr, currCfEndStr));
+        throw new RuntimeException(String.format("Case not handled isNoOverride %s start %s, end %s, first event %s, last event %s", isNoOverride, startDateStr, endDateStr, currCfStartStr, currCfEndStr));
 
     }
 

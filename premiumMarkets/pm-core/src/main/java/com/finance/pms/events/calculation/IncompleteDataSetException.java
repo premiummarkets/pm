@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
@@ -65,7 +66,11 @@ public class IncompleteDataSetException extends Exception {
 	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> validSymbolEvents, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> validCalculatedOutput, String arg0) {
 		super(arg0);
 		this.failingStocks = failingStocks;
-		this.calculatedOutputs = validCalculatedOutput;
+		if (validCalculatedOutput == null) {
+			this.calculatedOutputs = validSymbolEvents.stream().collect(Collectors.toMap(se -> se.getStock(),se -> se.getCalculationOutputs()));
+		} else {
+			this.calculatedOutputs = validCalculatedOutput;
+		}
 		this.symbolEvents = validSymbolEvents;
 	}
 

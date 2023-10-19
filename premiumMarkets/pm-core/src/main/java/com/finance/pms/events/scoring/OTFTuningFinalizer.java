@@ -425,7 +425,7 @@ public class OTFTuningFinalizer {
 		@Override
 		public String toString() {
 			return "Failure: " + nbFailure + ", Success: " + nbSuccess + ", TotForecastProfit (unReal): " + totForecastProfit + ", TotPrcChgUsed: " + totPrcChgUsed + 
-					", Legacy Rating: " + rating + ", Legacy Cause : " + cause +
+					", Legacy Rating: " + rating + ", Legacy Cause: " + cause +
 					", ratingValidityScore: " + ratingValidityScore + ", failureWeightAbs: " + failureWeightAbs + ", flog: " + flog;
 
 		}

@@ -213,7 +213,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 
 		//EventInfo[] eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
 		EventInfo[] eventDefsArray = null;
-		if (viewStateParams != null && viewStateParams.length == 1) {
+		if (viewStateParams != null && viewStateParams.length == 1) {//FIXME Should it be viewStateParams.length >= 1 ??
 			eventDefsArray = viewStateParams[0].toArray(new EventInfo[0]);
 		} else {
 			//eventDefsArray = EventDefinition.loadMaxPassPrefsEventInfo().toArray(new EventInfo[0]);
@@ -223,10 +223,11 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		for (Stock stock : builtStockList) {
 
 			LOGGER.guiInfo("Running task: Deleting previous events and set config as dirty for " + ((Stock)stock).getFriendlyName() +
-					" and event definitions requested: "+
-					((viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null)?
-							viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected") +
-					". Will delete: " + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")));
+					" and event definitions requested: ["+
+						((viewStateParams != null && viewStateParams.length >= 1 && viewStateParams[0] != null)?
+							viewStateParams[0].stream().map(e -> ((EventInfo)e).getEventDefinitionRef()).collect(Collectors.joining(",")):"None selected") + 
+					"] " +
+					". Will delete: [" + Arrays.stream(eventDefsArray).map(e -> e.getEventDefinitionRef()).collect(Collectors.joining(",")) + "] ");
 			
 			if (eventDefsArray.length > 0) { //None selected means no delete
 				EventsResources.getInstance().crudDeleteEventsForStock((Stock)stock, SelectedIndicatorsCalculationService.getAnalysisName(), eventDefsArray);
@@ -245,21 +246,20 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	protected Map<Stock, Map<EventInfo, EventDefCacheEntry>> run(IndicatorAnalysisCalculationRunnableMessage actionThread, Date start, Date end) throws InterruptedException {
 
 		Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOneOutput;
-		String hasFailed = "";
+		String hasFailedMsg = "";
 		try {
 			passOneOutput = actionThread.runIndicatorsCalculation();
 		} catch (IncompleteDataSetException e1) {
 			passOneOutput = e1.getCalculatedOutputs();
-			e1.getMessage();
-			hasFailed = (e1.getMessage() != null)?e1.getMessage():"See logs.";
+			hasFailedMsg = (e1.getMessage() != null)? e1.getMessage() : "See logs.";
 		}
 
-		return finalising(actionThread, passOneOutput, start, end, hasFailed);
+		return finalising(actionThread, passOneOutput, start, end, hasFailedMsg);
 	}
 
 	protected abstract String passOneOverwriteMode();
 
-	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end, String hasFailed) {
+	Map<Stock, Map<EventInfo, EventDefCacheEntry>> finalising(IndicatorAnalysisCalculationRunnableMessage actionThread, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> passOutput, Date start, Date end, String hasFailedMsg) {
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> ret = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
 		if (passOutput != null) {
@@ -269,12 +269,10 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					ret.put(stock, new HashMap<EventInfo, EventModel.EventDefCacheEntry>());
 					for (EventInfo evtDef : map4Stock.keySet()) {
 						SortedMap<Date, double[]> map4EvtDef = map4Stock.get(evtDef);
-						if (map4EvtDef != null && hasFailed.isEmpty()) {
-							ret.get(stock).put(evtDef,
-									new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false, hasFailed)));
+						if (map4EvtDef != null && !map4EvtDef.isEmpty()) {
+							ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, false, hasFailedMsg)));
 						} else {
-							ret.get(stock).put(evtDef,
-									new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true, null)));
+							ret.get(stock).put(evtDef, new EventDefCacheEntry(map4EvtDef, new UpdateStamp(start, end, true, hasFailedMsg)));
 						}
 					}
 				}

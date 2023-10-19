@@ -59,7 +59,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.Condition;
-import com.finance.pms.events.operations.nativeops.BestShiftOperation;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
@@ -88,7 +88,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
-	RequiredShiftWrapperOperation.class, BestShiftOperation.class})
+	RequiredShiftWrapperOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -488,7 +488,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		} catch (NoSuchElementException e) {//Not enough operands
 			throw new IllegalArgumentException(
 					this.getReference() + " rejected " + overridingOperands.stream()
-					.map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) + " are no enough operands. Expected : " + operands + ", Parameterised : " + parameter);
+					.map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) + " are not enough operands. Expected : " + operands + ", Parameterised : " + parameter);
 		}
 		//Too many operands
 		if (overridingOperandsIt.hasNext()) {
@@ -820,9 +820,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 */
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
 		//if (this.isIdemPotent()) return false;
-		if (operands.isEmpty()) return false;
-		Boolean reduce = operands.stream().reduce(false, (r, e) -> r || e.isNoOverrideDeltaOnly(targetStock), (a, b) -> a || b);
-		return reduce;
+		Boolean isNoOverrideDeltaOnly = false;
+		if (!operands.isEmpty()) {
+			isNoOverrideDeltaOnly = operands.stream().reduce(false, (r, e) -> r || e.isNoOverrideDeltaOnly(targetStock), (a, b) -> a || b);
+		}
+		if (this instanceof EventInfoOpsCompoOperation) LOGGER.info(this.getReference() + " forbidEventsOverride: " + isNoOverrideDeltaOnly);
+		return isNoOverrideDeltaOnly;
 	}
 	
 	/**
@@ -845,7 +848,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking " + getReference() + " for invalidation.");
-		if (!this.isIdemPotent(targetStock)) {
+		if (!this.isIdemPotent(targetStock) && !this.isNoOverrideDeltaOnly(targetStock)) {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
 			this.invalidateOperation(analysisName, stock);
 		}

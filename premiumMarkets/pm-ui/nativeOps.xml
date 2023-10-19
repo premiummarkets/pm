@@ -385,47 +385,6 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bestShiftOperation">
-            <reference>bestShift</reference>
-            <description>Calculate the more profitable shift (best shift) for given operation formulae. If &gt; 0 =&gt; Buy, If &lt; 0 =&gt; Sell</description>
-            <operands>
-                <operand xsi:type="stringOperation">
-                    <reference>string</reference>
-                    <referenceAsOperand>formulae</referenceAsOperand>
-                    <description>formulae</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue>shiftWrapper(NaN,bandNormalizer(-1,1,0,NaN,leftShifter(NaN,sma(NaN,periodicLn_(1,sma(NaN,close))))))</stringValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>period</referenceAsOperand>
-                    <description>period</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>42.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>shiftSteps</referenceAsOperand>
-                    <description>shift steps per 1</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>1.0</numberValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitOperation">
             <reference>profit</reference>
             <description>Calculate the profits (the my way) of series of Events from Indicators</description>
@@ -683,6 +642,14 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>specificStat</referenceAsOperand>
+                    <description>Specific stat operation to be used. This is optional and only used for specificStat selector</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
             </operands>
             <availableOutputSelectors>
                 <availableOutputSelector>sma</availableOutputSelector>
@@ -692,6 +659,7 @@
                 <availableOutputSelector>mmin</availableOutputSelector>
                 <availableOutputSelector>mmax</availableOutputSelector>
                 <availableOutputSelector>mtanhnorm</availableOutputSelector>
+                <availableOutputSelector>specificStat</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -1191,12 +1159,12 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockInfoOperation">
             <reference>targetStockInfo</reference>
-            <description>Return informations about the targeted stock and dates bondaries</description>
+            <description>Return informations about the parent operation targeted stock. Implemented only: the stock symbol.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
-                    <referenceAsOperand>TargetStockInfo retreived</referenceAsOperand>
-                    <description>TargetStockInfo retreived</description>
+                    <referenceAsOperand>stockInfoRetreived</referenceAsOperand>
+                    <description>Info retreived from the target stock</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue>symbol</stringValue>
                     </defaultValue>

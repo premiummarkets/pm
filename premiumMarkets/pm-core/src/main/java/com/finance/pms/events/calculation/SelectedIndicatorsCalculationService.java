@@ -77,6 +77,7 @@ public class SelectedIndicatorsCalculationService {
 	public List<SymbolEvents> calculate(Date startDate, Date endDate, String eventListName, Map<Stock, List<EventInfo>> stocksEventInfos, Observer... observers) throws IncompleteDataSetException {
 
 		Boolean isDataSetComplete = true;
+		String dataSetIncompleteCause = "See logs.";
 		List<SymbolEvents> allEvents = new ArrayList<SymbolEvents>();
 		List<Stock> failingStocks = new ArrayList<Stock>();
 
@@ -139,6 +140,7 @@ public class SelectedIndicatorsCalculationService {
 								stockAllSymbolEvents.addEventResultElement(se);
 								stockAllSymbolEvents.addAllCalculationOutput(se.getCalculationOutputs());
 							});
+							dataSetIncompleteCause = cause.getMessage();
 						} else {
 							LOGGER.error(executionException, executionException);
 							LOGGER.error("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
@@ -185,7 +187,9 @@ public class SelectedIndicatorsCalculationService {
 		}
 
 		if (!isDataSetComplete) {
-			throw new IncompleteDataSetException(failingStocks, allEvents, null, "All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned: " + failingStocks);
+			throw new IncompleteDataSetException(failingStocks, allEvents, null, 
+					"All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. "
+					+ "Stock concerned: " + failingStocks + "\nCause: " + dataSetIncompleteCause);
 		}
 
 		return allEvents;

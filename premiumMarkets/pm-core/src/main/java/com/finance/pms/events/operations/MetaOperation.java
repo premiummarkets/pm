@@ -40,7 +40,7 @@ public class MetaOperation extends Operation {
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		String preparedFormula =  ((StringValue) inputs.get(0)).getValue(targetStock);
+		String preparedFormula = ((StringValue) inputs.get(0)).getValue(targetStock);
 		List<Number> parametersInPlace = inputs.subList(1, inputs.size()).stream().map(n -> ((NumberValue) n).getValue(targetStock)).collect(Collectors.toList());
 		
 		String formula = preparedFormula;
