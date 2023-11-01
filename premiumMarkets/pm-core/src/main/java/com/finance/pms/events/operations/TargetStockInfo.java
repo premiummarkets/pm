@@ -163,6 +163,8 @@ public class TargetStockInfo {
 	private Map<OutputReference, EventsAnalyser> outputAnalysers;
 	
 	private Set<Date> missingKeys = new HashSet<>();
+	
+	private Map<String, Value<?>> heap = new HashMap<>();
 
 
 	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) {
@@ -194,6 +196,18 @@ public class TargetStockInfo {
 		this.chartedOutputGroups = new ArrayList<>();
 		this.outputAnalysers = new HashMap<>();
 		
+	}
+	
+	public void letHeapVar(String variableName, Value<?> variableValue) {
+		this.heap.put(variableName, variableValue);
+	}
+	
+	public void unletHeapVar(String variableName) {
+		this.heap.remove(variableName);
+	}
+	
+	public Value<?> getHeapVar(String variableName) {
+		return this.heap.get(variableName);
 	}
 	
 	private Output getCalculatedOutputsCacheFor(OutputReference outputReference) {

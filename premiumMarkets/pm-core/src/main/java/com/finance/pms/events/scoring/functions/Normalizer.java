@@ -72,7 +72,7 @@ public class Normalizer<T> {
 	}
 
 
-	public SortedMap<Date, T> normalised(SortedMap<Date,T> data) {
+	public SortedMap<Date,T> normalised(SortedMap<Date,T> data) {
 
 		SortedMap<Date, T> ret = new TreeMap<Date, T>();
 

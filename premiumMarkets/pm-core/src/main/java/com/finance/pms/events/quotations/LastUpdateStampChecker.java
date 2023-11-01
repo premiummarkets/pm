@@ -183,7 +183,6 @@ public class LastUpdateStampChecker {
 		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(JSON_DUMP_PATH))) {
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			gson.toJson(lastUpDateStampRecords, bufferedWriter);
-			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

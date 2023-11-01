@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -67,7 +66,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		this.startDate = startDate;
 		this.endDate = endDate;
 
-		this.eventInfo = (eventInfo instanceof EventInfoOpsCompoOperation)?(EventInfo) ((EventInfoOpsCompoOperation)eventInfo).clone():eventInfo;
+		//this.eventInfo = (eventInfo instanceof EventInfoOpsCompoOperation)?(EventInfo) ((EventInfoOpsCompoOperation)eventInfo).clone():eventInfo;
+		this.eventInfo = eventInfo; //if EventInfoOpsCompoOperation, it should have been cloned by the caller..
 		this.eventListName = eventListName;
 
 	}
@@ -92,7 +92,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error("UnHandled error: While calculating Events for " + stock + ", analysis " + eventListName + " and " + eventInfo.getEventDefinitionRef(), e);
-			throw new IncompleteDataSetException(stock, new HashSet<>(), e.toString());
+			throw new IncompleteDataSetException(stock, new SymbolEvents(stock), e.toString());
 		} finally {
 			this.setChanged();
 			this.notifyObservers(new ObserverMsg(stock, ObsKey.NONE));
@@ -106,14 +106,14 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		SymbolEvents returnedSymbolEvents = new SymbolEvents(stock);
 
 		//FIXME dummyTargetStock: operations method should not be called outside of the operation run() loop and hence the following should be delegated to the event info. 
-		TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, DateFactory.dateAtZero(), DateFactory.dateAtZero());
+		TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, start, end);
 		boolean isIdempotent = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isIdemPotent(dummyTargetStock);
 		boolean forbidEventsOverride = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock);
 		
-		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo);
 		boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().isEmpty();
 		boolean isAlterableOverridable = !isIdempotent && !forbidEventsOverride;
-		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), isAlterableOverridable);
+		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo, isAlterableOverridable);
 		tunedConf.setIsRemovable(isAlterableOverridable);
 		
 		//When xx, we still want to calculate the full range as the operation is not idempotent but without overriding the existing data in the db
@@ -151,6 +151,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					}
 
 					//If FULL_RANGE there maybe previous calculations to delete (when old range is within new range)
+					//Should only be here if isFullCalculationForbidOverride is false or there no known previous calculation
+					//If the state of isFullCalculationForbidOverride has changed over time from true to false, this delete will break. 
 					if (calcBounds.getCalcStatus().equals(CalcStatus.FULL_RANGE)) {
 						EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfo);
 					}
@@ -192,7 +194,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + " events for " + returnedSymbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfo.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						SymbolEvents storedSymbolEvents = new SymbolEvents(stock);
 						storedSymbolEvents.addEventResultElement(storedEvents, eventInfo);
-						EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName);
+						EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName, eventInfo);
 						
 						returnedSymbolEvents.addCalculationOutput(eventInfo, calculator.calculationOutput());
 						returnedSymbolEvents.addEventResultElement(calculatorEvents, eventInfo);
@@ -215,7 +217,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				
 				LOGGER.info("Updating tunedConf (on successful calculation): " + tunedConf + " with calculation bounds: " + calcBounds);
 				if (calcBounds != null) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
+					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfo, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
 				}
 				
 			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
@@ -225,7 +227,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 								eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
 				LOGGER.info("Updating tunedConf (on unrecovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
 				if (calcBounds != null) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
+					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfo,calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
 				}
 				
 				emptyReturn(returnedSymbolEvents);
@@ -237,7 +239,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						eventInfo.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
 				LOGGER.info("Rolling back tunedConf (on recovarable exception): " + tunedConf + ", attempted calculation bounds: " + calcBounds);
 				if (calcBounds != null) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, tunedConf.getFisrtStoredEventCalculationStart(), tunedConf.getLastStoredEventCalculationEnd());
+					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfo, tunedConf.getFisrtStoredEventCalculationStart(), tunedConf.getLastStoredEventCalculationEnd());
 				}
 				
 				emptyReturn(returnedSymbolEvents);

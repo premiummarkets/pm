@@ -76,9 +76,10 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
 public class EventInfoOpsCompoOperation extends EventMapOperation implements EventInfo {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(EventInfoOpsCompoOperation.class);
-
+	
 	@XmlTransient
-	private EventDefDescriptorDynamic eventDefDescriptor; //It is assumed that unlike 'normal' operations, this class is NOT a singleton.
+	private EventDefDescriptorDynamic eventDefDescriptor; //It is assumed that this class is NOT a singleton.
+	boolean isKeepEvents = true;
 
 	public EventInfoOpsCompoOperation() {
 		this("operationscompositionner", "operationscompositionner");
@@ -103,6 +104,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 
 	@Override
 	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+				
 		BooleanMapValue bullishMapValue = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMapValue = ((BooleanMapValue)inputs.get(1));
 		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2)); //not used for calculation
@@ -164,7 +166,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		} catch (Exception e) {
 			LOGGER.warn(e, e);
 		}
-
+		
 		return new EventMapValue(edata, false);
 	}
 
@@ -291,6 +293,14 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public void interruptEventInfo() throws Exception {
 		this.interrupt();
+	}
+	
+	public boolean isKeepEvents() {
+		return isKeepEvents;
+	}
+
+	public void setKeepEvents(boolean isKeepEvents) {
+		this.isKeepEvents = isKeepEvents;
 	}
 	
 }

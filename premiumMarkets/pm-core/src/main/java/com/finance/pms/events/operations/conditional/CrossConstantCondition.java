@@ -155,7 +155,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(MAIN_POSITION)).getValue(targetStock);
 		
 		StatsFunction minFunc = new MyApacheStats(new Min());
-		SortedMap<Date, Double> min = minFunc.evaluate(data);
+		SortedMap<Date, Double> min = minFunc.mdEvaluateMd(data);
 		
 		CurvesSubtraction curvesSubtraction = new CurvesSubtraction();
 		SortedMap<Date, Double> zeroBasedData = curvesSubtraction.sOperate(data, min);

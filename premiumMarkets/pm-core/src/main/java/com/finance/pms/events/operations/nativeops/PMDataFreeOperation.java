@@ -61,7 +61,7 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
     }
 
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		return true;
 	}
     

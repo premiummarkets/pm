@@ -96,7 +96,7 @@ public class HistoricalVolatilityCalculator {
 				.collect(Collectors.toList());
 
 		MyApacheStats stdev = new MyApacheStats(new StandardDeviation());
-		return stdev.sEvaluate(d2DReturns);
+		return stdev.dEvaluateCd(d2DReturns);
 
 	}
 	
@@ -111,7 +111,7 @@ public class HistoricalVolatilityCalculator {
 				.collect(Collectors.toList());
 
 		MyApacheStats stdev = new MyApacheStats(new Mean());
-		return stdev.sEvaluate(d2DReturns);
+		return stdev.dEvaluateCd(d2DReturns);
 
 	}
 
@@ -127,7 +127,7 @@ public class HistoricalVolatilityCalculator {
 				.collect(Collectors.toList());
 
 		MyApacheStats stdev = new MyApacheStats(new StandardDeviation());
-		return stdev.sEvaluate(d2DReturns);
+		return stdev.dEvaluateCd(d2DReturns);
 
 	}
 
@@ -143,7 +143,7 @@ public class HistoricalVolatilityCalculator {
 				.collect(Collectors.toList());
 
 		MyApacheStats stdev = new MyApacheStats(new Mean());
-		return stdev.sEvaluate(d2DReturns);
+		return stdev.dEvaluateCd(d2DReturns);
 
 	}
 
@@ -180,14 +180,14 @@ public class HistoricalVolatilityCalculator {
 				.mapToObj(i -> f.apply(closeValues, i))
 				.filter(fn -> fn > threshold)
 				.collect(Collectors.toList());
-		Double positiveFnMean = Math.abs(mean.sEvaluate(positiveFns));
+		Double positiveFnMean = Math.abs(mean.dEvaluateCd(positiveFns));
 
 		List<Double> negativeFns = IntStream
 				.range(from +1, to)
 				.mapToObj(i -> f.apply(closeValues, i))
 				.filter(fn -> fn < threshold)
 				.collect(Collectors.toList());
-		Double negativeFnMean = Math.abs(mean.sEvaluate(negativeFns));
+		Double negativeFnMean = Math.abs(mean.dEvaluateCd(negativeFns));
 
 		Double ratio = negativeFnMean/positiveFnMean;
 		LOGGER.info("Skew: from " + from + " to " + to + " is "+ ratio);

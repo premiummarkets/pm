@@ -548,6 +548,11 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "$", param.getParamDescription(), param.getParamSynoptic(), "$", highLighPosition));
 				foundMatch = true;
 				break;
+			case ANY:
+				String paramAltStr = (param.getParamName() == null)?"Any Argument":param.getParamName();
+				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, paramAltStr, param.getParamDescription(),param.getParamSynoptic(), param.getParamDefault(), highLighPosition));
+				foundMatch = true;
+				break;
 			}
 			if (!foundMatch) throw new IllegalArgumentException();
 		}

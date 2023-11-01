@@ -63,12 +63,12 @@ public class SymbolEvents implements Serializable {
 
 	private static final long serialVersionUID = 4488655947887964613L;
 
+	private SymbolEventsWeightData weightData;
+	
 	private Stock stock;
 	private ConcurrentSkipListMap<EventKey, EventValue> dataResultMap;
 	private Set<String> eventDefList;
 	private EventState eventsState;
-
-	private SymbolEventsWeightData weightData;
 
 	private Map<EventInfo, SortedMap<Date, double[]>> calculationOutputs;
 
@@ -79,6 +79,8 @@ public class SymbolEvents implements Serializable {
 		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
 		this.eventsState = EventState.STATE_TERMINATED;
+		
+		this.calculationOutputs = new HashMap<>();
 	}
 
 	public SymbolEvents(Stock stock, ConcurrentSkipListMap<EventKey, EventValue> dataResultList, Collection<?> eventDefList, EventState state) {
@@ -95,6 +97,8 @@ public class SymbolEvents implements Serializable {
 			}
 		}
 		this.eventsState = state;
+		
+		this.calculationOutputs = new HashMap<>();
 	}
 
 	public SymbolEvents(Stock stock, EventState eState) {
@@ -104,6 +108,8 @@ public class SymbolEvents implements Serializable {
 		this.dataResultMap = new ConcurrentSkipListMap<EventKey, EventValue>();
 		this.eventDefList = new HashSet<String>();
 		this.eventsState= eState;
+		
+		this.calculationOutputs = new HashMap<>();
 	}
 
 	public SymbolEvents(EventMessageObject eventMessageObject) throws NoSuchFieldException {
@@ -119,6 +125,8 @@ public class SymbolEvents implements Serializable {
 		this.eventDefList = new HashSet<String>();
 		this.eventDefList.add(eventValue.getEventDef().getEventDefinitionRef());
 		this.eventsState = EventState.STATE_TERMINATED;
+		
+		this.calculationOutputs = new HashMap<>();
 
 	}
 
@@ -446,17 +454,11 @@ public class SymbolEvents implements Serializable {
 	}
 
 	public void addCalculationOutput(EventInfo eventInfo, SortedMap<Date, double[]> calculationOutput) {
-		if (this.calculationOutputs == null) {
-			this.calculationOutputs = new HashMap<EventInfo, SortedMap<Date,double[]>>();
-		}
 		this.calculationOutputs.put(eventInfo, calculationOutput);
 
 	}
 
 	public void addAllCalculationOutput(Map<EventInfo, SortedMap<Date,double[]>> calculationOutputs) {
-		if (this.calculationOutputs == null) {
-			this.calculationOutputs = new HashMap<EventInfo, SortedMap<Date,double[]>>();
-		}
 		this.calculationOutputs.putAll(calculationOutputs);
 
 	}

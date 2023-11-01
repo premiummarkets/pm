@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
@@ -55,30 +56,38 @@ public class IncompleteDataSetException extends Exception {
 		super(arg0);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
+		
+		this.symbolEvents = new ArrayList<SymbolEvents>();
+		this.symbolEvents.add(validSymbolEventsForStock);
 
 		this.calculatedOutputs = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
 		this.calculatedOutputs.put(failingStock, validSymbolEventsForStock.getCalculationOutputs());
-
-		this.symbolEvents = new ArrayList<SymbolEvents>();
-		this.symbolEvents.add(validSymbolEventsForStock);
 	}
 
 	public IncompleteDataSetException(List<Stock> failingStocks, List<SymbolEvents> validSymbolEvents, Map<Stock, Map<EventInfo, SortedMap<Date, double[]>>> validCalculatedOutput, String arg0) {
 		super(arg0);
 		this.failingStocks = failingStocks;
-		if (validCalculatedOutput == null) {
-			this.calculatedOutputs = validSymbolEvents.stream().collect(Collectors.toMap(se -> se.getStock(),se -> se.getCalculationOutputs()));
-		} else {
+		this.symbolEvents = (validSymbolEvents != null)?validSymbolEvents:new ArrayList<>();
+		if (validCalculatedOutput != null) {
 			this.calculatedOutputs = validCalculatedOutput;
+		} else {
+			if (validSymbolEvents != null) {
+				this.calculatedOutputs = validSymbolEvents.stream().collect(Collectors.toMap(se -> se.getStock(),se -> Optional.ofNullable(se.getCalculationOutputs()).orElse(new HashMap<>())));
+			} else {
+				this.calculatedOutputs = new HashMap<>();
+			}
 		}
-		this.symbolEvents = validSymbolEvents;
 	}
 
+	@Deprecated
 	public IncompleteDataSetException(Stock failingStock, Set<IndicatorsOperator> validEventCaclulators, String error) {
 		super(error);
 		this.failingStocks = new ArrayList<Stock>();
 		this.failingStocks.add(failingStock);
 		this.validEventCalculators = validEventCaclulators;
+		
+		this.calculatedOutputs = new HashMap<Stock, Map<EventInfo, SortedMap<Date,double[]>>>();
+		this.symbolEvents = new ArrayList<SymbolEvents>();
 	}
 
 	public List<Stock> getFailingStocks() {

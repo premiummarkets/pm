@@ -39,14 +39,14 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 		SortedMap<Date, Double> refiter = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 		
 		MyApacheStats stddev1 = new MyApacheStats(new StandardDeviation());
-		double refiteeStddev = stddev1.mEvaluate(refitee);
+		double refiteeStddev = stddev1.dEvaluateMd(refitee);
 		MyApacheStats mean1 = new MyApacheStats(new Mean());
-		double refiteeMean = mean1.mEvaluate(refitee);
+		double refiteeMean = mean1.dEvaluateMd(refitee);
 		
 		MyApacheStats stddev2 = new MyApacheStats(new StandardDeviation());
-		double refiterStddev = stddev2.mEvaluate(refiter);
+		double refiterStddev = stddev2.dEvaluateMd(refiter);
 		MyApacheStats mean2 = new MyApacheStats(new Mean());
-		double refiterMean = mean2.mEvaluate(refiter);
+		double refiterMean = mean2.dEvaluateMd(refiter);
 		
 		SortedMap<Date, Double> endToRefit = refitee.tailMap(refiter.lastKey());
 		double slope = 1d; //refiterStddev/refiteeStddev; //TODO how can I match the passing of zero??
@@ -79,7 +79,7 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 	
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		return true;
 	}
 

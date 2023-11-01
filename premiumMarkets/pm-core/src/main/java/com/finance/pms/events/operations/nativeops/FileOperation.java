@@ -103,7 +103,7 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 	}
 	
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		return true;
 	}
 

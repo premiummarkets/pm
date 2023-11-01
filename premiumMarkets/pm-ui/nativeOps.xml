@@ -385,6 +385,32 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="getOperation">
+            <reference>get</reference>
+            <description>Get a named value from the heap</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>variable</referenceAsOperand>
+                    <description>variable name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>mevar</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="nullOperation">
+                    <reference>defaultValue</reference>
+                    <description>defaultValue</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitOperation">
             <reference>profit</reference>
             <description>Calculate the profits (the my way) of series of Events from Indicators</description>
@@ -787,6 +813,32 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="envOperation">
+            <reference>env</reference>
+            <description>Get a named value from the env</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>variable</referenceAsOperand>
+                    <description>variable name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>mevar</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="nullOperation">
+                    <reference>defaultValue</reference>
+                    <description>defaultValue</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="filterOperation">
             <reference>filter_</reference>
             <description>Filter</description>
@@ -994,17 +1046,20 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="concatStringOperation">
-            <reference>concatString</reference>
-            <description>Concatenate the passed strings</description>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="equalsOperation">
+            <reference>equals</reference>
+            <description>Compares values and return TRUE if all are representable as strings and all are equal, FALSE otherwise</description>
             <operands>
-                <operand xsi:type="stringOperation">
-                    <reference>string</reference>
-                    <referenceAsOperand>anyString</referenceAsOperand>
-                    <description>Any string to be concatenated</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue></stringValue>
-                    </defaultValue>
+                <operand xsi:type="nullOperation">
+                    <reference>firstValue</reference>
+                    <description>firstValue</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="nullOperation">
+                    <reference>anyValue</reference>
+                    <description>anyValue</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
@@ -1067,6 +1122,25 @@
                     <reference>data</reference>
                     <referenceAsOperand>datasets</referenceAsOperand>
                     <description>Datasets to assemble in one</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="concatStringOperation">
+            <reference>conc</reference>
+            <description>Concatenate the passed strings</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>anyString</referenceAsOperand>
+                    <description>Any string to be concatenated</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue></stringValue>
+                    </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
@@ -1157,25 +1231,6 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockInfoOperation">
-            <reference>targetStockInfo</reference>
-            <description>Return informations about the parent operation targeted stock. Implemented only: the stock symbol.</description>
-            <operands>
-                <operand xsi:type="stringOperation">
-                    <reference>string</reference>
-                    <referenceAsOperand>stockInfoRetreived</referenceAsOperand>
-                    <description>Info retreived from the target stock</description>
-                    <defaultValue xsi:type="stringValue">
-                        <stringValue>symbol</stringValue>
-                    </defaultValue>
-                    <operands/>
-                    <availableOutputSelectors/>
-                    <isVarArgs>false</isVarArgs>
-                </operand>
-            </operands>
-            <availableOutputSelectors/>
-            <isVarArgs>false</isVarArgs>
-        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmLogRocOperation">
             <reference>logroc</reference>
             <description>Roc logarithmic over a period</description>
@@ -1225,6 +1280,32 @@
             <reference>NONE</reference>
             <description>Null operation. Should signify no operation.</description>
             <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="letOperation">
+            <reference>let</reference>
+            <description>Let a name value pair in the heap</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>variable</referenceAsOperand>
+                    <description>variable name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>mevar</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="nullOperation">
+                    <reference>value</reference>
+                    <description>value</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
@@ -1366,6 +1447,10 @@
             </operands>
             <availableOutputSelectors>
                 <availableOutputSelector>sqrt</availableOutputSelector>
+                <availableOutputSelector>add</availableOutputSelector>
+                <availableOutputSelector>sub</availableOutputSelector>
+                <availableOutputSelector>mult</availableOutputSelector>
+                <availableOutputSelector>div</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sqrt</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -1443,6 +1528,25 @@
                     <reference>data</reference>
                     <referenceAsOperand>indicatorsCompositioners</referenceAsOperand>
                     <description>Indicators compositions Event Map list</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockInfoOperation">
+            <reference>ctx</reference>
+            <description>Return informations about the parent operation targeted stock. Implemented only: the stock symbol.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>stockInfoRetreived</referenceAsOperand>
+                    <description>Info retreived from the target stock</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>sym</stringValue>
+                    </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>

@@ -14,8 +14,6 @@ import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.quotation.QuotationUpdate;
 import com.finance.pms.datasources.quotation.QuotationUpdate.QuotationUpdateException;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
@@ -58,35 +56,29 @@ public class TargetStockDelegateOperation extends MapOperation {
 			LOGGER.warn(e);
 		}
 		
+		//Run against the delegate
+		TargetStockInfo tStockDelegate = new TargetStockInfo(
+				targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), 
+				stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
+		NumericableMapValue output = (NumericableMapValue) operationClone.run(tStockDelegate, addThisToStack(thisCallStack, thisStartShift, 0, targetStock), thisStartShift + 0);
+		
+		//Potential missing keys:
 		try {
-			//Run against the delegate
-			TargetStockInfo tStockDelegate = new TargetStockInfo(
-					targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), 
-					stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
-			NumericableMapValue output = (NumericableMapValue) operationClone.run(tStockDelegate, addThisToStack(thisCallStack, thisStartShift, 0, targetStock), thisStartShift + 0);
-			
-			//Potential missing keys:
-			try {
-				ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
-				Stock stock = targetStock.getStock();
-				Quotations quotations = QuotationsFactories.getFactory()
-						.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
-				Quotations quotationsDelegate  = QuotationsFactories.getFactory()
-						.getSplitFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
-				List<Date> qDelegateDates = Arrays.asList(quotationsDelegate.getDates());
-				List<Date> missingKeys = Arrays.stream(quotations.getDates()).filter(qd -> !qDelegateDates.contains(qd)).collect(Collectors.toList());
-				targetStock.addMissingData(missingKeys);
-			} catch (NoQuotationsException e) {
-				LOGGER.warn(e);
-			}
-			
-			return output;
-			
-		} catch (NotEnoughDataException e) {
-			LOGGER.error(this.getReference() + ": " + e, e);
+			ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
+			Stock stock = targetStock.getStock();
+			Quotations quotations = QuotationsFactories.getFactory()
+					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
+			Quotations quotationsDelegate  = QuotationsFactories.getFactory()
+					.getSplitFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
+			List<Date> qDelegateDates = Arrays.asList(quotationsDelegate.getDates());
+			List<Date> missingKeys = Arrays.stream(quotations.getDates()).filter(qd -> !qDelegateDates.contains(qd)).collect(Collectors.toList());
+			targetStock.addMissingData(missingKeys);
+		} catch (NoQuotationsException e) {
+			LOGGER.warn(e);
 		}
 		
-		return new DoubleMapValue();
+		return output;
+		
 	}
 
 	@Override

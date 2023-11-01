@@ -8,8 +8,6 @@ import java.util.function.Function;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
@@ -37,26 +35,21 @@ public class IfOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftFromParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String ifCondition = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Operation thenOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock).clone();
 		Operation elseOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(2)).getValue(targetStock).clone();
 		
-		try {
-			LOGGER.info(this.getReference() + " condition is " + ifCondition + " for " + targetStock.getStock().getSymbol());
-			if (ifCondition.equals("TRUE")) {
-				LOGGER.info(this.getReference() + " will run " + thenOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
-				return thenOperationClone
-						.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
-			} else {
-				LOGGER.info(this.getReference() + " will run " + elseOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
-				return elseOperationClone
-						.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
-			}
-		} catch (NotEnoughDataException e) {
-			LOGGER.error(e, e);
+		LOGGER.info(this.getReference() + " condition is " + ifCondition + " for " + targetStock.getStock().getSymbol());
+		if (ifCondition.equals("TRUE")) {
+			LOGGER.info(this.getReference() + " will run " + thenOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
+			return thenOperationClone
+					.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
+		} else {
+			LOGGER.info(this.getReference() + " will run " + elseOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
+			return elseOperationClone
+					.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
 		}
-		return new DoubleMapValue();
 	}
 
 	@Override
@@ -105,7 +98,7 @@ public class IfOperation extends Operation {
 
 	@Override
 	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
 		if (value0 != null) {
 			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
 		} else {
@@ -115,7 +108,7 @@ public class IfOperation extends Operation {
 	
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isIdemPotent(targetStock));
 		} else {
@@ -125,7 +118,7 @@ public class IfOperation extends Operation {
 
 	@Override
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0);
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isNoOverrideDeltaOnly(targetStock));
 		} else {
@@ -134,7 +127,7 @@ public class IfOperation extends Operation {
 	}
 	
 //	@Override
-//	public boolean isQuotationsDataSensitive() {
+//	public boolean isParameterDataSensitive() {
 //		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
 //		if (value0 != null) {
 //			return this.<Boolean>reccurentProceeds(value0, o -> o.isQuotationsDataSensitive(targetStock));
@@ -142,10 +135,14 @@ public class IfOperation extends Operation {
 //			throw new RuntimeException();
 //		}
 //	}
+	@Override
+	public boolean isParameterDataSensitive() {
+		return true;
+	}
 	
 	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
+		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
 		if (value0 != null) {
 			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift));
 		} else {

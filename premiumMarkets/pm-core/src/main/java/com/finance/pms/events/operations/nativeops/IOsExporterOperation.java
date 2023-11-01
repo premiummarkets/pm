@@ -145,7 +145,7 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 	
 	
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		return true;
 	}
 

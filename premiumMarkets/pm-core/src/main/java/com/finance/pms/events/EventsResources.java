@@ -70,6 +70,7 @@ import com.finance.pms.datasources.db.StockToDB;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.portfolio.PortfolioMgr;
@@ -323,8 +324,12 @@ public class EventsResources {
 
 	}
 
-	public void crudCreateEvents(SymbolEvents symbolEvents, String analysisName) {
-
+	public void crudCreateEvents(SymbolEvents symbolEvents, String analysisName, EventInfo... indicators) {
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
+		
 		List<SymbolEvents> eventList = new ArrayList<SymbolEvents>();
 		eventList.add(symbolEvents);
 		crudCreateEvents(eventList, analysisName);
@@ -427,6 +432,10 @@ public class EventsResources {
 		//Consistency checks
 		if (eventDefinitions == null || eventDefinitions.isEmpty()) throw new IllegalArgumentException("eventDefinitions can't be empty: " + eventDefinitions);
 		if (eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		
+		//Check keep events
+		Boolean dontKeepEvents = eventDefinitions.stream().map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return null;
 
 		if (!isEventCached && !isEventPersisted) {
 			String message = "Inconsistency : Events are neither persisted or cached.";
@@ -481,6 +490,10 @@ public class EventsResources {
 
 		if (eventDefinitions == null || eventDefinitions.isEmpty()) throw new IllegalArgumentException("eventDefinitions can't be empty: " + eventDefinitions);
 		if (eventDefinitions.contains(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
+		
+		//Check keep events
+		Boolean dontKeepEvents = eventDefinitions.stream().map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return new ArrayList<>();
 
 		if (!isEventCached && !isEventPersisted) {
 			String message = "Inconsistency: Events are neither persisted or cached.";
@@ -616,7 +629,11 @@ public class EventsResources {
 	}
 
 
-	public void crudCreateEvents(List<SymbolEvents> symbolEventsList, String eventListName) {
+	public void crudCreateEvents(List<SymbolEvents> symbolEventsList, String eventListName, EventInfo... indicators) {
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
 		
 		if (isEventCached) {
 
@@ -1131,16 +1148,27 @@ public class EventsResources {
 	public void crudDeleteEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
 		
 		if (indicators.length == 0) return;
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
 
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, indicators)) {
-			throw new RuntimeException("Can't delete analysis: " + stock + " and " + analysisName + " and " + Arrays.toString(indicators) + " as it contains non removable events!");
+			throw new RuntimeException("Can't delete events: " + stock + " and " + analysisName + " and " + Arrays.stream(indicators).map(i -> i.getEventReadableDef()).reduce((a, iRef) -> a + ", " + iRef) + ". It contains non removable events!. Please use Force update to overwrite.");
 		}
 		
 		crudDeleteForciblyEventsForStock(stock, analysisName, indicators);
 	}
 
 	public void crudDeleteForciblyEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
+		
+		if (indicators.length == 0) { //This equates to crudDeleteForciblyEventsForAnalysisName for the stock and is too broad
+			if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
+				throw new RuntimeException("Can't delete events: " + analysisName + ". It contains non removable events!. Please use Force update to overwrite.");
+			}
+		}
+		
 		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
 		
 		for (EventInfo eventInfo : indicators) {
@@ -1176,12 +1204,16 @@ public class EventsResources {
 	public void crudDeleteEventsForIndicators(String analysisName, EventInfo... indicators) {
 		
 		if (indicators.length == 0) return;
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
 
 		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
 		
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName, indicators)) {
-			throw new RuntimeException("Can't delete analysis: " + analysisName + " and " + Arrays.toString(indicators) + " as it contains non removable events!");
+			throw new RuntimeException("Can't delete events: " + analysisName + " and " +  Arrays.stream(indicators).map(i -> i.getEventReadableDef()).reduce((a, iRef) -> a + ", " + iRef) + ". It contains non removable events!. Please use Force update to overwrite.");
 		}
 
 		Date datedeb = DateFactory.DEFAULT_DATE;
@@ -1221,20 +1253,28 @@ public class EventsResources {
 	 */
 	@Deprecated
 	public void crudDeleteEventsForAnalysisName(String analysisName) {
+		
+		//Check keep events
+		//TODO?
+		
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
-			throw new RuntimeException("Can't delete analysis: " + analysisName + " as it contains non removable events!");
+			throw new RuntimeException("Can't delete events: " + analysisName + ". It contains non removable events!. Please use Force update to overwrite.");
 		}
 		crudDeleteForciblyEventsForAnalysisName(analysisName);
 	}
 
+	/**
+	 * @deprecated Actually this deletion is too broad and should not be used.
+	 */
+	@Deprecated
 	public void crudDeleteForciblyEventsForAnalysisName(String analysisName) {
 
 		LOGGER.info("DELETE events for " + analysisName);
 		
 		//Check removable //XXX should this be here if this is a forced delete?
 		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
-			throw new RuntimeException("Can't delete analysis: " + analysisName + " as it contains non removable events!");
+			throw new RuntimeException("Can't delete events: " + analysisName + ". It contains non removable events!. Please use Force update to overwrite.");
 		}
 
 		//Cache

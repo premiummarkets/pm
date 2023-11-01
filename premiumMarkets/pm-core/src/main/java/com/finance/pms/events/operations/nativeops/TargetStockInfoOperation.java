@@ -19,8 +19,8 @@ public class TargetStockInfoOperation extends StringerOperation {
 	public TargetStockInfoOperation() {
 		//FIXME we don't use output selector in order to select the returned value but an operand instead
 		//Operations with no operands are actually considered as operations with an indeterministic (undeterministic) N number of operands with N > 0 ..
-		this("targetStockInfo", "Return informations about the parent operation targeted stock. Implemented only: the stock symbol.",
-		new StringOperation("string", "stockInfoRetreived", "Info retreived from the target stock", new StringValue("symbol")));
+		this("ctx", "Return informations about the parent operation targeted stock. Implemented only: the stock symbol.",
+		new StringOperation("string", "stockInfoRetreived", "Info retreived from the target stock", new StringValue("sym")));
 		//setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"symbol"})));
 	}
 
@@ -30,8 +30,16 @@ public class TargetStockInfoOperation extends StringerOperation {
 		String selector = ((StringValue) inputs.get(0)).getValue(targetStock);
 		
 		//if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("symbol")) {
-		if (selector.equals("symbol")) {
+		if (selector.equals("sym")) {
             return new StringValue(targetStock.getStock().getSymbol());
+        }
+		
+		if (selector.equals("ana")) {
+            return new StringValue(targetStock.getAnalysisName());
+        }
+		
+		if (selector.equals("ind")) {
+            return new StringValue(targetStock.getEventInfoOpsCompoOperation().getReference());
         }
 		
 		return new StringValue(targetStock.getStock().getSymbol());

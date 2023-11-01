@@ -12,7 +12,7 @@ import com.finance.pms.events.operations.Value;
 
 @XmlSeeAlso({
 	CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class, IOsWebImporterOperation.class,
-	RandomizeStringOperation.class, ConcatStringOperation.class, StringEqualsOperation.class
+	RandomizeStringOperation.class, ConcatStringOperation.class, StringEqualsOperation.class, EqualsOperation.class
 	})
 public abstract class StringerOperation extends Operation {
 
@@ -36,9 +36,9 @@ public abstract class StringerOperation extends Operation {
 		return null;
 	}
 	
-	@Override
-	public void setParameter(Value<?> parameter) {
-		//Always re check the upstream operands (eg. file system, web end point, random values ..)
-	}
+//	@Override
+//	public void setParameter(Value<?> parameter) {
+//		//Always re check the upstream operands (eg. file system, web end point, random values ..)
+//	}
 
 }

@@ -188,6 +188,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 		this.buyIndicators = (indicators.isEmpty())?Collections.unmodifiableList(new ArrayList<>()):Arrays.asList(indicatorsSplit);
 		this.sellIndicators = (indicators.isEmpty())?Collections.unmodifiableList(new ArrayList<>()):Arrays.asList(indicatorsSplit);
 		this.configListFileName = configListFileName;
+		
+		
 
 	}
 

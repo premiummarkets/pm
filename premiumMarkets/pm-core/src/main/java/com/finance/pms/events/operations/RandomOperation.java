@@ -185,7 +185,7 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 	}
 	
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		return true;
 	}
 

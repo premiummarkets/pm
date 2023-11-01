@@ -177,6 +177,18 @@ public class ValueManipulator {
 		NumericableMapValue apply(List<NumericableMapValue> data);
 	}
 	
+	/**
+	 * Flattens the numericableMapValues parameter into two lists: one of all the input data (unary and additional data) and one of their respective headers
+	 * Applies the innerCalcFunc on each of the input data in the list
+	 * Returns an DoubleArrayMapValue containing the initial headers and the results (in the form double[]) of the applied, as additional data.
+	 * @param operation
+	 * @param dataInputIdx
+	 * @param targetStock
+	 * @param parentRequiredStartShift
+	 * @param innerCalcFunc
+	 * @param numericableMapValues
+	 * @return
+	 */
 	public static NumericableMapValue doubleArrayExpender(
 			Operation operation, 
 			int dataInputIdx, TargetStockInfo targetStock, int parentRequiredStartShift, 
@@ -198,13 +210,13 @@ public class ValueManipulator {
 		}
 
 		//Combine
-		List<List<NumericableMapValue>> combinationsAcc = allInputs.get(0).values().stream().map(e -> Lists.newArrayList(e)).collect(Collectors.toList());
-		List<String> hCombinationsAcc = allInputs.get(0).keySet().stream().map(e -> e).collect(Collectors.toList());
+		List<List<NumericableMapValue>> combinationsAcc = allInputs.get(0).values().stream().map(e -> Lists.newArrayList(e)).collect(Collectors.toList());//init first comb
+		List<String> hCombinationsAcc = allInputs.get(0).keySet().stream().map(e -> e).collect(Collectors.toList());//init first hcomb
 		for (int i = 1; i < allInputs.size(); i++) {
 			List<List<NumericableMapValue>> combinationsAccPrim = new ArrayList<List<NumericableMapValue>>();
 			List<String> hCombinationsAccPrim = new ArrayList<String>();
 			for (int j = 0; j < combinationsAcc.size(); j++) {
-				for (String nmvk:allInputs.get(i).keySet()) {
+				for (String nmvk : allInputs.get(i).keySet()) {
 					String hNewComb = hCombinationsAcc.get(j);
 					hNewComb = hNewComb + "_" + nmvk;
  					hCombinationsAccPrim.add(hNewComb);
@@ -221,15 +233,15 @@ public class ValueManipulator {
 
 		//Calc
 		ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
-		List<Future<Object[]>> futures = new ArrayList<>();
+		List<Future<Map<String, NumericableMapValue>>> futures = new ArrayList<>();
 		final List<String> fHCombinationsAcc = hCombinationsAcc;
 		final List<List<NumericableMapValue>> fCombinationsAcc = combinationsAcc;
 		
 		for (int i = 0; i < combinationsAcc.size(); i++) {
 			int fI = i;
-			Future<Object[]> iterationFuture = executor.submit(new Callable<Object[]>() {
+			Future<Map<String, NumericableMapValue>> iterationFuture = executor.submit(new Callable<Map<String, NumericableMapValue>>() {
 				@Override
-				public Object[] call() throws Exception {
+				public Map<String, NumericableMapValue> call() throws Exception {
 					
 					String outputsOperandsRef = fHCombinationsAcc.get(fI);
 					
@@ -238,17 +250,25 @@ public class ValueManipulator {
 							"Running: " + operation.getReference() + " with params " + outputsOperandsRef + 
 							". From " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate()));
 					
-					NumericableMapValue doubleMapValue = innerCalcFunc.apply(fCombinationsAcc.get(fI));
+					NumericableMapValue innerCalcFuncRes = innerCalcFunc.apply(fCombinationsAcc.get(fI));
 					
-					//LOGGER.info("Done: " + operation.getReference() + " with params " + outputsOperandsRef);
-					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + doubleMapValue);
-					
-					if (doubleMapValue.getValue(targetStock).size() == 0) {
+					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + innerCalcFuncRes);	
+					if (innerCalcFuncRes.getValue(targetStock).size() == 0) {
 						throw new RuntimeException(
 								"Empty results for "  + operation.getReference() + " with params " + outputsOperandsRef + " and " + targetStock + ". " +
 								"Input boundaries: " + fCombinationsAcc.get(fI));
 					}
-					return new Object[]{outputsOperandsRef, doubleMapValue};
+					
+					Map<String, NumericableMapValue> applyRes = new TreeMap<>();
+					if (innerCalcFuncRes instanceof DoubleArrayMapValue && ((DoubleArrayMapValue) innerCalcFuncRes).getColumnsReferences().size() > 1) { //Again the application of innerCalcFunc can return several outputs
+						((DoubleArrayMapValue) innerCalcFuncRes).getAdditionalOutputs().entrySet().forEach(e -> {
+							applyRes.put(outputsOperandsRef + "." + e.getKey(), e.getValue());
+						});
+					} else {
+						applyRes.put(outputsOperandsRef, innerCalcFuncRes);
+					}
+					
+					return applyRes;
 				}
 			});
 			futures.add(iterationFuture);
@@ -257,11 +277,11 @@ public class ValueManipulator {
 		List<NumericableMapValue> allOutputs = new ArrayList<NumericableMapValue>();
 		List<String> outputsOperandsRefs = new ArrayList<String>();
 		
-		for(Future<Object[]> f:futures) {
+		for(Future<Map<String, NumericableMapValue>> f:futures) {
 			try {
-				Object[] objects = f.get();
-				outputsOperandsRefs.add((String) objects[0]);
-				allOutputs.add((NumericableMapValue) objects[1]);
+				Map<String, NumericableMapValue> objects = f.get();
+				outputsOperandsRefs.addAll(objects.keySet());
+				allOutputs.addAll(objects.values());
 			} catch (Exception e) {
 				LOGGER.error(e, e);
 			}

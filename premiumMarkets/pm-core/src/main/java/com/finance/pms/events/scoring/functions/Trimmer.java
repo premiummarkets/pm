@@ -108,8 +108,8 @@ public class Trimmer {
 			QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, currentDateCal, -1);
 			Date periodEnd = currentDateCal.getTime();
 			Collection<double[]> periodValues = data.subMap(periodStart, periodEnd).values();
-			double periodStdev = stdev.evaluate(periodValues);
-			double periodMean = mean.evaluate(periodValues);
+			double periodStdev = stdev.dEvaluateCad(periodValues);
+			double periodMean = mean.dEvaluateCad(periodValues);
 			
 			double periodMax = periodMean + trimFactor*periodStdev;
 			double periodMin = periodMean - trimFactor*periodStdev;

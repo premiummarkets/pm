@@ -50,6 +50,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
@@ -79,16 +80,26 @@ public class TunedConfMgr {
 	public TunedConfMgr() {
 	}
 
-	public synchronized Optional<TunedConf> loadUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition) {
-		TunedConfId tunedConfId = new TunedConfId(stock, configListFileName, eventDefinition);
+	public synchronized Optional<TunedConf> loadUniqueNoRetuneConfig(Stock stock, String configListFileName, EventInfo eventInfo) {
+		
+		//Check keep events
+		if ((eventInfo instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)eventInfo).isKeepEvents()) return Optional.empty();
+		
+		//load
+		TunedConfId tunedConfId = new TunedConfId(stock, configListFileName, eventInfo.getEventDefinitionRef());
 		TunedConf stockPrevTunedConf = tunedConfDAO.loadTunedConf(tunedConfId);
 		return Optional.ofNullable(stockPrevTunedConf);
 	}
 	
-	public synchronized TunedConf saveUniqueNoRetuneConfig(Stock stock, String configListFileName, String eventDefinition, Boolean isRemovable) {
-			TunedConf newTunedConf = new TunedConf(stock, configListFileName, eventDefinition, isRemovable);
+	public synchronized TunedConf saveUniqueNoRetuneConfig(Stock stock, String configListFileName, EventInfo eventInfo, Boolean isRemovable) {
+				
+		TunedConf newTunedConf = new TunedConf(stock, configListFileName, eventInfo.getEventDefinitionRef(), isRemovable);
+		
+		if (!(eventInfo instanceof EventInfoOpsCompoOperation) || ((EventInfoOpsCompoOperation)eventInfo).isKeepEvents()) {		//Check keep events
 			tunedConfDAO.saveOrUpdateTunedConfs(newTunedConf);
-			return newTunedConf;
+		}
+		
+		return newTunedConf;
 	}
 
 	public Date endDateConsistencyCheck(TunedConf tunedConf, Stock stock, Date endDate) throws InvalidAlgorithmParameterException {
@@ -170,18 +181,21 @@ public class TunedConfMgr {
 
 	}
 
-	private void resetTunedConf(TunedConf tunedConf) {
-		updateConf(tunedConf, DateFactory.dateAtZero(), DateFactory.dateAtZero());
+	private void resetTunedConf(TunedConf tunedConf, EventInfo eventInfo) {
+		updateConf(tunedConf, eventInfo, DateFactory.dateAtZero(), DateFactory.dateAtZero());
 	}
 
-	public void updateConf(TunedConf tunedConf, Date lastCalculationStart, Date lastCalculationEnd) {
+	public void updateConf(TunedConf tunedConf, EventInfo eventInfo, Date lastCalculationStart, Date lastCalculationEnd) {
 		
 		LOGGER.info("Update tunedConf " + tunedConf + " with " + lastCalculationStart + " and " + lastCalculationEnd);
 
 		tunedConf.setFisrtStoredEventCalculationStart(lastCalculationStart);
 		tunedConf.setLastStoredEventCalculationEnd(lastCalculationEnd);
 		//tunedConf.setStaled(dirty);
-		tunedConfDAO.saveOrUpdateTunedConfs(tunedConf);
+		
+		if (!(eventInfo instanceof EventInfoOpsCompoOperation) || ((EventInfoOpsCompoOperation)eventInfo).isKeepEvents()) { //Check keep events
+			tunedConfDAO.saveOrUpdateTunedConfs(tunedConf);
+		}
 	}
 
 	//TODO adjust to start date (adjustStartDate) and end date (adjustEndDate)
@@ -213,13 +227,18 @@ public class TunedConfMgr {
 	 */
 	public void resetTunedConfFor(String analysisName, EventInfo... indicators) {
 		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
+		
 		LOGGER.info("RESET tunedConf " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
 
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
-		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
-		loadAllTunedConfs.stream()
-		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
-		.forEach(tc -> resetTunedConf(tc));
+		for (EventInfo ei: indicators) {
+			loadAllTunedConfs.stream()
+				.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (ei.getEventDefinitionRef().equals(tc.getTunedConfId().getEventDefinition())))
+				.forEach(tc -> resetTunedConf(tc, ei));
+		}
 	}
 
 	/**
@@ -235,25 +254,32 @@ public class TunedConfMgr {
 		LOGGER.info("RESET tunedConf " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName + " and " + stock.getFriendlyName());
 
 		for(EventInfo ei: indicators) {
-			Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
-			if (tc.isPresent()) resetTunedConf(tc.get());
+			Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei);
+			if (tc.isPresent()) resetTunedConf(tc.get(), ei);
 		}
 	}
 	
 	public boolean isRemovableFor(String analysisName, EventInfo... indicators) {
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return true;
+		
+		//load
 		List<TunedConf> loadAllTunedConfs = tunedConfDAO.loadAllTunedConfs();
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		return loadAllTunedConfs.stream()
-		.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
-		.map(tc -> tc.getIsRemovable()  || tc.isEmpty())
-		.reduce(true, (a, isRm) -> a && isRm);
+			.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
+			.map(tc -> tc.getIsRemovable()  || tc.isEmpty())
+			.reduce(true, (a, isRm) -> a && isRm);
+		
 	}
 	
 	public boolean isRemovableFor(Stock stock, String analysisName, EventInfo[] indicators) {
 		if (indicators.length == 0) throw new UnsupportedOperationException();
 		return Arrays.stream(indicators)
 			.map(ei -> {
-				Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei.getEventDefinitionRef());
+				Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei);
 				return tc.map(a -> a.getIsRemovable() || a.isEmpty()).orElse(true);
 			})
 			.reduce(true, (a, isRm) -> a && isRm);

@@ -46,6 +46,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
 
@@ -115,7 +116,14 @@ public class IndicatorAnalysisCalculationRunnableMessage extends AbstractAnalysi
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,getConfigs().get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,getConfigs().get(Config.INDICATOR_PARAMS_NAME));
 
-			Map<Stock, List<EventInfo>> stocksEventInfos = shareList.stream().collect(Collectors.toMap(s -> s, s-> ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepsAndParameterised()));
+			Map<Stock, List<EventInfo>> stocksEventInfos = shareList.stream()
+					.collect(Collectors
+							.toMap(s -> s, s -> 
+							{
+								List<EventInfo> indepsAndParameterised = ((EventSignalConfig) ConfigThreadLocal.get(Config.EVENT_SIGNAL_NAME)).getIndepsAndParameterised();
+								return indepsAndParameterised.stream()
+									.map(ei -> (ei instanceof EventInfoOpsCompoOperation)?(EventInfo)((EventInfoOpsCompoOperation)ei).clone():ei).collect(Collectors.toList());
+							}));
 			List<SymbolEvents> calculated = analyzer.calculate(datedeb, datefin, getAnalysisName(), stocksEventInfos, observers);
 			runIndicatorsCalculationRes = calculated.stream().collect(Collectors.toMap(se -> se.getStock(), se -> se.getCalculationOutputs()));
 

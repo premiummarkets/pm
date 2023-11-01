@@ -56,6 +56,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 //TODO To facilitate error handling : move initializations from the constructor to calculateEventsFor method
+@Deprecated
 public class SecondPassIndicatorCalculationThread extends IndicatorsCalculationThread {
 
     private static MyLogger LOGGER = MyLogger.getLogger(SecondPassIndicatorCalculationThread.class);

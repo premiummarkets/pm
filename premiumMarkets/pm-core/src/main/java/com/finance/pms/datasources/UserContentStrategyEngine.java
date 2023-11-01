@@ -131,11 +131,12 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 					.forEach(stock -> {
 
 						//Legacy EventInfo from EventDefinition
-						EventInfo[] eiArray = viewStateParams[0].stream()
+						viewStateParams[0].stream()
 								.filter(e -> e instanceof EventDefinition)
 								.map(e -> ((EventInfo) e))
-								.toArray(EventInfo[]::new);
-						EventsResources.getInstance().crudDeleteEventsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), eiArray);
+								.forEach(e -> {
+									EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, SelectedIndicatorsCalculationService.getAnalysisName(), new EventInfo[] {e});
+								});
 
 						//EventInfoOpsCompoOperation
 						viewStateParams[0].stream()
@@ -144,7 +145,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 									String analysisName = SelectedIndicatorsCalculationService.getAnalysisName();
 									EventInfoOpsCompoOperation e2 = (EventInfoOpsCompoOperation) e;
 									if (TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, new EventInfo[] {e2})) {
-										EventsResources.getInstance().crudDeleteEventsForStock(stock, analysisName, e2);
+										EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, e2);
 									}
 								});
 					});

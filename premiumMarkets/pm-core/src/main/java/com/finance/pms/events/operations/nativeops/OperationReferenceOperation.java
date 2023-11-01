@@ -115,9 +115,9 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).isQuotationsDataSensitive();
+			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).isParameterDataSensitive();
 		} else {
 			throw new RuntimeException();
 		}

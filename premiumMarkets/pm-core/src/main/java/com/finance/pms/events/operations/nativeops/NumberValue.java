@@ -46,8 +46,7 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 	@XmlElement
 	Double numberValue;
 
-	@SuppressWarnings("unused")
-	private NumberValue() {
+	protected NumberValue() {
 		super();
 	}
 
@@ -67,7 +66,7 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : value " + numberValue;
+		return this.getClass().getSimpleName() + ": value " + numberValue;
 	}
 
 	public Double getNumberValue() {

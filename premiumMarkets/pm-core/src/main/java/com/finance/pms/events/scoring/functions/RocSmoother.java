@@ -78,9 +78,9 @@ public class RocSmoother extends Smoother implements SSmoother {
 
 		if (fixBias) {
 			MyApacheStats meanFunc = new MyApacheStats(new Mean());
-			double mean = meanFunc.sEvaluate(rocs.values());
+			double mean = meanFunc.dEvaluateCd(rocs.values());
 			MyApacheStats stdFunc = new MyApacheStats(new StandardDeviation());
-			double stdev = stdFunc.sEvaluate(rocs.values());
+			double stdev = stdFunc.dEvaluateCd(rocs.values());
 			
 			rocs = rocs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> (e.getValue()-mean)/stdev, (a, b) -> a, TreeMap::new));	
 		} 

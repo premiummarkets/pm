@@ -18,6 +18,14 @@ public class NullOperation extends Operation {
 		super(reference, reference);
 	}
 	
+	public NullOperation(String reference, String definition) {
+		super(reference, definition);
+	}
+
+	public NullOperation(String reference, String description, ArrayList<? extends Operation> operands) {
+		super(reference, description, operands);
+	}
+	
 	public NullOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);

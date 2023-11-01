@@ -29,8 +29,10 @@
  */
 package com.finance.pms.events.scoring.functions;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -47,8 +49,13 @@ public class MyApacheStats implements StatsFunction {
 	}
 
 	@Override
-	public double mEvaluate(SortedMap<Date, Double> subMap) {
-		return this.sEvaluate(subMap.values());
+	public double dEvaluateMd(SortedMap<Date, Double> subMap) {
+		return this.dEvaluateCd(subMap.values());
+	}
+	
+	@Override
+	public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
+		return new double[] {this.dEvaluateMd(subMap)};
 	}
 
 	/**
@@ -56,7 +63,7 @@ public class MyApacheStats implements StatsFunction {
 	 * @param subMap
 	 * @return
 	 */
-	public double evaluate(Collection<double[]> subMap) {
+	public double dEvaluateCad(Collection<double[]> subMap) {
 		statistic.setData(null);
 		double[] values = new double[subMap.size()];
 		int i = 0;
@@ -68,7 +75,7 @@ public class MyApacheStats implements StatsFunction {
 		return statistic.evaluate(values);
 	}
 	
-	public double[] aEvaluate(Collection<double[]> subMap) {
+	public double[] adEvaluateCad(Collection<double[]> subMap) {
 		statistic.setData(null);
 		SortedMap<Integer, double[]> valuesMap = new TreeMap<>();
 		int i = 0;
@@ -84,7 +91,7 @@ public class MyApacheStats implements StatsFunction {
 		return results;
 	}
 
-	public double sEvaluate(Collection<Double> subMap) {
+	public double dEvaluateCd(Collection<Double> subMap) {
 		statistic.setData(null);
 		double[] values = new double[subMap.size()];
 		int i = 0;
@@ -97,10 +104,24 @@ public class MyApacheStats implements StatsFunction {
 	}
 
 	@Override
-	public SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap) {
-		double sEvaluate = this.sEvaluate(subMap.values().stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList()));
+	public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
+		double sEvaluate = this.dEvaluateCd(subMap.values().stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList()));
 		TreeMap<Date, Double> collected = subMap.keySet().stream().collect(Collectors.toMap(k -> k, k -> sEvaluate, (a, b) -> a, TreeMap<Date,Double>::new));
 		return collected;
 	}
+	
+	@Override
+	public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
+		double dEvaluateCd = this.dEvaluateCd(subMap.values().stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList()));
+		TreeMap<Date, double[]> collected = subMap.keySet().stream().collect(Collectors.toMap(k -> k, k -> new double[] {dEvaluateCd}, (a, b) -> a, TreeMap<Date,double[]>::new));
+		return collected;
+	}
+
+	@Override
+	public List<String> getOutputsRefs() {
+		return Arrays.asList(statistic.getClass().getSimpleName().toLowerCase());
+	}
+	
+	
 
 }

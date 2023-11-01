@@ -6,19 +6,19 @@ import java.util.List;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 
-public class StringListValue extends ListValue<String> {
+public class NumberListValue extends ListValue<Number> {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(StringListValue.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(NumberListValue.class);
 	
-	List<String> list;
-
-	public StringListValue(List<String> list) {
+	List<Number> list;
+	
+	public NumberListValue(List<Number> list) {
 		super();
 		this.list = list;
 	}
 
 	@Override
-	public List<String> getValue(TargetStockInfo targetStock) {
+	public List<Number> getValue(TargetStockInfo targetStock) {
 		return list;
 	}
 
@@ -30,8 +30,8 @@ public class StringListValue extends ListValue<String> {
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		try {
-			StringListValue clone = (StringListValue) super.clone();
-			clone.list = new ArrayList<String>(this.list);
+			NumberListValue clone = (NumberListValue) super.clone();
+			clone.list = new ArrayList<Number>(this.list);
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);

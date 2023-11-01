@@ -57,24 +57,24 @@ public class UserDialog extends Dialog {
 	protected static MyLogger LOGGER = MyLogger.getLogger(UserDialog.class);
 
 
-	protected Text errorTxt;
+	protected Text msgTxt;
 	private Text addMsgTxt;
-	private String erreur;
-	private String addMessage;
+	private String msg;
+	private String addMsg;
 	protected Button valideButton;
 
 	public UserDialog(Shell parent, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHELL_TRIM));
 		this.getParent().setText(MainGui.APP_NAME + " - Warning");
-		this.erreur = erreur;
-		this.addMessage = addMessage;
+		this.msg = erreur;
+		this.addMsg = addMessage;
 	}
 
 	protected UserDialog(Shell parent, String title, String erreur, String addMessage) {
 		super(new Shell(parent, SWT.SHELL_TRIM));
 		this.getParent().setText(title);
-		this.erreur = erreur;
-		this.addMessage = addMessage;
+		this.msg = erreur;
+		this.addMsg = addMessage;
 	}
 
 	public void open() {
@@ -89,14 +89,14 @@ public class UserDialog extends Dialog {
 			this.getParent().setBackground(MainGui.pOPUP_BG);
 
 			{
-				errorTxt = new Text(getParent(), SWT.WRAP);
-				errorTxt.setFont(MainGui.DEFAULTFONT);
-				errorTxt.setBackground(MainGui.pOPUP_BG);
-				errorTxt.setEditable(false);
-				if (erreur == null) {
-					errorTxt.setVisible(false);
+				msgTxt = new Text(getParent(), SWT.WRAP);
+				msgTxt.setFont(MainGui.DEFAULTFONT);
+				msgTxt.setBackground(MainGui.pOPUP_BG);
+				msgTxt.setEditable(false);
+				if (msg == null) {
+					msgTxt.setVisible(false);
 				} else {
-					errorTxt.setText(cleanMsg(this.erreur, false));
+					msgTxt.setText(cleanMsg(this.msg, false));
 				}
 			}
 			initAddMsg();
@@ -142,18 +142,18 @@ public class UserDialog extends Dialog {
 		addMsgTxt.setBackground(new Color(getParent().getDisplay(),(int) (MainGui.pOPUP_BG.getRed()*1.05),(int)(MainGui.pOPUP_BG.getGreen()*1.05),(int) (MainGui.pOPUP_BG.getBlue()*1.05)));
 		addMsgTxt.setEditable(false);
 		addMsgTxt.setCapture(false);
-		if (addMessage == null) {
+		if (addMsg == null) {
 			addMsgTxt.setVisible(false);
 		} else {
-			addMsgTxt.setText(cleanMsg(this.addMessage, true));
+			addMsgTxt.setText(cleanMsg(this.addMsg, true));
 		}
 
 	}
 
 	protected void layout() {
 
-		if (errorTxt != null) {
-			errorTxt.pack();
+		if (msgTxt != null) {
+			msgTxt.pack();
 		}
 
 		if (addMsgTxt != null) {
@@ -169,18 +169,18 @@ public class UserDialog extends Dialog {
 	public void updateDialog(String title, String erreur, String addMessage) {
 
 		if (title != null) this.getParent().setText(title);
-		this.erreur = erreur;
-		this.addMessage = addMessage;
+		this.msg = erreur;
+		this.addMsg = addMessage;
 
-		if (erreur != null && errorTxt != null)  {
-			errorTxt.setText(cleanMsg(this.erreur, false));
-			errorTxt.setVisible(true);
+		if (erreur != null && msgTxt != null)  {
+			msgTxt.setText(cleanMsg(this.msg, false));
+			msgTxt.setVisible(true);
 		} else {
-			errorTxt.setText("");
-			errorTxt.setVisible(false);
+			msgTxt.setText("");
+			msgTxt.setVisible(false);
 		}
 		if (addMessage != null  && addMsgTxt != null) {
-			addMsgTxt.setText(cleanMsg(this.addMessage, true));
+			addMsgTxt.setText(cleanMsg(this.addMsg, true));
 			addMsgTxt.setVisible(true);
 		} else {
 			addMsgTxt.setText("");
@@ -244,15 +244,15 @@ public class UserDialog extends Dialog {
 
 	public boolean sameDialog(String erreur, String addMessage) {
 
-		if (this.addMessage == null) {
+		if (this.addMsg == null) {
 			if (addMessage != null)
 				return false;
-		} else if (!this.addMessage.equals(addMessage))
+		} else if (!this.addMsg.equals(addMessage))
 			return false;
-		if (this.erreur == null) {
+		if (this.msg == null) {
 			if (erreur != null)
 				return false;
-		} else if (!this.erreur.equals(erreur))
+		} else if (!this.msg.equals(erreur))
 			return false;
 		return true;
 	}

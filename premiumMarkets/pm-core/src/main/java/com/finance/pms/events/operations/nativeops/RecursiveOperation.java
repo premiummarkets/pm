@@ -117,7 +117,7 @@ public class RecursiveOperation extends DoubleMapOperation {
 				.subMapInclusive(seedingData, seedFrom, startDateShift)
 				.values()
 				.stream().filter(v -> !Double.isNaN(v)).collect(Collectors.toList());
-		Double seed = new MyApacheStats(new Mean()).sEvaluate(seedValues);
+		Double seed = new MyApacheStats(new Mean()).dEvaluateCd(seedValues);
 		if (seed.isNaN()) seed = seedingData.get(seedingData.headMap(startDateShift).lastKey()); //When no seed because seedingData are outside [startDate - period, startDate]
 
 		//Calculus

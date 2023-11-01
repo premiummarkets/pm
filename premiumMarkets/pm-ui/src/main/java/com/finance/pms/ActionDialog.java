@@ -50,14 +50,15 @@ public class ActionDialog extends UserDialog {
     protected ActionDialogAction errorHandler;
 
     protected ActionDialogAction action;
-    String actionTxt;
+    private String actionButtonMsg;
     private boolean runInThread;
+    private boolean hasActionError = false;
 
     private boolean runASync;
 
     public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action) {
         super(parent, title, erreur, addMessage);
-        this.actionTxt = actionTxt;
+        this.actionButtonMsg = actionTxt;
         this.action = action;
         runInThread = true;
         runASync = true;
@@ -65,7 +66,7 @@ public class ActionDialog extends UserDialog {
 
     public ActionDialog(Shell parent, String title, String erreur, String addMessage, String actionTxt, ActionDialogAction action, Boolean runASync) {
         super(parent, title, erreur, addMessage);
-        this.actionTxt = actionTxt;
+        this.actionButtonMsg = actionTxt;
         this.action = action;
         this.runASync = runASync;
     }
@@ -78,7 +79,7 @@ public class ActionDialog extends UserDialog {
     @Override
     protected void validationButtonTxtAndAction() {
 
-        valideButton.setText(actionTxt);
+        valideButton.setText(actionButtonMsg);
         valideButton.setFont(MainGui.DEFAULTFONT);
         valideButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -114,8 +115,9 @@ public class ActionDialog extends UserDialog {
                         errorHandler.action();
                     } else {
                         try {
-                            ActionDialog.this.errorTxt.setText(cleanMsg(e.toString(), true));
-                            ActionDialog.this.errorTxt.setVisible(true);
+                        	ActionDialog.this.hasActionError = true;
+                            ActionDialog.this.msgTxt.setText(cleanMsg(e.toString(), true));
+                            ActionDialog.this.msgTxt.setVisible(true);
                             ActionDialog.this.getParent().pack();
                         } catch (Exception e1) {
                             LOGGER.warn(e,e);
@@ -144,7 +146,7 @@ public class ActionDialog extends UserDialog {
         }
 
         try {
-            dispose();
+            if (!this.hasActionError) dispose();
         } catch (Exception e) {
             LOGGER.warn(e,e);
         }
@@ -160,7 +162,7 @@ public class ActionDialog extends UserDialog {
 
         super.updateDialog(title, erreur, addMessage);
 
-        this.actionTxt = actionTxt;
+        this.actionButtonMsg = actionTxt;
         this.action = action;
         valideButton.setText(actionTxt);
 
@@ -175,10 +177,10 @@ public class ActionDialog extends UserDialog {
 
         if (!super.sameDialog(erreur, addMessage))
             return false;
-        if (this.actionTxt == null) {
+        if (this.actionButtonMsg == null) {
             if (actionTxt != null)
                 return false;
-        } else if (!this.actionTxt.equals(actionTxt))
+        } else if (!this.actionButtonMsg.equals(actionTxt))
             return false;
         return true;
     }

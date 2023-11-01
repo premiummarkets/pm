@@ -50,7 +50,7 @@ public class EventsStatusCheckerTest {
         tunedConf = PowerMock.createMock(TunedConf.class);
         tunedConfMgr = PowerMock.createMock(TunedConfMgr.class);
         EasyMock.expect(TunedConfMgr.getInstance()).andReturn(tunedConfMgr);
-        EasyMock.expect(tunedConfMgr.loadUniqueNoRetuneConfig(stock, analysisName, eventDef.getEventDefinitionRef())).andReturn(Optional.of(tunedConf));
+        EasyMock.expect(tunedConfMgr.loadUniqueNoRetuneConfig(stock, analysisName, eventDef)).andReturn(Optional.of(tunedConf));
         
     }
 

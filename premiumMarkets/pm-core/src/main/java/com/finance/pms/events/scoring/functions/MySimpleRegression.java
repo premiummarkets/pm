@@ -1,6 +1,8 @@
 package com.finance.pms.events.scoring.functions;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -12,7 +14,7 @@ public class MySimpleRegression implements StatsFunction {
 	private static double DAY_IN_MILLI = 24*60*60*1000;
 
 	@Override
-	public double mEvaluate(SortedMap<Date, Double> lookBack) {
+	public double dEvaluateMd(SortedMap<Date, Double> lookBack) {
 		
 		double firstX = lookBack.firstKey().getTime()/DAY_IN_MILLI;
 		double lastX = lookBack.lastKey().getTime()/DAY_IN_MILLI;
@@ -33,7 +35,7 @@ public class MySimpleRegression implements StatsFunction {
 	}
 
 	@Override
-	public SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap) {
+	public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
 		
 		double firstX = subMap.firstKey().getTime()/DAY_IN_MILLI;
 		
@@ -47,6 +49,23 @@ public class MySimpleRegression implements StatsFunction {
 		}, (a, b) -> a, TreeMap<Date,Double>::new));
 		
 		return collected;
+	}
+	
+	@Override
+	public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
+		return new double[] {this.dEvaluateMd(subMap)};
+	}
+	
+	@Override
+	public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
+		SortedMap<Date, Double> mdEvaluateMd = this.mdEvaluateMd(subMap);
+		TreeMap<Date, double[]> collected = mdEvaluateMd.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a, b) -> a, TreeMap<Date,double[]>::new));
+		return collected;
+	}
+
+	@Override
+	public List<String> getOutputsRefs() {
+		return Arrays.asList("mysimpleregression");
 	}
 
 }

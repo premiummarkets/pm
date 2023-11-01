@@ -219,7 +219,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	/**
 	 * The INIT will always calculate from the farthest left shift and we assume the delta file has always been initialised this way.
 	 */
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisOutputRequiredStartShiftByParent) {
 		
 		int lagAmount = getLagAmount(targetStock, getOperands());
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
@@ -227,13 +227,13 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		try {
 			
 //			Stock stock = targetStock.getStock();
-//			Date startDate = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
+//			Date startDate = targetStock.getStartDate(thisOutputRequiredStartShiftByParent);
 //			Date endDate = targetStock.getEndDate();
 //			int spanInDataPoints = QuotationsFactories.getFactory().nbDataPointsBetweenFor(stock, startDate, endDate, ValidityFilter.getFilterFor(this.getRequiredStockData()));
 //			if (spanInDataPoints <= lagAmount) 
 //				throw new NotEnoughDataException(stock, startDate, endDate, "Span is too small for the inherent lag of the operation: " + spanInDataPoints + "<=" + lagAmount, null);
 
-			int shift = deltaShiftFix(targetStock, thisOutputRequiredStartShiftFromParent, lagAmount);
+			int shift = deltaShiftFix(targetStock, thisOutputRequiredStartShiftByParent, lagAmount);
 			return lagAmount + shift;
 			
 		} catch (Exception e) {
@@ -254,7 +254,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		Date startDateShifted = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
 		Date startDate = targetStock.getStartDate(0);
 		Date endDate = targetStock.getEndDate();
-		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, "(" + targetStock.getStock().getSymbol() + ")", 0);
+		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
 		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getParameter()).getValue(targetStock));
@@ -436,7 +436,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	
 	
 	@Override
-	public boolean isQuotationsDataSensitive() {
+	public boolean isParameterDataSensitive() {
 		return true;
 	}
 

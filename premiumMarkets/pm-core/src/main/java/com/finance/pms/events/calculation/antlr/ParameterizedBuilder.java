@@ -53,7 +53,7 @@ import com.finance.pms.PostInitMonitor;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 
@@ -386,7 +386,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 		for (Operation operation : operations) {
 
-			if (	(operation instanceof MapOperation && operationToCheck.getReference().equals(operation.getReference())) ||
+			if (	(!(operation instanceof LeafOperation) && operationToCheck.getReference().equals(operation.getReference())) ||
 					(operation instanceof OperationReferenceOperation && 
 							operation.getParameter() != null &&
 							operationToCheck.getReference().equals(((OperationReferenceValue<? extends Operation>) operation.getParameter()).getValue(null).getReference()))
@@ -421,7 +421,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		for (int i = 0; i < operations.size(); i++) {
 			
 			//Standard
-			if (operations.get(i) instanceof MapOperation && replacementOp.getReference().equals(operations.get(i).getReference())) {
+			if (!(operations.get(i) instanceof LeafOperation) && replacementOp.getReference().equals(operations.get(i).getReference())) {
 				
 				parent.replaceOperand(i, replacementOp); //effective replacement
 				replacementOpIsUsedByParent = true;

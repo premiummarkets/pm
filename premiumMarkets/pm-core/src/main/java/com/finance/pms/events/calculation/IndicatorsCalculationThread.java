@@ -171,17 +171,17 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 					try {
 						
 						EventInfo eventInfo = evtCalculator.getEventDefinition();
-						TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, DateFactory.dateAtZero(), DateFactory.dateAtZero());
+						TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, datedeb, datefin);
 						boolean grantsEventsOverride = !(eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock));
 						
-						Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef());
+						Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo);
 						boolean hasPreviousCalculations = tunedConfOpt.isPresent()  && !tunedConfOpt.get().isEmpty();
 						boolean isIdempotent = evtCalculator.isIdemPotent();
 						boolean isAlterableOveridable = !isIdempotent && grantsEventsOverride;
 						
 						TunedConf tunedConf = hasPreviousCalculations?
 												tunedConfOpt.get():
-												TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo.getEventDefinitionRef(), isAlterableOveridable);
+												TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo, isAlterableOveridable);
 	
 						if (isAlterableOveridable) {
 							cleanEventsFor(stock, eventInfo, eventListName);

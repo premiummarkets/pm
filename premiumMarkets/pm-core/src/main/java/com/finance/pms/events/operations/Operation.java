@@ -66,8 +66,8 @@ import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
-import com.finance.pms.events.operations.nativeops.NumberMathOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.RequiredShiftWrapperOperation;
@@ -85,10 +85,10 @@ import com.finance.pms.events.quotations.QuotationDataType;
  **/
 @XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
-	Condition.class, MapOperation.class, StringerOperation.class, NumberMathOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
+	Condition.class, MapOperation.class, StringerOperation.class, NumbererOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
-	RequiredShiftWrapperOperation.class})
+	RequiredShiftWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -189,11 +189,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * 
 	 * @param targetStock
 	 * @param parentCallStack
-	 * @param thisOutputRequiredStartShiftFromParent: (this operation output shift (== parent input shift) + this operation required operands input shift for 0 lag) (== total operands output shift)
+	 * @param thisOutputRequiredStartShiftByParent: (this operation output shift (== parent input shift) + this operation required operands input shift for 0 lag) (== total operands output shift)
 	 * @return
 	 */
-	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftFromParent) {
-		
+	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftByParent) {	
 		int nbOperands = operands.size();
 		
 		//Literals
@@ -201,16 +200,16 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			return parameter;
 		}
 		else {
-			runNonDataSensitives(targetStock, operands);
+			runNonDataSensitives(targetStock, addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, 0, targetStock), operands);
 		}
 
 		//Quotation sensitives
-		int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftFromParent);
-		int thisInputOperandsRequiredshiftFromThis = thisOutputRequiredStartShiftFromParent + thisOperationOperandsStartShift;
+		int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftByParent);
+		int thisInputOperandsRequiredshiftFromThis = thisOutputRequiredStartShiftByParent + thisOperationOperandsStartShift;
 		
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		try {
-			String thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftFromParent, thisOperationOperandsStartShift, targetStock);
+			String thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, thisOperationOperandsStartShift, targetStock);
 			//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
 			//LOGGER.info(thisCallStack);
 			
@@ -218,7 +217,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			boolean isInChart = isDisplay && thisCallStack.split("=>").length <= maxDepth;
 			
 			Value<?> alreadyCalculated = null;
-			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOutputRequiredStartShiftFromParent)) != null) {
+			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
 				return alreadyCalculated;
 			}
 			else {
@@ -300,9 +299,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					}
 				}
 
-				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift (this output required) " + thisOutputRequiredStartShiftFromParent + " and parent+this (this input required)" + thisInputOperandsRequiredshiftFromThis);
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift (this output required) " + thisOutputRequiredStartShiftByParent + " and parent+this (this input required)" + thisInputOperandsRequiredshiftFromThis);
 				
-				Value<?> operationOutput = calculate(targetStock, thisCallStack, thisOutputRequiredStartShiftFromParent, thisInputOperandsRequiredshiftFromThis, operandsOutputs);
+				Value<?> operationOutput = calculate(targetStock, thisCallStack, thisOutputRequiredStartShiftByParent, thisInputOperandsRequiredshiftFromThis, operandsOutputs);
 				
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculation results " + this.getReference() + ((this.getOutputSelector() != null)?": " + this.getOutputSelector():"") + " returns " + operationOutput.toString());
 				
@@ -320,6 +319,18 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 //				}
 ////				//DEBUG
 				
+				//find userParameterized \( -name "c_op_*" -o -name "meta_*" -o -name "k_training_*" \) -delete
+				if ((operationOutput instanceof NumericableMapValue || operationOutput instanceof MultiMapValue || this instanceof CachableOperation)) {
+					LOGGER.info(
+							"Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference() + 
+							". Caller: " + ((parentCallStack.contains("\n"))?
+												parentCallStack.substring(0, parentCallStack.indexOf("\n")) + "..." + parentCallStack.substring(parentCallStack.lastIndexOf("\n") + 1):
+												parentCallStack)
+							//+ ". Stack: " + ((this.shortOutputReference().contains("bestShift:period"))?parentCallStack:"hidden")
+							//+ ". Stack: " + ((this.shortOutputReference().contains("iosAssembler"))?"iosAssembler stack":parentCallStack)
+							);
+				}
+				
 				return operationOutput;
 			}
 
@@ -333,11 +344,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
-	protected void runNonDataSensitives(TargetStockInfo targetStock, List<Operation> someOperands) {
+	protected void runNonDataSensitives(TargetStockInfo targetStock, String parentCallStack, List<Operation> someOperands) {
 		for (int i = 0; i < someOperands.size(); i++) {
 			Operation operand = someOperands.get(i);
-			if (!operand.isQuotationsDataSensitive()) {
-				Value<?> output = operand.run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + operand.shortOutputReference(), 0);								
+			if (!operand.isParameterDataSensitive()) {
+				Value<?> output = operand.run(targetStock, parentCallStack, 0);								
 				operand.setParameter(output);
 			}
 		}
@@ -352,7 +363,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * @return
 	 * @throws NotEnoughDataException 
 	 */
-	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) throws NotEnoughDataException {
+	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) {
 		int stackDepth = parentCallStack.split("=>").length  + 1;
 		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
@@ -372,7 +383,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}
 
 		//We gather only outputs for Numericable outputs or if explicitly Cachable
-		if ( output instanceof NumericableMapValue || operand instanceof CachableOperation) {
+		if (output instanceof NumericableMapValue || operand instanceof CachableOperation) {
 			targetStock.gatherOneOutput(operand, output, Optional.empty(), storedStartShift, isInChart);
 		}
 		//We also gather extraneous chartable outputs from conditions.
@@ -393,14 +404,15 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * thisInputOperandsRequiredShiftFromThis : The start left shift required from the operands calculation of this operation + the added parents requirement accumulated (thisOutputRequiredStartShiftFromParent).
+	 * thisInputOperandsRequiredShiftFromThis : The start left shift required from the operands calculation of this operation + the added parents requirement accumulated (thisOutputRequiredStartShiftByParent).
 	 * Operands are already calculated at this stage. So this is assumed they already have had their calculation start shifted to comply with this operation requirement.
 	 * Hence, this is used for no data operations (where operands are not pre-calculated) as it accumulates all the hierarchy of parents start shifts.
 	 * Not to be confused with the operandsRequiredStartShift() method which only has this operation required start shift from its operands (without the parent).
+	 * So we can say: thisInputOperandsRequiredShiftFromThis = thisOutputRequiredStartShiftByParent + operandsRequiredStartShift() ??
 	 * @param parentCallStack TODO
 	 * @param parentRequiredStartShift TODO
 	 */
-	public abstract Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftFromParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 	
 	public abstract Value<?> emptyValue();
 	
@@ -435,14 +447,22 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operands;
 	}
 
-	//Parameter for this operation (this is actually a pre evaluated value for the operand)
+	/**
+	 * Parameter for this operation (this is actually a pre evaluated value for the operand)
+	 * TODO?? set the parameter in conjunction (or in place?) of the targetStock output cache?? This would mean the parameter is set not only for the runNonDataSensitives
+	 * @param parameter
+	 */
 	public void setParameter(Value<?> parameter) {
 		String operationReference = this.getOperationReference();
+		
+		//Sanity check
 		if (!(this instanceof LeafOperation) && operationReference != null) {
 			ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 			Operation upStreamOperation = parameterizedOperationBuilder.getCurrentOperations().get(operationReference);
 			if (upStreamOperation == this) throw new RuntimeException("Please clone before using the setParameter");
 		}
+		//
+		
 		this.parameter = parameter;
 	}
 
@@ -687,7 +707,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	public String shortOutputReference() {
-		return "[" + reference + " (is " + operationReference + ":" + outputSelector + ") as "+ referenceAsOperand + "]";
+		return "[" + reference + " (is " + operationReference + ":" + outputSelector + ") as " + referenceAsOperand + "]";
 	}
 
 	public String synoptic() {
@@ -765,7 +785,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public String toString() {
 		return "Operation [ reference=" + reference + ", formula=" + ((formulae != null)?formulae.replaceAll("\n", " "):"null") + 
 				", description=" + description + ", referenceAsOperand=" + referenceAsOperand + ", operationReference=" + operationReference + 
-				", availableOutputSelectors=" + availableOutputSelectors + ", outputSelector="+ outputSelector + ", disabled=" + disabled + "]";
+				", parameter=" + parameter +
+				", availableOutputSelectors=" + availableOutputSelectors + ", outputSelector=" + outputSelector + ", disabled=" + disabled + "]";
 	}
 
 	public void replaceOperand(int i, Operation replacementOp) {
@@ -838,10 +859,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	//XXX should be protected use with caution or have targetStock as parameter
-	public boolean isQuotationsDataSensitive() {
+	/**
+	 * If true, this operation won't accept a parameter to be set results and it will be recalculated systematically if their output is not cached.
+	 * @return
+	 */
+	public boolean isParameterDataSensitive() {
 		if (this instanceof StockOperation || this instanceof OperationReferenceOperation) return true;
 		if (operands.isEmpty()) return false;
-		return operands.stream().reduce(false, (r, e) -> r || e instanceof StockOperation || e instanceof OperationReferenceOperation || e.isQuotationsDataSensitive(), (a, b) -> a || b);
+		return operands.stream().reduce(false, (r, e) -> r || e instanceof StockOperation || e instanceof OperationReferenceOperation || e.isParameterDataSensitive(), (a, b) -> a || b);
 	}
 
 	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams);

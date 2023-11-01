@@ -37,7 +37,10 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.EnvOperation;
+import com.finance.pms.events.operations.GetOperation;
 import com.finance.pms.events.operations.IfOperation;
+import com.finance.pms.events.operations.LetOperation;
 import com.finance.pms.events.operations.MetaOperation;
 import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.ProfitDrivenOperation;
@@ -51,6 +54,7 @@ import com.finance.pms.events.operations.nativeops.ConcatStringOperation;
 import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.DataTypeCheckOperation;
 import com.finance.pms.events.operations.nativeops.Division;
+import com.finance.pms.events.operations.nativeops.EqualsOperation;
 import com.finance.pms.events.operations.nativeops.FilterOperation;
 import com.finance.pms.events.operations.nativeops.FlipOperation;
 import com.finance.pms.events.operations.nativeops.IOsAssemblerOperation;
@@ -118,6 +122,12 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(nullOperation);
 		IfOperation ifOperation = new IfOperation();
 		nativeOperations.addOperation(ifOperation);
+		LetOperation letOperation = new LetOperation();
+		nativeOperations.addOperation(letOperation);
+		GetOperation getOperation = new GetOperation();
+		nativeOperations.addOperation(getOperation);
+		EnvOperation envOperation = new EnvOperation();
+		nativeOperations.addOperation(envOperation);
 
 		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)
@@ -226,6 +236,9 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(concatStringOperation);
 		StringEqualsOperation stringEqualsOperation = new StringEqualsOperation();
 		nativeOperations.addOperation(stringEqualsOperation);
+		EqualsOperation equalsOperation = new EqualsOperation();
+		nativeOperations.addOperation(equalsOperation);
+
 
 		//Other
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();

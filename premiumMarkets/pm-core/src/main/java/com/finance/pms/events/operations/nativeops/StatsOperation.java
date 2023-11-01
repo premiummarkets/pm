@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -55,6 +56,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
 import com.finance.pms.events.scoring.functions.MySimpleRegression;
@@ -62,8 +64,95 @@ import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
 @XmlRootElement
-public class StatsOperation extends PMWithDataOperation {
+public class StatsOperation extends PMWithDataOperation implements MultiValuesOutput {
 
+	private final class SpecificStatsFunction implements StatsFunction {
+		
+		private final Operation specificOperation;
+		private final String thisCallStack;
+		private final int thisInputOperandsRequiredShiftFromThis;
+		private final TargetStockInfo targetStock;
+		private final String outputSelector;
+		
+		private List<String> doEvalColRefs;
+
+		private SpecificStatsFunction(Operation specificOperation, String thisCallStack, int thisInputOperandsRequiredShiftFromThis, TargetStockInfo targetStock, String outputSelector) {
+			this.specificOperation = specificOperation;
+			this.thisCallStack = thisCallStack;
+			this.thisInputOperandsRequiredShiftFromThis = thisInputOperandsRequiredShiftFromThis;
+			this.targetStock = targetStock;
+			this.outputSelector = outputSelector;
+		}
+
+		@Override
+		public double dEvaluateMd(SortedMap<Date, Double> subMap) {
+			try {
+				NumberValue run = doEval(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis, specificOperation, subMap);
+				return run.getNumberValue();
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e, e);
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
+			try {
+				NumberValue run = doEval(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis, specificOperation, subMap);
+				return (run instanceof NumberArrayValue)?((NumberArrayValue)run).getDoubleArrayValue():new double[] {run.getNumberValue()};
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e, e);
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
+			try {
+				NumberValue run = doEval(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis, specificOperation, subMap);
+				TreeMap<Date, Double> collected = subMap.keySet().stream().collect(Collectors.toMap(k -> k, k -> run.getNumberValue(), (a, b) -> a, TreeMap<Date,Double>::new));
+				return collected;
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e, e);
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
+			try {
+				NumberValue run = doEval(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis, specificOperation, subMap);
+				TreeMap<Date, double[]> collected = subMap.keySet().stream()
+						.collect(Collectors.toMap(
+								k -> k, 
+								k -> (run instanceof NumberArrayValue)?((NumberArrayValue)run).getDoubleArrayValue():new double[] {run.getNumberValue()}, 
+								(a, b) -> a, TreeMap<Date,double[]>::new)
+								);
+				return collected;
+			} catch (NotEnoughDataException e) {
+				LOGGER.error(e, e);
+				throw new RuntimeException(e);
+			}
+		}
+
+		private NumberValue doEval(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift, Operation specificOperation, SortedMap<Date, Double> subMap) throws NotEnoughDataException {
+			TargetStockInfo evaluateTargetStock = new TargetStockInfo(targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), targetStock.getStock(), subMap.firstKey(), subMap.lastKey());
+			int operandsRequiredStartShift = specificOperation.operandsRequiredStartShift(evaluateTargetStock, parentRequiredStartShift);
+			NumberValue run = (NumberValue) specificOperation
+					.run(evaluateTargetStock, 
+						 addThisToStack(parentCallStack, parentRequiredStartShift, operandsRequiredStartShift, evaluateTargetStock), 
+						 parentRequiredStartShift);
+			doEvalColRefs = (run instanceof NumberArrayValue)?((NumberArrayValue)run).getColumnsReferences():Arrays.asList(outputSelector);
+			return run;
+		}
+
+		@Override
+		public List<String> getOutputsRefs() {
+			return doEvalColRefs;
+		}
+	}
+
+	private static final int DATA_INPUT_IDX = 2;
 	private static MyLogger LOGGER = MyLogger.getLogger(StatsOperation.class);
 	
 	protected StatsOperation(String reference, String description, Operation ... operands) {
@@ -73,8 +162,8 @@ public class StatsOperation extends PMWithDataOperation {
 	public StatsOperation() {
 		this("stat", "Moving statistics",
 				new NumberOperation("number", "movingPeriod", "Moving period in data points. 'NaN' means window == data set size", new NumberValue(21.0)),
-				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null),
-				new DoubleMapOperation()); //Optional
+				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null), //Optional
+				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm", "specificStat"})));
 	}
 
@@ -87,18 +176,19 @@ public class StatsOperation extends PMWithDataOperation {
 	@Override
 	public NumericableMapValue calculate(
 			TargetStockInfo targetStock, String thisCallStack, 
-			int thisOutputRequiredStartShiftFromParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+			int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		Double period = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
 		@SuppressWarnings("unchecked")
-		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(2, 3);
+		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(DATA_INPUT_IDX, DATA_INPUT_IDX+1);
 
 		try {
 			
+			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
+			
 			final StatsFunction statFunction;
 			
-			String outputSelector = getOutputSelector(); //We don't do all outputs calculations at once as each calculation is independent
 			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
 				statFunction = new MyApacheStats(new Mean());
 			} 
@@ -121,15 +211,27 @@ public class StatsOperation extends PMWithDataOperation {
 				statFunction = new StatsFunction() {
 					
 					@Override
-					public double mEvaluate(SortedMap<Date, Double> subMap) {
+					public double dEvaluateMd(SortedMap<Date, Double> subMap) {
 						SortedMap<Date, Double> normalized = doEval(subMap);
 						return normalized.get(normalized.lastKey());
 					}
 					
 					@Override
-					public SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap) {
+					public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
+						SortedMap<Date, Double> normalized = doEval(subMap);
+						return new double[] {normalized.get(normalized.lastKey())};
+					}
+					
+					@Override
+					public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
 						SortedMap<Date, Double> normalized = doEval(subMap);
 						return normalized;
+					}
+					
+					@Override
+					public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
+						SortedMap<Date, Double> normalized = doEval(subMap);
+						return  normalized.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a, b) -> a, TreeMap<Date,double[]>::new));
 					}
 					
 					private SortedMap<Date, Double> doEval(SortedMap<Date, Double> subMap) {
@@ -137,51 +239,18 @@ public class StatsOperation extends PMWithDataOperation {
 						SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
 						return normalized;
 					}
+
+					@Override
+					public List<String> getOutputsRefs() {
+						return  Arrays.asList(outputSelector);
+					}
 				};
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("specificStat")) {
-				
 				Operation specificOperation = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock);
-				
-				statFunction = new StatsFunction() {
-
-					@Override
-					public double mEvaluate(SortedMap<Date, Double> subMap) {
-						try {
-							NumberValue run = doEval(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis, specificOperation, subMap);
-							return run.getNumberValue();
-						} catch (NotEnoughDataException e) {
-							LOGGER.error(e, e);
-							throw new RuntimeException(e);
-						}
-					}
-
-					@Override
-					public SortedMap<Date, Double> evaluate(SortedMap<Date, Double> subMap) {
-						try {
-							NumberValue run = doEval(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis, specificOperation, subMap);
-							TreeMap<Date, Double> result = new TreeMap<>();
-							result.put(subMap.lastKey(), run.getNumberValue());
-							return result;
-						} catch (NotEnoughDataException e) {
-							LOGGER.error(e, e);
-							throw new RuntimeException(e);
-						}
-					}
-					
-					private NumberValue doEval(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift, Operation specificOperation, SortedMap<Date, Double> subMap) throws NotEnoughDataException {
-						TargetStockInfo evaluateTargetStock = new TargetStockInfo(targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), targetStock.getStock(), subMap.firstKey(), subMap.lastKey());
-						int operandsRequiredStartShift = specificOperation.operandsRequiredStartShift(evaluateTargetStock, parentRequiredStartShift);
-						NumberValue run = (NumberValue) specificOperation
-								.run(evaluateTargetStock, 
-									 addThisToStack(parentCallStack, parentRequiredStartShift, operandsRequiredStartShift, evaluateTargetStock), 
-									 parentRequiredStartShift);
-						return run;
-					}
-					
-				};
+				statFunction = new SpecificStatsFunction(specificOperation, thisCallStack, thisInputOperandsRequiredShiftFromThis, targetStock, outputSelector);
 			}
-			else {
+			else { //Can I be here anymore as the operation would not comply the grammar??
 				//Default is identity
 				statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
 					@Override
@@ -195,25 +264,25 @@ public class StatsOperation extends PMWithDataOperation {
 				});
 			}
 
-			if (period.isNaN()) {
+			if (period.isNaN()) { //XXX this may not be accurate as even with NaN (all data set), the windows end date should be sliding??
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
-					return new DoubleMapValue(statFunction.evaluate(data.get(0).getValue(targetStock)));
+					return new DoubleArrayMapValue(statFunction.madEvaluateMd(data.get(0).getValue(targetStock)), statFunction.getOutputsRefs(), mainInputPosition());
 				};
-				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, thisOutputRequiredStartShiftFromParent, innerCalcFunc, numericableMapValue);
+				return ValueManipulator.doubleArrayExpender(this, DATA_INPUT_IDX, targetStock, thisOutputRequiredStartShiftByParent, innerCalcFunc, numericableMapValue);
 			} else {
 				Date startDate = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis);
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
-					SortedMap<Date, Double> movingStat = MapUtils.movingStat(data.get(0).getValue(targetStock), startDate, period.intValue(), statFunction);
-					return new DoubleMapValue(movingStat);
+					SortedMap<Date, double[]> movingStat = MapUtils.madMovingStat(data.get(0).getValue(targetStock), startDate, period.intValue(), statFunction);
+					return new DoubleArrayMapValue(movingStat, statFunction.getOutputsRefs(), mainInputPosition());
 				};
-				return ValueManipulator.doubleArrayExpender(this, 1, targetStock, thisOutputRequiredStartShiftFromParent, innerCalcFunc, numericableMapValue);
+				return ValueManipulator.doubleArrayExpender(this, DATA_INPUT_IDX, targetStock, thisOutputRequiredStartShiftByParent, innerCalcFunc, numericableMapValue);
 			}
 
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
 
-		return new DoubleMapValue();
+		return new DoubleArrayMapValue();
 
 	}
 
@@ -236,6 +305,11 @@ public class StatsOperation extends PMWithDataOperation {
 		String thisShort = getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" + ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
 		String opsFormulaeShort = super.toFormulaeShort();
 		return thisShort + ((opsFormulaeShort.isEmpty())? "" : "_" + opsFormulaeShort);
+	}
+
+	@Override
+	public int mainInputPosition() {
+		return 0;
 	}
 
 

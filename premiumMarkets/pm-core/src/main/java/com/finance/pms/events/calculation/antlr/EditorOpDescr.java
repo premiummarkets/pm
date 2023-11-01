@@ -34,6 +34,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
@@ -52,7 +53,8 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 		MATYPE (MATypeOperation.class, "MAType"), 
 		STRING (StringOperation.class, "String"), 
 		LIST (ListOperation.class, "ListOperation"),
-		OPREF (OperationReferenceOperation.class, "OperationReferenceOperation");
+		OPREF (OperationReferenceOperation.class, "OperationReferenceOperation"),
+		ANY (NullOperation.class, "Any");
 
 		Class<? extends Operation> operandClass;
 		String typeDescr;
