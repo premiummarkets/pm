@@ -35,17 +35,18 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@Override
 	public String toFormulae() {
-		return "$" + ((StringableValue) getParameter()).getValueAsString() + "$";
+		return "$" + ((StringableValue) getOrRunParameter(null).orElseThrow()).getValueAsString() + "$";
 	}
+	
+//	@Override
+//	public String toFormulaeShort() {
+//		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).toFormulaeShort();
+//	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public String toFormulaeDevelopped() {
-		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).toFormulaeDevelopped();
-		} else {
-			throw new RuntimeException();
-		}
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).toFormulaeDevelopped();
 	}
 
 	@Override
@@ -65,72 +66,43 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	@SuppressWarnings("unchecked")
 	@Override
 	public Set<QuotationDataType> getRequiredStockData() {
-		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).getRequiredStockData();
-		} else {
-			throw new RuntimeException();
-		}
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).getRequiredStockData();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void interrupt() throws Exception {
-		if (this.getParameter() != null) {
-			((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).interrupt();
-		} else {
-			throw new RuntimeException();
-		}
+		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).interrupt();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
-		if (this.getParameter() != null) {
-			((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).invalidateAllNonIdempotentOperands(targetStock, analysisName, stock);
-		} else {
-			throw new RuntimeException();
-		}
+		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).invalidateAllNonIdempotentOperands(targetStock, analysisName, stock);
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
-		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).isIdemPotent(targetStock);
-		} else {
-			throw new RuntimeException();
-		}
-		
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).isIdemPotent(targetStock);	
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
-		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).isNoOverrideDeltaOnly(targetStock);
-		} else {
-			throw new RuntimeException();
-		}
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).isNoOverrideDeltaOnly(targetStock);
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean isParameterDataSensitive() {
-		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(null).isParameterDataSensitive();
-		} else {
-			throw new RuntimeException();
-		}
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).isParameterDataSensitive();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		if (this.getParameter() != null) {
-			return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getValue(targetStock).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
-		} else {
-			throw new RuntimeException();
-		}
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
 	}
 
 }

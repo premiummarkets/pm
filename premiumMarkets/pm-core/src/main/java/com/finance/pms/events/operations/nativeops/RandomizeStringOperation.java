@@ -38,5 +38,17 @@ public class RandomizeStringOperation extends StringerOperation {
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 	
 	}
+	
+	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "rds";
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
+	@Override
+	public boolean isParameterDataSensitive() {
+		return true;
+	}
 
 }

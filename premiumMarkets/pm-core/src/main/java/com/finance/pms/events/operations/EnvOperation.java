@@ -75,5 +75,20 @@ public class EnvOperation extends Operation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 	}
+	
+	@Override
+	public String toFormulaeShort() {
+		Operation operand0 = getOperands().get(0);
+		Optional<Value<?>> optParameter0 = operand0.getOrRunParameter(null);
+		String valueAsString = ((StringableValue) optParameter0.orElse(new StringValue(operand0.toFormulaeShort()))).getValueAsString().replaceAll("\"","");
+		String[] split = valueAsString.split("\\.");
+		String variableName = split[split.length-2] + "." + split[split.length-1];
+		return variableName;
+	}
+
+	@Override
+	public boolean isParameterDataSensitive() {
+		return true;
+	}
 
 }

@@ -292,7 +292,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
 					if (numberOperand instanceof NumberOperation) {
-						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+						return ((NumberValue) numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
 					} else {
 						return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 					}
@@ -302,7 +302,8 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	
 	@Override
 	public String toFormulaeShort() {
-		String thisShort = getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" + ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
+		Operation operand0 = getOperands().get(0);
+		String thisShort = getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" + ((StringableValue) operand0.getOrRunParameter(null).orElse(new StringValue(operand0.toFormulaeShort()))).getValueAsString();
 		String opsFormulaeShort = super.toFormulaeShort();
 		return thisShort + ((opsFormulaeShort.isEmpty())? "" : "_" + opsFormulaeShort);
 	}

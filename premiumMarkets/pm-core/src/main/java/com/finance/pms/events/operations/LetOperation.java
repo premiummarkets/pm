@@ -34,8 +34,9 @@ public class LetOperation extends Operation {
 	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> variableValue = inputs.get(1);
-		targetStock.letHeapVar(variableName, variableValue);
-		return inputs.get(1);
+		Value<?> variableReturned = targetStock.letHeapVar(variableName, variableValue);
+		LOGGER.info(this.getReference() + ": " + variableName + ", storing: " + variableValue + ", returning: " + variableReturned);
+		return variableReturned;
 	}
 
 	@Override
@@ -52,6 +53,14 @@ public class LetOperation extends Operation {
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 		//String variableName = ((StringValue) getOperands().get(0).getParameter()).getValue(null);
 		//FIXME targetStock.unlet(variableName);
+	}
+	
+	@Override
+	public String toFormulaeShort() {
+		Operation operand1 = getOperands().get(1);
+		Optional<Value<?>> optParameter1 = operand1.getOrRunParameter(null);
+		String valueAsString = ((StringableValue) optParameter1.orElse(new StringValue(operand1.toFormulaeShort()))).getValueAsString().replaceAll("\"","");
+		return valueAsString;
 	}
 
 	@Override

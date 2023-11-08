@@ -105,7 +105,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 		SymbolEvents returnedSymbolEvents = new SymbolEvents(stock);
 
-		//FIXME dummyTargetStock: operations method should not be called outside of the operation run() loop and hence the following should be delegated to the event info. 
+		//FIXME dummyTargetStock: operations method should not be called outside of the operation run() loop and hence the following should be delegated to the EventInfoOpsCompoOperation calculation.
 		TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfo, stock, start, end);
 		boolean isIdempotent = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isIdemPotent(dummyTargetStock);
 		boolean forbidEventsOverride = eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock);
@@ -145,7 +145,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					Currency currency = stock.getMarketValuation().getCurrency();
 					IndicatorsOperator calculator;
 					if (eventInfo instanceof EventInfoOpsCompoOperation) {
-						calculator = new ParameterizedIndicatorsOperator(eventInfo, stock, adjustedStart, adjustedEnd, currency, eventListName, observers);
+						calculator = new ParameterizedIndicatorsOperator(dummyTargetStock, eventInfo, stock, adjustedStart, adjustedEnd, currency, eventListName, observers);
 					} else {
 						calculator = legacyEventDefinitionHandling(stock);
 					}

@@ -143,6 +143,13 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 		return 0;
 	}
 	
+	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "ioe";
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
 	
 	@Override
 	public boolean isParameterDataSensitive() {

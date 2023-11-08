@@ -34,7 +34,7 @@ public class RequiredShiftWrapperOperation extends Operation {
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		Double addedShift = ((NumberValue) getOperands().get(0).getParameter()).getValue(null).doubleValue();
+		Double addedShift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
 		if (Double.isNaN(addedShift)) {
 			return (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
 		} else {

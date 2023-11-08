@@ -62,6 +62,7 @@ import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
+import com.finance.pms.events.operations.nativeops.MultiValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
@@ -159,12 +160,11 @@ public class TargetStockInfo {
 	
 	private List<Output> gatheredChartableOutputs;
 	private List<ChartedOutputGroup> chartedOutputGroups;
-
-	private Map<OutputReference, EventsAnalyser> outputAnalysers;
-	
-	private Set<Date> missingKeys = new HashSet<>();
 	
 	private Map<String, Value<?>> heap = new HashMap<>();
+
+	private Map<OutputReference, EventsAnalyser> outputAnalysers;
+	private Set<Date> missingKeys = new HashSet<>();
 
 
 	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) {
@@ -198,15 +198,55 @@ public class TargetStockInfo {
 		
 	}
 	
-	public void letHeapVar(String variableName, Value<?> variableValue) {
-		this.heap.put(variableName, variableValue);
+	public TargetStockInfo(TargetStockInfo targetStock, EventInfoOpsCompoOperation eventInfoOpsCompoOperation, Date startDate, Date endDate) {
+		
+		this.analysisName = targetStock.getAnalysisName();
+		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperation;
+		this.stock = targetStock.getStock();
+		this.endDate = endDate;
+		if (stock.getLastQuote().before(startDate)) throw new RuntimeException("No enough quotations to calculate: " + stock.toString());
+		this.startDate = startDate;
+		
+		this.calculatedOutputsCache = targetStock.calculatedOutputsCache;
+		this.calculatingOutputsFutures = targetStock.calculatingOutputsFutures;
+		this.gatheredChartableOutputs = targetStock.gatheredChartableOutputs;
+		this.chartedOutputGroups = targetStock.chartedOutputGroups;
+		
+		this.heap = targetStock.heap;
+		
+		this.outputAnalysers = targetStock.outputAnalysers;
+		this.missingKeys = targetStock.missingKeys;
 	}
 	
-	public void unletHeapVar(String variableName) {
-		this.heap.remove(variableName);
+	public Value<?> letHeapVar(String variableName, Value<?> variableValue) {
+		
+		String[] nameSplit = variableName.split("\\.");
+		if (nameSplit.length > 1) { //Composite name
+			if (variableValue instanceof MultiValue) {
+				this.heap.put(nameSplit[0], variableValue);
+				return ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
+			} else {
+				LOGGER.warn(variableValue + " is not a mutli value.");
+			}
+		}
+		
+		this.heap.put(variableName, variableValue);
+		return variableValue;
+		
 	}
 	
 	public Value<?> getHeapVar(String variableName) {
+		
+		String[] nameSplit = variableName.split("\\.");
+		if (nameSplit.length > 1) { //Composite name
+			Value<?> value = this.heap.get(nameSplit[0]);
+			if (value instanceof MultiValue) {
+				return ((MultiValue) value).getAdditionalOutputs().get(nameSplit[1]);
+			} else {
+				LOGGER.warn(value + " is not a mutli value.");
+			}
+		}
+		
 		return this.heap.get(variableName);
 	}
 	

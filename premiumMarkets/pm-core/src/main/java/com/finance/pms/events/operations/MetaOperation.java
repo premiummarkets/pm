@@ -105,7 +105,8 @@ public class MetaOperation extends Operation {
 		List<Operation> subList = getOperands().subList(1, getOperands().size()-1);
 		String parameters = "";
 		for (int i = 0; i < subList.size(); i++) {
-			Value<?> parameterValue = subList.get(i).getParameter();
+			Operation operandI = subList.get(i);
+			Value<?> parameterValue = operandI.getOrRunParameter(null).orElse(new StringValue(operandI.toFormulaeShort()));
 			String ele = ((StringableValue) parameterValue).getValueAsString();
 			if (parameterValue instanceof NumberValue) {
 				ele = Long.valueOf(Math.round(((NumberValue) parameterValue).getNumberValue().doubleValue())).toString();

@@ -79,6 +79,13 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 	
 	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "rf";
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
+	@Override
 	public boolean isParameterDataSensitive() {
 		return true;
 	}

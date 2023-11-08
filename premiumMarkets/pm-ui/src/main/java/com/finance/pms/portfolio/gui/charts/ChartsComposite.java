@@ -90,6 +90,7 @@ import org.jfree.chart.ChartPanel;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
@@ -584,7 +585,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				GridData portfolioInfosGroupData = new GridData(GridData.FILL_HORIZONTAL);
 				chartBoutonsGroup.setLayoutData(portfolioInfosGroupData);
 
-				chartBoutonsGroup.setText("Portfolios charting: ");
+				chartBoutonsGroup.setText("Portfolio charting: " + MainPMScmd.getMyPrefs().get("event.analysisName", null));
 				chartBoutonsGroup.setFont(MainGui.DEFAULTFONT);
 				chartBoutonsGroup.setBackground(innerBgColor);
 

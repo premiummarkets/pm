@@ -10,21 +10,21 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
-public class GetOperation extends Operation {
+public class LogOperation extends Operation {
 	
-	protected static MyLogger LOGGER = MyLogger.getLogger(GetOperation.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(LogOperation.class);
 	
-	public GetOperation(String reference, String description, Operation ... operands) {
+	public LogOperation(String reference, String description, Operation ... operands) {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
-	public GetOperation() {
-		this("get", "Get a named value from the heap",
-				new StringOperation("string", "variable", "variable name", new StringValue("mevar")),
-				new NullOperation("defaultValue"));
+	public LogOperation() {
+		this("log", "Pass through which logs an additional message.",
+				new StringOperation("string", "message", "message to log", new StringValue("hello world!")),
+				new NullOperation("passThroughValue"));
 	}
 
-	public GetOperation(ArrayList<Operation> operands, String outputSelector) {
+	public LogOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
@@ -32,15 +32,9 @@ public class GetOperation extends Operation {
 
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		
-		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
-		Value<?> defaultValue = inputs.get(1);
-		
-		Value<?> variableValue = targetStock.getHeapVar(variableName);
-		if (variableValue == null) variableValue = defaultValue;
-		
-		LOGGER.info(this.getReference() + ": " + variableName + ", " + variableValue);
-		return variableValue;
+		String message = ((StringValue) inputs.get(0)).getValue(targetStock);
+		LOGGER.info(getReference() + ": " + message.replaceAll("_", " ") + " in " + this.getOperands().get(1).toFormulaeShort());
+		return inputs.get(1);
 	}
 
 	@Override
@@ -56,10 +50,5 @@ public class GetOperation extends Operation {
 	@Override
 	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
 	}
-	
-//	@Override
-//	public boolean isParameterDataSensitive() {
-//		return true;
-//	}
 
 }

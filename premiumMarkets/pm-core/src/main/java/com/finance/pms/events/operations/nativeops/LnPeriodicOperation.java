@@ -76,7 +76,7 @@ public class LnPeriodicOperation extends DoubleMapOperation {
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
 					if (numberOperand instanceof NumberOperation) {
-						return ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+						return ((NumberValue) numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
 					} else {
 						return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 					}
@@ -87,7 +87,8 @@ public class LnPeriodicOperation extends DoubleMapOperation {
 	@Override
 	public String toFormulaeShort() {
 		String thisShortName = "pLn";
-		String shift = ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
+		Operation operand0 = getOperands().get(0);
+		String shift = ((StringableValue) operand0.getOrRunParameter(null).orElse(new StringValue(operand0.toFormulaeShort()))).getValueAsString();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
 		String opsFormulaeShort = toFormulaeShort(ops);
 		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);

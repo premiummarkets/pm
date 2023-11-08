@@ -185,6 +185,13 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 	}
 	
 	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "rdm";
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
+	@Override
 	public boolean isParameterDataSensitive() {
 		return true;
 	}

@@ -210,7 +210,8 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 
 	@Override
 	public String toFormulaeShort() {
-		String valueAsString = ((OperationReferenceValue<?>)this.getOperands().get(OPS_INDEX).getParameter()).getValueAsString();
+		Operation operandOpsIdx = this.getOperands().get(OPS_INDEX);
+		String valueAsString = ((OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(null).orElse(new StringValue(operandOpsIdx.toFormulaeShort()))).getValueAsString();
 		return valueAsString.substring(0, Math.min(5, valueAsString.length()));
 	}
 	

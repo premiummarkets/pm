@@ -127,7 +127,8 @@ public class Ta4jOperation extends DoubleMapOperation {
 
 	@Override
 	public String toFormulaeShort() {
-		String ta4jClass = ((StringValue) this.getOperands().get(0).getParameter()).getValue(null).replace("Indicator", "");
+		Operation operand0 = getOperands().get(0);
+		String ta4jClass = ((StringValue) operand0.getOrRunParameter(null).orElse(new StringValue(operand0.toFormulaeShort()))).getValue(null).replace("Indicator", "");
 		String refa24z = "ta4j" + ta4jClass.substring(0,1) + (ta4jClass.length() -2) + ta4jClass.substring(ta4jClass.length() -1); 
 		int opsSize = getOperands().size();
 		String params = (opsSize > 2)

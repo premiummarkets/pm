@@ -84,13 +84,14 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return ((NumberValue)getOperands().get(0).getParameter()).getValue(null).intValue() + 1; // + one to avoid all NaNs in the shifted result.
+		return ((NumberValue)getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue() + 1; // + one to avoid all NaNs in the shifted result.
 	}
 	
 	@Override
 	public String toFormulaeShort() {
 		String thisShortName = "ls";
-		String shift = ((StringableValue) getOperands().get(0).getParameter()).getValueAsString();
+		Operation operand0 = getOperands().get(0);
+		String shift = ((StringableValue) operand0.getOrRunParameter(null).orElse(new StringValue(operand0.toFormulaeShort()))).getValueAsString();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
 		String opsFormulaeShort = toFormulaeShort(ops);
 		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
@@ -98,8 +99,8 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 
 	@Override
 	public int rightLagAmount(TargetStockInfo targetStock) {
-		runNonDataSensitives(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.getReference(), getOperands());
-		return ((NumberValue) getOperands().get(LEFT_SHIFT_AMOUNT_IDX).getParameter()).getValue(null).intValue();
+		Operation leftShiftNumberOperation = getOperands().get(LEFT_SHIFT_AMOUNT_IDX);
+		return ((NumberValue) leftShiftNumberOperation.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).intValue();
 	}
 
 }

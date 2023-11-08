@@ -10,6 +10,6 @@ public interface LaggingOperation {
 	 * @param targetStock 
 	 * @return
 	 */
-	int rightLagAmount(TargetStockInfo targetStock);
+	int rightLagAmount(TargetStockInfo targetStock) throws Exception;
 
 }

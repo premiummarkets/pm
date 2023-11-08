@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -126,6 +128,13 @@ public class IfOperation extends Operation {
 		}
 	}
 	
+	
+	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "if";
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
 //	@Override
 //	public boolean isParameterDataSensitive() {
 //		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);

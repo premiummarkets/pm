@@ -256,7 +256,7 @@ public class TalibGenericOperation extends TalibOperation {
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Operation numberOperand = getOperands().get(i);
 			if (numberOperand instanceof NumberOperation) {
-				int constant = ((NumberValue)numberOperand.getParameter()).getValue(null).intValue();
+				int constant = ((NumberValue)numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
 				thisOperationStartShift = thisOperationStartShift + constant;
 			}
 		}
@@ -273,9 +273,10 @@ public class TalibGenericOperation extends TalibOperation {
 		List<Operation> subList = getOperands().subList(0, inConstantsNames.size());
 		String contants = "";
 		for (int i = 0; i < subList.size(); i++) {
-			String ele = ((StringableValue) subList.get(i).getParameter()).getValueAsString();
+			Value<?> optEle = subList.get(i).getOrRunParameter(null).orElseThrow();
+			String ele = ((StringableValue) optEle).getValueAsString();
 			if (inConstantsNames.get(i).type.equals(Integer.TYPE)) {
-				ele = intRounding(((NumberValue)subList.get(i).getParameter()).getNumberValue()).toString();
+				ele = intRounding(((NumberValue) optEle).getNumberValue()).toString();
 			}
 			contants = contants + "_" + ele;
 		}

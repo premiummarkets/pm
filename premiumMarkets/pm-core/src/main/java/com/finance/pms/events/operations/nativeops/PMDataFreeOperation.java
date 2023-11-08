@@ -59,6 +59,16 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
     public Boolean isIdemPotent(TargetStockInfo targetStock) {
         return false;
     }
+    
+    @Override
+	public String toFormulaeShort() {
+    	String thisShort = getOperationReference().substring(0,1) + getOperationReference().chars()
+				.filter(c -> Character.isUpperCase(c))
+				.mapToObj(cu -> (char) cu)
+				.reduce("", (r, e) -> r + e, (a, b) -> a + b);
+				String opsFormulaeShort = super.toFormulaeShort();
+				return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
 
 	@Override
 	public boolean isParameterDataSensitive() {

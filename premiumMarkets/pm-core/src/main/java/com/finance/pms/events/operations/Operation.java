@@ -31,6 +31,7 @@ package com.finance.pms.events.operations;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -88,6 +89,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 	Condition.class, MapOperation.class, StringerOperation.class, NumbererOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
+	LogOperation.class,
 	RequiredShiftWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
@@ -322,7 +324,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				//find userParameterized \( -name "c_op_*" -o -name "meta_*" -o -name "k_training_*" \) -delete
 				if ((operationOutput instanceof NumericableMapValue || operationOutput instanceof MultiMapValue || this instanceof CachableOperation)) {
 					LOGGER.info(
-							"Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference() + 
+							"Done Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference() + 
 							". Caller: " + ((parentCallStack.contains("\n"))?
 												parentCallStack.substring(0, parentCallStack.indexOf("\n")) + "..." + parentCallStack.substring(parentCallStack.lastIndexOf("\n") + 1):
 												parentCallStack)
@@ -347,7 +349,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	protected void runNonDataSensitives(TargetStockInfo targetStock, String parentCallStack, List<Operation> someOperands) {
 		for (int i = 0; i < someOperands.size(); i++) {
 			Operation operand = someOperands.get(i);
-			if (!operand.isParameterDataSensitive()) {
+			if (!operand.isParameterDataSensitive() && targetStock != null) {
 				Value<?> output = operand.run(targetStock, parentCallStack, 0);								
 				operand.setParameter(output);
 			}
@@ -477,6 +479,21 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	public Value<?> getParameter() {
 		return parameter;
+	}
+	
+	public Optional<Value<?>> getOrRunParameter(TargetStockInfo targetStock) {
+		try {
+			if (parameter == null) {
+				runNonDataSensitives(targetStock, this.getReference(), Arrays.asList(this));
+				if (parameter == null) {
+					LOGGER.warn("Trying to solve a data sensitive parameter, will be empty for " + this.getReference());
+					return Optional.empty();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Trying to solve a data sensitive parameter, will be empty for " + this.getReference(), e);
+		}
+		return Optional.of(parameter);
 	}
 
 	//This operation operands are either set in the default constructor or unknown before usage.
@@ -860,7 +877,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 	//XXX should be protected use with caution or have targetStock as parameter
 	/**
-	 * If true, this operation won't accept a parameter to be set results and it will be recalculated systematically if their output is not cached.
+	 * If true, this operation won't accept a parameter to be set from its first calculation resulting output. It will be recalculated systematically if its output is not cached.
+	 * This ensures that the calculate is always executed. The operands can still have their parameter set.
 	 * @return
 	 */
 	public boolean isParameterDataSensitive() {

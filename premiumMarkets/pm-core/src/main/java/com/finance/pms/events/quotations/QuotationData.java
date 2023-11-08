@@ -84,7 +84,7 @@ class QuotationData implements List<QuotationUnit> {
 		try {
 			return get(x).getDate();
 		} catch (Exception e) {
-			throw new NoQuotationsException(e.toString());
+			throw new NoQuotationsException(e.toString() + " at index " + x);
 		}
 	}
 

@@ -125,6 +125,32 @@
             <outputSelector>down</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="logOperation">
+            <reference>log</reference>
+            <description>Pass through which logs an additional message.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>message</referenceAsOperand>
+                    <description>message to log</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>hello world!</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="nullOperation">
+                    <reference>passThroughValue</reference>
+                    <description>passThroughValue</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oProfitOperation">
             <reference>oProfit</reference>
             <description>Calculate the profits (the Omar way) of series of Events from Indicators</description>

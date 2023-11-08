@@ -78,7 +78,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	private TargetStockInfo targetStock;
 	private EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder;
 
-	public ParameterizedIndicatorsOperator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
+	public ParameterizedIndicatorsOperator(TargetStockInfo dummyTargetStock, EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
 			throws WarningException {
 
 		super(observers);
@@ -110,7 +110,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference() + ". Requested end: " + endDate + ", adjusted end: " + adjustedEndDate + ", last quote: " + lastQuote);
 
 		//Target stock instance
-		this.targetStock = new TargetStockInfo(analyseName, this.eventInfoOpsCompoOperationHolder, stock, adjustedStartCal.getTime(), adjustedEndDate);
+		this.targetStock = new TargetStockInfo(dummyTargetStock, this.eventInfoOpsCompoOperationHolder, adjustedStartCal.getTime(), adjustedEndDate);
 
 	}
 

@@ -221,7 +221,13 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	 */
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisOutputRequiredStartShiftByParent) {
 		
-		int lagAmount = getLagAmount(targetStock, getOperands());
+		int lagAmount = 0;
+		try {
+			lagAmount = getLagAmount(targetStock, getOperands());
+		} catch (Exception e) {
+			LOGGER.warn("Can't calculated the lag amount in order to append to the delta file. Will overwrite ..");
+			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("FALSE"));
+		}
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
 		
 		try {
@@ -257,7 +263,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
-		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getParameter()).getValue(targetStock));
+		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock));
 		if (isAppending) {
 			
 			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -342,8 +348,8 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 						LOGGER.info(
 								"APPENDING: " + !isInit + ". " +
 								"Using " + baseFilePath + ". " +
-								"Delta shift fix TRANSLATED in DATA POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
-								"+ input shift " + lagAmount + " required from this: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + ": " +  ": " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount +leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+								"Delta shift fix TRANSLATED in DATA POINTS: " + (leftShiftGapDataPoints + rightShiftGapDataPoints) + " resulting in start " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
+								"Adding input shift " + lagAmount + " required from this in DATA POINTS: " + (lagAmount + leftShiftGapDataPoints + rightShiftGapDataPoints) + " resulting in start " + dflog.format(targetStock.getStartDate(thisOutputRequiredStartShiftFromParent + lagAmount +leftShiftGapDataPoints + rightShiftGapDataPoints)) + ". " +
 								"Delta file boundaries: ["+ dflog.format(firstLineDate) + "," + dflog.format(lastLineDate) + "]. " +
 								"Requested boundaries: ["+ dflog.format(startDateShifted) + "," + dflog.format(endDate) + "]. " +
 								"Resulting outputs ranges: " + 
@@ -393,17 +399,26 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		return shift;
 	}
 	
-	private int getLagAmount( TargetStockInfo targetStock, List<Operation> operations) {
+	private int getLagAmount(TargetStockInfo targetStock, List<Operation> operations) throws Exception {
 		if (operations.isEmpty()) return 0;
-		return operations.stream()
-			.map(o -> {
-				int rightLagAmount = 0;
-				if ((o instanceof LaggingOperation)) {
-					rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock);
-				}
-				return Math.max(rightLagAmount, getLagAmount(targetStock, o.getOperands()));
-			})
-			.reduce(0, (a, e) -> Math.max(a, e));
+		try {
+			Integer reduce = operations.stream()
+				.map(o -> {
+					try {
+						int rightLagAmount = 0;
+						if ((o instanceof LaggingOperation)) {
+							rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock);
+						}
+						return Math.max(rightLagAmount, getLagAmount(targetStock, o.getOperands()));
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				})
+				.reduce(0, (a, e) -> Math.max(a, e));
+			return reduce;
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
 	}
 
 	@Override
@@ -432,6 +447,13 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	public Integer operationNaturalShift() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	
+	@Override
+	public String toFormulaeShort() {
+		String thisShortName = "iod";
+		String opsFormulaeShort = super.toFormulaeShort();
+		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	
 	

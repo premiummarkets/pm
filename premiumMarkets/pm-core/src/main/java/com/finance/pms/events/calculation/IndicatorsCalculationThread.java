@@ -72,6 +72,7 @@ import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
 
+@Deprecated
 public abstract class IndicatorsCalculationThread extends EventsCalculationThread {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(IndicatorsCalculationThread.class);

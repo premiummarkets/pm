@@ -41,6 +41,7 @@ import com.finance.pms.events.operations.EnvOperation;
 import com.finance.pms.events.operations.GetOperation;
 import com.finance.pms.events.operations.IfOperation;
 import com.finance.pms.events.operations.LetOperation;
+import com.finance.pms.events.operations.LogOperation;
 import com.finance.pms.events.operations.MetaOperation;
 import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.ProfitDrivenOperation;
@@ -128,6 +129,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(getOperation);
 		EnvOperation envOperation = new EnvOperation();
 		nativeOperations.addOperation(envOperation);
+		LogOperation logOperation = new LogOperation();
+		nativeOperations.addOperation(logOperation);
 
 		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)

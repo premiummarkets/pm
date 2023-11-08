@@ -171,7 +171,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		Integer thisOperationStartShift = getOperands().stream()
 				.filter(o -> o instanceof NumberOperation)
-				.map(o -> ((NumberValue)o.getParameter()).getValue(null).intValue())
+				.map(o -> ((NumberValue)o.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue())
 				.reduce(0, (r, e) -> r + e);
 
 		return (thisOperationStartShift);

@@ -197,9 +197,10 @@ public class Quotations {
 			}
 			
 		} catch (NoQuotationsException e) {
-			if (!getFirstQuotationFromDB(stock).after(lastDate)) {
-				LOGGER.warn("Failed init quotations: " + e + " for " + this); //Could be an issue but depends on the filter ..
-			};
+			Date firstQuotationFromDB = getFirstQuotationFromDB(stock);
+			if (!firstQuotationFromDB.after(lastDate)) {
+				LOGGER.warn("Failed init quotations: " + e + " with firstQuotationFromDB=" + firstQuotationFromDB + " and lastDateRequested=" + lastDate + " for " + this); //Could be an issue but depends on the filter ..
+			}; 
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error("Failed init quotations: " + e + " for " + this);
@@ -222,7 +223,7 @@ public class Quotations {
 			QuotationData existingProcessed = Quotations.getCachedStock(stock, splitOption, buildFilterNameKeyAllValid);
 			allValidQuotationData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift, existingProcessed);
 			
-			if (allValidQuotationData == null) { //Update the cache from DB for ALLVALID
+			if (allValidQuotationData == null) { //Update the cache from DB for ALLVALID (we synchronise only if the cache needs update)
 					
 				synchronized (stock) {
 					
@@ -350,16 +351,20 @@ public class Quotations {
 			String validityFilterKey = buildFilterNameKey(validityFilters);
 			existingForFilter = Quotations.getCachedStock(stock, splitOption, validityFilterKey);
 			
-			if (existingForFilter == null) {
-				synchronized (stock) {
+			if (existingForFilter == null) { //The filters have been cleared out when the allValidQuotationData is updated in the above synchronized in an other thread or the soft ref has been lost
+				synchronized (stock) { //The cache can't be cleared by an other thread from here (synchornized) but the soft ref can still be lost
 					//re check inside the synchronised
 					existingForFilter = Quotations.getCachedStock(stock, splitOption, validityFilterKey);
 					if (existingForFilter == null) {
-						//re init allValidQuotationData in case an other thread changed it in the other synchronized (stock)
+						//re init allValidQuotationData in case the filter was cleared by an other thread in the other synchronized (stock) above before we reach this synchronized
 						QuotationData existingProcessed = Quotations.getCachedStock(stock, splitOption, buildFilterNameKeyAllValid);
 						allValidQuotationData = this.isAllCached(stock, firstDate, lastDate, firstIndexShift, existingProcessed);
-						if (allValidQuotationData == null) throw new NoQuotationsException(stock + " for " + validityFilterKey); //This should not happen
-						existingForFilter = cacheFilteredDataQuotationData(splitOption, validityFilterKey, allValidQuotationData);
+						if (allValidQuotationData != null) { //all ok we cache the new filter
+							existingForFilter = cacheFilteredDataQuotationData(splitOption, validityFilterKey, allValidQuotationData);
+						} else { //fall back to like !keepcache. This can happen if the soft ref was released
+							allValidQuotationData = this.retreiveQuotationsData(firstDate, firstIndexShift);
+							existingForFilter = buildQuotationDataFilter(allValidQuotationData, firstDateRequested, lastDateRequested, validityFilters);
+						}
 					}
 				}
 			}
@@ -1027,8 +1032,8 @@ public class Quotations {
 	@Override
 	public String toString() {
 		return "Quotations [stock=" + stock + ", firstDateRequested=" + firstDateRequested + ", firstIndexLeftShiftRequested=" + firstIndexLeftShiftRequested + ", lastDateRequested="
-				+ lastDateRequested + ", targetCurrency=" + targetCurrency + ", keepCache=" + keepCache + ", mainValidityFilter=" + splitOption + ", otherValidityFilters="
-				+ validityFilters + "]";
+				+ lastDateRequested + ", targetCurrency=" + targetCurrency + ", keepCache=" + keepCache + ", splitOption=" + splitOption + ", validityFilters="
+				+ Arrays.toString(validityFilters) + "]";
 	}
 
 }

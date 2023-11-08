@@ -177,7 +177,7 @@ public abstract class CrossDoubleMapCondition extends Condition<Double> implemen
 		.map(i -> {
 			Operation numberOperand = getOperands().get(i);
 			if (numberOperand instanceof NumberOperation) {
-				return  ((NumberValue) numberOperand.getParameter()).getValue(null).intValue();
+				return  ((NumberValue) numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
 			} else {
 				return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
 			}

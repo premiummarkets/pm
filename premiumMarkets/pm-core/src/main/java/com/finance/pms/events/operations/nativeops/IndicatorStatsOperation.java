@@ -150,7 +150,7 @@ public class IndicatorStatsOperation extends ArrayMapOperation implements MultiV
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		Double shift = ((NumberValue) getOperands().get(0).getParameter()).getValue(null).doubleValue();
+		Double shift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
 		return Double.isNaN(shift) ? 0 : shift.intValue();
 	}
 
