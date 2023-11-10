@@ -14,7 +14,7 @@
 	<name>pm-core</name>
 	<properties>
 		<project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
-		<org.springframework.version>4.1.1.RELEASE</org.springframework.version>
+		<org.springframework.version>5.2.22.RELEASE</org.springframework.version>
 		<test>false</test>
 		<pm.buildtime>${timestamp}</pm.buildtime>
 	</properties>
