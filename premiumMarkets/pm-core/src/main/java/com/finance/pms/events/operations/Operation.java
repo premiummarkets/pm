@@ -56,7 +56,6 @@ import javax.xml.bind.annotation.XmlType;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.Condition;
@@ -349,7 +348,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	protected void runNonDataSensitives(TargetStockInfo targetStock, String parentCallStack, List<Operation> someOperands) {
 		for (int i = 0; i < someOperands.size(); i++) {
 			Operation operand = someOperands.get(i);
-			if (!operand.isParameterDataSensitive() && targetStock != null) {
+			boolean parameterDataSensitive = operand.isParameterDataSensitive();
+			if (!parameterDataSensitive && targetStock != null) {
 				Value<?> output = operand.run(targetStock, parentCallStack, 0);								
 				operand.setParameter(output);
 			}
@@ -492,6 +492,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}
 		} catch (Exception e) {
 			LOGGER.error("Trying to solve a data sensitive parameter, will be empty for " + this.getReference(), e);
+			return Optional.empty();
 		}
 		return Optional.of(parameter);
 	}
@@ -884,21 +885,58 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public boolean isParameterDataSensitive() {
 		if (this instanceof StockOperation || this instanceof OperationReferenceOperation) return true;
 		if (operands.isEmpty()) return false;
-		return operands.stream().reduce(false, (r, e) -> r || e instanceof StockOperation || e instanceof OperationReferenceOperation || e.isParameterDataSensitive(), (a, b) -> a || b);
+		Boolean reduce = operands.stream().reduce(false, (r, e) -> r || e instanceof StockOperation || e instanceof OperationReferenceOperation || e.isParameterDataSensitive(), (a, b) -> a || b);
+//		if (reduce) {
+//			LOGGER.warn("This contains parameter sensitive operands: " + operands);
+//		}
+		return reduce;
 	}
 
-	public abstract void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams);
+	public abstract void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock);
 
-	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
+	/**
+	 * EventInfoOpsCompoOperation: delete events if eOpsCompo is removable
+	 * KerasLine/IOsXXXExporter/ImpoterOperation: delete delta and local files as stored in the Op clone
+	 * EncogXXXOperation: Obsolete
+	 * KerasWebPredictOperation: delete delta and local files as stored in the Op clone 
+	 * KerasWebTrainOperation: delete delta and local files as stored in the Op clone + removes env data for eOpsCompo as per the targetStock param
+	 * @param targetStock
+	 * @param analysisName
+	 */
+	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName) {
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking " + getReference() + " for invalidation.");
 		if (!this.isIdemPotent(targetStock) && !this.isNoOverrideDeltaOnly(targetStock)) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + stock);
-			this.invalidateOperation(analysisName, stock);
+			try {
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + targetStock);
+				this.invalidateOperation(analysisName, Optional.of(targetStock));
+			} catch (Exception e) {
+				LOGGER.warn("Could not invalidate " + this + e);
+			}
 		}
 		operands.stream().forEach(
 				o -> {
 					if (!o.getOperands().isEmpty()) {
-						o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock);
+						o.invalidateAllNonIdempotentOperands(targetStock, analysisName);
+					}
+				});
+	}
+	/**
+	 * @param targetInfo TODO
+	 * @param analysisName
+	 * @param params
+	 * @see invalidateAllNonIdempotentOperands
+	 */
+	public void invalidateAllForciblyOperands(TargetStockInfo targetInfo, String analysisName) {
+		try {
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + targetInfo);
+			this.invalidateOperation(analysisName, Optional.of(targetInfo));
+		} catch (Exception e) {
+			LOGGER.warn("Could not invalidate " + this + e);
+		}
+		operands.stream().forEach(
+				o -> {
+					if (!o.getOperands().isEmpty()) {
+						o.invalidateAllForciblyOperands(targetInfo, analysisName);
 					}
 				});
 	}

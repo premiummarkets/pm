@@ -250,18 +250,23 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		
 		if (isAlterableOverridable) {
 			//EventsResources.getInstance().crudDeleteEventsForStock(targetStock.getStock(), targetStock.getAnalysisName(), new EventInfo[] {this});
-			invalidateAllNonIdempotentOperands(targetStock, targetStock.getAnalysisName(), Optional.of(targetStock.getStock()));
+			invalidateAllNonIdempotentOperands(targetStock, targetStock.getAnalysisName());
 		}
 		
 		return 0;
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
-		if (stock.isPresent()) {
-			EventsResources.getInstance().crudDeleteEventsForStock(stock.get(), analysisName, this);
-		} else {
-			EventsResources.getInstance().crudDeleteEventsForIndicators(analysisName, this);
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> optStock) {
+		try {
+			if (optStock.isPresent()) {
+				Stock stock = optStock.get().getStock();
+				EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, this);
+			} else {
+				EventsResources.getInstance().crudDeleteForciblyEventsForIndicators(analysisName, this);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Delete of events didn't proceed: " + e);
 		}
 	}
 

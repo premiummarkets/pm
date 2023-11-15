@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -35,7 +34,7 @@ public class RandomizeStringOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	
 	}
 	

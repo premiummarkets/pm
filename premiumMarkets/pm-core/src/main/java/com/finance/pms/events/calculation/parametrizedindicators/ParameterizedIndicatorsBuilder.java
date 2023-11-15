@@ -153,7 +153,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 			super.clearPreviousCalculations(operation);
 		} catch (InUseException e1) {
 			List<Operation> impactedIndicators = e1.getInUse();
-			LOGGER.info("Operation " + operation.getReference()+" has been changed, deleting indicators calculation caches for : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+			LOGGER.info("Operation " + operation.getReference() + " has been changed, deleting indicators calculation caches for : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
 			resetCachesFor(impactedIndicators);
 		}
 
@@ -164,7 +164,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 			if (opInUse instanceof EventInfo) {
 				EventModel.dirtyCacheFor((EventInfo) opInUse);
 			} else {
-				LOGGER.warn("This is not an EventInfo : "+opInUse+". No cache held needs marked dirty.");
+				LOGGER.warn("This is not an EventInfo : " + opInUse + ". No cache held needs marked dirty.");
 			}
 		}
 		EventModel.updateEventInfoStamp();

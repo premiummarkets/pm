@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.nativeops.AnyValueListValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
@@ -46,7 +45,7 @@ public class NullOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	}
 
 	@Override

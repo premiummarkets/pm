@@ -9,7 +9,6 @@ import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.config.SystemEnvironment;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.BooleanValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
@@ -73,7 +72,7 @@ public class EnvOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	}
 	
 	@Override

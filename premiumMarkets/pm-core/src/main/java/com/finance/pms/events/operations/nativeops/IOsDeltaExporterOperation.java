@@ -34,7 +34,6 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.InputFileChecker;
 import com.finance.pms.datasources.files.OvewriteDeltaException;
 import com.finance.pms.datasources.files.SeriesPrinter;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
@@ -422,11 +421,13 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... deltaFiles) {
-		if (deltaFiles != null) {
-			for (int i = 0; i < deltaFiles.length; i++) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+		if (targetStock.isPresent() ) {
+			StringValue deltaFilesValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock.get()).orElse(null);
+			String deltaFiles = extractedFileRootPath(((StringValue) deltaFilesValue).getValue(targetStock.get()));
+			if (deltaFiles != null) {
 				try {
-					Path deltaFile = Path.of(URI.create("file://" + deltaFiles[i]));
+					Path deltaFile = Path.of(URI.create("file://" + deltaFiles));
 					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
 					boolean exist = Files.exists(deltaFile);
 					if (exist) {
@@ -437,7 +438,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 						}
 					}
 				} catch (Exception e1) {
-					LOGGER.error("Can't create path from " + deltaFiles[i], e1);
+					LOGGER.error("Can't create path from " + deltaFiles, e1);
 				}
 			}
 		}

@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -59,7 +58,7 @@ public class ListOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		// TODO Auto-generated method stub
 	}
 

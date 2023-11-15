@@ -11,7 +11,6 @@ import java.util.TreeMap;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -155,7 +154,7 @@ public class IndicatorStatsOperation extends ArrayMapOperation implements MultiV
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		//Nothing
 	}
 

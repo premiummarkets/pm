@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
@@ -65,7 +62,7 @@ public class IfOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	}
 	
 	
@@ -99,18 +96,26 @@ public class IfOperation extends Operation {
 //	}
 
 	@Override
-	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
-		if (value0 != null) {
-			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
-		} else {
-			throw new RuntimeException();
-		}
+	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName) {
+//		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
+//		if (value0 != null) {
+//			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
+//		} else {
+//			throw new RuntimeException();
+//		}
+		getOperands().get(1).invalidateAllNonIdempotentOperands(targetStock, analysisName);
+		getOperands().get(2).invalidateAllNonIdempotentOperands(targetStock, analysisName);
+	}
+	
+	@Override
+	public void invalidateAllForciblyOperands(TargetStockInfo targetInfo, String analysisName) {
+		getOperands().get(1).invalidateAllForciblyOperands(targetInfo, analysisName);
+		getOperands().get(2).invalidateAllForciblyOperands(targetInfo, analysisName);
 	}
 	
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isIdemPotent(targetStock));
 		} else {
@@ -120,7 +125,7 @@ public class IfOperation extends Operation {
 
 	@Override
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0);
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isNoOverrideDeltaOnly(targetStock));
 		} else {
@@ -151,7 +156,7 @@ public class IfOperation extends Operation {
 	
 	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		Value<?> value0 = this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
 		if (value0 != null) {
 			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift));
 		} else {

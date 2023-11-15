@@ -86,11 +86,10 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 		return IntStream.range(0, 2)
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
-					if (numberOperand instanceof NumberOperation) {
-						return ((NumberValue) numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
-					} else {
-						return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
-					}
+					return numberOperand.getOrRunParameter(targetStock)
+							.filter(v -> v instanceof NumberValue)
+							.map(v -> ((NumberValue) v).getValue(targetStock).intValue())
+							.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift));
 				})
 				.reduce(0, (r, e) -> r + e);
 	}

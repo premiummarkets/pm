@@ -35,7 +35,6 @@ import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -67,7 +66,7 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		//Nothing
 	}
 

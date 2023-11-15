@@ -27,6 +27,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.Line;
 
@@ -152,11 +153,10 @@ public abstract class LinearTrendsCondition extends DiscreteLinearOutputsConditi
 		return IntStream.range(0, getLastPeriodsIndex() +1 )
 		.map(i -> {
 			Operation numberOperand = getOperands().get(i);
-			if (numberOperand instanceof NumberOperation) {
-				return  ((NumberValue) numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
-			} else {
-				return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
-			}
+			return numberOperand.getOrRunParameter(targetStock)
+					.filter(v -> v instanceof NumberValue)
+					.map(v -> ((NumberValue) v).getValue(targetStock).intValue())
+					.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift));
 		})
 		.reduce(0, (r, e) -> r + e);
 	}

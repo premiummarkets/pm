@@ -6,7 +6,6 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -55,7 +54,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	}
 
 	@Override
@@ -77,8 +76,14 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName, Optional<Stock> stock) {
-		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).invalidateAllNonIdempotentOperands(targetStock, analysisName, stock);
+	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName) {
+		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).invalidateAllNonIdempotentOperands(targetStock, analysisName);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void invalidateAllForciblyOperands(TargetStockInfo targetInfo, String analysisName) {
+		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).invalidateAllForciblyOperands(targetInfo, analysisName);
 	}
 	
 	@SuppressWarnings("unchecked")

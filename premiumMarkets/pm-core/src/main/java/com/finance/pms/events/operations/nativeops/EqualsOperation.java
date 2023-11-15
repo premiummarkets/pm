@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StringableValue;
@@ -36,7 +35,7 @@ public class EqualsOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	
 	}
 

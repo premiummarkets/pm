@@ -605,7 +605,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		String opStr = "";
 		String sep="";
 		for (Operation operation : operations) {
-			opStr = opStr + sep +operation.getReference();
+			opStr = opStr + sep + operation.getReference();
 			sep = sepParam;
 		}
 		return opStr;
@@ -622,6 +622,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		}
 	}
 
+	//We invalidate only the impacted operations but not their operands (no recursion)
 	private void invalidateOperations(List<Operation> impactedOps) {
 		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty()));
 	}

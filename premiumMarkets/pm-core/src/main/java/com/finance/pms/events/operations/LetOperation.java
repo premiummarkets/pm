@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 
@@ -50,7 +49,7 @@ public class LetOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		//String variableName = ((StringValue) getOperands().get(0).getParameter()).getValue(null);
 		//FIXME targetStock.unlet(variableName);
 	}
@@ -67,7 +66,5 @@ public class LetOperation extends Operation {
 	public boolean isParameterDataSensitive() {
 		return true;
 	}
-	
-	
 
 }

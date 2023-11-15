@@ -60,6 +60,18 @@ public class SystemEnvironment {
 		return read(stock, compositeName);
 	}
 	
+	public Optional<Object> remove(Stock stock, String compositeName) {
+		synchronized (this) {
+			initCalcEnv();
+			Optional<Object> oldValue = env.rmNvp(stock, compositeName);
+			oldValue.ifPresent(ov -> {
+				env.backupNvp(stock, compositeName, ov);
+			});
+			storeCalcEnv(env);
+			return oldValue;
+		}
+	}
+	
 	public Optional<Object> read(String stockSymbol, String compositeName) {
 		List<Stock> foundStockForSymbol = DataSource.getInstance().getShareDAO().loadStockByIsinOrSymbol(stockSymbol);
 		if (foundStockForSymbol.size() != 1) throw new RuntimeException("Could not load symbol: " + stockSymbol);
@@ -94,6 +106,7 @@ public class SystemEnvironment {
 				} catch (IOException e) {
 					LOGGER.warn("Could not backup file " + JSON_ENV_PATH + " to " + copyPath + ": " + e);
 				}
+				env = new Env();
 			}
 		}
 	}
@@ -179,6 +192,23 @@ public class SystemEnvironment {
 				}
 			}
 			return Optional.ofNullable(((Map) subMap).put(nameSplit[nameSplit.length-1], value));
+		}
+		
+		@SuppressWarnings({"rawtypes" })
+		private Optional<Object> rmNvp(Stock stock, String compositeName) {
+			Map<String, Object> nameValuePairsForStock = getNameValuePairsFor(stock);
+			String[] nameSplit = compositeName.split("\\.");
+			List<String> namePath = Arrays.asList(nameSplit).subList(0, nameSplit.length -1);
+			Object subMap = nameValuePairsForStock;
+			for (String namePart : namePath) {
+				if (subMap instanceof Map) {
+					if (!((Map) subMap).containsKey(namePart)) {
+						return Optional.empty();
+					}
+					subMap = ((Map) subMap).get(namePart);
+				}
+			}
+			return Optional.ofNullable(((Map) subMap).remove(nameSplit[nameSplit.length-1]));
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })

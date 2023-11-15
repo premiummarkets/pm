@@ -145,11 +145,10 @@ public class VolatilityOperation extends PMWithDataOperation implements MultiVal
 		int reducedShift = IntStream.range(0, DATA_IDX)
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
-					if (numberOperand instanceof NumberOperation) {
-						return ((NumberValue) numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
-					} else {
-						return getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift);
-					}
+					return numberOperand.getOrRunParameter(targetStock)
+							.filter(v -> v instanceof NumberValue)
+							.map(v -> ((NumberValue) v).getValue(targetStock).intValue())
+							.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift));
 				})
 				.reduce(0, (r, e) -> r + e);
 		return reducedShift + YEAR_SLIDING_WINDOW_PERIOD_FOR_AVGS;

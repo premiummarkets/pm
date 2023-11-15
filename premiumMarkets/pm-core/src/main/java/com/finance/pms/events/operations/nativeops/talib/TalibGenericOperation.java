@@ -47,6 +47,7 @@ import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.TalibOperation;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator.ConstantNameNType;
@@ -255,8 +256,9 @@ public class TalibGenericOperation extends TalibOperation {
 		int thisOperationStartShift = 0;
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Operation numberOperand = getOperands().get(i);
-			if (numberOperand instanceof NumberOperation) {
-				int constant = ((NumberValue)numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
+			Value<?> value = numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0));
+			if (value instanceof NumberValue) {
+				int constant = ((NumberValue)value).getValue(targetStock).intValue();
 				thisOperationStartShift = thisOperationStartShift + constant;
 			}
 		}

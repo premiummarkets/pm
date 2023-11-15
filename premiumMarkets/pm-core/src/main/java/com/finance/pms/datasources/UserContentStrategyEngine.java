@@ -61,8 +61,8 @@ import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.IndicatorAnalysisCalculationRunnableMessage;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
-import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -143,10 +143,17 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 								.filter(e -> e instanceof EventInfoOpsCompoOperation)
 								.forEach(e -> {
 									String analysisName = SelectedIndicatorsCalculationService.getAnalysisName();
-									EventInfoOpsCompoOperation e2 = (EventInfoOpsCompoOperation) e;
-									if (TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, new EventInfo[] {e2})) {
-										EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, e2);
-									}
+									EventInfoOpsCompoOperation eOpsCompo = (EventInfoOpsCompoOperation) e;
+									
+//									//Forced deletion of events. (should be covered by EventInfoOpsCompoOperation.invalidateOperation
+//									if (TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, new EventInfo[] {eOpsCompo})) {
+//										EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, eOpsCompo);
+//									}
+									//How ever, the cleanup here should be alike the OperationBuilder.clearPreviousCalculations() on impacted indicators.
+									TargetStockInfo dummyTargetStock = new TargetStockInfo(analysisName, (EventInfoOpsCompoOperation) eOpsCompo, stock, DateFactory.dateAtZero(), DateFactory.getNowEndDate());
+									eOpsCompo.invalidateAllForciblyOperands(dummyTargetStock, analysisName);
+								
+									
 								});
 					});
 					viewStateParams[1] = null;

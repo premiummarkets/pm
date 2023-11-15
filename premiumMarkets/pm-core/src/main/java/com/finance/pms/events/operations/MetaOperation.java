@@ -12,7 +12,6 @@ import java.util.zip.Checksum;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.antlr.NextToken;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
@@ -119,7 +118,7 @@ public class MetaOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 	}
 
 	@Override

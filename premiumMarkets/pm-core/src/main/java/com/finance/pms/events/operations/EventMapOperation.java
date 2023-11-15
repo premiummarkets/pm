@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 
@@ -44,7 +43,7 @@ public class EventMapOperation extends MapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		//Nothing
 	}
 

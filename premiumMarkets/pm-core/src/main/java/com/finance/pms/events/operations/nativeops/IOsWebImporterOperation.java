@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.api.WebDelegate;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -21,6 +20,8 @@ public class IOsWebImporterOperation extends StringerOperation {
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsWebImporterOperation.class);
 
 	private WebDelegate web = new WebDelegate();
+
+	private String webFilesCopies; //XXX not singleton compatible
 	
 	public IOsWebImporterOperation(String reference, String description, Operation... operands) {
 		super(reference, description, new ArrayList<Operation>(Arrays.asList(operands)));
@@ -38,6 +39,7 @@ public class IOsWebImporterOperation extends StringerOperation {
 
 		synchronized(WebDelegate.class) {
 			filePath = web.httpGetFile(filePath);
+			webFilesCopies = filePath;
 			return new StringValue(filePath);
 		}
 
@@ -49,23 +51,21 @@ public class IOsWebImporterOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... webFilesCopies) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		if (webFilesCopies != null) {
-			for (int i = 0; i < webFilesCopies.length; i++) {
-				try {
-					Path deltaFile = Path.of(URI.create("file://" + webFilesCopies[i]));
-					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
-					boolean exist = Files.exists(deltaFile);
-					if (exist) {
-						try {
-							Files.delete(deltaFile);
-						} catch (IOException e) {
-							LOGGER.error(e, e);
-						}
+			try {
+				Path deltaFile = Path.of(URI.create("file://" + webFilesCopies));
+				LOGGER.info("Deleting file local copy: " + deltaFile.toString());
+				boolean exist = Files.exists(deltaFile);
+				if (exist) {
+					try {
+						Files.delete(deltaFile);
+					} catch (IOException e) {
+						LOGGER.error(e, e);
 					}
-				} catch (Exception e1) {
-					LOGGER.error("Can't create path from " + webFilesCopies[i], e1);
 				}
+			} catch (Exception e1) {
+				LOGGER.error("Can't create path from " + webFilesCopies, e1);
 			}
 		}
 	}

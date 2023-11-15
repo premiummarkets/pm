@@ -23,7 +23,6 @@ import org.apache.commons.math3.util.Precision;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.SeriesPrinter;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -34,6 +33,8 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 
 	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);
+	
+	private String trainingFiles;  //XXX not singleton compatible
 	
 	
 	public IOsExporterOperation(String reference, String description, Operation... operands) {
@@ -91,6 +92,7 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
 			filePath = SeriesPrinter.printo(filePath, headersPrefixes, series);
+			trainingFiles = filePath;
 			return new StringValue(filePath);
 		} catch (Exception e) {
 			LOGGER.error(this.getReference() + ": " + e, e);
@@ -117,23 +119,21 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... trainingFiles) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		if (trainingFiles != null) {
-			for (int i = 0; i < trainingFiles.length; i++) {
-				try {
-					Path deltaFile = Path.of(URI.create("file://" + trainingFiles[i]));
-					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
-					boolean exist = Files.exists(deltaFile);
-					if (exist) {
-						try {
-							Files.delete(deltaFile);
-						} catch (IOException e) {
-							LOGGER.error(e, e);
-						}
+			try {
+				Path deltaFile = Path.of(URI.create("file://" + trainingFiles));
+				LOGGER.info("Deleting file local copy: " + deltaFile.toString());
+				boolean exist = Files.exists(deltaFile);
+				if (exist) {
+					try {
+						Files.delete(deltaFile);
+					} catch (IOException e) {
+						LOGGER.error(e, e);
 					}
-				} catch (Exception e1) {
-					LOGGER.error("Can't create path from " + trainingFiles[i], e1);
 				}
+			} catch (Exception e1) {
+				LOGGER.error("Can't create path from " + trainingFiles, e1);
 			}
 		}
 	}

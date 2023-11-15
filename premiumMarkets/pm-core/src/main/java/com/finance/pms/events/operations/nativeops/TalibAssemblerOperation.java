@@ -15,7 +15,6 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -73,7 +72,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 			if (parametersSlicePos < assembledOperationClone.getOperands().size()) {
 				operand = assembledOperationClone.getOperands().get(parametersSlicePos);
 			} 
-			if (operand instanceof NumberOperation) {
+			if (operand instanceof NumberOperation || operand instanceof NumbererOperation) {
 				slices.put(parametersSlicePos, parameters.get(parametersSlicePos).stream().map(v -> ((NumberValue)v).getValue(targetStock).doubleValue()).collect(Collectors.toList()));
 			} else if (operand instanceof MapOperation) {
 				// MapOperation) {//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries
@@ -204,7 +203,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		
 	}
 

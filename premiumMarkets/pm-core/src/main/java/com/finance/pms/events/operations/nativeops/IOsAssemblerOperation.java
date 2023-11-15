@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.SeriesPrinter;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -133,7 +132,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<Stock> stock, Object... addtionalParams) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
 		//Nothing specific to this operation
 	}
 

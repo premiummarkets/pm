@@ -1139,8 +1139,8 @@ public class EventsResources {
 	}
 
 	/**
-	 * It is assume that if no start and end dates are supplied, this means all events are deleted from the first date to today's date.
-	 * To bypass TunedConf see {@link #crudDeleteEventsForStockNoTunedConfHandling(Stock, String, Date, Date, EventInfo...) 
+	 * All events are deleted from the first date to today's date.
+	 * To bypass TunedConf see {@link #crudDeleteForciblyEventsForStock(Stock, String, Date, Date, EventInfo...) 
 	 * @param stock
 	 * @param analysisName
 	 * @param indicators
@@ -1162,6 +1162,10 @@ public class EventsResources {
 	}
 
 	public void crudDeleteForciblyEventsForStock(Stock stock, String analysisName, EventInfo... indicators) {
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
 		
 		if (indicators.length == 0) { //This equates to crudDeleteForciblyEventsForAnalysisName for the stock and is too broad
 			if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
@@ -1208,14 +1212,29 @@ public class EventsResources {
 		//Check keep events
 		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
 		if (dontKeepEvents) return;
-
-		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
 		
 		//Check removable
 		if (!TunedConfMgr.getInstance().isRemovableFor(analysisName, indicators)) {
 			throw new RuntimeException("Can't delete events: " + analysisName + " and " +  Arrays.stream(indicators).map(i -> i.getEventReadableDef()).reduce((a, iRef) -> a + ", " + iRef) + ". It contains non removable events!. Please use Force update to overwrite.");
 		}
 
+		crudDeleteForciblyEventsForIndicators(analysisName, indicators);
+	}
+
+	public void crudDeleteForciblyEventsForIndicators(String analysisName, EventInfo... indicators) {
+		
+		//Check keep events
+		Boolean dontKeepEvents = Arrays.stream(indicators).map(e -> (e instanceof EventInfoOpsCompoOperation) && !((EventInfoOpsCompoOperation)e).isKeepEvents()).reduce((r,e) -> r && e).orElse(false);
+		if (dontKeepEvents) return;
+		
+		if (indicators.length == 0) { //This equates to crudDeleteForciblyEventsForAnalysisName and is too broad
+			if (!TunedConfMgr.getInstance().isRemovableFor(analysisName)) {
+				throw new RuntimeException("Can't delete events: " + analysisName + ". It contains non removable events!. Please use Force update to overwrite.");
+			}
+		}
+		
+		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
+		
 		Date datedeb = DateFactory.DEFAULT_DATE;
 		Date datefin = DateFactory.getNowEndDate();
 
