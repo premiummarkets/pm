@@ -66,6 +66,7 @@ import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
+import com.finance.pms.events.operations.nativeops.NamedListOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
@@ -87,7 +88,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 @XmlSeeAlso({
 	Condition.class, MapOperation.class, StringerOperation.class, NumbererOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
-	TargetStockInfoOperation.class, ListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
+	TargetStockInfoOperation.class, ListOperation.class, NamedListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
 	LogOperation.class,
 	RequiredShiftWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
@@ -150,8 +151,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.disabled = false;
 		
 		this.operationReference = reference;
-
-		
 	}
 
 	public Operation(String reference, String description) {
@@ -366,7 +365,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * @throws NotEnoughDataException 
 	 */
 	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) {
-		int stackDepth = parentCallStack.split("=>").length  + 1;
+		int stackDepth = parentCallStack.split("=>").length + 1;
 		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
 		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 		String thisCallStack = 
@@ -793,7 +792,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * Upstream calculated root operation name
+	 * Effective calculated PM operation name
 	 */
 	public String getOperationReference() {
 		return operationReference;

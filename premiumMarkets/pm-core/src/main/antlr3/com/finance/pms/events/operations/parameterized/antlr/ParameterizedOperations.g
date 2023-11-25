@@ -9,6 +9,7 @@ tokens {
   Number;
   MAType;
   String;
+  NamedListOperation;
   OperationReference;
   ListOperation;
   StockOperation;
@@ -128,10 +129,12 @@ userop :
  opName=Userop '(' (pars+=params)? {checkParamExhaust($opName, $pars);} ')' -> ^(Userop params?) ;
 
 params : param (',' param)* -> param+ ;
-param : NumberToken ->  ^(Number NumberToken) | NaNNumber -> ^(Number NumberToken["NaN"]) | MATypeToken -> ^(MAType MATypeToken) | StringToken -> ^(String StringToken) | operand;
-operand : stockhistory -> stockhistory | listOParams | operationReference | expression ;
+param : NumberToken ->  ^(Number NumberToken) | NaNNumber -> ^(Number NumberToken["NaN"]) | MATypeToken -> ^(MAType MATypeToken) | stringOperand | operand;
+stringOperand : StringToken -> ^(String StringToken);
+operand : stockhistory -> stockhistory | listOParams | operationReference | namedListOParams | expression ;
 stockhistory : HistoricalData -> ^(StockOperation ^(OperationOutput HistoricalData) ^(String StringToken["\"THIS\""]));
 listOParams : '[]' -> ^(ListOperation) | '[' param (',' param)* ']' -> ^(ListOperation param+);
+namedListOParams : '{}' -> ^(NamedListOperation) | '{' stringOperand ':' param (',' stringOperand ':' param)* '}' -> ^(NamedListOperation stringOperand+ param+);
 operationReference: OperationReferenceToken -> ^(OperationReference OperationReferenceToken);
 
 HistoricalData

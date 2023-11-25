@@ -39,6 +39,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.nativeops.NamedListOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
@@ -53,6 +54,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 		MATYPE (MATypeOperation.class, "MAType"), 
 		STRING (StringOperation.class, "String"), 
 		LIST (ListOperation.class, "ListOperation"),
+		NLIST (NamedListOperation.class, "NamedListOperation"),
 		OPREF (OperationReferenceOperation.class, "OperationReferenceOperation"),
 		ANY (NullOperation.class, "Any");
 
@@ -85,6 +87,8 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 				return STRING;
 			} else if (tokenName.equals("ListOperation")) {
 				return LIST;
+			} else if (tokenName.equals("NamedListOperation")) {
+				return NLIST;
 			} else if (tokenName.equals("OperationReference")) {
 				return OPREF;
 			}

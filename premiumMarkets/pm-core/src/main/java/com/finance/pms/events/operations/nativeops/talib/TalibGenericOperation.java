@@ -47,7 +47,6 @@ import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.TalibOperation;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator.ConstantNameNType;

@@ -25,9 +25,7 @@ import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.Line;
 
