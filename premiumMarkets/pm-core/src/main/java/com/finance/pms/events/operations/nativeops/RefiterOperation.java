@@ -14,6 +14,7 @@ import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
@@ -32,7 +33,7 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 
 	@Override
-	public DoubleMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		SortedMap<Date, Double> refitee = ((NumericableMapValue) inputs.get(0)).getValue(targetStock);
 		SortedMap<Date, Double> refiter = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
@@ -72,7 +73,7 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		// TODO Auto-generated method stub
 		
 	}

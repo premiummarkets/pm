@@ -47,6 +47,7 @@ import com.finance.pms.datasources.ComparableArray;
 import com.finance.pms.datasources.ComparableSortedMap;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
@@ -86,7 +87,7 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, List<? extends Value> inputs) {
 
 		//Sof (sof is first because of the following constants VarArgs.
 		//And

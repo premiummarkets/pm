@@ -6,6 +6,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -34,7 +35,7 @@ public abstract class ArrayMapOperation extends MapOperation {
 	}
 
 	@Override
-	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((DoubleArrayMapValue)inputs.get(0));
 	}
 

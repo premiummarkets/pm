@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.QuotationDataType;
@@ -59,7 +60,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String ta4jClassName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		ValidityFilter validityFilter = ValidityFilter.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));

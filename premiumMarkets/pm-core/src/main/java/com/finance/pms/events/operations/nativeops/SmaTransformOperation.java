@@ -37,6 +37,7 @@ import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.SmaTransformator;
@@ -59,7 +60,7 @@ private static MyLogger LOGGER = MyLogger.getLogger(SmaTransformOperation.class)
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		Integer orgPeriog = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();

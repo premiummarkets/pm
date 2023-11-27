@@ -45,6 +45,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Min;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
@@ -93,7 +94,7 @@ public abstract class CrossConstantCondition extends Condition<Double> {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Double threshold = ((NumberValue) inputs.get(CONSTANT_POSITION)).getValue(targetStock).doubleValue();
 		Integer spanningShift = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();

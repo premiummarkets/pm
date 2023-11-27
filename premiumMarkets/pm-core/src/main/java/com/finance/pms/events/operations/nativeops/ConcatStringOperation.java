@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -22,7 +23,7 @@ public class ConcatStringOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String concatenation = inputs.stream()
 			.map(sv -> ((StringableValue)sv).getValueAsString())
 			.reduce("", (a, e) -> a + e);	
@@ -35,7 +36,7 @@ public class ConcatStringOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	
 	}
 

@@ -36,6 +36,7 @@ import java.util.Optional;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.tictactec.ta.lib.MAType;
@@ -56,7 +57,7 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public MATypeValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public MATypeValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((MATypeValue)inputs.get(0));
 	}
 
@@ -66,7 +67,7 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//Nothing
 	}
 

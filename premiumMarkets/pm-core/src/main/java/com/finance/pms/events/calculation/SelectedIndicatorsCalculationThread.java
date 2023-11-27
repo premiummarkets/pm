@@ -111,9 +111,9 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 		boolean forbidEventsOverride = eventInfoCln instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfoCln).isNoOverrideDeltaOnly(dummyTargetStock);
 		
 		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfoCln);
-		boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().isEmpty();
+		boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().wasResetOrIsNew();
 		boolean isAlterableOverridable = !isIdempotent && !forbidEventsOverride;
-		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfoCln, isAlterableOverridable);
+		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveOrUpdateUniqueNoRetuneConfig(stock, eventListName, eventInfoCln, isAlterableOverridable);
 		tunedConf.setIsRemovable(isAlterableOverridable);
 		
 		//When xx, we still want to calculate the full range as the operation is not idempotent but without overriding the existing data in the db

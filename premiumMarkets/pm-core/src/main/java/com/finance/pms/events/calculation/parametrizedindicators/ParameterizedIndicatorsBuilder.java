@@ -109,7 +109,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 				case OPERATION_CrUD :					//Any Operation change or status change
 				{
 					if (operation != null) {
-						clearPreviousCalculations(operation);
+						clearPreviousCalculationsUsing(operation);
 					}
 					break;
 				}
@@ -147,10 +147,10 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	}
 
 	@Override
-	public void clearPreviousCalculations(Operation operation) throws InUseException {
+	public void clearPreviousCalculationsUsing(Operation operation) throws InUseException {
 
 		try {
-			super.clearPreviousCalculations(operation);
+			super.clearPreviousCalculationsUsing(operation);
 		} catch (InUseException e1) {
 			List<Operation> impactedIndicators = e1.getInUse();
 			LOGGER.info("Operation " + operation.getReference() + " has been changed, deleting indicators calculation caches for : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));

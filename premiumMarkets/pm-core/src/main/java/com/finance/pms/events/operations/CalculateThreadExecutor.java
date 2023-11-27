@@ -22,13 +22,17 @@ public class CalculateThreadExecutor {
 	
 	protected CalculateThreadExecutor() {
 		super();
-		executor = Executors.newCachedThreadPool();
+		executor = initExecutor();
 		semaphore = new Semaphore(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")));
 	}
 
 	private ExecutorService getExecutor() {
-		if (executor.isShutdown()) executor = Executors.newCachedThreadPool();
+		if (executor.isShutdown()) executor = initExecutor();
 		return executor;
+	}
+	
+	private ExecutorService initExecutor() {
+		return Executors.newCachedThreadPool();
 	}
 	
 	private Semaphore getSemaphore() {

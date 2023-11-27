@@ -91,7 +91,7 @@ public class TunedConfMgr {
 		return Optional.ofNullable(stockPrevTunedConf);
 	}
 	
-	public synchronized TunedConf saveUniqueNoRetuneConfig(Stock stock, String configListFileName, EventInfo eventInfo, Boolean isRemovable) {
+	public synchronized TunedConf saveOrUpdateUniqueNoRetuneConfig(Stock stock, String configListFileName, EventInfo eventInfo, Boolean isRemovable) {
 				
 		TunedConf newTunedConf = new TunedConf(stock, configListFileName, eventInfo.getEventDefinitionRef(), isRemovable);
 		
@@ -270,7 +270,7 @@ public class TunedConfMgr {
 		List<String> eis = Arrays.stream(indicators).map(i -> i.getEventDefinitionRef()).collect(Collectors.toList());
 		return loadAllTunedConfs.stream()
 			.filter(tc -> tc.getTunedConfId().getConfigFile().equals(analysisName) && (eis.isEmpty() || eis.contains(tc.getTunedConfId().getEventDefinition())))
-			.map(tc -> tc.getIsRemovable()  || tc.isEmpty())
+			.map(tc -> tc.getIsRemovable()  || tc.wasResetOrIsNew())
 			.reduce(true, (a, isRm) -> a && isRm);
 		
 	}
@@ -280,7 +280,7 @@ public class TunedConfMgr {
 		return Arrays.stream(indicators)
 			.map(ei -> {
 				Optional<TunedConf> tc = loadUniqueNoRetuneConfig(stock, analysisName, ei);
-				return tc.map(a -> a.getIsRemovable() || a.isEmpty()).orElse(true);
+				return tc.map(a -> a.getIsRemovable() || a.wasResetOrIsNew()).orElse(true);
 			})
 			.reduce(true, (a, isRm) -> a && isRm);
 	}

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -16,7 +17,7 @@ public class TargetStockInfoOperation extends StringerOperation {
 	}
 
 	public TargetStockInfoOperation() {
-		//FIXME we don't use output selector in order to select the returned value but an operand instead
+		//FIXME we don't use output selector in order to select/switch the returned value but an operand instead
 		//Operations with no operands are actually considered as operations with an indeterministic (undeterministic) N number of operands with N > 0 ..
 		this("ctx", "Return informations about the parent operation targeted stock. Implemented only: the stock symbol.",
 		new StringOperation("string", "stockInfoRetreived", "Info retreived from the target stock", new StringValue("sym")));
@@ -24,7 +25,7 @@ public class TargetStockInfoOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String selector = ((StringValue) inputs.get(0)).getValue(targetStock);
 		
@@ -41,6 +42,10 @@ public class TargetStockInfoOperation extends StringerOperation {
             return new StringValue(targetStock.getEventInfoOpsCompoOperation().getReference());
         }
 		
+		if (selector.equals("uop")) {
+            return new StringValue(getUserOperationReference(thisCallStack));
+        }
+		
 		return new StringValue(targetStock.getStock().getSymbol());
 	}
 
@@ -50,7 +55,7 @@ public class TargetStockInfoOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 }

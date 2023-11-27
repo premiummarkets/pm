@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
@@ -149,9 +150,9 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 //									if (TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, new EventInfo[] {eOpsCompo})) {
 //										EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, eOpsCompo);
 //									}
-									//How ever, the cleanup here should be alike the OperationBuilder.clearPreviousCalculations() on impacted indicators.
+									//However, the cleanup here should be alike the OperationBuilder.clearPreviousCalculations() on impacted indicators.
 									TargetStockInfo dummyTargetStock = new TargetStockInfo(analysisName, (EventInfoOpsCompoOperation) eOpsCompo, stock, DateFactory.dateAtZero(), DateFactory.getNowEndDate());
-									eOpsCompo.invalidateAllForciblyOperands(dummyTargetStock, analysisName);
+									eOpsCompo.invalidateAllForciblyOperands(analysisName, dummyTargetStock, Optional.empty());
 								
 									
 								});

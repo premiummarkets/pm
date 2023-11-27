@@ -15,6 +15,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.CsvImportExport;
 import com.finance.pms.datasources.files.MapCsvImportExport;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiValuesOutput;
@@ -33,7 +34,7 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 
 	@Override
 	//Can't use MultiSelectorsValue as selectors are not known in advance (this will fail in the editor).
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		StringValue pathStringValue = (StringValue) inputs.get(0);
 		String filePath = pathStringValue.getValue(targetStock);

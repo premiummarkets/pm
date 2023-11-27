@@ -8,6 +8,7 @@ import java.util.Optional;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -42,7 +43,7 @@ public class ListOperation extends Operation {
 	}
 
 	@Override
-	public AnyValueListValue<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public AnyValueListValue<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new AnyValueListValue<>(inputs);
 	}
 
@@ -58,7 +59,7 @@ public class ListOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		// TODO Auto-generated method stub
 	}
 

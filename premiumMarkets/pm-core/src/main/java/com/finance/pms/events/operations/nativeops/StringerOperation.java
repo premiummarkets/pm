@@ -6,6 +6,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -29,7 +30,7 @@ public abstract class StringerOperation extends Operation {
 	}
 
 	@Override
-	public abstract StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 	
 	@Override
 	public StringValue emptyValue() {

@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableMapValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -83,7 +84,7 @@ public class EqualStringConstantCondition extends Condition<String> {
      * 	ex4 : overPeriod > 0, forPeriod > 0
      * 	    => not implemented
      */
-    public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+    public BooleanMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
         String constant = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();

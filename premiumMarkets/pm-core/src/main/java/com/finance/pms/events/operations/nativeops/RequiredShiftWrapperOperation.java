@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -26,7 +27,7 @@ public class RequiredShiftWrapperOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		//Integer addedShift = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		return inputs.get(1);
 	}
@@ -42,7 +43,7 @@ public class RequiredShiftWrapperOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 
 	}
 

@@ -1,6 +1,5 @@
 package com.finance.pms.events.operations.util;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -245,14 +244,11 @@ public class ValueManipulator {
 					
 					String outputsOperandsRef = fHCombinationsAcc.get(fI);
 					
-					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-					LOGGER.info(
-							"Running: " + operation.getReference() + " with params " + outputsOperandsRef + 
-							". From " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate()));
-					
+//					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+//					LOGGER.info("Running: " + operation.getReference() + " with params " + outputsOperandsRef + ". From " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate()));
 					NumericableMapValue innerCalcFuncRes = innerCalcFunc.apply(fCombinationsAcc.get(fI));
+//					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + innerCalcFuncRes);
 					
-					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + innerCalcFuncRes);	
 					if (innerCalcFuncRes.getValue(targetStock).size() == 0) {
 						throw new RuntimeException(
 								"Empty results for "  + operation.getReference() + " with params " + outputsOperandsRef + " and " + targetStock + ". " +

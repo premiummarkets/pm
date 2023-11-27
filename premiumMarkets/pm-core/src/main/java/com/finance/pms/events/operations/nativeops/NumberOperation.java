@@ -35,6 +35,7 @@ import java.util.Optional;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -54,7 +55,7 @@ public class NumberOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public NumberValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumberValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((NumberValue) inputs.get(0));
 	}
 
@@ -64,7 +65,7 @@ public class NumberOperation extends Operation implements LeafOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//Nothing
 	}
 

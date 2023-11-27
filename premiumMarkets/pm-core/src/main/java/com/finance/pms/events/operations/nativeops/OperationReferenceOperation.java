@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -28,7 +29,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 
 	@Override
-	public OperationReferenceValue<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public OperationReferenceValue<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return (OperationReferenceValue<?>) inputs.get(0).getValue(targetStock);
 	}
 	
@@ -53,8 +54,28 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 		return 0;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStockOpt, Optional<String> userOperationName) {
+		if (targetStockOpt.isPresent()) {
+			TargetStockInfo targetStock = targetStockOpt.get();
+			Operation value = ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
+			value.invalidateOperation(analysisName, targetStockOpt, Optional.of(value.getReference()));
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void invalidateAllNonIdempotentOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
+		Operation value = ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
+		value.invalidateAllNonIdempotentOperands(analysisName, targetStock,  Optional.of(value.getReference()));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void invalidateAllForciblyOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
+		Operation value = ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
+		value.invalidateAllForciblyOperands(analysisName, targetStock, Optional.of(value.getReference()));
 	}
 
 	@Override
@@ -72,18 +93,6 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	@Override
 	public void interrupt() throws Exception {
 		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).interrupt();
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName) {
-		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).invalidateAllNonIdempotentOperands(targetStock, analysisName);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void invalidateAllForciblyOperands(TargetStockInfo targetInfo, String analysisName) {
-		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).invalidateAllForciblyOperands(targetInfo, analysisName);
 	}
 	
 	@SuppressWarnings("unchecked")

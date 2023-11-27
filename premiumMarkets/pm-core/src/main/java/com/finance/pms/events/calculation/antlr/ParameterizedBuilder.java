@@ -613,10 +613,10 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	public abstract void resetCaches();
 
-	public void clearPreviousCalculations(Operation operation) throws InUseException {
+	public void clearPreviousCalculationsUsing(Operation operation) throws InUseException {
 		List<Operation> impactedIndicators = actualCheckInUse(getCurrentOperations().values(), operation);
 		if (!impactedIndicators.isEmpty()) {
-			LOGGER.info("Operation " + operation.getReference() + " has been changed, invalidating operations : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
+			LOGGER.info("Operation " + operation.getReference() + " has been changed, invalidating operations: " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", "+e));
 			invalidateOperations(impactedIndicators);
 			throw new InUseException(impactedIndicators);
 		}
@@ -624,7 +624,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	//We invalidate only the impacted operations but not their operands (no recursion)
 	private void invalidateOperations(List<Operation> impactedOps) {
-		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty()));
+		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty(), Optional.empty()));
 	}
 
 

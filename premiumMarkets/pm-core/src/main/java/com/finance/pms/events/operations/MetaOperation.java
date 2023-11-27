@@ -37,7 +37,7 @@ public class MetaOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String preparedFormula = ((StringValue) inputs.get(0)).getValue(targetStock);
 		List<Number> parametersInPlace = inputs.subList(1, inputs.size()).stream().map(n -> ((NumberValue) n).getValue(targetStock)).collect(Collectors.toList());
@@ -75,7 +75,7 @@ public class MetaOperation extends Operation {
 					"Running meta: " + operation.getReference() + " with formulea: " + formula + 
 					" and shift: " + thisStartShift + " and operands shift: " + operationOperandsStartShift);
 			
-			Value<?> output = operation.run(targetStock, addThisToStack(thisCallStack, thisStartShift, operationOperandsStartShift, targetStock), thisStartShift + operationOperandsStartShift);
+			Value<?> output = operation.run(targetStock, thisCallStack, thisStartShift + operationOperandsStartShift);
 			
 			return output;
 			
@@ -118,7 +118,7 @@ public class MetaOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 	@Override

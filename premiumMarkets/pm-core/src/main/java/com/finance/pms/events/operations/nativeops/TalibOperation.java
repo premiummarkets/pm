@@ -38,6 +38,7 @@ import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.talib.indicators.TalibException;
@@ -61,7 +62,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		NumericableMapValue ret = new DoubleMapValue();
 		MInteger outBegIdx = new MInteger();

@@ -51,6 +51,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
@@ -99,7 +100,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	 * @return True when bullish and False when bearish
 	 */
 	@Override
-	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		EventMapValue buySellEventsMainOutput = new EventMapValue();
 		try {
@@ -183,7 +184,7 @@ public class TalibIndicatorsCompositionerGenericOperation extends EventMapOperat
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//Nothing
 		//  This is not an EventInfo but an operation although it can be composed within one of Parameterized Indicator -> Event to delete
 		//  And this doesn't have any storage calculation result to wipe out.

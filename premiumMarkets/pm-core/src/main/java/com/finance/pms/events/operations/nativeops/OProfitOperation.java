@@ -19,6 +19,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventMapValue;
@@ -57,7 +58,7 @@ public class OProfitOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		List<SortedMap<EventKey, EventValue>> buySellEventSeries = inputs.subList(0, inputs.size()).stream().map(v -> ((EventMapValue) v).getEventMap()).collect(Collectors.toList());
 
@@ -217,7 +218,7 @@ public class OProfitOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 }

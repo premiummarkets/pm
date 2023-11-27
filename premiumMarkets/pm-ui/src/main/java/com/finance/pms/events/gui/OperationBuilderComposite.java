@@ -823,7 +823,7 @@ public class OperationBuilderComposite extends Composite {
 			openDialog(true, "Found invalid formulas while storing data.", e);
 		}
 
-		clearPreviousCalculations(identifier);
+		clearPreviousCalculationsUsing(identifier);
 		refreshViews();
 
 	}
@@ -859,13 +859,13 @@ public class OperationBuilderComposite extends Composite {
 		}
 	}
 
-	protected void clearPreviousCalculations(String identifier) {
+	protected void clearPreviousCalculationsUsing(String identifier) {
 		Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		if (operation == null) {
 			LOGGER.warn("No operation was found in User Current Operations for identifier: "+identifier);
 		} else {
 			try {
-				parameterizedBuilder.clearPreviousCalculations(operation);
+				parameterizedBuilder.clearPreviousCalculationsUsing(operation);
 			} catch (InUseException e) {
 				parameterizedBuilder.notifyChanged(operation, ObsMsgType.OPERATION_CrUD);
 			}
@@ -1017,7 +1017,7 @@ public class OperationBuilderComposite extends Composite {
 			if (createDefaultIndicatorOnSave) {
 				parameterizedBuilder.notifyChanged(parameterizedBuilder.getCurrentOperations().get(identifier), ObsMsgType.CREATE_INDICTOR);
 			}
-			clearPreviousCalculations(identifier);
+			clearPreviousCalculationsUsing(identifier);
 			refreshViews();
 			LOGGER.info("Refresh done/running: " + identifier + ". Is saved : " + isSaved);
 		}

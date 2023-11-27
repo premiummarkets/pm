@@ -43,6 +43,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -110,7 +111,7 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return new BooleanMapValue();
 	}
 
@@ -120,7 +121,7 @@ public class Condition<T> extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//Nothing
 	}
 

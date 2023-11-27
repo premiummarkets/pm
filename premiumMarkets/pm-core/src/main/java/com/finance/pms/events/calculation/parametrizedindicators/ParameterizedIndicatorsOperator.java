@@ -130,8 +130,8 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			LOGGER.info("STARTING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime + ". "
 						+ "Formulae: " + eventInfoOpsCompoOperationHolder.toFormulaeDevelopped());
 			//EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder.clone())
-			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder) //Should have been cloned by the caller.
-											.run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + eventInfoOpsCompoOperationHolder.getReference(), 0);
+			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder).run(targetStock, new ArrayList<>(), 0); //Should have been cloned by the caller.
+											
 			long finishTime = new Date().getTime();
 			LOGGER.info("ENDING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " finishing at " + finishTime + ". "
 					+ "Time elapsed: " + (finishTime-startTime)/1000 + " seconds. "

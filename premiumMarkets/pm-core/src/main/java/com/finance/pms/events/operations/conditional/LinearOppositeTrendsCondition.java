@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import javax.transaction.NotSupportedException;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
@@ -43,7 +44,7 @@ public class LinearOppositeTrendsCondition extends LinearTrendsCondition impleme
 	}
 
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer overPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		Integer forPeriod = ((NumberValue) inputs.get(getLastPeriodsIndex())).getValue(targetStock).intValue();

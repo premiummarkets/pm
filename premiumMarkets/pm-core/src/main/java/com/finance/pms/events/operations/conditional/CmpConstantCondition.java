@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
@@ -82,7 +83,7 @@ public abstract class CmpConstantCondition extends Condition<Double> implements 
 	}
 
 	@Override
-	public BooleanMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public BooleanMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Double threshold = ((NumberValue) inputs.get(THRESHOLD_POSITION)).getValue(targetStock).doubleValue();
 		Integer overPeriod = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue();

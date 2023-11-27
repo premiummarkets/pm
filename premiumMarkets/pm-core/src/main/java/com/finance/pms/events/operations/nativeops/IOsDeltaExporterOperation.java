@@ -37,6 +37,7 @@ import com.finance.pms.datasources.files.SeriesPrinter;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
@@ -82,7 +83,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
 		String baseFilePath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
@@ -259,7 +260,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		Date startDateShifted = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
 		Date startDate = targetStock.getStartDate(0);
 		Date endDate = targetStock.getEndDate();
-		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") " + this.shortOutputReference(), 0);
+		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, addThisToStack(targetStock), 0);
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
 		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock));
@@ -421,7 +422,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		if (targetStock.isPresent() ) {
 			StringValue deltaFilesValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock.get()).orElse(null);
 			String deltaFiles = extractedFileRootPath(((StringValue) deltaFilesValue).getValue(targetStock.get()));

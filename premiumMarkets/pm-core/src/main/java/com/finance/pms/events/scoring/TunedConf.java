@@ -123,7 +123,7 @@ public class TunedConf {
 	}
 	
 	@Transient
-	public Boolean isEmpty() {
+	public Boolean wasResetOrIsNew() {
 		return DateFactory.dateAtZero().equals(lastStoredEventCalculationEnd);
 	}
 

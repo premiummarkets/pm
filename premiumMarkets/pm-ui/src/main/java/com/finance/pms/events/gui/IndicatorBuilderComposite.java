@@ -197,7 +197,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			dialog.open();
 		} 
 
-		clearPreviousCalculations(identifier);
+		clearPreviousCalculationsUsing(identifier);
 
 	}
 
@@ -223,7 +223,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 		}
 
-		clearPreviousCalculations(identifier);
+		clearPreviousCalculationsUsing(identifier);
 
 	}
 
@@ -291,7 +291,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	}
 
 	@Override
-	protected void clearPreviousCalculations(String identifier) {
+	protected void clearPreviousCalculationsUsing(String identifier) {
 
 		EventInfoOpsCompoOperation operation = (EventInfoOpsCompoOperation) parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		EventModel.dirtyCacheFor(operation);

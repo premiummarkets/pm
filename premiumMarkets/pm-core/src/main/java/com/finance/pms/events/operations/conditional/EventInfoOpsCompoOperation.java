@@ -58,6 +58,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescrip
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.EventsAnalyser;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
@@ -103,7 +104,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public EventMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public EventMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 				
 		BooleanMapValue bullishMapValue = ((BooleanMapValue)inputs.get(0));
 		BooleanMapValue bearishMapValue = ((BooleanMapValue)inputs.get(1));
@@ -250,14 +251,14 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		
 		if (isAlterableOverridable) {
 			//EventsResources.getInstance().crudDeleteEventsForStock(targetStock.getStock(), targetStock.getAnalysisName(), new EventInfo[] {this});
-			invalidateAllNonIdempotentOperands(targetStock, targetStock.getAnalysisName());
+			invalidateAllNonIdempotentOperands(targetStock.getAnalysisName(), targetStock, Optional.empty());
 		}
 		
 		return 0;
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> optStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> optStock, Optional<String> userOperationName) {
 		try {
 			if (optStock.isPresent()) {
 				Stock stock = optStock.get().getStock();

@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -23,7 +24,7 @@ public class RandomizeStringOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String param = ((StringValue) inputs.get(0)).getValue(targetStock);
 		return new StringValue(param + "_" + UUID.randomUUID());
 	}
@@ -34,7 +35,7 @@ public class RandomizeStringOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	
 	}
 	

@@ -176,13 +176,13 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 						boolean grantsEventsOverride = !(eventInfo instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfo).isNoOverrideDeltaOnly(dummyTargetStock));
 						
 						Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfo);
-						boolean hasPreviousCalculations = tunedConfOpt.isPresent()  && !tunedConfOpt.get().isEmpty();
+						boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().wasResetOrIsNew();
 						boolean isIdempotent = evtCalculator.isIdemPotent();
 						boolean isAlterableOveridable = !isIdempotent && grantsEventsOverride;
 						
 						TunedConf tunedConf = hasPreviousCalculations?
 												tunedConfOpt.get():
-												TunedConfMgr.getInstance().saveUniqueNoRetuneConfig(stock, eventListName, eventInfo, isAlterableOveridable);
+												TunedConfMgr.getInstance().saveOrUpdateUniqueNoRetuneConfig(stock, eventListName, eventInfo, isAlterableOveridable);
 	
 						if (isAlterableOveridable) {
 							cleanEventsFor(stock, eventInfo, eventListName);

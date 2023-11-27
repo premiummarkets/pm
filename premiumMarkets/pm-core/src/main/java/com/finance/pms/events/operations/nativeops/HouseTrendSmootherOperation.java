@@ -7,6 +7,7 @@ import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
@@ -34,7 +35,7 @@ public class HouseTrendSmootherOperation extends PMWithDataOperation {
 	
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock,String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock,List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		Integer houseTrendPeriod = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue();
 		SortedMap<Date, Double> data = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);

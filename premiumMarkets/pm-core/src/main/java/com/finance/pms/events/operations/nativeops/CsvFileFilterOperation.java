@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -30,7 +31,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		String filePath = ((StringValue) inputs.get(0)).getValue(targetStock);
 		if (!filePath.startsWith(File.separator)) {//Relative
@@ -99,7 +100,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//Nothing
 	}	
 

@@ -52,6 +52,7 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
@@ -122,7 +123,7 @@ public abstract class HighsAndLowsCondition extends DiscreteLinearOutputsConditi
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, List<? extends Value> inputs) {
+	public BooleanMultiMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, List<? extends Value> inputs) {
 
 		Integer lookBackNbDays = ((NumberValue) inputs.get(0)).getValue(targetStock).intValue(); //s
 		Integer overPeriodRemanence = ((NumberValue) inputs.get(1)).getValue(targetStock).intValue(); //o

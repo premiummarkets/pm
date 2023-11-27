@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.operations;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -78,6 +78,8 @@ import com.finance.pms.events.operations.nativeops.StringerOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.events.quotations.QuotationDataType;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
 
 /**
  * !!Operations must be state less across calculations as reused!! 
@@ -192,43 +194,54 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * @param thisOutputRequiredStartShiftByParent: (this operation output shift (== parent input shift) + this operation required operands input shift for 0 lag) (== total operands output shift)
 	 * @return
 	 */
-	public Value<?> run(TargetStockInfo targetStock, String parentCallStack, int thisOutputRequiredStartShiftByParent) {	
-		int nbOperands = operands.size();
+	public Value<?> run(TargetStockInfo targetStock, List<StackElement> parentCallStack, int thisOutputRequiredStartShiftByParent) {
 		
 		//Literals
+		//if (needsReset) this.parameter = null;
 		if (parameter != null) {
 			return parameter;
 		}
-		else {
-			runNonDataSensitives(targetStock, addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, 0, targetStock), operands);
-		}
-
-		//Quotation sensitives
-		int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftByParent);
-		int thisInputOperandsRequiredshiftFromThis = thisOutputRequiredStartShiftByParent + thisOperationOperandsStartShift;
 		
+		//Non Literals
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		try {
-			String thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, thisOperationOperandsStartShift, targetStock);
-			//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
-			//LOGGER.info(thisCallStack);
+			//Data non sensitive operands
+			runNonDataSensitives(targetStock, addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, 0, targetStock), operands); //Needed for operandsRequiredStartShift?
 			
-			int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
-			boolean isInChart = isDisplay && thisCallStack.split("=>").length <= maxDepth;
+			//Effective calculation
+			int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftByParent);
+			int thisInputOperandsRequiredshiftFromThis = thisOutputRequiredStartShiftByParent + thisOperationOperandsStartShift;
 			
+			//if (needsReset) targetStock.removeCalculated(this, this.getOutputSelector());
 			Value<?> alreadyCalculated = null;
 			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
 				return alreadyCalculated;
-			}
-			else {
-				List<Value<?>> operandsOutputs = new ArrayList<>(Collections.nCopies(nbOperands, (Value<?>) null));
 				
+			} else {
+				
+				List<StackElement> thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, thisOperationOperandsStartShift, targetStock);
+				//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
+				//LOGGER.info(thisCallStack);
+				
+				//Invalidation check
+				if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion")) {
+					Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(targetStock.getStock(), targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation());
+					Boolean needsReset = tunedConfOpt.map(t -> t.wasResetOrIsNew()).orElse(false); //XXX unnecessary clean up when new
+					if (needsReset) this.invalidateAllForciblyOperands(targetStock.getAnalysisName(), targetStock,  Optional.of(getUserOperationReference(thisCallStack)));
+				}
+				
+				//Operands chart Cache
+				int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
+				boolean isInChart = isDisplay && targetStock.getEventInfoOpsCompoOperation().isKeepEvents() && thisCallStack.size() <= maxDepth;
+				
+				//Operands Calculation
+				int nbOperands = operands.size();
+				List<Value<?>> operandsOutputs = new ArrayList<>(Collections.nCopies(nbOperands, (Value<?>) null));
 				//If start > end, non literals operands will be set empty 
 				final Boolean literalsOnly = targetStock.getStartDate(thisInputOperandsRequiredshiftFromThis).compareTo(targetStock.getEndDate()) > 0;
 				
-				//Non literals
 				List<Future<Value<?>>> futures = new ArrayList<>(Collections.nCopies(nbOperands, (Future<Value<?>>) null));
-				ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
+				ExecutorService executor = CalculateThreadExecutor.getExecutorInstance(); //Executors.newFixedThreadPool(2); //CalculateThreadExecutor.getExecutorInstance();
 				for (int i = 0; i < nbOperands; i++) {
 					
 					final Operation operand = operands.get(i);
@@ -252,14 +265,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 											}
 											Thread.sleep(10);
 										};
-											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredshiftFromThis);
-											output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredshiftFromThis, Operation.this);
-											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredshiftFromThis, isInChart);
-											return output;
+										Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredshiftFromThis);
+										output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredshiftFromThis, Operation.this);
+										gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredshiftFromThis, isInChart);
+										return output;
 									} catch (StackException e) {
 										throw e;
 									} catch (Exception e) {
-										throw new StackException("Failing operand in \n" + thisCallStack + "\nOperand " + "(" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(), e);
+										throw new StackException("Failing operand (" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(), thisCallStack, e);
 									} finally {
 										synchronized (targetStock) {
 											targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
@@ -268,6 +281,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								} else {
 									return operand.emptyValue();
 								}
+								
 							}
 						};
 						Future<Value<?>> iterationFuture = executor.submit(callable);
@@ -293,18 +307,22 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					}
 				});
 				
+				//Operands chart cache
 				if (isInChart) {
 					synchronized (targetStock.getChartedOutputGroupsAsync()) {
 						targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
 					}
 				}
-
+				
+				//This Calculation
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculating " + this.getReference() + " = " + this.getFormulae() + ": parent required shift (this output required) " + thisOutputRequiredStartShiftByParent + " and parent+this (this input required)" + thisInputOperandsRequiredshiftFromThis);
 				
 				Value<?> operationOutput = calculate(targetStock, thisCallStack, thisOutputRequiredStartShiftByParent, thisInputOperandsRequiredshiftFromThis, operandsOutputs);
 				
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Calculation results " + this.getReference() + ((this.getOutputSelector() != null)?": " + this.getOutputSelector():"") + " returns " + operationOutput.toString());
 				
+				
+				//Log
 				
 ////				//DEBUG
 //				if (operationOutput != null && operationOutput instanceof NumericableMapValue) {
@@ -320,16 +338,15 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 ////				//DEBUG
 				
 				//find userParameterized \( -name "c_op_*" -o -name "meta_*" -o -name "k_training_*" \) -delete
-				if ((operationOutput instanceof NumericableMapValue || operationOutput instanceof MultiMapValue || this instanceof CachableOperation)) {
+				if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion") 
+						&& (operationOutput instanceof NumericableMapValue || operationOutput instanceof MultiMapValue || this instanceof CachableOperation)) {
 					LOGGER.info(
-							"Done Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference() + 
-							". Caller: " + ((parentCallStack.contains("\n"))?
-												parentCallStack.substring(0, parentCallStack.indexOf("\n")) + "..." + parentCallStack.substring(parentCallStack.lastIndexOf("\n") + 1):
-												parentCallStack)
-							//+ ". Stack: " + ((this.shortOutputReference().contains("bestShift:period"))?parentCallStack:"hidden")
-							//+ ". Stack: " + ((this.shortOutputReference().contains("iosAssembler"))?"iosAssembler stack":parentCallStack)
+							"Done Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference(thisCallStack) + 
+							". Caller: " + StackElement.toShortString(parentCallStack)
 							);
 				}
+				
+				//Log end
 				
 				return operationOutput;
 			}
@@ -344,7 +361,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 
-	protected void runNonDataSensitives(TargetStockInfo targetStock, String parentCallStack, List<Operation> someOperands) {
+	protected void runNonDataSensitives(TargetStockInfo targetStock, List<StackElement> parentCallStack, List<Operation> someOperands) {
 		for (int i = 0; i < someOperands.size(); i++) {
 			Operation operand = someOperands.get(i);
 			boolean parameterDataSensitive = operand.isParameterDataSensitive();
@@ -352,6 +369,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				Value<?> output = operand.run(targetStock, parentCallStack, 0);								
 				operand.setParameter(output);
 			}
+		}
+		if (!this.isNative() && !getUserOperationReference(parentCallStack).equals("UnknownUserOpeartion")) {
+			LOGGER.info(
+					"Done Running non sensitive: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference(parentCallStack) + 
+					". Caller: " + StackElement.toShortString(parentCallStack)
+					);
 		}
 	}
 
@@ -364,16 +387,18 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * @return
 	 * @throws NotEnoughDataException 
 	 */
-	public String addThisToStack(String parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) {
-		int stackDepth = parentCallStack.split("=>").length + 1;
-		String tabs = IntStream.range(0, stackDepth).mapToObj(i -> "\t").reduce("", (r,e) -> r + e);
-		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
-		String thisCallStack = 
-					parentCallStack + ": \n" + 
-					"Call Stack (" + targetStock.getStock().getSymbol() + "): " + tabs + "=> s" + parentRequiredStartShift + ": " + this.shortOutputReference() + 
-					" with s" +  operationOperandsRequiredStartShift + " and d" + stackDepth + 
-					" from " + df.format(targetStock.getStartDate(parentRequiredStartShift)) + " to " + df.format(targetStock.getEndDate());
-		return thisCallStack;
+	private List<StackElement> addThisToStack(List<StackElement> parentCallStack, int parentRequiredStartShift, int operationOperandsRequiredStartShift, TargetStockInfo targetStock) {
+		int stackDepth = (parentCallStack.size() > 0)? parentCallStack.get(parentCallStack.size()-1).getStackDepth() + 1 : 0;
+		ArrayList<StackElement> branchCallStack = new ArrayList<>(parentCallStack);
+		branchCallStack.add(new StackElement(
+				stackDepth, targetStock.getStock().getSymbol(), 
+				parentRequiredStartShift, operationOperandsRequiredStartShift, targetStock.getStartDate(parentRequiredStartShift), targetStock.getEndDate(), 
+				this.reference, this.operationReference, this.outputSelector, this.referenceAsOperand));
+		return branchCallStack;
+	}
+	
+	public  List<StackElement> addThisToStack(TargetStockInfo targetStock) {
+		return this.addThisToStack(new ArrayList<>(), 0, 0, targetStock);
 	}
 
 	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart) {
@@ -413,7 +438,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * @param parentCallStack TODO
 	 * @param parentRequiredStartShift TODO
 	 */
-	public abstract Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 	
 	public abstract Value<?> emptyValue();
 	
@@ -449,14 +474,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 
 	/**
-	 * Parameter for this operation (this is actually a pre evaluated value for the operand)
+	 * Parameter for this operation (this is actually a pre evaluated value for this)
 	 * TODO?? set the parameter in conjunction (or in place?) of the targetStock output cache?? This would mean the parameter is set not only for the runNonDataSensitives
 	 * @param parameter
 	 */
 	public void setParameter(Value<?> parameter) {
 		String operationReference = this.getOperationReference();
 		
-		//Sanity check
+		//Clone requirement Sanity check
 		if (!(this instanceof LeafOperation) && operationReference != null) {
 			ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 			Operation upStreamOperation = parameterizedOperationBuilder.getCurrentOperations().get(operationReference);
@@ -483,14 +508,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public Optional<Value<?>> getOrRunParameter(TargetStockInfo targetStock) {
 		try {
 			if (parameter == null) {
-				runNonDataSensitives(targetStock, this.getReference(), Arrays.asList(this));
+				runNonDataSensitives(targetStock, addThisToStack(targetStock), Arrays.asList(this));
 				if (parameter == null) {
-					LOGGER.warn("Trying to solve a data sensitive parameter, will be empty for " + this.getReference());
+					LOGGER.warn("Returning and empty parameter. Operation has data sensitive parameters for " + this.getReference());
 					return Optional.empty();
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error("Trying to solve a data sensitive parameter, will be empty for " + this.getReference(), e);
+			LOGGER.error("Returning and empty parameter. Failed to solve data sensitive parameters for " + this.getReference(), e);
 			return Optional.empty();
 		}
 		return Optional.of(parameter);
@@ -525,7 +550,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		} catch (NoSuchElementException e) {//Not enough operands
 			throw new IllegalArgumentException(
 					this.getReference() + " rejected " + overridingOperands.stream()
-					.map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) + " are not enough operands. Expected : " + operands + ", Parameterised : " + parameter);
+					.map(o -> o.getReference()).reduce((r, ee) -> r + ", " + ee) + " are not enough operands. Expected: " + operands + ", Parameterised: " + parameter);
 		}
 		//Too many operands
 		if (overridingOperandsIt.hasNext()) {
@@ -723,8 +748,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		this.defaultValue = (Value<?>) defaultValue;
 	}
 
-	public String shortOutputReference() {
-		return "[" + reference + " (is " + operationReference + ":" + outputSelector + ") as " + referenceAsOperand + "]";
+	public String shortOutputReference(List<StackElement> stack) {
+		return "[" + getUserOperationReference(stack) + " (is " + operationReference + ":" + outputSelector + ") as " + referenceAsOperand + "]";
 	}
 
 	public String synoptic() {
@@ -796,6 +821,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 */
 	public String getOperationReference() {
 		return operationReference;
+	}
+	
+	public String getUserOperationReference(List<StackElement> stack) {
+		Optional<StackElement> lastUserOp = stack.stream()
+			.filter(se -> se.isUserOp())
+			.reduce((a,s) -> s);
+		return lastUserOp.map(luo -> luo.getOpReference()).orElse("UnknownUserOpeartion");
 	}
 
 	@Override
@@ -891,23 +923,26 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return reduce;
 	}
 
-	public abstract void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock);
+	public abstract void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName);
 
 	/**
+	 * Top down invalidation of this and its operands calculations.
+	 * This is for use outside of the calculation cycle.
 	 * EventInfoOpsCompoOperation: delete events if eOpsCompo is removable
-	 * KerasLine/IOsXXXExporter/ImpoterOperation: delete delta and local files as stored in the Op clone
+	 * KerasLine/IOsXXXExporter/ImporterOperation: delete delta and local files as stored in the Op clone
 	 * EncogXXXOperation: Obsolete
 	 * KerasWebPredictOperation: delete delta and local files as stored in the Op clone 
 	 * KerasWebTrainOperation: delete delta and local files as stored in the Op clone + removes env data for eOpsCompo as per the targetStock param
-	 * @param targetStock
 	 * @param analysisName
+	 * @param targetStock
+	 * @param userOperationName TODO
 	 */
-	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName) {
+	public void invalidateAllNonIdempotentOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("Checking " + getReference() + " for invalidation.");
 		if (!this.isIdemPotent(targetStock) && !this.isNoOverrideDeltaOnly(targetStock)) {
 			try {
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + targetStock);
-				this.invalidateOperation(analysisName, Optional.of(targetStock));
+				this.invalidateOperation(analysisName, Optional.of(targetStock), userOperationName);
 			} catch (Exception e) {
 				LOGGER.warn("Could not invalidate " + this + e);
 			}
@@ -915,27 +950,30 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		operands.stream().forEach(
 				o -> {
 					if (!o.getOperands().isEmpty()) {
-						o.invalidateAllNonIdempotentOperands(targetStock, analysisName);
+						o.invalidateAllNonIdempotentOperands(analysisName, targetStock, userOperationName);
 					}
 				});
 	}
 	/**
-	 * @param targetInfo TODO
+	 * Top down forced (No check for isIdemPotent or isNoOverrideDeltaOnly) invalidation of this and its operands calculations.
+	 * This is for use outside of the calculation cycle.
 	 * @param analysisName
+	 * @param targetInfo
+	 * @param userOperationName TODO
 	 * @param params
 	 * @see invalidateAllNonIdempotentOperands
 	 */
-	public void invalidateAllForciblyOperands(TargetStockInfo targetInfo, String analysisName) {
+	public void invalidateAllForciblyOperands(String analysisName, TargetStockInfo targetInfo, Optional<String> userOperationName) {
 		try {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + targetInfo);
-			this.invalidateOperation(analysisName, Optional.of(targetInfo));
+			this.invalidateOperation(analysisName, Optional.of(targetInfo), userOperationName);
 		} catch (Exception e) {
 			LOGGER.warn("Could not invalidate " + this + e);
 		}
 		operands.stream().forEach(
 				o -> {
 					if (!o.getOperands().isEmpty()) {
-						o.invalidateAllForciblyOperands(targetInfo, analysisName);
+						o.invalidateAllForciblyOperands(analysisName, targetInfo, userOperationName);
 					}
 				});
 	}

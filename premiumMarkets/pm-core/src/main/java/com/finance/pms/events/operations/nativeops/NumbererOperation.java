@@ -6,6 +6,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -28,7 +29,7 @@ public abstract class NumbererOperation extends Operation {
 	}
 
 	@Override
-	public abstract NumberValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
+	public abstract NumberValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs);
 	
 	@Override
 	public NumberValue emptyValue() {

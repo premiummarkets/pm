@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -44,7 +45,7 @@ public class NamedListOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		int size = inputs.size();
 		List<String> namesOps = inputs.stream().limit(size/2).map(v -> (String) v.getValue(targetStock)).collect(Collectors.toList());
 		double[] valuesOps = inputs.stream().skip(size/2).mapToDouble(v -> ((Number) v.getValue(targetStock)).doubleValue()).toArray();
@@ -66,7 +67,7 @@ public class NamedListOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		// TODO Auto-generated method stub
 	}
 

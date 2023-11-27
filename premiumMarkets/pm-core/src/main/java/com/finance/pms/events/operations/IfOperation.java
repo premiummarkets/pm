@@ -34,7 +34,7 @@ public class IfOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String ifCondition = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Operation thenOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock).clone();
 		Operation elseOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(2)).getValue(targetStock).clone();
@@ -42,12 +42,10 @@ public class IfOperation extends Operation {
 		LOGGER.info(this.getReference() + " condition is " + ifCondition + " for " + targetStock.getStock().getSymbol());
 		if (ifCondition.equals("TRUE")) {
 			LOGGER.info(this.getReference() + " will run " + thenOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
-			return thenOperationClone
-					.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
+			return thenOperationClone.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
 		} else {
 			LOGGER.info(this.getReference() + " will run " + elseOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
-			return elseOperationClone
-					.run(targetStock, addThisToStack(thisCallStack, thisInputOperandsRequiredShiftFromThis, 0, targetStock), thisInputOperandsRequiredShiftFromThis);
+			return elseOperationClone.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
 		}
 	}
 
@@ -62,7 +60,9 @@ public class IfOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
+//		getOperands().get(1).invalidateOperation(analysisName, targetStock, userOperationName);
+//		getOperands().get(2).invalidateOperation(analysisName, targetStock, userOperationName);
 	}
 	
 	
@@ -96,26 +96,27 @@ public class IfOperation extends Operation {
 //	}
 
 	@Override
-	public void invalidateAllNonIdempotentOperands(TargetStockInfo targetStock, String analysisName) {
+	public void invalidateAllNonIdempotentOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
+//		XXX we can't evaluate the condition at this point within reasonable calculation time
 //		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
 //		if (value0 != null) {
 //			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
 //		} else {
 //			throw new RuntimeException();
 //		}
-		getOperands().get(1).invalidateAllNonIdempotentOperands(targetStock, analysisName);
-		getOperands().get(2).invalidateAllNonIdempotentOperands(targetStock, analysisName);
+		getOperands().get(1).invalidateAllNonIdempotentOperands(analysisName, targetStock, userOperationName);
+		getOperands().get(2).invalidateAllNonIdempotentOperands(analysisName, targetStock, userOperationName);
 	}
 	
 	@Override
-	public void invalidateAllForciblyOperands(TargetStockInfo targetInfo, String analysisName) {
-		getOperands().get(1).invalidateAllForciblyOperands(targetInfo, analysisName);
-		getOperands().get(2).invalidateAllForciblyOperands(targetInfo, analysisName);
+	public void invalidateAllForciblyOperands(String analysisName, TargetStockInfo targetInfo, Optional<String> userOperationName) {
+		getOperands().get(1).invalidateAllForciblyOperands(analysisName, targetInfo, userOperationName);
+		getOperands().get(2).invalidateAllForciblyOperands(analysisName, targetInfo, userOperationName);
 	}
 	
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, addThisToStack(targetStock), 0));
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isIdemPotent(targetStock));
 		} else {
@@ -125,14 +126,13 @@ public class IfOperation extends Operation {
 
 	@Override
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
-		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, addThisToStack(targetStock), 0));
 		if (value0 != null) {
 			return this.<Boolean>reccurentProceeds(value0, o -> o.isNoOverrideDeltaOnly(targetStock));
 		} else {
 			throw new RuntimeException();
 		}
 	}
-	
 	
 	@Override
 	public String toFormulaeShort() {
@@ -156,7 +156,7 @@ public class IfOperation extends Operation {
 	
 	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, addThisToStack(targetStock), 0));
 		if (value0 != null) {
 			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift));
 		} else {

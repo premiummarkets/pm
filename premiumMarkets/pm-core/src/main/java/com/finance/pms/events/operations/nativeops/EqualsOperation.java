@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -23,7 +24,7 @@ public class EqualsOperation extends StringerOperation {
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		StringableValue firstValue = (StringableValue) inputs.get(0);
 		boolean allEquals = inputs.stream().allMatch(s -> ((StringableValue) s).getValueAsString().equals(firstValue.getValueAsString()));
 		return (allEquals)?new StringValue("TRUE"):new StringValue("FALSE");
@@ -35,7 +36,7 @@ public class EqualsOperation extends StringerOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	
 	}
 

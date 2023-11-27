@@ -30,7 +30,7 @@ public class LetOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, String thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> variableValue = inputs.get(1);
 		Value<?> variableReturned = targetStock.letHeapVar(variableName, variableValue);
@@ -49,7 +49,7 @@ public class LetOperation extends Operation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//String variableName = ((StringValue) getOperands().get(0).getParameter()).getValue(null);
 		//FIXME targetStock.unlet(variableName);
 	}

@@ -15,6 +15,7 @@ import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.MultiSelectorsValue;
@@ -59,7 +60,7 @@ public class VolatilityOperation extends PMWithDataOperation implements MultiVal
 	}
 
 	@Override
-	public MultiSelectorsValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public MultiSelectorsValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int basicPeriod = ((NumberValue)inputs.get(0)).getValue(targetStock).intValue();

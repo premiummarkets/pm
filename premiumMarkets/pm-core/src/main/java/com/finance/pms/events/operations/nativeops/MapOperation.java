@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -27,7 +28,7 @@ public abstract class MapOperation extends Operation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack,  int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack,  int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((NumericableMapValue)inputs.get(0));
 	}
 	

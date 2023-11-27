@@ -36,6 +36,7 @@ import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -58,7 +59,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartDateShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
 		int leftShiftSpan = ((NumberValue)inputs.get(LEFT_SHIFT_AMOUNT_IDX)).getValue(targetStock).intValue();

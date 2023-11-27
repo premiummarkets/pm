@@ -53,6 +53,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
@@ -69,14 +70,14 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	private final class SpecificStatsFunction implements StatsFunction {
 		
 		private final Operation specificOperation;
-		private final String thisCallStack;
+		private final List<StackElement> thisCallStack;
 		private final int thisInputOperandsRequiredShiftFromThis;
 		private final TargetStockInfo targetStock;
 		private final String outputSelector;
 		
 		private List<String> doEvalColRefs;
 
-		private SpecificStatsFunction(Operation specificOperation, String thisCallStack, int thisInputOperandsRequiredShiftFromThis, TargetStockInfo targetStock, String outputSelector) {
+		private SpecificStatsFunction(Operation specificOperation, List<StackElement> thisCallStack, int thisInputOperandsRequiredShiftFromThis, TargetStockInfo targetStock, String outputSelector) {
 			this.specificOperation = specificOperation;
 			this.thisCallStack = thisCallStack;
 			this.thisInputOperandsRequiredShiftFromThis = thisInputOperandsRequiredShiftFromThis;
@@ -135,13 +136,9 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			}
 		}
 
-		private NumberValue doEval(TargetStockInfo targetStock, String parentCallStack, int parentRequiredStartShift, Operation specificOperation, SortedMap<Date, Double> subMap) throws NotEnoughDataException {
+		private NumberValue doEval(TargetStockInfo targetStock, List<StackElement> parentCallStack, int parentRequiredStartShift, Operation specificOperation, SortedMap<Date, Double> subMap) throws NotEnoughDataException {
 			TargetStockInfo evaluateTargetStock = new TargetStockInfo(targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), targetStock.getStock(), subMap.firstKey(), subMap.lastKey());
-			int operandsRequiredStartShift = specificOperation.operandsRequiredStartShift(evaluateTargetStock, parentRequiredStartShift);
-			NumberValue run = (NumberValue) specificOperation
-					.run(evaluateTargetStock, 
-						 addThisToStack(parentCallStack, parentRequiredStartShift, operandsRequiredStartShift, evaluateTargetStock), 
-						 parentRequiredStartShift);
+			NumberValue run = (NumberValue) specificOperation.run(evaluateTargetStock, parentCallStack, parentRequiredStartShift);
 			doEvalColRefs = (run instanceof NumberArrayValue)?((NumberArrayValue)run).getColumnsReferences():Arrays.asList(outputSelector);
 			return run;
 		}
@@ -175,7 +172,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 
 	@Override
 	public NumericableMapValue calculate(
-			TargetStockInfo targetStock, String thisCallStack, 
+			TargetStockInfo targetStock, List<StackElement> thisCallStack, 
 			int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check

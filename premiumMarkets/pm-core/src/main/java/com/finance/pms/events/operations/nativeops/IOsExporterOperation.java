@@ -24,6 +24,7 @@ import org.apache.commons.math3.util.Precision;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.files.SeriesPrinter;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
@@ -57,7 +58,7 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 	}
 
 	@Override
-	public StringValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
 		String exportFilePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
@@ -119,7 +120,7 @@ public class IOsExporterOperation extends StringerOperation implements CachableO
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		if (trainingFiles != null) {
 			try {
 				Path deltaFile = Path.of(URI.create("file://" + trainingFiles));

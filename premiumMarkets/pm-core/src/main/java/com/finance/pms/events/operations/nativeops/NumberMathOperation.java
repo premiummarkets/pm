@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.Value;
 
@@ -35,7 +36,7 @@ public class NumberMathOperation extends NumbererOperation {
 	}
 
 	@Override
-	public NumberValue calculate(TargetStockInfo targetStock, String thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public NumberValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		//Param check
 		List<Number> numbers = inputs.stream().map(n -> ((NumberValue) n).getValue(targetStock)).collect(Collectors.toList());
@@ -74,7 +75,7 @@ public class NumberMathOperation extends NumbererOperation {
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock) {
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 	@Override
