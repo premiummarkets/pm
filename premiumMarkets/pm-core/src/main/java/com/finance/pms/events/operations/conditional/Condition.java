@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
@@ -118,11 +117,6 @@ public class Condition<T> extends Operation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		//Nothing
 	}
 
 	/**

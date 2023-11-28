@@ -424,22 +424,22 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		if (targetStock.isPresent() ) {
-			StringValue deltaFilesValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock.get()).orElse(null);
-			String deltaFiles = extractedFileRootPath(((StringValue) deltaFilesValue).getValue(targetStock.get()));
-			if (deltaFiles != null) {
+			StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock.get()).orElse(null);
+			String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock.get()));
+			if (rootFileFullPath != null) {
 				try {
-					Path deltaFile = Path.of(URI.create("file://" + deltaFiles));
-					LOGGER.info("Deleting file local copy: " + deltaFile.toString());
-					boolean exist = Files.exists(deltaFile);
+					Path rootFile = Path.of(URI.create("file://" + rootFileFullPath));
+					LOGGER.info("Deleting file local copy: " + rootFile.toString());
+					boolean exist = Files.exists(rootFile);
 					if (exist) {
 						try {
-							Files.delete(deltaFile);
+							Files.delete(rootFile);
 						} catch (IOException e) {
 							LOGGER.error(e, e);
 						}
 					}
 				} catch (Exception e1) {
-					LOGGER.error("Can't create path from " + deltaFiles, e1);
+					LOGGER.error("Can't create path from " + rootFileFullPath, e1);
 				}
 			}
 		}

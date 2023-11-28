@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
@@ -115,10 +114,6 @@ public class MetaOperation extends Operation {
 		
 		return "meta" + parameters;
 		
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 	@Override

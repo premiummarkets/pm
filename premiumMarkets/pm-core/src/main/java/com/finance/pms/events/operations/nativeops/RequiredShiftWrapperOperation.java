@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.finance.pms.events.calculation.DateFactory;
@@ -40,11 +39,6 @@ public class RequiredShiftWrapperOperation extends Operation {
 		} else {
 			return addedShift.intValue();
 		}
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-
 	}
 
 	@Override

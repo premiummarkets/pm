@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -200,11 +199,6 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		
 	}
 
 	@Override

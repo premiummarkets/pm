@@ -7,7 +7,7 @@ import java.util.List;
 public class StackElement {
 	
 	public static String toString(List<StackElement> callStack) {
-		return callStack.stream().map(s -> s.toString()).reduce((a,s) -> a).orElse("Empty stack");
+		return callStack.stream().map(s -> s.toString()).reduce((a,s) -> a + "\n" + s).orElse("Empty stack");
 	}
 	
 	public static String toShortString(List<StackElement> callStack) {

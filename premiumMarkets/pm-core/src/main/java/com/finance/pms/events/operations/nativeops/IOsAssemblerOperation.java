@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -130,11 +129,6 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		//Nothing specific to this operation
 	}
 
 }

@@ -3,7 +3,6 @@ package com.finance.pms.events.operations;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.nativeops.StringOperation;
@@ -50,10 +49,6 @@ public class GetOperation extends Operation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 	
 //	@Override

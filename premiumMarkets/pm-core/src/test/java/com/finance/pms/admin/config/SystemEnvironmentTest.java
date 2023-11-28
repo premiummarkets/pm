@@ -1,5 +1,7 @@
 package com.finance.pms.admin.config;
 
+import org.junit.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -14,7 +16,6 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.SpringContext;
@@ -24,6 +25,7 @@ import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringListValue;
 import com.finance.pms.threads.ConfigThreadLocal;
+import com.google.gson.JsonObject;
 
 public class SystemEnvironmentTest {
 	
@@ -49,7 +51,7 @@ public class SystemEnvironmentTest {
 	}
 	
 
-	@Test
+	//@Test
 	public void test20180718() {
 		
 		String inferModelPath = System.getProperty("installdir") + File.separator + "autoPortfolioLogs/keras_runs.csv";	
@@ -60,7 +62,7 @@ public class SystemEnvironmentTest {
 		
 	}
 	
-	@Test
+	//@Test
 	public void testPrgs() {
 		
 		String inferModelPath = System.getProperty("installdir") + File.separator + "autoPortfolioLogs/keras_runs.csv";	
@@ -71,7 +73,7 @@ public class SystemEnvironmentTest {
 		
 	}
 	
-	//@Test
+	@Test
 	public void test3() {
 		
 		{
@@ -112,6 +114,20 @@ public class SystemEnvironmentTest {
 		{
 		CsvFileFilterOperation anyJavaObject = new CsvFileFilterOperation();
 		SystemEnvironment.getInstance().write("EXTR", "anyAnalysis.anyIndicator.toto", anyJavaObject);
+		Optional<Object> read = SystemEnvironment.getInstance().read("EXTR", "anyAnalysis.anyIndicator.toto");
+		System.out.println("Read anyJavaObject type: " + read.orElseThrow().getClass().getName());
+		System.out.println("Read anyJavaObject: " + read.orElseThrow().toString());
+		}
+		
+		{
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("trainedModel", "xxxxx");
+		jsonObject.addProperty("period", 999);
+		JsonObject latest = new JsonObject();
+		latest.addProperty("trainedModel", "yyyy");
+		latest.addProperty("period", 000);
+		jsonObject.add("latest", latest);
+		SystemEnvironment.getInstance().write("EXTR", "anyAnalysis.anyIndicator.toto", jsonObject);
 		Optional<Object> read = SystemEnvironment.getInstance().read("EXTR", "anyAnalysis.anyIndicator.toto");
 		System.out.println("Read anyJavaObject type: " + read.orElseThrow().getClass().getName());
 		System.out.println("Read anyJavaObject: " + read.orElseThrow().toString());

@@ -70,10 +70,6 @@ public class EnvOperation extends Operation {
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-	}
 	
 	@Override
 	public String toFormulaeShort() {

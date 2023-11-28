@@ -3,7 +3,6 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.Operation;
@@ -33,11 +32,6 @@ public class EqualsOperation extends StringerOperation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-	
 	}
 
 }

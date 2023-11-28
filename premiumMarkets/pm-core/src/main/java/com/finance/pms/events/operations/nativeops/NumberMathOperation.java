@@ -3,7 +3,6 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -72,10 +71,6 @@ public class NumberMathOperation extends NumbererOperation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 	@Override

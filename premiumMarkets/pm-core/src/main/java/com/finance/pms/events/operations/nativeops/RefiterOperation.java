@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -70,12 +69,6 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	@Override

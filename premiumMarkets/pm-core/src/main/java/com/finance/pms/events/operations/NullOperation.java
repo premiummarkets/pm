@@ -2,7 +2,6 @@ package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import com.finance.pms.events.operations.nativeops.AnyValueListValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
@@ -42,10 +41,6 @@ public class NullOperation extends Operation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 	}
 
 	@Override

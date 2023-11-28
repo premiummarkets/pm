@@ -154,11 +154,6 @@ public class IndicatorStatsOperation extends ArrayMapOperation implements MultiV
 		return Double.isNaN(shift) ? 0 : shift.intValue();
 	}
 
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		//Nothing
-	}
-
 	/**
 	 * @deprecated replace with isQuotationsDataSensitive??
 	 */

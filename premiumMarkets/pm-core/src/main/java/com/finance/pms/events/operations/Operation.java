@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -923,16 +922,19 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return reduce;
 	}
 
-	public abstract void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName);
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
+		//Nothing by default
+	}
 
 	/**
 	 * Top down invalidation of this and its operands calculations.
 	 * This is for use outside of the calculation cycle.
-	 * EventInfoOpsCompoOperation: delete events if eOpsCompo is removable
-	 * KerasLine/IOsXXXExporter/ImporterOperation: delete delta and local files as stored in the Op clone
+	 * EventInfoOpsCompoOperation: delete events from db if eOpsCompo is removable
+	 * KerasLine/IOsXXXExporter/ImporterOperation: delete local files if the paths are available
 	 * EncogXXXOperation: Obsolete
-	 * KerasWebPredictOperation: delete delta and local files as stored in the Op clone 
-	 * KerasWebTrainOperation: delete delta and local files as stored in the Op clone + removes env data for eOpsCompo as per the targetStock param
+	 * KerasWebPredictOperation: Nothing
+	 * KerasWebTrainOperation: removes env data for eOpsCompo as per targetStock and userOpName
+	 * OperationReference/IfOperation: invalidation redirection
 	 * @param analysisName
 	 * @param targetStock
 	 * @param userOperationName TODO

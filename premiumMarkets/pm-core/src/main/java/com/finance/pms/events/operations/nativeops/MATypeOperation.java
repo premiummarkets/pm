@@ -31,7 +31,6 @@ package com.finance.pms.events.operations.nativeops;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -64,11 +63,6 @@ public class MATypeOperation extends Operation implements LeafOperation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
-	}
-
-	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		//Nothing
 	}
 
 	@Override
