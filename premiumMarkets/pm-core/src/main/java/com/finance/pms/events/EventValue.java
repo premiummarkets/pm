@@ -80,7 +80,7 @@ public class EventValue implements Serializable {
 	@Override
 	public String toString() {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		return df.format(date) + " -> " + eventType + " " + eventDef.getEventReadableDef() + ((message.isEmpty()?"":" : "+message));
+		return df.format(date) + " -> " + eventType + " " + eventDef.getEventReadableDef() + ((message.isEmpty()?"":" : " + message));
 	}
 	
 

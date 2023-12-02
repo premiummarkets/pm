@@ -36,7 +36,7 @@ import java.util.SortedMap;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.Value;
 
 public class UpRatioCondition extends CrossConstantCondition implements UnaryCondition {
 

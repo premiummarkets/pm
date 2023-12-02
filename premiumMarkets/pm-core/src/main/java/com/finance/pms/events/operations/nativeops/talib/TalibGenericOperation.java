@@ -39,16 +39,16 @@ import java.util.SortedMap;
 import java.util.TreeSet;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.operations.nativeops.TalibOperation;
+import com.finance.pms.events.operations.nativeops.StringableValue;
+import com.finance.pms.events.operations.nativeops.Value;
+import com.finance.pms.events.operations.nativeops.ta.TalibOperation;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator.ConstantNameNType;
 import com.finance.pms.talib.indicators.TalibCoreService;
 import com.finance.pms.talib.indicators.TalibException;
@@ -266,7 +266,7 @@ public class TalibGenericOperation extends TalibOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort() {
+	public String toFormulaeShort(TargetStockInfo targetStock) {
 		String refa24z = getReference().substring(0,1) + (getReference().length() -2) + getReference().substring(getReference().length() -1); 
 //		String contants = getOperands().subList(0, inConstantsNames.size()).stream()
 //				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
@@ -274,7 +274,7 @@ public class TalibGenericOperation extends TalibOperation {
 		List<Operation> subList = getOperands().subList(0, inConstantsNames.size());
 		String contants = "";
 		for (int i = 0; i < subList.size(); i++) {
-			Value<?> optEle = subList.get(i).getOrRunParameter(null).orElseThrow();
+			Value<?> optEle = subList.get(i).getOrRunParameter(targetStock).orElseThrow();
 			String ele = ((StringableValue) optEle).getValueAsString();
 			if (inConstantsNames.get(i).type.equals(Integer.TYPE)) {
 				ele = intRounding(((NumberValue) optEle).getNumberValue()).toString();
@@ -282,7 +282,7 @@ public class TalibGenericOperation extends TalibOperation {
 			contants = contants + "_" + ele;
 		}
 		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
-		String opsFormulaeShort = toFormulaeShort(ops);
+		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
 		return refa24z + contants + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 

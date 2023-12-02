@@ -2,37 +2,87 @@ package com.finance.pms.events.operations;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Semaphore;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
+import com.finance.pms.admin.install.logging.MyLogger;
 
 public class CalculateThreadExecutor {
 	
-	public static ExecutorService getExecutorInstance() {
-		return SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).getExecutor();
+	private static MyLogger LOGGER = MyLogger.getLogger(CalculateThreadExecutor.class);
+	
+	public static ExecutorService getRandomInfiniteExecutorInstance() {
+		return SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).getRandomInfiniteExecutor();
+	}
+	
+	public static ExecutorService getJoinForkExecutorInstance() {
+		return SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).getJoinForkExecutor();
 	}
 	
 	public static Semaphore getSemaphoreInstance() {
 		return SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).getSemaphore();
 	}
 	
-	private ExecutorService executor;
+	private ExecutorService randomInfiniteExecutor;
+	private ExecutorService joinForkExecutor;
 	private Semaphore semaphore;
 	
 	protected CalculateThreadExecutor() {
 		super();
-		executor = initExecutor();
+		randomInfiniteExecutor = initRandomInfiniteExecutor();
+		joinForkExecutor = initJoinForkExecutor();
 		semaphore = new Semaphore(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")));
 	}
 
-	private ExecutorService getExecutor() {
-		if (executor.isShutdown()) executor = initExecutor();
-		return executor;
+	private ExecutorService getRandomInfiniteExecutor() {
+		if (randomInfiniteExecutor.isShutdown()) {
+			synchronized (randomInfiniteExecutor) {
+				if (randomInfiniteExecutor.isShutdown()) {
+					randomInfiniteExecutor = initRandomInfiniteExecutor();
+				}
+			}
+		}
+		return randomInfiniteExecutor;
 	}
 	
-	private ExecutorService initExecutor() {
+	private ExecutorService getJoinForkExecutor() {
+		if (joinForkExecutor.isShutdown()) {
+			synchronized (joinForkExecutor) {
+				if (joinForkExecutor.isShutdown()) {
+					joinForkExecutor = initRandomInfiniteExecutor();
+				}
+			}
+		}
+		return joinForkExecutor;
+	}
+	
+	private ExecutorService initRandomInfiniteExecutor() {
+		
+//      new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+//                60L, TimeUnit.SECONDS,
+//                new SynchronousQueue<Runnable>());
 		return Executors.newCachedThreadPool();
+		
+//		ExecutorService newWorkStealingPool = Executors.newWorkStealingPool();
+//		ExecutorService newWorkStealingPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors()*2, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true);
+//		LOGGER.info("Fork join pool: " + newWorkStealingPool);
+//		return newWorkStealingPool;
+//		
+		//Do no use. This will block
+//		new ThreadPoolExecutor(10000, 10000,
+//                 0L, TimeUnit.MILLISECONDS,
+//                 new LinkedBlockingQueue<Runnable>());
+//		return Executors.newFixedThreadPool(10000);
+	}
+	
+	private ExecutorService initJoinForkExecutor() {
+//		ExecutorService newWorkStealingPool = Executors.newWorkStealingPool();
+		ExecutorService newWorkStealingPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors()*3, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true);
+		LOGGER.info("Fork join pool: " + newWorkStealingPool);
+		return newWorkStealingPool;
+		
 	}
 	
 	private Semaphore getSemaphore() {
@@ -41,7 +91,8 @@ public class CalculateThreadExecutor {
 	
 	public void close() {
 		semaphore.drainPermits();
-		executor.shutdown();
+		randomInfiniteExecutor.shutdown();
+		joinForkExecutor.shutdown();
 	}
 	
 

@@ -7,13 +7,20 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.calc.ConcatStringOperation;
+import com.finance.pms.events.operations.nativeops.calc.EqualsOperation;
+import com.finance.pms.events.operations.nativeops.calc.NegateOperation;
+import com.finance.pms.events.operations.nativeops.calc.RandomizeStringOperation;
+import com.finance.pms.events.operations.nativeops.calc.StringEqualsOperation;
+import com.finance.pms.events.operations.nativeops.data.CsvFileFilterOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsDeltaExporterOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsExporterOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsWebImporterOperation;
 
 @XmlSeeAlso({
 	CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class, IOsWebImporterOperation.class,
-	RandomizeStringOperation.class, ConcatStringOperation.class, StringEqualsOperation.class, EqualsOperation.class
+	RandomizeStringOperation.class, ConcatStringOperation.class, StringEqualsOperation.class, EqualsOperation.class, NegateOperation.class
 	})
 public abstract class StringerOperation extends Operation {
 

@@ -55,15 +55,15 @@ import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.FormulaUtils;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
-import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.EventsAnalyser;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.EventMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
  * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
@@ -125,6 +125,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		fullKeySet.addAll(bullishMap.keySet());
 		fullKeySet.addAll(bearishMap.keySet());
 
+		String resultHint = this.resultHint(targetStock, newCallerStack(targetStock));
 		for (Date date : fullKeySet) {
 
 			EventType dateEventType = EventType.NONE;
@@ -138,7 +139,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			if (isBearish != null && isBearish) dateEventType = EventType.BEARISH; //Bearish prevails in case of inconsistency.
 
 			ParameterizedEventKey iek = new ParameterizedEventKey(date, this, dateEventType);
-			EventValue iev = new StandardEventValue(date, this, dateEventType, eventListNameValue);
+			EventValue iev = new StandardEventValue(date, this, dateEventType, resultHint, eventListNameValue);
 			edata.put(iek, iev);
 
 		}
@@ -279,7 +280,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public String toFormulaeShort() {
+	public String toFormulaeShort(TargetStockInfo targetStock) {
 		return getReference().substring(0,1) + getReference().chars()
 				.filter(c -> Character.isUpperCase(c))
 				.mapToObj(cu -> (char) cu)
@@ -308,5 +309,15 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	public void setKeepEvents(boolean isKeepEvents) {
 		this.isKeepEvents = isKeepEvents;
 	}
+
+	@Override
+	public String resultHint(TargetStockInfo targetStockInfo, List<StackElement> callStack) {
+		callStack = addThisToStack(callStack, 0, targetStockInfo);
+		return 
+			"bull: " + getOperands().get(0).resultHint(targetStockInfo, callStack) + "\n" +
+			"bear: " + getOperands().get(1).resultHint(targetStockInfo, callStack);
+	}
+	
+	
 	
 }

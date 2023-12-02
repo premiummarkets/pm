@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.SortedMap;
 
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 
 public abstract class MapValue<X> extends Value<SortedMap<Date, X>> {
 	

@@ -18,20 +18,17 @@ public class NumberArrayValue extends NumberValue implements MultiValue {
 
 	private double[] values;
 	private List<String> columnsReferences;
-	private int mainIdx;
 
 	public NumberArrayValue(double[] values, List<String> columnsReferences, int mainIdx) {
 		super(0 <= mainIdx && mainIdx < columnsReferences.size()?values[mainIdx]:Double.NaN);
 		this.values = values;
 		this.columnsReferences = columnsReferences;
-		this.mainIdx = mainIdx;
 	}
 
 	public NumberArrayValue() {
 		super();
 		this.values = new double[] {};
 		this.columnsReferences = new ArrayList<>();
-		this.mainIdx = 0;
 	}
 
 	@Override
@@ -56,24 +53,13 @@ public class NumberArrayValue extends NumberValue implements MultiValue {
 									return Integer.valueOf(columnsReferences.indexOf(o1)).compareTo(Integer.valueOf(columnsReferences.indexOf(o2)));
 								}
 							}))
-							);
+					);
 	}
 
 	//The peculiarity is that the column amount and refs is known only at runtime.
 	//Hence, this has to be held in the value not the operation.
 	public List<String> getColumnsReferences() {
 		return this.columnsReferences;
-	}
-	
-	public String getMainColumnsReferences() {
-		if (isMainSet()) {
-			return this.columnsReferences.get(mainIdx);
-		}
-		return null;
-	}
-	
-	private boolean isMainSet() {
-		return 0 <= mainIdx && mainIdx < this.columnsReferences.size();
 	}
 
 	@Override

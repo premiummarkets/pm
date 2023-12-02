@@ -496,6 +496,7 @@ public class ChartMain extends Chart {
 								String x = "NaN";
 								EventType type = EventType.NONE;
 								String desrc = "Indeterministic simultaneous BULLISH and BEARISH";
+								String barTip = "";
 								try {
 
 									Date date = new Date((long) dataset.getXValue(series, item));
@@ -505,10 +506,12 @@ public class ChartMain extends Chart {
 									case 0:
 										type = EventType.BULLISH;
 										desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
+										barTip = barSerie.get(date).getToolTip().split("\n")[0].replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");;
 										break;
 									case 2:
 										type = EventType.BEARISH;
 										desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
+										barTip = barSerie.get(date).getToolTip().split("\n")[1].replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");;
 										break;
 									default:
 										break;
@@ -539,7 +542,7 @@ public class ChartMain extends Chart {
 									"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
 									"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" +
 									((profitTip.isEmpty())?"":"Ending Period&nbsp;&nbsp;&nbsp;: " + profitTip + "<br>") +
-									barSerie.get(date).getToolTip() + "<br>" +
+									barTip + "<br>" +
 									"</font>" + "</html>";
 
 								} catch (Exception e) {

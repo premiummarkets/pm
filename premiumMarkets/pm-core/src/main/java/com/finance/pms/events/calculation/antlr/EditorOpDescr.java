@@ -34,12 +34,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.finance.pms.events.operations.NullOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
 import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NamedListOperation;
+import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;

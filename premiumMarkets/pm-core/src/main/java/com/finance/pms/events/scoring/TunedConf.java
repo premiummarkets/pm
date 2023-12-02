@@ -112,7 +112,7 @@ public class TunedConf {
 		this.tunedConfId = tunedConfId;
 	}
 
-	@Column(name="DIRTY") //0 for false and 1 for true: 0 (not removable) if noOverride is true
+	@Column(name="DIRTY") //0 for false and 1 for true: 0 (not removable) when noOverrideDelatOnly is true
 	public Boolean getIsRemovable() {
 		return isRemovable;
 	}

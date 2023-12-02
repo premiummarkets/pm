@@ -6,5 +6,5 @@ public interface CachableOperation {
 	//FIXME this is a short cut: there should actually be a first pass to find out the longest shift before the calculation occurs.
 	public Integer operationNaturalShift();
 	
-	public boolean isParameterDataSensitive();
+	public boolean isForbidThisParameterValue();
 }

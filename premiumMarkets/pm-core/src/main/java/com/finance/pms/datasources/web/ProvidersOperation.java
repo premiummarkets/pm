@@ -14,9 +14,9 @@ import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
+import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 @Deprecated
@@ -51,7 +51,7 @@ public class ProvidersOperation extends Providers implements QuotationProvider {
 			throw new OperationNotSupportedException("There is no operation defined with name: " + operationIdHint);
 		}
 		TargetStockInfo targetStock = new TargetStockInfo(QUOTE_UPDATE, eventInfo, AnalysisClient.ANY_STOCK, start, end); 
-		Value<?> output = operation.run(targetStock, eventInfo.addThisToStack(targetStock), 0);
+		Value<?> output = operation.run(targetStock, eventInfo.newCallerStack(targetStock), 0);
 		
 		if (output == null || !(output instanceof DoubleArrayMapValue)) {
 			throw new OperationNotSupportedException("Ouput value type not supported." + operationIdHint + ". " + output);

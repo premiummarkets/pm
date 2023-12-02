@@ -34,9 +34,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
 public class StringValue extends Value<String> implements StringableValue, Cloneable {
@@ -55,7 +53,6 @@ public class StringValue extends Value<String> implements StringableValue, Clone
 		super();
 		this.stringValue = value.replaceAll("\"", "");
 	}
-
 
 	@Override
 	public String getValue(TargetStockInfo targetStock) {

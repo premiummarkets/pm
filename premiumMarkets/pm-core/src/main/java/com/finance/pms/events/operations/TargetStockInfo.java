@@ -66,6 +66,7 @@ import com.finance.pms.events.operations.nativeops.MultiValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
+import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.quotations.QuotationDataType;
 
 public class TargetStockInfo {
@@ -224,9 +225,13 @@ public class TargetStockInfo {
 		if (nameSplit.length > 1) { //Composite name
 			if (variableValue instanceof MultiValue) {
 				this.heap.put(nameSplit[0], variableValue);
-				return ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
+				Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
+				if (value == null) {
+					throw new RuntimeException("letHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
+				}
+				return value;
 			} else {
-				LOGGER.warn(variableValue + " is not a mutli value.");
+				LOGGER.warn("letHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 			}
 		}
 		
@@ -239,11 +244,15 @@ public class TargetStockInfo {
 		
 		String[] nameSplit = variableName.split("\\.");
 		if (nameSplit.length > 1) { //Composite name
-			Value<?> value = this.heap.get(nameSplit[0]);
-			if (value instanceof MultiValue) {
-				return ((MultiValue) value).getAdditionalOutputs().get(nameSplit[1]);
+			Value<?> variableValue = this.heap.get(nameSplit[0]);
+			if (variableValue instanceof MultiValue) {
+				Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
+				if (value == null) {
+					throw new RuntimeException("getHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
+				}
+				return value;
 			} else {
-				LOGGER.warn(value + " is not a mutli value.");
+				LOGGER.warn("getHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 			}
 		}
 		

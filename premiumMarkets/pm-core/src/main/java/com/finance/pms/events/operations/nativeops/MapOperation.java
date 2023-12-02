@@ -5,12 +5,9 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import com.finance.pms.events.operations.EventMapOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 
 @XmlSeeAlso({ArrayMapOperation.class, DoubleMapOperation.class, EventMapOperation.class})
 public abstract class MapOperation extends Operation {

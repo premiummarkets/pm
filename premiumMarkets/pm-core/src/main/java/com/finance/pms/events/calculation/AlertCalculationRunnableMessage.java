@@ -87,7 +87,7 @@ public class AlertCalculationRunnableMessage extends AbstractAnalysisClientRunna
 
 		for (final Portfolio portfolio : portfolios) {
 
-			ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
+			ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance();
 			List<Future<SymbolEvents>> futures = new ArrayList<Future<SymbolEvents>>();
 
 			boolean isUserPortfolio = portfolio instanceof UserPortfolio; 

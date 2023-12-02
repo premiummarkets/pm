@@ -7,9 +7,13 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.calc.IndicatorStatsOperation;
+import com.finance.pms.events.operations.nativeops.calc.OProfitOperation;
+import com.finance.pms.events.operations.nativeops.calc.ProfitOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsLooseAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.ta.TalibAssemblerOperation;
 
 @XmlSeeAlso({IOsAssemblerOperation.class, IOsLooseAssemblerOperation.class, IndicatorStatsOperation.class, TalibAssemblerOperation.class, OProfitOperation.class, ProfitOperation.class})
 public abstract class ArrayMapOperation extends MapOperation {

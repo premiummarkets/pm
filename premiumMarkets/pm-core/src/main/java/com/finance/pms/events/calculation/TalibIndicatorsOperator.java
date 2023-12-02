@@ -62,12 +62,12 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibIndicatorsOperator.class);
 
-	private EventInfo eventInfoOpsCompoOperation;
+	private EventInfo eventInfo;
 	private SortedMap<Date, double[]> calculationOutput;
 
-	public TalibIndicatorsOperator(EventInfo eventInfoOpsCompoOperation, Observer... observers) {
+	public TalibIndicatorsOperator(EventInfo eventInfo, Observer... observers) {
 		super(observers);
-		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperation;
+		this.eventInfo = eventInfo;
 		this.calculationOutput = new TreeMap<>();
 	}
 
@@ -83,7 +83,7 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 
 		try {
 
-			for (int quotationIndex = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); quotationIndex <= quotations.getLastDateIdx() ; quotationIndex++) {
+			for (int quotationIndex = quotations.getFirstDateShiftedIdx() + getOutputBeginIdx(); quotationIndex <= quotations.getLastDateIdx(); quotationIndex++) {
 
 				QuotationUnit qU = quotations.get(quotationIndex);
 				res = eventFormulaCalculation(qU, quotationIndex);
@@ -92,15 +92,15 @@ public abstract class TalibIndicatorsOperator extends IndicatorsOperator {
 				//if (res.formulaTrend() != 0) {
 				Date current = res.getCurrentDate();
 				EventType eventType = EventType.valueOf(res.formulaTrend() + 1);
-				StandardEventKey iek = new StandardEventKey(current, eventInfoOpsCompoOperation, eventType);
-				EventValue iev = new StandardEventValue(current, eventInfoOpsCompoOperation, eventType, eventListName);
+				StandardEventKey iek = new StandardEventKey(current, eventInfo, eventType);
+				EventValue iev = new StandardEventValue(current, eventInfo, eventType, eventInfo.getEventReadableDef(), eventListName);
 				eData.put(iek, iev);
 				//}
 
 			}
 
 		} catch (Exception e) {
-			String message = "Talib indicator failed :"+this.getClass().getSimpleName()+" for "+quotations.getStock();
+			String message = "Talib indicator failed: " + this.getClass().getSimpleName() + " for " + quotations.getStock();
 			LOGGER.error(message,e);
 			throw new TalibException(message, e);
 		} finally {

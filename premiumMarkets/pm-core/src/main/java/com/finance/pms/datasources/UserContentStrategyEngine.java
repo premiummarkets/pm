@@ -147,12 +147,9 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 									EventInfoOpsCompoOperation eOpsCompo = (EventInfoOpsCompoOperation) e;
 									
 //									//Forced deletion of events. (should be covered by EventInfoOpsCompoOperation.invalidateOperation
-//									if (TunedConfMgr.getInstance().isRemovableFor(stock, analysisName, new EventInfo[] {eOpsCompo})) {
-//										EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, eOpsCompo);
-//									}
-									//However, the cleanup here should be alike the OperationBuilder.clearPreviousCalculations() on impacted indicators.
 									TargetStockInfo dummyTargetStock = new TargetStockInfo(analysisName, (EventInfoOpsCompoOperation) eOpsCompo, stock, DateFactory.dateAtZero(), DateFactory.getNowEndDate());
-									eOpsCompo.invalidateAllForciblyOperands(analysisName, dummyTargetStock, Optional.empty());
+									//eOpsCompo.invalidateAllForciblyOperands(analysisName, dummyTargetStock, Optional.empty());
+									eOpsCompo.invalidateOperation(analysisName, Optional.of(dummyTargetStock), Optional.empty());
 								
 									
 								});

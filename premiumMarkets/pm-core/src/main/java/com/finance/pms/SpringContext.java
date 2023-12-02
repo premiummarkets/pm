@@ -50,7 +50,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.nativeops.OperationReflectiveGenerator;
-import com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerOperationReflectiveGenerator;
+import com.finance.pms.events.operations.nativeops.ta.TalibIndicatorsCompositionerOperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -467,7 +467,7 @@ public class SpringContext extends GenericApplicationContext {
 				MainPMScmd.getMyPrefs().put("trend.sellthreshold", props.getProperty("trend.sellthreshold"));
 			if (props.containsKey("trend.buythreshold"))
 				MainPMScmd.getMyPrefs().put("trend.buythreshold", props.getProperty("trend.buythreshold"));
-			putInPrefs("marketlistretrieval.trendSuppNeeded",props);
+			putInPrefs("marketlistretrieval.trendSuppNeeded", props);
 			//Gnu
 			if (props.containsKey("gnurepport.dateformat"))
 				MainPMScmd.getMyPrefs().put("gnurepport.dateformat", props.getProperty("gnurepport.dateformat"));

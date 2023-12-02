@@ -1,7 +1,7 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.StringableValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.portfolio.InfoObject;
 
 public class OutputDescr implements InfoObject, Comparable<OutputDescr> {

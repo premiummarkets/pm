@@ -8,9 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 
 @XmlRootElement
 public class ListOperation extends Operation {

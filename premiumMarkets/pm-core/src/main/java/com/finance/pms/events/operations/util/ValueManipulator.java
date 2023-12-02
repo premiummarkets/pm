@@ -47,11 +47,11 @@ public class ValueManipulator {
 		return inputsOperandsRefs;
 	}
 	
-	public static List<String> extractOperandFormulaeShort(List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
+	public static List<String> extractOperandFormulaeShort(TargetStockInfo targetStock, List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
 		List<String> inputsOperandsRefs = new ArrayList<String>();
 		IntStream.range(0, operands.size())
 				.forEach(i -> {
-					String fShort = operands.get(i).toFormulaeShort();
+					String fShort = operands.get(i).toFormulaeShort(targetStock);
 					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
 						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
 							.forEach(cRef -> inputsOperandsRefs.add(fShort + "_" + cRef + ((inputsOperandsRefs.contains(cRef))? "_N" + Integer.toString(i):"")));
@@ -231,7 +231,7 @@ public class ValueManipulator {
 		
 
 		//Calc
-		ExecutorService executor = CalculateThreadExecutor.getExecutorInstance();
+		ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance();
 		List<Future<Map<String, NumericableMapValue>>> futures = new ArrayList<>();
 		final List<String> fHCombinationsAcc = hCombinationsAcc;
 		final List<List<NumericableMapValue>> fCombinationsAcc = combinationsAcc;

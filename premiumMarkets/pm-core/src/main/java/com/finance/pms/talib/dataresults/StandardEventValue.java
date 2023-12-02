@@ -37,9 +37,6 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 
-
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class IndicatorEventValue.
  * 
@@ -47,23 +44,10 @@ import com.finance.pms.events.EventValue;
  */
 public class StandardEventValue extends EventValue {
 	
-	
 	private static final long serialVersionUID = -5855030085997834992L;
 	
-	/**
-	 * Instantiates a new indicator event value.
-	 * 
-	 * @param date the date
-	 * @param eventDef the event def
-	 * @param eventType the eventtype
-	 * @author Guillaume Thoreton
-	 */
-	public StandardEventValue(Date date, EventInfo eventDef, EventType eventType, String eventListName){
-		super(date, eventDef, eventType, eventListName);
-		
-	}
 	
-	public StandardEventValue(Date date, EventType eventType, EventInfo eventDef, String message, String eventListName){
+	public StandardEventValue(Date date, EventInfo eventDef, EventType eventType, String message, String eventListName){
 		super(date, eventDef, eventType, message, eventListName);
 
 	}

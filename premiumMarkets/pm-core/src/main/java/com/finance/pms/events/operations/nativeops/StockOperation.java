@@ -44,7 +44,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
@@ -144,14 +143,14 @@ public class StockOperation extends DoubleMapOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort() {
+	public String toFormulaeShort(TargetStockInfo targetStock) {
 		return getOutputSelector().substring(0,1);
 	}
 	
 	@Override
 	public String toFormulae() {
 		Operation operand0 = getOperands().get(0);
-		String value = ((StringValue) operand0.getOrRunParameter(null).orElse(new StringValue(operand0.toFormulaeShort()))).getValue(null);
+		String value = ((StringValue) operand0.getOrRunParameter(null).orElseThrow()).getValue(null);
 		if (value.equals("THIS")) {
 			return getOutputSelector();
 		} else {

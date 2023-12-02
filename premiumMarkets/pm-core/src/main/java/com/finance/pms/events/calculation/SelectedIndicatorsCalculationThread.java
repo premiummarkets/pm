@@ -154,7 +154,11 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					//Should only be here if isFullCalculationForbidOverride is false OR there is no known previous calculation
 					//If the state of isFullCalculationForbidOverride has changed over time from true to false, this delete will break. 
 					if (calcBounds.getCalcStatus().equals(CalcStatus.FULL_RANGE)) {
-						EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfoCln);
+						if (eventInfoCln instanceof EventInfoOpsCompoOperation) {
+							((EventInfoOpsCompoOperation) eventInfoCln).invalidateOperation(eventListName, Optional.of(dummyTargetStock), Optional.empty());
+						} else {
+							EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfoCln);
+						}
 					}
 
 					//Calculation

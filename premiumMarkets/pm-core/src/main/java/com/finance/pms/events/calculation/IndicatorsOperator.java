@@ -55,7 +55,7 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  * For the TalibIndicatorsCompositioner to be available as EventInfo, we needed an operation that is NOT an EventInfoOpsCompoOperation. 
  * As its operand are actually hard coded, this first is a PMDataFreeOperation.
  * The approach was to create an operation (TalibIndicatorsCompositionerGenericOperation) with each TalibIndicatorsCompositioner as its operator.
- * It then needs to be wrapped within an EventInfoOpsCompoOperations through a UI defined formulae. {@link com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerGenericOperation}.
+ * It then needs to be wrapped within an EventInfoOpsCompoOperations through a UI defined formulae. {@link com.finance.pms.events.operations.nativeops.ta.TalibIndicatorsCompositionerGenericOperation}.
  * 
  * Reviewed terminology :
  * 	OperationsCompositionner (former EventConditionHolder) => which should be renamed to IndicatorsBullBearSwitchOperation or EventInfoBullBearSwitchOperation
@@ -80,7 +80,7 @@ public abstract class IndicatorsOperator {
 
 	protected void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventDefinition eventDefinition, EventType eventType, String message, String eventListName) {
 		StandardEventKey iek = new StandardEventKey(currentDate, eventDefinition, eventType);
-		EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
+		EventValue iev = new StandardEventValue(currentDate, eventDefinition, eventType, message, eventListName);
 		eventData.put(iek, iev);
 	}
 

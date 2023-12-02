@@ -45,7 +45,7 @@ import com.finance.pms.events.calculation.antlr.ParsingQueueProvider;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.OperationReflectiveGenerator;
-import com.finance.pms.events.operations.nativeops.pm.TalibIndicatorsCompositionerOperationReflectiveGenerator;
+import com.finance.pms.events.operations.nativeops.ta.TalibIndicatorsCompositionerOperationReflectiveGenerator;
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 
 public class ParameterizedOperationBuilder extends ParameterizedBuilder {

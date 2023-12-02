@@ -30,14 +30,20 @@ public class SystemEnvironment {
 	private static SystemEnvironment environmentMgt;
 	
 	public static SystemEnvironment getInstance() {
-		if (environmentMgt == null) environmentMgt = new SystemEnvironment();
+		if (environmentMgt == null) {
+			synchronized (SystemEnvironment.class) {
+				if (environmentMgt == null) {
+					environmentMgt = new SystemEnvironment();
+				}
+			}
+		}
 		return environmentMgt;
 	}
 
 	private Env env;
 
 	public SystemEnvironment() {
-		initCalcEnv();
+			initCalcEnv();
 	}
 	
 	public Optional<Object> write(String stockSymbol, String compositeName, Object value) {

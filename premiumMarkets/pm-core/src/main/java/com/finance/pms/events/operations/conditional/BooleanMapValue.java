@@ -66,8 +66,6 @@ public class BooleanMapValue extends MapValue<Boolean> implements Cloneable {
 	public SortedMap<Date, Boolean> getValue(TargetStockInfo targetStock) {
 		return map;
 	}
-	
-	
 
 	@Override
 	public String toString() {

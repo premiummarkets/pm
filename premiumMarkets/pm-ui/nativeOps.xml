@@ -820,6 +820,22 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="orOperation">
+            <reference>fOr</reference>
+            <description>Runs the first operand, if the first operand has an error or no result or returns false, runs the second operand, and so on until a result is returned.Will return the first successful input results in case of success. Will return false if all of the inputs fail or have no result or returns false.</description>
+            <operands>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>operation</referenceAsOperand>
+                    <description>operation</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="randomizeStringOperation">
             <reference>randomizeString</reference>
             <description>Add a random suffix to the passed string</description>
@@ -1170,6 +1186,21 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="negateOperation">
+            <reference>neg</reference>
+            <description>Negate a boolean input</description>
+            <operands>
+                <operand xsi:type="nullOperation">
+                    <reference>value</reference>
+                    <description>value</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
                 </operand>
             </operands>
             <availableOutputSelectors/>
@@ -1821,6 +1852,22 @@
             <reference>operationReference</reference>
             <description>Operation reference name</description>
             <operands/>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="andOperation">
+            <reference>fAnd</reference>
+            <description>Runs the first operand, if the first operand has no error and a result and is not false, runs the second operand, and so on until all inputs are run. Will return the last input results in case of success. Will return false if any of the inputs fails or has no result or returns false.</description>
+            <operands>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>operation</referenceAsOperand>
+                    <description>operation</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>

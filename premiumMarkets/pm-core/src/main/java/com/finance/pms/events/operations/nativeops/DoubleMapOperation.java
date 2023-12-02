@@ -36,9 +36,17 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.calc.ArithmeticOperation;
+import com.finance.pms.events.operations.nativeops.calc.ArithmeticUnaryOperation;
+import com.finance.pms.events.operations.nativeops.calc.LnPeriodicOperation;
+import com.finance.pms.events.operations.nativeops.calc.RecursiveOperation;
+import com.finance.pms.events.operations.nativeops.ta.PMIndicatorOperation;
+import com.finance.pms.events.operations.nativeops.ta.Ta4jOperation;
+import com.finance.pms.events.operations.nativeops.ta.TalibOperation;
+import com.finance.pms.events.operations.nativeops.trans.DataTypeCheckOperation;
+import com.finance.pms.events.operations.nativeops.trans.FilterOperation;
+import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
 
 @XmlSeeAlso({
 	ArithmeticOperation.class, ArithmeticUnaryOperation.class,

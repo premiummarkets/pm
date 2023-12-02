@@ -36,7 +36,7 @@ import java.util.ListIterator;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.finance.pms.events.operations.Value;
+import com.finance.pms.events.operations.nativeops.Value;
 
 @XmlRootElement
 public class ParametersHolder {

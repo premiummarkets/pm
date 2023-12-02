@@ -49,7 +49,7 @@ public class AlertEventValue extends StandardEventValue {
 	}
 
 	public AlertEventValue(Date date, EventInfo eventDef, EventType eventtype, String message, String eventListName) {
-		super(date, eventtype, eventDef, message, eventListName);
+		super(date, eventDef, eventtype, message, eventListName);
 	}
 	
 	public AlertEventValue(StandardEventKey eventKey, String message, String eventListName) {
@@ -57,7 +57,7 @@ public class AlertEventValue extends StandardEventValue {
 	}
 	
 	public AlertEventValue(Date date, EventType eventtype, EventDefinition eventDef, String message, String eventListName) {
-		super(date, eventtype, eventDef, message, eventListName);
+		super(date, eventDef, eventtype, message, eventListName);
 	}
 	
 	public Integer extractAdditionalRankWeight() {

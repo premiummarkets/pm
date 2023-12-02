@@ -140,7 +140,7 @@ public class WeatherChecker extends IndicatorsOperator {
 
 	private void addEvent(Map<EventKey, EventValue> eventData, Date currentDate, EventInfo eventDefinition, EventType eventType, String message, String eventListName, String hint) {
 		EventKey iek = new WeatherEventKey(currentDate, eventDefinition, eventType, hint);
-		EventValue iev = new StandardEventValue(currentDate, eventType, eventDefinition, message, eventListName);
+		EventValue iev = new StandardEventValue(currentDate, eventDefinition, eventType, message, eventListName);
 		eventData.put(iek, iev);
 	}
 

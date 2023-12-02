@@ -8,9 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.Value;
 import com.finance.pms.events.quotations.QuotationDataType;
 
 @XmlRootElement
@@ -40,7 +38,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 //	@Override
 //	public String toFormulaeShort() {
-//		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).toFormulaeShort();
+//		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(null).toFormulaeShort();
 //	}
 	
 	@SuppressWarnings("unchecked")
@@ -109,8 +107,8 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public boolean isParameterDataSensitive() {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).isParameterDataSensitive();
+	public boolean isForbidThisParameterValue() {
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).isForbidThisParameterValue();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -118,5 +116,14 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
 		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public String resultHint(TargetStockInfo targetStockInfo, List<StackElement> callStack) {
+		callStack = addThisToStack(callStack, 0, targetStockInfo);
+		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStockInfo).orElseThrow()).getValue(targetStockInfo).resultHint(targetStockInfo, callStack);
+	}
+	
+	
 
 }

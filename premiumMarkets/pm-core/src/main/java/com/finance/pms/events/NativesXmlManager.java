@@ -37,69 +37,72 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.EnvOperation;
-import com.finance.pms.events.operations.GetOperation;
-import com.finance.pms.events.operations.IfOperation;
-import com.finance.pms.events.operations.LetOperation;
-import com.finance.pms.events.operations.LogOperation;
-import com.finance.pms.events.operations.MetaOperation;
-import com.finance.pms.events.operations.NullOperation;
-import com.finance.pms.events.operations.ProfitDrivenOperation;
-import com.finance.pms.events.operations.ProfitWalkerOperation;
-import com.finance.pms.events.operations.RandomOperation;
-import com.finance.pms.events.operations.TargetStockDelegateOperation;
-import com.finance.pms.events.operations.nativeops.BandNormalizerOperation;
-import com.finance.pms.events.operations.nativeops.BandRatioNormalizerOperation;
-import com.finance.pms.events.operations.nativeops.BuyAndHoldOperation;
-import com.finance.pms.events.operations.nativeops.ConcatStringOperation;
-import com.finance.pms.events.operations.nativeops.CsvFileFilterOperation;
-import com.finance.pms.events.operations.nativeops.DataTypeCheckOperation;
-import com.finance.pms.events.operations.nativeops.Division;
-import com.finance.pms.events.operations.nativeops.EqualsOperation;
-import com.finance.pms.events.operations.nativeops.FilterOperation;
-import com.finance.pms.events.operations.nativeops.FlipOperation;
-import com.finance.pms.events.operations.nativeops.IOsAssemblerOperation;
-import com.finance.pms.events.operations.nativeops.IOsDeltaExporterOperation;
-import com.finance.pms.events.operations.nativeops.IOsExporterOperation;
-import com.finance.pms.events.operations.nativeops.IOsLooseAssemblerOperation;
-import com.finance.pms.events.operations.nativeops.IOsWebImporterOperation;
-import com.finance.pms.events.operations.nativeops.IndicatorStatsOperation;
-import com.finance.pms.events.operations.nativeops.InverseOperation;
-import com.finance.pms.events.operations.nativeops.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
-import com.finance.pms.events.operations.nativeops.LnPeriodicOperation;
-import com.finance.pms.events.operations.nativeops.MathOperation;
 import com.finance.pms.events.operations.nativeops.NativeOperations;
 import com.finance.pms.events.operations.nativeops.NativeOperationsBasic;
-import com.finance.pms.events.operations.nativeops.NumberMathOperation;
-import com.finance.pms.events.operations.nativeops.OProfitOperation;
+import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
-import com.finance.pms.events.operations.nativeops.PMAroonOperation;
-import com.finance.pms.events.operations.nativeops.PMBollingerOperation;
-import com.finance.pms.events.operations.nativeops.PMLogRocOperation;
-import com.finance.pms.events.operations.nativeops.PMMACDOperation;
-import com.finance.pms.events.operations.nativeops.PMMightyChaikinOperation;
-import com.finance.pms.events.operations.nativeops.Product;
-import com.finance.pms.events.operations.nativeops.ProfitOperation;
-import com.finance.pms.events.operations.nativeops.RandomizeStringOperation;
-import com.finance.pms.events.operations.nativeops.RecursiveOperation;
-import com.finance.pms.events.operations.nativeops.RefiterOperation;
-import com.finance.pms.events.operations.nativeops.RequiredShiftWrapperOperation;
-import com.finance.pms.events.operations.nativeops.StatsOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
-import com.finance.pms.events.operations.nativeops.StringEqualsOperation;
-import com.finance.pms.events.operations.nativeops.Subtraction;
-import com.finance.pms.events.operations.nativeops.Sum;
-import com.finance.pms.events.operations.nativeops.Ta4jOperation;
-import com.finance.pms.events.operations.nativeops.TalibAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
-import com.finance.pms.events.operations.nativeops.TriggerPointJoiner;
-import com.finance.pms.events.operations.nativeops.UnaryDivision;
-import com.finance.pms.events.operations.nativeops.UnaryProduct;
-import com.finance.pms.events.operations.nativeops.UnarySum;
-import com.finance.pms.events.operations.nativeops.VolatilityOperation;
-import com.finance.pms.events.operations.nativeops.VolatilityOtherOperation;
-import com.finance.pms.events.operations.nativeops.pm.ZeroLagEMAOperation;
+import com.finance.pms.events.operations.nativeops.calc.BuyAndHoldOperation;
+import com.finance.pms.events.operations.nativeops.calc.ConcatStringOperation;
+import com.finance.pms.events.operations.nativeops.calc.Division;
+import com.finance.pms.events.operations.nativeops.calc.EqualsOperation;
+import com.finance.pms.events.operations.nativeops.calc.IndicatorStatsOperation;
+import com.finance.pms.events.operations.nativeops.calc.LnPeriodicOperation;
+import com.finance.pms.events.operations.nativeops.calc.MathOperation;
+import com.finance.pms.events.operations.nativeops.calc.NegateOperation;
+import com.finance.pms.events.operations.nativeops.calc.NumberMathOperation;
+import com.finance.pms.events.operations.nativeops.calc.OProfitOperation;
+import com.finance.pms.events.operations.nativeops.calc.Product;
+import com.finance.pms.events.operations.nativeops.calc.ProfitDrivenOperation;
+import com.finance.pms.events.operations.nativeops.calc.ProfitOperation;
+import com.finance.pms.events.operations.nativeops.calc.ProfitWalkerOperation;
+import com.finance.pms.events.operations.nativeops.calc.RandomOperation;
+import com.finance.pms.events.operations.nativeops.calc.RandomizeStringOperation;
+import com.finance.pms.events.operations.nativeops.calc.RecursiveOperation;
+import com.finance.pms.events.operations.nativeops.calc.StatsOperation;
+import com.finance.pms.events.operations.nativeops.calc.StringEqualsOperation;
+import com.finance.pms.events.operations.nativeops.calc.Subtraction;
+import com.finance.pms.events.operations.nativeops.calc.Sum;
+import com.finance.pms.events.operations.nativeops.calc.UnaryDivision;
+import com.finance.pms.events.operations.nativeops.calc.UnaryProduct;
+import com.finance.pms.events.operations.nativeops.calc.UnarySum;
+import com.finance.pms.events.operations.nativeops.calc.VolatilityOperation;
+import com.finance.pms.events.operations.nativeops.calc.VolatilityOtherOperation;
+import com.finance.pms.events.operations.nativeops.data.CsvFileFilterOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsDeltaExporterOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsExporterOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsLooseAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsWebImporterOperation;
+import com.finance.pms.events.operations.nativeops.flow.AndOperation;
+import com.finance.pms.events.operations.nativeops.flow.EnvOperation;
+import com.finance.pms.events.operations.nativeops.flow.GetOperation;
+import com.finance.pms.events.operations.nativeops.flow.IfOperation;
+import com.finance.pms.events.operations.nativeops.flow.LetOperation;
+import com.finance.pms.events.operations.nativeops.flow.LogOperation;
+import com.finance.pms.events.operations.nativeops.flow.MetaOperation;
+import com.finance.pms.events.operations.nativeops.flow.OrOperation;
+import com.finance.pms.events.operations.nativeops.flow.TargetStockDelegateOperation;
+import com.finance.pms.events.operations.nativeops.ta.PMAroonOperation;
+import com.finance.pms.events.operations.nativeops.ta.PMBollingerOperation;
+import com.finance.pms.events.operations.nativeops.ta.PMLogRocOperation;
+import com.finance.pms.events.operations.nativeops.ta.PMMACDOperation;
+import com.finance.pms.events.operations.nativeops.ta.PMMightyChaikinOperation;
+import com.finance.pms.events.operations.nativeops.ta.Ta4jOperation;
+import com.finance.pms.events.operations.nativeops.ta.TalibAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.ta.ZeroLagEMAOperation;
+import com.finance.pms.events.operations.nativeops.trans.BandNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.trans.BandRatioNormalizerOperation;
+import com.finance.pms.events.operations.nativeops.trans.DataTypeCheckOperation;
+import com.finance.pms.events.operations.nativeops.trans.FilterOperation;
+import com.finance.pms.events.operations.nativeops.trans.FlipOperation;
+import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
+import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
+import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
+import com.finance.pms.events.operations.nativeops.trans.RequiredShiftWrapperOperation;
+import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
 
 
 public class NativesXmlManager {
@@ -117,6 +120,7 @@ public class NativesXmlManager {
 
 		NativeOperations nativeOperations = initNativeOperationInstance();
 		
+		//Flows
 		MetaOperation metaOperation = new MetaOperation();
 		nativeOperations.addOperation(metaOperation);
 		NullOperation nullOperation = new NullOperation();
@@ -131,6 +135,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(envOperation);
 		LogOperation logOperation = new LogOperation();
 		nativeOperations.addOperation(logOperation);
+		AndOperation andOperation = new AndOperation();
+		nativeOperations.addOperation(andOperation);
+		OrOperation orOperation = new OrOperation();
+		nativeOperations.addOperation(orOperation);
 
 		//Arithmetic //=> Arithmetic are added here so that they show in ui only (indeed they are not parameterized and not in the operation grammar either)
 		//This is different with condition which are instantiated on the fly => conditions are indeed hard coded in the indicator grammar.)
@@ -241,6 +249,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(stringEqualsOperation);
 		EqualsOperation equalsOperation = new EqualsOperation();
 		nativeOperations.addOperation(equalsOperation);
+		NegateOperation negateOperation = new NegateOperation();
+		nativeOperations.addOperation(negateOperation);
 
 
 		//Other

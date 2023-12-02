@@ -30,8 +30,8 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
 import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.StringableValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 
 public class OutputReference implements Comparable<OutputReference> {
 	
