@@ -70,11 +70,5 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 				return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
-	}
-    
-    
 
 }

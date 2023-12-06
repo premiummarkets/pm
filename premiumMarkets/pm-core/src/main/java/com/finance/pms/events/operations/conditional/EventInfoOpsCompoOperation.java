@@ -64,6 +64,8 @@ import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
+import com.finance.pms.events.scoring.TunedConf;
+import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
  * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
@@ -271,6 +273,12 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			LOGGER.warn("Delete of events didn't proceed: " + e);
 		}
 	}
+	
+	@Override
+	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {
+		Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(targetStock.getStock(), targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation());
+		return Optional.of(this.getReference() + ": " + tunedConf.map(tc -> tc.toMessage()).orElse("no events recorded"));
+	}
 
 	@Override
 	public Object clone() {
@@ -288,7 +296,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 	
 	@Override
-	public String toFormulae() {
+	public String toFormulae(TargetStockInfo targetStock) {
 		return getReference() + "()";
 	}
 

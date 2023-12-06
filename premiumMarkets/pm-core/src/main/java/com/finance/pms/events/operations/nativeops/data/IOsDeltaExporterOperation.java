@@ -100,7 +100,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		
 		Boolean append;
 		String isAppendString = ((StringValue) inputs.get(IS_APPEND_IDX)).getValue(targetStock);
-		if	("INIT".equals(isAppendString)) {
+		if	("INIT".equals(isAppendString)) {//INIT has been set. This means append was requested but failed.
 			append = false; //for this run
 			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue(Boolean.TRUE.toString()));//for the next run
 		} else {
@@ -385,7 +385,7 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 			try {
 				Files.delete(Path.of(URI.create("file://" + baseFilePath)));
 			} catch (IOException e) {
-				LOGGER.warn("Reinitialisation is " + isInit + ". Previous file does not exist: " + e);
+				LOGGER.warn("Reinitialisation is " + isInit + " and previous file does not exist (or was deleted previously): " + e);
 			}
 			
 			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("INIT"));
@@ -431,11 +431,15 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	}
 
 	@Override
-	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		if (targetStock.isPresent() ) {
-			StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock.get()).orElse(null);
-			String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock.get()));
+	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStockOpt, Optional<String> userOperationName) {
+		if (targetStockOpt.isPresent() ) {
+			TargetStockInfo targetStock = targetStockOpt.get();
+			StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock).orElse(null);
+			String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock));
 			if (rootFileFullPath != null) {
+				if ((getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock).map(v -> Boolean.valueOf(((StringValue) v).getValue(targetStock))).orElse(false))) {
+					getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("INIT"));
+				}
 				try {
 					Path rootFile = Path.of(URI.create("file://" + rootFileFullPath));
 					LOGGER.info("Deleting file local copy: " + rootFile.toString());
@@ -455,6 +459,13 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 	}
 	
 	@Override
+	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {
+		StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock).orElse(null);
+		String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock));
+		return Optional.of(this.getReference() + ": " + rootFileFullPath);
+	}
+
+	@Override
 	public Integer operationNaturalShift() {
 		// TODO Auto-generated method stub
 		return 0;
@@ -466,11 +477,12 @@ public class IOsDeltaExporterOperation extends StringerOperation implements Cach
 		String opsFormulaeShort = super.toFormulaeShort(targetStock);
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
-	
-	
+
 	@Override
-	public boolean isForbidThisParameterValue() {
+	public boolean isDataShiftSensitive() {
 		return true;
 	}
-
+	
+	
+	
 }

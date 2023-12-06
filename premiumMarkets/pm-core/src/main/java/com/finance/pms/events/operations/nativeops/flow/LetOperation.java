@@ -9,13 +9,16 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.VarOperation;
 import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
-public class LetOperation extends Operation {
+
+//TODO a monadic letAndRun that lets a variable and runs an other op (potentially using the variable)
+public class LetOperation extends VarOperation {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(LetOperation.class);
 	
@@ -45,16 +48,6 @@ public class LetOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> emptyValue() {
-		return null;
-	}
-
-	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return 0;
-	}
-
-	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
 		//String variableName = ((StringValue) getOperands().get(0).getParameter()).getValue(null);
 		//FIXME targetStock.unlet(variableName);
@@ -66,11 +59,6 @@ public class LetOperation extends Operation {
 		Optional<Value<?>> optParameter1 = operand1.getOrRunParameter(targetStock);
 		String valueAsString = ((StringableValue) optParameter1.orElse(new StringValue(operand1.toFormulaeShort(targetStock)))).getValueAsString().replaceAll("\"","");
 		return valueAsString;
-	}
-
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
 	}
 
 }

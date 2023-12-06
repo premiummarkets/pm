@@ -25,6 +25,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		this.discriminentConstant = discriminentConstant;
 
 		this.displayOnChart = displayOnChart;
+		
 	}
 
 	public Type getType() {
@@ -115,7 +116,9 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 
 	@Override
 	public String toolTip() {
-		return ((outputReference.getFormula() != null)?outputReference.getFormula():fullQualifiedName()) + "\ngroup : " + getContainer().groupUniqueId().toString();
+		return ((outputReference.getFormula() != null)?(outputReference.getFormula()).replaceAll("(.{100,200}),", "$1,\n"):fullQualifiedName()) + "\n" +
+				"\nGroup: " + getContainer().groupUniqueId().toString() + "\n" +
+				((isMain())?getContainer().getGroupStatus().map(s -> "\nStatus:\n" + s + "\n").orElse(""):"");
 	}
 
 	@Override

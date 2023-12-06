@@ -40,7 +40,8 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(OperationReferenceValue.class);
 	
-	T operation;
+	private T operation;
+	private Boolean isUsedAsClone = false;
 
 	public OperationReferenceValue(T operation) {
 		super();
@@ -73,15 +74,25 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 		
 		this.operation = opClone;
 	}
+	
+	public Boolean getIsUsedAsClone() {
+		return isUsedAsClone;
+	}
 
+	public void setIsUsedAsClone(Boolean isUsedAsClone) {
+		this.isUsedAsClone = isUsedAsClone;
+	}
+
+	@SuppressWarnings("unchecked")
 	@Override
 	public T getValue(TargetStockInfo targetStock) {
+		if (isUsedAsClone) return (T) operation.clone();
 		return operation;
 	}
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : operation " + ((operation != null)?operation.toString():"unknown yet");
+		return this.getClass().getSimpleName() + ": operation " + ((operation != null)?operation.toString():"unknown yet");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -92,7 +103,7 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 			clone.operation = (T) this.operation.clone();
 			return clone;
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(e, e);
 		}
 		return null;
 	}

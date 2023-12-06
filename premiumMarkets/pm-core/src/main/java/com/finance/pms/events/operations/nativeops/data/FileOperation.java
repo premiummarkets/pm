@@ -110,10 +110,5 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 	public Integer operationNaturalShift() {
 		return 0;
 	}
-	
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
-	}
 
 }

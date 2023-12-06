@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.FlowOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -21,7 +22,7 @@ import com.finance.pms.events.quotations.QuotationDataType;
 
 
 //TODO FIXME: double check that the recursive call overrides from Operation are still working ..?
-public class IfOperation extends Operation {
+public class IfOperation extends FlowOperation {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(IfOperation.class);
 	
@@ -34,6 +35,7 @@ public class IfOperation extends Operation {
 		     new StringOperation("condition", "if", "if condition", new StringValue("TRUE")),
 			 new OperationReferenceOperation("operationReference", "then", "then", null),
 			 new OperationReferenceOperation("operationReference", "else", "else", null));
+		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 
 	public IfOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -45,8 +47,8 @@ public class IfOperation extends Operation {
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String ifCondition = ((StringValue) inputs.get(0)).getValue(targetStock);
-		Operation thenOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock).clone();
-		Operation elseOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(2)).getValue(targetStock).clone();
+		Operation thenOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock);
+		Operation elseOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(2)).getValue(targetStock);
 		
 		LOGGER.info(this.getReference() + " condition is " + ifCondition + " for " + targetStock.getStock().getSymbol());
 		if (ifCondition.equals("TRUE")) {
@@ -56,16 +58,6 @@ public class IfOperation extends Operation {
 			LOGGER.info(this.getReference() + " will run " + elseOperationClone.getReference() + " for " + targetStock.getStock().getSymbol());
 			return elseOperationClone.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
 		}
-	}
-
-	@Override
-	public Value<?> emptyValue() {
-		return null;
-	}
-
-	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return 0;
 	}
 
 	@Override
@@ -102,7 +94,7 @@ public class IfOperation extends Operation {
 	
 //	@Override
 //	public void interrupt() throws Exception {
-//		Value<?> value0 = this.getOperands().get(0).run(targetStock, "", 0);
+//		Value<?> value0 = this.getOperands().get(0).run(targetStock, null, 0);
 //		if (value0 != null) {
 //			this.<Void>reccurentProceeds(value0, o -> {o.interrupt(); return null;});
 //		} else {
@@ -167,11 +159,6 @@ public class IfOperation extends Operation {
 //	}
 	
 	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
-	}
-	
-	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
 		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, newCallerStack(targetStock), 0));
 		if (value0 != null) {
@@ -191,7 +178,5 @@ public class IfOperation extends Operation {
 			throw new RuntimeException();
 		}
 	}
-	
-	
 
 }

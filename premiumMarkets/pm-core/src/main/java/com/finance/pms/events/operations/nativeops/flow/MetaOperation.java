@@ -139,4 +139,16 @@ public class MetaOperation extends Operation {
 		//TODO find userParameterized \( -name "c_op_*" -o -name "meta_*" -o -name "k_training_*" \) -delete
 	}
 
+	@Override
+	public boolean isDataShiftSensitive() {
+		return true;
+	}
+
+	@Override //This would apply only if the output Value is a MapValue
+	public boolean isForbidThisParameterValue() {
+		return true;
+	}
+	
+	
+
 }

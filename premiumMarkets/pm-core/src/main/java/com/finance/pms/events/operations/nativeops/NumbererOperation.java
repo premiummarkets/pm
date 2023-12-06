@@ -34,10 +34,5 @@ public abstract class NumbererOperation extends Operation {
 	public NumberValue emptyValue() {
 		return null;
 	}
-	
-//	@Override
-//	public void setParameter(Value<?> parameter) {
-//		//Always re check the upstream operands (eg. file system, web end point, random values ..)
-//	}
 
 }

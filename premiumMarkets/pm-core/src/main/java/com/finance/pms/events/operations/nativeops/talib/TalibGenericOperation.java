@@ -39,6 +39,7 @@ import java.util.SortedMap;
 import java.util.TreeSet;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
@@ -218,7 +219,7 @@ public class TalibGenericOperation extends TalibOperation {
 			throw new TalibException("Ooops", e);
 		} 
 
-		if (!rc.equals(RetCode.Success)) throw new TalibException(this.getReference() + ": " + this.toFormulae(), new Exception());
+		if (!rc.equals(RetCode.Success)) throw new TalibException(this.getReference() + ": " + this.toFormulae(targetStock), new Exception());
 
 		//N selector ~ N outputs
 		if (getAvailableOutputSelectors().isEmpty()) {
@@ -267,10 +268,15 @@ public class TalibGenericOperation extends TalibOperation {
 	
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
-		String refa24z = getReference().substring(0,1) + (getReference().length() -2) + getReference().substring(getReference().length() -1); 
-//		String contants = getOperands().subList(0, inConstantsNames.size()).stream()
-//				.map(c -> ((StringableValue) c.getParameter()).getValueAsString())
-//				.reduce("", (r, e) -> r + "_" + e, (a, b) -> a + "_" + b);
+		String thisFormulaeShort = thisFormulaeShort(targetStock);
+		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
+		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
+		return thisFormulaeShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+
+	private String thisFormulaeShort(TargetStockInfo targetStock) {
+		String reference = getOperationReference(); //getReference();
+		String refa24z = reference.substring(0,1) + (reference.length() -2) + reference.substring(reference.length() -1); 
 		List<Operation> subList = getOperands().subList(0, inConstantsNames.size());
 		String contants = "";
 		for (int i = 0; i < subList.size(); i++) {
@@ -281,9 +287,13 @@ public class TalibGenericOperation extends TalibOperation {
 			}
 			contants = contants + "_" + ele;
 		}
-		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
-		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
-		return refa24z + contants + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+		String thisFormulaeShort = refa24z + contants;
+		return thisFormulaeShort;
+	}
+
+	@Override
+	public String resultHint(TargetStockInfo targetStock, List<StackElement> callStack) {
+		return this.thisFormulaeShort(targetStock) + " " + super.resultHint(targetStock, callStack);
 	}
 
 }

@@ -51,7 +51,7 @@ public class OutputReference implements Comparable<OutputReference> {
 
 		this.operationReference = operation.getOperationReference();
 		this.outputSelector = multiOutputDiscriminator;
-		this.formula = (operation.getFormulae() != null)?operation.getFormulae():operation.toFormulae();
+		this.formula = (operation.getFormulae() != null)? operation.getFormulae() : operation.toFormulaeDevelopped();
 		this.formula = this.formula.replaceAll("\\s+","");
 	}
 

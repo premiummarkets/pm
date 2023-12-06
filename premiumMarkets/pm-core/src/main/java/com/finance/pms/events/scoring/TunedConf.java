@@ -100,7 +100,12 @@ public class TunedConf {
 
 	@Override
 	public String toString() {
-		return "TunedConf [tunedConfId=" + tunedConfId + ", lastCalculationStart=" + fisrtStoredEventCalculationStart + ", lastCalculationEnd=" + lastStoredEventCalculationEnd + "]";
+		return "TunedConf [tunedConfId=" + tunedConfId + ", isRemovable=" + isRemovable +
+				", lastCalculationStart=" + fisrtStoredEventCalculationStart + ", lastCalculationEnd=" + lastStoredEventCalculationEnd + "]";
+	}
+	
+	public String toMessage() {
+		return "{id=" + tunedConfId + ", calcStart=" + fisrtStoredEventCalculationStart + ", calcEnd=" + lastStoredEventCalculationEnd + ", isRemovable=" + isRemovable + "}";
 	}
 
 	@EmbeddedId

@@ -51,11 +51,11 @@ public class NamedListOperation extends Operation {
 
 
 	@Override
-	public String toFormulae() {
+	public String toFormulae(TargetStockInfo targetStock) {
 		int size = this.getOperands().size();
 		List<Operation> namesOps = this.getOperands().stream().limit(size/2).collect(Collectors.toList());
 		List<Operation> valuesOps = this.getOperands().stream().skip(size/2).collect(Collectors.toList());
-		return "{" + IntStream.range(0, namesOps.size()).mapToObj(i ->  namesOps.get(i).toFormulae() + ":" + valuesOps.get(i).toFormulae()).reduce((a,e) -> a + "," + e).orElse("") + "}";
+		return "{" + IntStream.range(0, namesOps.size()).mapToObj(i ->  namesOps.get(i).toFormulae(targetStock) + ":" + valuesOps.get(i).toFormulae(targetStock)).reduce((a,e) -> a + "," + e).orElse("") + "}";
 	}
 
 	@Override

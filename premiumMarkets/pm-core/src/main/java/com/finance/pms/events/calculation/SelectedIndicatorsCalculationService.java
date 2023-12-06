@@ -135,7 +135,7 @@ public class SelectedIndicatorsCalculationService {
 					} catch (ExecutionException executionException) {
 						Throwable cause = executionException.getCause();
 						if (cause instanceof IncompleteDataSetException) {
-							LOGGER.warn("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
+							LOGGER.warn("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate) + ": " + executionException);
 							(((IncompleteDataSetException) cause).getSymbolEvents()).stream().forEach(se -> {
 								stockAllSymbolEvents.addEventResultElement(se);
 								stockAllSymbolEvents.addAllCalculationOutput(se.getCalculationOutputs());
@@ -188,8 +188,7 @@ public class SelectedIndicatorsCalculationService {
 
 		if (!isDataSetComplete) {
 			throw new IncompleteDataSetException(failingStocks, allEvents, null, 
-					"All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. "
-					+ "Stock concerned: " + failingStocks + "\nCause: " + dataSetIncompleteCause);
+					"All Indicators couldn't be calculated properly. This may invalidates the dataset for further usage. Stock concerned: " + failingStocks + "\nCause: " + dataSetIncompleteCause);
 		}
 
 		return allEvents;

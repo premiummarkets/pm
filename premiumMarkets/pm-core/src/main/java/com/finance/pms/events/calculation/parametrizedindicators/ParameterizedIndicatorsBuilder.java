@@ -228,7 +228,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 		String destFormula = sourceFormula;
 		for (String sourceOpRef : duplOperands.keySet()) {
-			destFormula = destFormula.replaceAll(" "+sourceOpRef+"( |;)", " "+duplOperands.get(sourceOpRef).getReference()+"$1");
+			destFormula = destFormula.replaceAll(" " + sourceOpRef + "( |;)", " " + duplOperands.get(sourceOpRef).getReference() + "$1");
 		}
 
 		return destFormula;

@@ -25,6 +25,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
+import com.finance.pms.events.operations.StackException;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -224,30 +225,43 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
 				}
 				
-			//Error(s) as occurred. This should invalidate tuned conf and potentially generated events.
-			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) {
+			//Error(s) as occurred. This should invalidate tuned conf and its potentially generated events.
+			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) { //This code exceptions
 				// Unrecoverable
-				LOGGER.error( "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " +
-								eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
-				LOGGER.info("Updating tunedConf (on unrecovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
+				String message = "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
+				LOGGER.error(message, e);
+				
 				if (calcBounds != null) {
+					LOGGER.info("Updating tunedConf (on unrecovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
 					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln,calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
 				}
 				
 				emptyReturn(returnedSymbolEvents);
 				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + e.getMessage());
 				
-			} catch (Throwable e) {
+			} catch (Throwable e) {//Deeper call stack exceptions
+				
+				String message = "Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
+
 				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
-				LOGGER.error( "Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and " +
-						eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds, e);
-				LOGGER.info("Rolling back tunedConf (on recovarable exception): " + tunedConf + ", attempted calculation bounds: " + calcBounds);
+				Throwable rootCause = e;
+				 while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+				        rootCause = rootCause.getCause();
+			    }
+				if (rootCause instanceof StackException) {
+					LOGGER.warn(message + ": " + rootCause + ": " + rootCause.getCause());
+				} else {
+					LOGGER.error(message + ": " + rootCause + ": " + rootCause.getCause(), e);
+				}
+				
 				if (calcBounds != null) {
+					LOGGER.info("Rolling back tunedConf (on recovarable exception): " + tunedConf + ", attempted calculation bounds: " + calcBounds);
 					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln, tunedConf.getFisrtStoredEventCalculationStart(), tunedConf.getLastStoredEventCalculationEnd());
 				}
 				
 				emptyReturn(returnedSymbolEvents);
-				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + e.getMessage());
+				Optional<String> rootCauseMsg = Optional.ofNullable(rootCause.getMessage());
+				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + message + ":\n" + rootCause + ": " + rootCause.getCause());
 
 			}
 		}

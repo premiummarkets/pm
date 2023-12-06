@@ -44,15 +44,20 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 	private OutputReference thisGroupMainOutputReference;
 	private OutputDescr thisGroupMainOutputDescription;
 	private Map<OutputReference, OutputDescr> components;
+	
+	private Optional<String> groupStatus;
 
 	private UUID uuid;
 
-	public ChartedOutputGroup(Operation mainOperation, Optional<String> outputSelector, int outputIndex, Boolean displayByDefault) {
+	public ChartedOutputGroup(Operation mainOperation, Optional<String> outputSelector, int outputIndex, Optional<String> groupStatus, Boolean displayByDefault) {
 		uuid = UUID.randomUUID();
 		OutputReference outputReference = new OutputReference(mainOperation, outputSelector.orElse(mainOperation.getOutputSelector()));
 		thisGroupMainOutputDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null, displayByDefault);
 		thisGroupMainOutputReference = outputReference;
 		components = new HashMap<>();
+		
+		this.groupStatus = groupStatus;
+		
 	}
 
 	public OutputDescr addSignal(Operation operation, int outputIndex, Boolean displayByDefault) {
@@ -93,6 +98,10 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 
 	public OutputReference getThisGroupMainOutputReference() {
 		return thisGroupMainOutputReference;
+	}
+	
+	public Optional<String> getGroupStatus() {
+		return groupStatus;
 	}
 
 	@Override

@@ -131,7 +131,7 @@ public class SeriesPrinter {
 				try { //In case of failure
 					Files.delete(tmpFilePath);
 	        	} catch (NoSuchFileException e) {
-	        		LOGGER.info("File " + tmpFilePath + " does not exists. All is well.");
+	        		LOGGER.info("Could not delete temporary file " + tmpFilePath + " as it does not exists. All is well.");
 				} catch (IOException e) {
 					LOGGER.error(e, e);
 				}

@@ -34,4 +34,22 @@ public abstract class MapOperation extends Operation {
 		return new DoubleMapValue();
 	}
 
+	@Override
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isDataShiftSensitive() {
+		return true;
+	}
+	
+	@Override 
+	//This should have no effect as the output of MapOperations are not set as their parameters and are isDataShiftSensitive. 
+	//FIXME This could be an alternative to the output cache?
+	public boolean isForbidThisParameterValue() {
+		return true;
+	}
+	
 }

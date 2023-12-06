@@ -881,11 +881,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				});
 
 				//Multi
-				Set<OutputDescr> multiOutputDesrcLimited = chartTarget.getChartedEvtDefsTrends().stream()
+				Set<OutputDescr> multiOutputDescrLimited = chartTarget.getChartedEvtDefsTrends().stream()
 						.flatMap(t -> t.getEventDefDescriptor().mULTIOutputDescr().stream())
 						.limit(100)
 						.collect(Collectors.toSet());
-				availableOutputs.addAll(multiOutputDesrcLimited);
+				availableOutputs.addAll(multiOutputDescrLimited);
 
 				//Remove outputs above displayable threshold
 				availableOutputs.stream().forEach(aOut -> {if (aOut.getDisplayOnChart()) displayableOutputs.add(aOut);});

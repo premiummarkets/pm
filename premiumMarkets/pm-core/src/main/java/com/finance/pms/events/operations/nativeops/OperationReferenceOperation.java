@@ -3,6 +3,7 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -32,48 +33,86 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 	
 	@Override
-	public String toFormulae() {
-		return "$" + ((StringableValue) getOrRunParameter(null).orElseThrow()).getValueAsString() + "$";
+	public String toFormulae(TargetStockInfo targetStock) {
+		return "$" + ((StringableValue) getParameter()).getValueAsString() + "$";
 	}
 	
-//	@Override
-//	public String toFormulaeShort() {
-//		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(null).toFormulaeShort();
-//	}
+	@Override
+	public String toFormulaeShort(TargetStockInfo stockInfo) {
+		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeShort(stockInfo), ov -> ov.getValueAsString());
+	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public String toFormulaeDevelopped() {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).toFormulaeDevelopped();
+		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeDevelopped(), ov -> ov.getValueAsString());
+	}
+
+	private <T> T reccurentProceeds(Function<OperationReferenceValue<? extends Operation>, T> isUsedAsIsFunc, Function<OperationReferenceValue<? extends Operation>, T> isUsedAsCloneFunc) {
+		@SuppressWarnings("unchecked")
+		OperationReferenceValue<? extends Operation> operationReferenceValue = (OperationReferenceValue<? extends Operation>) this.getParameter();
+		Boolean isUsedAsClone = operationReferenceValue.getIsUsedAsClone();
+		if (isUsedAsClone) {
+			return isUsedAsCloneFunc.apply(operationReferenceValue);
+		} else {
+			return isUsedAsIsFunc.apply(operationReferenceValue);
+		}
 	}
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return 0;
+		return reccurentProceeds((ov) -> ov.getValue(targetStock).operandsRequiredStartShift(targetStock, thisParentStartShift), ov -> 0);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStockOpt, Optional<String> userOperationName) {
 		if (targetStockOpt.isPresent()) {
 			TargetStockInfo targetStock = targetStockOpt.get();
-			Operation value = ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
-			value.invalidateOperation(analysisName, targetStockOpt, Optional.of(value.getReference()));
+			this.<Void>reccurentProceeds(ov -> {
+				try {
+					Operation value = ov.getValue(targetStock);
+					value.invalidateOperation(analysisName, targetStockOpt, Optional.of(value.getReference()));
+				} catch (Exception e) {
+					throw new RuntimeException();
+				} 
+				return null;
+			}, 
+			ov -> null);
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	
+	
+	@Override
+	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {
+		return reccurentProceeds((ov) -> ov.getValue(targetStock).calculationStatus(targetStock, callStack), ov -> Optional.empty());
+	}
+
 	@Override
 	public void invalidateAllNonIdempotentOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
-		Operation value = ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
-		value.invalidateAllNonIdempotentOperands(analysisName, targetStock,  Optional.of(value.getReference()));
+		this.<Void>reccurentProceeds(ov -> {
+			try {
+				Operation value = ov.getValue(targetStock);
+				value.invalidateAllNonIdempotentOperands(analysisName, targetStock, Optional.of(value.getReference()));
+			} catch (Exception e) {
+				throw new RuntimeException();
+			} 
+			return null;
+		}, 
+		ov -> null);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void invalidateAllForciblyOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
-		Operation value = ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
-		value.invalidateAllForciblyOperands(analysisName, targetStock, Optional.of(value.getReference()));
+		this.<Void>reccurentProceeds(ov -> {
+			try {
+				Operation value = ov.getValue(targetStock);
+				value.invalidateAllForciblyOperands(analysisName, targetStock, Optional.of(value.getReference()));
+			} catch (Exception e) {
+				throw new RuntimeException();
+			} 
+			return null;
+		}, 
+		ov -> null);
 	}
 
 	@Override
@@ -81,49 +120,55 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 		return null;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Set<QuotationDataType> getRequiredStockData() {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).getRequiredStockData();
+		return reccurentProceeds(ov -> ov.getValue(null).getRequiredStockData(), ov -> ov.getValue(null).getRequiredStockData());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void interrupt() throws Exception {
-		((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).interrupt();
+		Function<OperationReferenceValue<? extends Operation>, Void> func = ov -> {
+				try {
+					ov.getValue(null).interrupt();
+				} catch (Exception e) {
+					throw new RuntimeException();
+				} 
+				return null;
+			};
+		this.<Void>reccurentProceeds(func, func);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).isIdemPotent(targetStock);	
+		return reccurentProceeds(ov -> ov.getValue(targetStock).isIdemPotent(targetStock), ov -> ov.getValue(targetStock).isIdemPotent(targetStock));
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Boolean isNoOverrideDeltaOnly(TargetStockInfo targetStock) {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).isNoOverrideDeltaOnly(targetStock);
+		return reccurentProceeds(ov -> ov.getValue(targetStock).isNoOverrideDeltaOnly(targetStock), ov -> ov.getValue(targetStock).isNoOverrideDeltaOnly(targetStock));
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).isForbidThisParameterValue();
-	}
-	
-	@SuppressWarnings("unchecked")
+//	//@SuppressWarnings("unchecked")
+//	@Override
+//	public boolean isForbidThisParameterValue() {
+//		return false; //((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).isForbidThisParameterValue();
+//	}
+//	
+//	//@SuppressWarnings("unchecked")
+//	@Override
+//	public boolean isDataShiftSensitive() {
+//		return false; //((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(null).orElseThrow()).getValue(null).isDataShiftSensitive();
+//	}
+
 	@Override
 	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
+		Function<OperationReferenceValue<? extends Operation>, Integer> func = (ov) -> ov.getValue(null).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
+		return reccurentProceeds(func, func);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public String resultHint(TargetStockInfo targetStockInfo, List<StackElement> callStack) {
-		callStack = addThisToStack(callStack, 0, targetStockInfo);
-		return ((OperationReferenceValue<? extends Operation>) this.getOrRunParameter(targetStockInfo).orElseThrow()).getValue(targetStockInfo).resultHint(targetStockInfo, callStack);
+	public String resultHint(TargetStockInfo targetStock, List<StackElement> callStack) {
+		return reccurentProceeds(ov -> ov.getValue(targetStock).resultHint(targetStock, addThisToStack(callStack, 0, targetStock)), ov -> ov.getValueAsString());
 	}
 	
-	
-
 }

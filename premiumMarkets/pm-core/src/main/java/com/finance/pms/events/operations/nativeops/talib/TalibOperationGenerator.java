@@ -86,7 +86,7 @@ public class TalibOperationGenerator {
 				if (returnType.equals(RetCode.class)) {
 
 					List<ConstantNameNType> inConstantsNames = new ArrayList<>();
-					List<String> inDataNames =new ArrayList<String>();
+					List<String> inDataNames = new ArrayList<String>();
 					ArrayList<String> outDataNames = new ArrayList<String>();
 
 					List<String> params = talibSignatures.get(method.getName());

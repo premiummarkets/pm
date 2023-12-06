@@ -195,10 +195,6 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 		String opsFormulaeShort = super.toFormulaeShort(targetStock);
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
-	
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
-	}
+
 
 }

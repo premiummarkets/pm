@@ -16,6 +16,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.VarOperation;
 import com.finance.pms.events.operations.conditional.BooleanValue;
 import com.finance.pms.events.operations.nativeops.NamedListValue;
 import com.finance.pms.events.operations.nativeops.NullOperation;
@@ -27,7 +28,7 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class EnvOperation extends Operation {
+public class EnvOperation extends VarOperation {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(EnvOperation.class);
 	
@@ -83,16 +84,6 @@ public class EnvOperation extends Operation {
 			}	
 		}
 	}
-
-	@Override
-	public Value<?> emptyValue() {
-		return null;
-	}
-
-	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return 0;
-	}
 	
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
@@ -102,11 +93,6 @@ public class EnvOperation extends Operation {
 		String[] split = valueAsString.split("\\.");
 		String variableName = split[split.length-1];
 		return variableName;
-	}
-
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
 	}
 
 }

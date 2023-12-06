@@ -81,10 +81,5 @@ public class RefiterOperation extends DoubleMapOperation implements CachableOper
 		String opsFormulaeShort = super.toFormulaeShort(targetStock);
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
-	
-	@Override
-	public boolean isForbidThisParameterValue() {
-		return true;
-	}
 
 }

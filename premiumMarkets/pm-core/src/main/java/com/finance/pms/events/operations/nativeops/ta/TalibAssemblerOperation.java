@@ -69,6 +69,13 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
+	public void setOperands(ArrayList<Operation> overridingOperands) throws IllegalArgumentException {
+		Value<?> parameter = overridingOperands.get(OPS_INDEX).getParameter();
+		if (parameter != null) ((OperationReferenceValue<?>) parameter).setIsUsedAsClone(true);
+		super.setOperands(overridingOperands);
+	}
+
+	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int assemblerOutputStartShift, int assemblerInputStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
@@ -143,7 +150,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					
 					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 					
-					//FIXME why do I need this shift here? The run should sort it out?
+					//FIXME why do I need this shift here? The run should sort it out? => probably this is because iterationOperationClone assembly is not an operand.
 					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);
 					//int assembleeOperandStartShift = 0;
 					
@@ -184,7 +191,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				String orElse = inputListToArray.get(InputToArrayReturn.TRAILINGNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
 													.reduce((a, e) -> a + " " + e)
 													.orElse("");
-				throw new Exception("FIXME (trailing nans)" + this.getReference() + ": " + this.toFormulae() + " has trailing NaNs " + 
+				throw new Exception("FIXME (trailing nans)" + this.getReference() + ": " + this.toFormulae(targetStock) + " has trailing NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
 															.orElse("") + ": " +
@@ -194,7 +201,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				String orElse = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
 																								.reduce((a, e) -> a + " " + e)
 																								.orElse("");
-				LOGGER.warn("FIXME (other nans)" + this.getReference() + ": " + this.toFormulae() + " has NaNs " + 
+				LOGGER.warn("FIXME (other nans)" + this.getReference() + ": " + this.toFormulae(targetStock) + " has NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
 															.orElse("") + ": " +

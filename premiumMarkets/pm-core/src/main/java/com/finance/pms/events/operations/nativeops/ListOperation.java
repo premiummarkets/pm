@@ -46,8 +46,8 @@ public class ListOperation extends Operation {
 
 
 	@Override
-	public String toFormulae() {
-		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(), (a, b) -> a + b) + "]";
+	public String toFormulae(TargetStockInfo targetStock) {
+		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock), (a, b) -> a + b) + "]";
 	}
 
 	@Override

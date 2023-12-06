@@ -82,4 +82,9 @@ public class IOsWebImporterOperation extends StringerOperation {
 		web.setHttpClient(null);
 	}
 
+	@Override
+	public boolean isForbidThisParameterValue() {
+		return true;
+	}
+	
 }
