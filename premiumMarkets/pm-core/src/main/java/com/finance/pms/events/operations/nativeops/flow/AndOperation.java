@@ -15,7 +15,6 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
-import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
@@ -33,7 +32,6 @@ public class AndOperation extends FlowOperation {
 				+ "Will return false if any of the inputs fails or has no result or returns false.",
 			 new OperationReferenceOperation("operationReference", "operation", "operation", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
-		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 
 	public AndOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -41,24 +39,21 @@ public class AndOperation extends FlowOperation {
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
 	}
-	
 
 	@Override
-	public Value<?> run(TargetStockInfo targetStock, List<StackElement> parentCallStack, int thisOutputRequiredStartShiftByParent) {
-		try {
-			return super.run(targetStock, parentCallStack, thisOutputRequiredStartShiftByParent);
-		} catch (Exception e) {
-			Throwable rootCause = e;
-		    while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
-		        rootCause = rootCause.getCause();
-		    }
-			if (rootCause instanceof AndThenException) {
-				LOGGER.warn("One Operand of " + this.getReference() + " failed with AndThenException: " + e);
-			} else {
-				LOGGER.error("One Operand of " + this.getReference() + " failed with " + e, e);
-			}
-			return new StringValue("FALSE");
-		}
+	public void setOperands(ArrayList<Operation> overridingOperands) throws IllegalArgumentException {
+		overridingOperands.stream().forEach(op -> op.setRunInSequence(true));
+		super.setOperands(overridingOperands);
+	}
+
+	@Override
+	protected Boolean stopOperandsCalculationsOnError() {
+		return true;
+	}
+	
+	@Override
+	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> callRes) {
+		return isFalse(stockInfo, callRes); //stop if false => true
 	}
 
 	@Override
@@ -66,6 +61,7 @@ public class AndOperation extends FlowOperation {
 		
 		Optional<Value<?>> res = Optional.empty();
 		Throwable rootCause = null;
+		int iCpt = 0;
 		for (Value<?> i : inputs) {
 			Value<?> opiRes = null;
 			if (i instanceof OperationReferenceValue) {
@@ -79,7 +75,7 @@ public class AndOperation extends FlowOperation {
 				        rootCause = rootCause.getCause();
 				    }
 					if (rootCause instanceof AndThenException) {
-						LOGGER.warn("One Operand of " + this.getReference() + " failed with AndThenException " + e);
+						LOGGER.warn("One Operand of " + this.getReference() + " failed with AndThenException: " + e);
 					} else {
 						LOGGER.error("One Operand of " + this.getReference() + " failed with " + e, e);
 					}
@@ -92,10 +88,12 @@ public class AndOperation extends FlowOperation {
 				break;
 			}
 			res = Optional.of(opiRes);
+			iCpt++;
 		};
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output
 		final Throwable fRootCause = rootCause;
-		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'AND' expression is false: " + fRootCause, fRootCause));  //Throw to handle roll backs in the service;
+		final int fICpt = iCpt;
+		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'AND' expression is false (stoped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
 
 	}
 

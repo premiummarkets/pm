@@ -115,7 +115,7 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 
 	@Override
 	public String getValueAsString() {
-		return operation.getReference();
+		return "$" + operation.getReference() + "$";
 	}
 
 }

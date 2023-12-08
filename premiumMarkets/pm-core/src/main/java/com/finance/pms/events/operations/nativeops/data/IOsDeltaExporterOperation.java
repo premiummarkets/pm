@@ -47,7 +47,6 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
-import com.finance.pms.events.operations.nativeops.StringerOperation;
 import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
@@ -62,7 +61,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * @author guil
  *
  */
-public class IOsDeltaExporterOperation extends StringerOperation implements CachableOperation {
+public class IOsDeltaExporterOperation extends FileExporter implements CachableOperation {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsDeltaExporterOperation.class);
 	

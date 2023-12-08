@@ -34,7 +34,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@Override
 	public String toFormulae(TargetStockInfo targetStock) {
-		return "$" + ((StringableValue) getParameter()).getValueAsString() + "$";
+		return ((StringableValue) getParameter()).getValueAsString();
 	}
 	
 	@Override

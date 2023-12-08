@@ -44,6 +44,8 @@ public class OutputReference implements Comparable<OutputReference> {
 	private String referenceAsOperand;
 	private StringableValue constant;
 	
+	private Boolean hasFailed = false;
+	
 	//FIXME multiOutputDiscriminator and outputSelector should two distinctive attributes
 	public OutputReference(Operation operation, String multiOutputDiscriminator) {
 		this.reference = operation.getReference();
@@ -201,5 +203,14 @@ public class OutputReference implements Comparable<OutputReference> {
 	public Boolean getIsLeaf() {
 		return constant != null;
 	}
+	
+	public Boolean getHasFailed() {
+		return hasFailed;
+	}
+
+	public void setHasFailed(Boolean hasFailed) {
+		this.hasFailed = hasFailed;
+	}
+
 
 }

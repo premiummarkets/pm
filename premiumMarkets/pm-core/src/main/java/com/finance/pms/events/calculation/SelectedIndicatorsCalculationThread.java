@@ -260,8 +260,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				}
 				
 				emptyReturn(returnedSymbolEvents);
-				Optional<String> rootCauseMsg = Optional.ofNullable(rootCause.getMessage());
-				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + message + ":\n" + rootCause + ": " + rootCause.getCause());
+				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + message + ":\n" + rootCause);
 
 			}
 		}

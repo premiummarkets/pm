@@ -216,7 +216,5 @@ public class WebDelegate {
 		} catch (Exception e1) {
 			LOGGER.error("Can't create path from " + trainingCsv, e1);
 		}
-		
-		
 	}
 }

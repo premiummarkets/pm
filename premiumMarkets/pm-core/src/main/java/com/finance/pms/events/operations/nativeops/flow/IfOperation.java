@@ -35,13 +35,18 @@ public class IfOperation extends FlowOperation {
 		     new StringOperation("condition", "if", "if condition", new StringValue("TRUE")),
 			 new OperationReferenceOperation("operationReference", "then", "then", null),
 			 new OperationReferenceOperation("operationReference", "else", "else", null));
-		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 
 	public IfOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
+	}
+	
+	@Override
+	public void setOperands(ArrayList<Operation> overridingOperands) throws IllegalArgumentException {
+		overridingOperands.stream().forEach(op -> op.setRunInSequence(true));
+		super.setOperands(overridingOperands);
 	}
 
 	@Override

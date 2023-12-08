@@ -198,15 +198,20 @@ public class UserDialog extends Dialog {
 	String cleanMsg(String message, Boolean addCR) {
 
 		String cleanMessage = message;
-		if (addCR) {
-			cleanMessage = message.replaceAll("\\. ", ".\n");
-		}
-		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+Exception: ", "");
+		
+		cleanMessage = cleanMessage.replaceAll("[A-Za-z\\.]+\\.([A-Za-z]+)Exception: ", "$1:");
 		cleanMessage = cleanMessage.replaceAll("\\[", "").replaceAll("\\]", "");
 		
-		cleanMessage = Arrays.stream(cleanMessage.split("\n")).reduce("", (a, s) -> a + "\n" + s.split("(?<=\\G.{160})")[0]);
+		if (addCR) {
+			cleanMessage = cleanMessage.replaceAll("\\. ", ".\n");
+		}
+		//cleanMessage = Arrays.stream(cleanMessage.split("\n")).reduce("", (a, s) -> a + "\n" + s.split("(?<=\\G.{160})")[0]);
+		if (addCR) {
+			//cleanMessage = cleanMessage.replaceAll("(.{100,200})[\\s,]+", "$1\n");
+			cleanMessage = Arrays.stream(cleanMessage.split("\n")).reduce("", (a, s) -> a + "\n\n" + s.replaceAll("(.{100,200})[\\s,]+", "$1\n"));
+		}
 
-		return cleanMessage+"\n";
+		return cleanMessage + "\n";
 	}
 
 	protected void validationButtonTxtAndAction() {

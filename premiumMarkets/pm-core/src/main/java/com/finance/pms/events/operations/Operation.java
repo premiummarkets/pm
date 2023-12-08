@@ -225,7 +225,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}
 		
 		//Non Literals
-		final AtomicBoolean failed = new AtomicBoolean(false);
+		final AtomicBoolean stopCalcOnErr = new AtomicBoolean(false);
+		final AtomicBoolean stopCalcOnCond = new AtomicBoolean(false);
 		try {
 			
 			//if (needsReset) targetStock.removeCalculated(this, this.getOutputSelector());
@@ -282,9 +283,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								if ((literalsOnly && !operand.isDataShiftSensitive()) || !literalsOnly) {
 									OutputReference myOutputReferenceUnfinished = new OutputReference(operand, operand.getOutputSelector());
 									try {
-										while (!failed.get()) {
+										OutputReference theirFutureIsDone = null;
+										while (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
 											synchronized (targetStock) {
-												OutputReference theirFutureIsDone = targetStock.getOutputCalculationFuture(myOutputReferenceUnfinished);
+												theirFutureIsDone = targetStock.getOutputCalculationFuture(myOutputReferenceUnfinished);
 												if (theirFutureIsDone == null) {
 													targetStock.putOutputCalculationFuture(myOutputReferenceUnfinished);
 													break;
@@ -292,18 +294,27 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 											}
 											Thread.sleep(10);
 										};
-										Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
-										output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredShiftFromThis, Operation.this);
-										gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart);
-										if (!isForbidThisParameterValue()) operand.setParameter(output);
-										return output;
+										if (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
+											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
+											output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredShiftFromThis, Operation.this);
+											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart);
+											if (!isForbidThisParameterValue()) operand.setParameter(output);
+											stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, output));
+											return output;
+										} else {
+											return operand.emptyValue();
+										}
 									} catch (StackException e) {
+										myOutputReferenceUnfinished.setHasFailed(true);
+										stopCalcOnErr.set(stopOperandsCalculationsOnError());
 										throw e;
 									} catch (Exception e) {
+										myOutputReferenceUnfinished.setHasFailed(true);
+										stopCalcOnErr.set(stopOperandsCalculationsOnError());
 										throw new StackException("Failing operand (" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(targetStock), thisCallStack, e);
 									} finally {
 										synchronized (targetStock) {
-											targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
+											if (!myOutputReferenceUnfinished.getHasFailed()) targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
 										}
 									}
 								} else {
@@ -311,17 +322,31 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								}
 								
 							}
+
 						};
 						if (!operand.getRunInSequence()) {
 							Future<Value<?>> iterationFuture = executor.submit(callable);
 							futures.set(i, iterationFuture);
 						} else {
-							operandsOutputs.set(i, callable.call());
+							try {
+								Value<?> callOutput = callable.call();
+								stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, callOutput));
+								if (stopCalcOnCond.get()) {
+									throw new RuntimeException("Stop on condition: " + callOutput);
+								} else {
+									operandsOutputs.set(i, callOutput);
+								}
+							} catch (Exception e) {
+								if (stopCalcOnErr.get() || stopCalcOnCond.get()) {
+									throw new RuntimeException(e);
+								} else {
+									operandsOutputs.set(i, operand.emptyValue());
+								}
+							}
 						}
 						//operandsOutputs.set(i, callable.call()); //Test
 						
 					} else {
-						//operandsOutputs.set(i, nonDataSensistiveOperandOuput.orElseThrow());
 						operandsOutputs.set(i, operand.getParameter());
 					}
 					
@@ -332,18 +357,29 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						Future<Value<?>> future = futures.get(j);
 						if (future != null) {
 							Value<?> output = future.get();
-							operandsOutputs.set(j, output);
+							if (stopCalcOnCond.get()) {
+								throw new RuntimeException("Stop on condition: " + output);
+							} else {
+								operandsOutputs.set(j, output);
+							}
 						}
 					} catch (Exception e) {
-						if (e.getCause() instanceof StackException) throw (StackException) e.getCause();
-						throw new RuntimeException(e);
+						if (stopCalcOnErr.get() || stopCalcOnCond.get()) {
+							throw new RuntimeException(e);
+						} else {
+							operandsOutputs.set(j, getOperands().get(j).emptyValue());
+						}
 					}
 				});
 				
 				//Operands chart cache
 				if (isInChart) {
 					synchronized (targetStock.getChartedOutputGroupsAsync()) {
-						targetStock.populateChartedOutputGroups(this, calculationStatus(targetStock, thisCallStack), thisCallStack, operandsOutputs);
+						try {
+							targetStock.populateChartedOutputGroups(this, calculationStatus(targetStock, thisCallStack), thisCallStack, operandsOutputs);
+						} catch (NotEnoughDataException e) {
+							LOGGER.warn("Can't update chart cache. Some calculations may have failed: " + e);
+						}
 					}
 				}
 				
@@ -390,10 +426,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						". Caller: " + StackElement.toShortString(parentCallStack)
 						);
 			}
-			failed.set(true);
 			throw new StackException(e);
 		}
 
+	}
+	
+	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> call) {
+		return false;
+	}
+
+	protected Boolean stopOperandsCalculationsOnError() {
+		return true;
 	}
 
 	//If isDataShiftSensitive == true, isForbidThisParameterValue will be ignored
@@ -664,8 +707,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		Optional<Value<?>> orRunParameter = this.getOrRunParameter(targetStock);
 		if (orRunParameter.isPresent() && orRunParameter.get() instanceof StringableValue) {
 			return ((StringableValue) orRunParameter.get()).getValueAsString();
-		} else if (operands.isEmpty()) {
-			return this.getOperationReference();
 		}
 
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
@@ -676,8 +717,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
 			return ((StringableValue) this.getParameter()).getValueAsString();
-		} else if (operands.isEmpty()) {
-			return this.getOperationReference();
 		}
 
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
@@ -1010,7 +1049,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 */
 	public void invalidateAllForciblyOperands(String analysisName, TargetStockInfo targetInfo, Optional<String> userOperationName) {
 		try {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Invalidating " + getReference() + " for " + analysisName + " and " + targetInfo);
 			this.invalidateOperation(analysisName, Optional.of(targetInfo), userOperationName);
 		} catch (Exception e) {
 			LOGGER.warn("Could not invalidate " + this + e);

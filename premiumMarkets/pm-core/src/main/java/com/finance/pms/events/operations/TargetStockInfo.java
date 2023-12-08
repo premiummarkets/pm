@@ -49,6 +49,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
@@ -384,12 +385,12 @@ public class TargetStockInfo {
 
 	}
 
-	public ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Optional<String> groupStatus, Boolean displayByDefault) {
+	public ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Optional<String> groupStatus, Boolean displayByDefault) throws NotEnoughDataException {
 		Integer indexOfOutput = getIndexOfChartableOutput(operation, outputSelector.orElse(operation.getOutputSelector()));
 		return setMain(operation, outputSelector, indexOfOutput, groupStatus, displayByDefault);
 	}
 
-	private ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Integer indexOfOutput, Optional<String> groupStatus, Boolean displayByDefault) {
+	private ChartedOutputGroup setMain(Operation operation, Optional<String> outputSelector, Integer indexOfOutput, Optional<String> groupStatus, Boolean displayByDefault) throws NotEnoughDataException {
 		
 		if (indexOfOutput != -1) {
 			Output output = getGatheredChartableOutput(indexOfOutput);
@@ -404,7 +405,7 @@ public class TargetStockInfo {
 			}
 			return chartedDesrc.getContainer();
 		} else {
-			throw new RuntimeException("No historical output found available to display charted output. The main output must be a DoubleMapOperation: " + operation.getClass() + " for " + operation);
+			throw new NotEnoughDataException(this.getStock(), "No historical output found available to display charted output. The main output must be a DoubleMapOperation: " + operation.getClass() + " for " + operation, null);
 		}
 		
 	}
@@ -429,7 +430,7 @@ public class TargetStockInfo {
 		getChartedOutputGroups().add(chartedOutputGroup);
 	}
 
-	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation, Boolean displayByDefault) {
+	private void addChartInfoForSignal(ChartedOutputGroup mainChartedGrp, Operation operation, Boolean displayByDefault) throws NotEnoughDataException {
 
 		Integer indexOfOutput = getIndexOfChartableOutput(operation, operation.getOutputSelector());
 		if (indexOfOutput != -1) {
@@ -456,11 +457,11 @@ public class TargetStockInfo {
 			}
 
 		} else {
-			throw new RuntimeException("Output not found for " + operation);
+			throw new NotEnoughDataException(this.getStock(), "Output not found for " + operation, null);
 		}
 	}
 
-	private void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, Integer indexOfMain) {
+	private void addChartInfoForAdditonalOutputs(Operation operand, Map<String, Type> outputTypes, Integer indexOfMain) throws NotEnoughDataException {
 		if (outputTypes.isEmpty()) return;
 		Output mainOutput = getGatheredChartableOutput(indexOfMain);
 		OutputDescr chartedDesrc = mainOutput.getChartedDescription();
@@ -471,7 +472,7 @@ public class TargetStockInfo {
 				mainChartedGroup.addAdditionalOutput(outputKey, operand, indexOfOutput, outputTypes.get(outputKey));
 			}
 		} else {
-			throw new RuntimeException("Multi Output Main group (at index " + indexOfMain + ") not found not found for " + operand);
+			throw new NotEnoughDataException(this.getStock(), "Multi Output Main group (at index " + indexOfMain + ") not found not found for " + operand, null);
 		}
 	}
 
@@ -545,15 +546,16 @@ public class TargetStockInfo {
 	 * @param operation
 	 * @param callStack
 	 * @param operandsOutputs Only used here to resolve NumberValues(like threshold) and Values type (is NumericableMapValue). The content should not be used otherwise
+	 * @throws NotEnoughDataException 
 	 */
-	public void populateChartedOutputGroups(Operation operation, Optional<String> groupStatus, List<StackElement> callStack, List<Value<?>> operandsOutputs) {
+	public void populateChartedOutputGroups(Operation operation, Optional<String> groupStatus, List<StackElement> callStack, List<Value<?>> operandsOutputs) throws NotEnoughDataException {
 
 		Boolean displayByDefault = isMainConditionStack(callStack);
 
 		ChartedOutputGroup chartedOutputGroup = null;
 		List<Operation> operands = operation.getOperands();
 		if (operands.size() != operandsOutputs.size()) {
-			throw new RuntimeException("Operation " + operation + " has no ouput.");
+			throw new NotEnoughDataException(this.getStock(), "Operation " + operation + " has no ouput.", null);
 		}
 		
 		if (operation instanceof OnSignalCondition) {//Operands outputs are grouped

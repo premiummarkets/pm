@@ -257,7 +257,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 			passOneOutput = actionThread.runIndicatorsCalculation();
 		} catch (IncompleteDataSetException e1) {
 			passOneOutput = e1.getCalculatedOutputs();
-			hasFailedMsg = (e1.getMessage() != null)? e1.getMessage() : "See logs.";
+			hasFailedMsg = e1.toString();
 		}
 
 		return finalising(actionThread, passOneOutput, start, end, hasFailedMsg);

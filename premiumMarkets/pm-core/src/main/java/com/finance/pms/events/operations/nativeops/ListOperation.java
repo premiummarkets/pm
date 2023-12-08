@@ -49,6 +49,17 @@ public class ListOperation extends Operation {
 	public String toFormulae(TargetStockInfo targetStock) {
 		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock), (a, b) -> a + b) + "]";
 	}
+	
+
+	@Override
+	public String toFormulaeShort(TargetStockInfo targetStock) {
+		return this.toFormulae(targetStock);
+	}
+
+	@Override
+	public String toFormulaeDevelopped() {
+		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeDevelopped(), (a, b) -> a + b) + "]";
+	}
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {

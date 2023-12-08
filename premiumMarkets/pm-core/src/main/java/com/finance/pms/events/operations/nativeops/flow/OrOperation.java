@@ -25,6 +25,7 @@ public class OrOperation extends FlowOperation {
 	
 	public OrOperation(String reference, String description, Operation ... operands) {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 	
 	//XXX The recursive operands calls are not exact. The first valid element should prevail (as per runInSequence)
@@ -42,24 +43,23 @@ public class OrOperation extends FlowOperation {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
+		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 	
 	@Override
-	public Value<?> run(TargetStockInfo targetStock, List<StackElement> parentCallStack, int thisOutputRequiredStartShiftByParent) {
-		try {
-			return super.run(targetStock, parentCallStack, thisOutputRequiredStartShiftByParent);
-		} catch (Exception e) {
-			Throwable rootCause = e;
-		    while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
-		        rootCause = rootCause.getCause();
-		    }
-			if (rootCause instanceof AndThenException) {
-				LOGGER.warn("One Operand of " + this.getReference() + " failed with AndThenException " + e);
-			} else {
-				LOGGER.error("One Operand of " + this.getReference() + " failed with " + e, e);
-			}
-			return new StringValue("FALSE");
-		}
+	public void setOperands(ArrayList<Operation> overridingOperands) throws IllegalArgumentException {
+		overridingOperands.stream().forEach(op -> op.setRunInSequence(true));
+		super.setOperands(overridingOperands);
+	}
+
+	@Override
+	protected Boolean stopOperandsCalculationsOnError() {
+		return false;
+	}
+	
+	@Override
+	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> call) {
+		return false;
 	}
 
 	@Override
@@ -67,6 +67,7 @@ public class OrOperation extends FlowOperation {
 		
 		Optional<Value<?>> res = Optional.empty();
 		Throwable rootCause = null;
+		int iCpt = 0;
 		for (Value<?> i : inputs) {
 			Value<?> opiRes = null;
 			if (i instanceof OperationReferenceValue) {
@@ -95,7 +96,8 @@ public class OrOperation extends FlowOperation {
 		};
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output
 		final Throwable fRootCause = rootCause;
-		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'OR' expression is false: " + fRootCause, fRootCause));  //Throw to handle roll backs in the service;
+		final int fICpt = iCpt;
+		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'OR' expression is false (stoped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
 
 	}
 
