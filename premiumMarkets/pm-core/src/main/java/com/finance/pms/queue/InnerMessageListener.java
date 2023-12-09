@@ -107,7 +107,7 @@ public class InnerMessageListener { //implements BeanFactoryAware, Lifecycle {
 //		//					LOGGER.info("Ascking event listener to stop.");
 //		//					queueScan.setToBeStoped(true);
 //		//					queueScan.join();
-//		//					LOGGER.info("Event listener is stoped.");
+//		//					LOGGER.info("Event listener is stopped.");
 //		//				} catch (InterruptedException e) {
 //		//					LOGGER.error("",e);
 //		//				}

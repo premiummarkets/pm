@@ -2,6 +2,7 @@ package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
 
+import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
@@ -24,7 +25,7 @@ public abstract class FlowOperation extends Operation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return null;
+		return new DoubleMapValue();
 	}
 
 	@Override

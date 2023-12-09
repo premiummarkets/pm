@@ -53,6 +53,7 @@ public class AndOperation extends FlowOperation {
 	
 	@Override
 	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> callRes) {
+		LOGGER.info("Operand of " + this.getReference() + " result " + callRes);
 		return isFalse(stockInfo, callRes); //stop if false => true
 	}
 
@@ -75,9 +76,9 @@ public class AndOperation extends FlowOperation {
 				        rootCause = rootCause.getCause();
 				    }
 					if (rootCause instanceof AndThenException) {
-						LOGGER.warn("One Operand of " + this.getReference() + " failed with AndThenException: " + e);
+						LOGGER.warn("Operand "  + opi.getReference() +  " of " + this.getReference() + " failed with AndThenException: " + e);
 					} else {
-						LOGGER.error("One Operand of " + this.getReference() + " failed with " + e, e);
+						LOGGER.error("Operand " + opi.getReference() +  " of " + this.getReference() + " failed with " + e, e);
 					}
 				}
 			} else {
@@ -93,7 +94,7 @@ public class AndOperation extends FlowOperation {
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output
 		final Throwable fRootCause = rootCause;
 		final int fICpt = iCpt;
-		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'AND' expression is false (stoped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
+		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'AND' expression is false (stopped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
 
 	}
 

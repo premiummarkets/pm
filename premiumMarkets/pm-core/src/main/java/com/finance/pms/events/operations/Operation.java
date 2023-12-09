@@ -211,7 +211,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		List<StackElement> thisCallStack = addThisToStack(parentCallStack, thisOutputRequiredStartShiftByParent, targetStock);
 		//if (LOGGER.isDebugEnabled()) LOGGER.debug(thisCallStack);
 		//LOGGER.info(thisCallStack);
-		if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion")) {
+		boolean isUserOpCall = !this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion");
+		if (isUserOpCall) {
 			LOGGER.info(
 					"Checking Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference(thisCallStack) + 
 					". Caller: " + StackElement.toShortString(parentCallStack)
@@ -237,7 +238,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				
 			} else {
 				
-				if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion")) {
+				if (isUserOpCall) {
 					LOGGER.info(
 							"Started Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference(thisCallStack) + 
 							". Caller: " + StackElement.toShortString(parentCallStack)
@@ -245,7 +246,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				}
 				
 				//Invalidation check //TODO instead of this, keep a state of operations after they ran (in json or db) and invalidate up front using the state.
-				if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion")) {
+				if (isUserOpCall) {
 					Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(targetStock.getStock(), targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation());
 					Boolean needsReset = tunedConfOpt.map(t -> t.wasResetOrIsNew()).orElse(false); //XXX unnecessary clean up when new
 					if (needsReset) this.invalidateAllForciblyOperands(targetStock.getAnalysisName(), targetStock,  Optional.of(getUserOperationReference(thisCallStack)));
@@ -330,7 +331,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						} else {
 							try {
 								Value<?> callOutput = callable.call();
-								stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, callOutput));
+								//stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, callOutput));
 								if (stopCalcOnCond.get()) {
 									throw new RuntimeException("Stop on condition: " + callOutput);
 								} else {
@@ -406,7 +407,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 //				}
 ////				//DEBUG
 				
-				if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion")) {
+				if (isUserOpCall) {
 						//&& (operationOutput instanceof NumericableMapValue || operationOutput instanceof MultiMapValue || this instanceof CachableOperation)) {
 					LOGGER.info(
 							"Done Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference(thisCallStack) + 
@@ -420,13 +421,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}
 
 		} catch (Exception e) {
-			if (!this.isNative() && !getUserOperationReference(thisCallStack).equals("UnknownUserOpeartion")) {
+			if (isUserOpCall) {
 				LOGGER.info(
 						"Aborted Running: (" + targetStock.getStock().getSymbol() + "): " + this.shortOutputReference(thisCallStack) + 
 						". Caller: " + StackElement.toShortString(parentCallStack)
 						);
 			}
-			throw new StackException(e);
+			throw new StackException(this.getReference(), e);
 		}
 
 	}

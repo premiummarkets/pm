@@ -41,7 +41,7 @@ public abstract class StringerOperation extends Operation {
 	
 	@Override
 	public StringValue emptyValue() {
-		return null;
+		return new StringValue("");
 	}
 
 }

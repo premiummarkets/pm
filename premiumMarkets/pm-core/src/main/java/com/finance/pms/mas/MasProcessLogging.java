@@ -96,7 +96,7 @@ protected static MyLogger LOGGER = MyLogger.getLogger(MasProcessLogging.class);
 			}
 			inputB.close();
 		} catch (IOException e) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("logging interupted for connection " + c1 + ". Probably this server was stoped ...",e);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("logging interupted for connection " + c1 + ". Probably this server was stopped ...",e);
 		} finally {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Mas loggin terminated for connection " + c1);
 			try {

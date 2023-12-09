@@ -24,6 +24,7 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
@@ -55,6 +56,14 @@ public class OperationTest {
 			e.printStackTrace();
 		}
 
+	}
+	
+	@AfterClass
+	public static void ontTimeTearDown() {
+		SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).close();
+		AnalysisClient indicatorAnalysis = (AnalysisClient) springContext.getBean("indicatorAnalysis");
+		if (indicatorAnalysis != null) indicatorAnalysis.close();
+		springContext.close();
 	}
 
 	//isDataShiftSensitive & isForbidThisParameterValue checks
@@ -134,19 +143,15 @@ public class OperationTest {
 		
 	}
 	
-	
-	@AfterClass
-	public static void ontTimeTearDown() {
-		springContext.close();
-	}
-	
 	@After
 	public void deleteOps() throws IOException {
 		ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
 		parameterizedIndiactorsBuilder.removeFormula("myInd", false);
 		
 		ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
-		String[] fomulaes = new String[] {"myOp","throwOperation","doubleMapOperation","falseOperation","trueOperation","falseEnvOperation","trueEnvOperation"};
+		String[] fomulaes = new String[] {
+				"myOp","brokenWebFile","throwOperation","doubleMapOperation",
+				"falseOperation","trueOperation","falseEnvOperation","trueEnvOperation"};
 		Arrays.stream(fomulaes).forEach(f -> {
 			try {
 				parameterizedOperationBuilder.removeFormula(f, false);
@@ -185,6 +190,10 @@ public class OperationTest {
 		//False non parameterised
 		String falseEnvOpId = "falseEnvOperation";
 		parameterizedOperationBuilder.addFormula(falseEnvOpId, "get(\"bla\",\"FALSE\")");
+		
+		String brokenWebFileId = "brokenWebFile";
+		//parameterizedOperationBuilder.addFormula(brokenWebFileId, "fileWebOperation(\"NONE\",0,0)");
+		parameterizedOperationBuilder.addFormula(brokenWebFileId, "log(\"hello\",sma(4,fileWebOperation(iosExporter(NaN,\"na\",\"na\",throwOperation()),0,0)))");
 		
 		return parameterizedOperationBuilder;
 	}
@@ -300,6 +309,32 @@ public class OperationTest {
 		
 		Value<?> results = runOp(parameterizedOperationBuilder, fOrId);
 		assertTrue(results instanceof NumericableMapValue);
+		
+	}
+	
+	@Test(expected = StackException.class)
+	public void fOrNfAndHadhockTest() throws Exception {
+		
+		ParameterizedOperationBuilder parameterizedOperationBuilder = initOps();			
+		
+		//Test
+		String  fOrId = "myOp";
+		parameterizedOperationBuilder.addFormula(fOrId, "fOr(fAnd(trueEnvOperation(),$throwOperation$),$throwOperation$)");
+		
+		runOp(parameterizedOperationBuilder, fOrId);
+		
+	}
+	
+	@Test(expected = StackException.class)
+	public void fOrNfAndHadhockTest2() throws Exception {
+		
+		ParameterizedOperationBuilder parameterizedOperationBuilder = initOps();			
+		
+		//Test
+		String  fOrId = "myOp";
+		parameterizedOperationBuilder.addFormula(fOrId, "fOr(fAnd(trueEnvOperation(),$throwOperation$),$brokenWebFile$)");
+		
+		runOp(parameterizedOperationBuilder, fOrId);
 		
 	}
 
