@@ -42,7 +42,7 @@ public class LogOperation extends Operation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return null;
+		 return getOperands().get(1).emptyValue();
 	}
 
 	@Override

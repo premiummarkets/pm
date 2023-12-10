@@ -2,11 +2,13 @@ package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
 
-import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
 public abstract class FlowOperation extends Operation {
+	
+	protected static MyLogger LOGGER = MyLogger.getLogger(FlowOperation.class);
 
 	public FlowOperation() {
 	}
@@ -25,7 +27,7 @@ public abstract class FlowOperation extends Operation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return new DoubleMapValue();
+		return  getOperands().get(getOperands().size() -1).emptyValue();
 	}
 
 	@Override

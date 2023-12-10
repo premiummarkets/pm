@@ -115,9 +115,10 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 		ov -> null);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Value<?> emptyValue() {
-		return null;
+		return ((OperationReferenceValue<? extends Operation>)this.getParameter()).getValue(null).emptyValue();
 	}
 	
 	@Override

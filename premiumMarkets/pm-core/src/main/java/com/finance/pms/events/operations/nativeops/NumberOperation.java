@@ -64,7 +64,7 @@ public class NumberOperation extends Operation implements LeafOperation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return null;
+		return new NumberValue(Double.NaN);
 	}
 
 }

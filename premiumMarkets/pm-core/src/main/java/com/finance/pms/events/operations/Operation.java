@@ -378,7 +378,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					synchronized (targetStock.getChartedOutputGroupsAsync()) {
 						try {
 							targetStock.populateChartedOutputGroups(this, calculationStatus(targetStock, thisCallStack), thisCallStack, operandsOutputs);
-						} catch (NotEnoughDataException e) {
+						} catch (NoCalculationAvailable e) {
 							LOGGER.warn("Can't update chart cache. Some calculations may have failed: " + e);
 						}
 					}

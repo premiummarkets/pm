@@ -76,9 +76,4 @@ public class NumberMathOperation extends NumbererOperation {
 		return 0;
 	}
 
-	@Override
-	public NumberValue emptyValue() {
-		return null;
-	}
-
 }

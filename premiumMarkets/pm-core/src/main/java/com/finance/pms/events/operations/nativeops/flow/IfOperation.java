@@ -81,6 +81,13 @@ public class IfOperation extends FlowOperation {
 		}
 	}
 	
+	//FIXME (as parent but with the addition of the switch true false)
+	@Override
+	public Value<?> emptyValue() {
+		return null;
+	}
+
+	
 //FIXME XXX	
 //	@Override
 //	public Set<QuotationDataType> getRequiredStockData(TargetStockInfo targetStock) {

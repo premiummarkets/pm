@@ -64,8 +64,8 @@ public class NamedListOperation extends Operation {
 	}
 
 	@Override
-	public  Value<?> emptyValue() {
-		return null;
+	public Value<?> emptyValue() {
+		return new NumberArrayValue();
 	}
 
 }

@@ -32,7 +32,7 @@ public abstract class NumbererOperation extends Operation {
 	
 	@Override
 	public NumberValue emptyValue() {
-		return null;
+		return new NumberValue(Double.NaN);
 	}
 
 }

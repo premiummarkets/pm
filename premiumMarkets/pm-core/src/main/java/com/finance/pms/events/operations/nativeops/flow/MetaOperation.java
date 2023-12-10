@@ -122,6 +122,7 @@ public class MetaOperation extends Operation {
 		
 	}
 
+	//XXX not exact
 	@Override
 	public Value<?> emptyValue() {
 		return new DoubleMapValue();
