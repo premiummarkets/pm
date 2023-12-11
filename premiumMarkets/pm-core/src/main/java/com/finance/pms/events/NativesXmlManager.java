@@ -85,6 +85,7 @@ import com.finance.pms.events.operations.nativeops.flow.LogOperation;
 import com.finance.pms.events.operations.nativeops.flow.MetaOperation;
 import com.finance.pms.events.operations.nativeops.flow.OrOperation;
 import com.finance.pms.events.operations.nativeops.flow.TargetStockDelegateOperation;
+import com.finance.pms.events.operations.nativeops.flow.UnEnvOperation;
 import com.finance.pms.events.operations.nativeops.ta.PMAroonOperation;
 import com.finance.pms.events.operations.nativeops.ta.PMBollingerOperation;
 import com.finance.pms.events.operations.nativeops.ta.PMLogRocOperation;
@@ -133,6 +134,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(getOperation);
 		EnvOperation envOperation = new EnvOperation();
 		nativeOperations.addOperation(envOperation);
+		UnEnvOperation unenvOperation = new UnEnvOperation();
+		nativeOperations.addOperation(unenvOperation);
 		LogOperation logOperation = new LogOperation();
 		nativeOperations.addOperation(logOperation);
 		AndOperation andOperation = new AndOperation();

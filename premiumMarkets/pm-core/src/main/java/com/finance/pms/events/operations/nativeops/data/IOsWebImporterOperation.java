@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.web.api.ServerException;
 import com.finance.pms.datasources.web.api.WebDelegate;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
@@ -42,9 +43,13 @@ public class IOsWebImporterOperation extends StringerOperation {
 		String filePath = ((StringValue) inputs.get(0)).getValue(targetStock);
 
 		synchronized(WebDelegate.class) {
-			filePath = web.httpGetFile(filePath);
-			webFilesCopies = filePath;
-			return new StringValue(filePath);
+			try {
+				filePath = web.httpGetFile(filePath);
+				webFilesCopies = filePath;
+				return new StringValue(filePath);
+			} catch (ServerException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 	}

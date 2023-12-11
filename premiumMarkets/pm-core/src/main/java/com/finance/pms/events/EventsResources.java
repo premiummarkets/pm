@@ -238,13 +238,13 @@ public class EventsResources {
 			}
 		}
 
-		private void deleteEventsFromStockSoftCache(Stock stock, Date startDate, Date endDate, List<EventInfo> indicatorsList) {
+		private void deleteEventsFromStockSoftCache(Stock stock, List<EventInfo> indicatorsList) {
 
 			indicatorsList.stream().forEach(ei -> {
 				SortedSet<EventCacheEntry> eventsForStockAndAnalysis = this.readEventsFromStockCache(stock, ei);
 				if (eventsForStockAndAnalysis != null && !eventsForStockAndAnalysis.isEmpty()) {
-					SortedSet<EventCacheEntry> subSetToRemove = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
-					eventsForStockAndAnalysis.removeAll(subSetToRemove);
+					//SortedSet<EventCacheEntry> subSetToRemove = eventsForStockAndAnalysis.subSet(smallestCacheEntry(startDate), bigestCacheEntry(endDate));
+					eventsForStockAndAnalysis.removeAll(eventsForStockAndAnalysis);
 				}
 			});
 		}
@@ -1179,26 +1179,26 @@ public class EventsResources {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
 		}
 
-		Date datedeb = DateFactory.DEFAULT_DATE;
-		Date datefin = DateFactory.getNowEndDate();
+//		Date datedeb = DateFactory.DEFAULT_DATE;
+//		Date datefin = DateFactory.getNowEndDate();
 
 		//Cache
 		if (isEventCached) {
 			synchronized (this) {
 				EventsForAnalisysNameCacheHolder eventsForAnalysis = EVENTS_CACHE.get(analysisName);
 				if (eventsForAnalysis != null) {
-					removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, DateFactory.DEFAULT_DATE, DateFactory.getNowEndDate(), indicators);
+					removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, indicators);
 				}
 			}
 			if (isCachePersistent && !isEventPersisted) {
-				DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSCACHETABLE, stock, analysisName, datedeb, datefin, indicators);
+				DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSCACHETABLE, stock, analysisName, indicators);
 			}
 		}
 
 		//DB
 		if (isEventPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " + isEventPersisted + " other params " + stock + ", " + analysisName + ", " + datedeb + ", " + datefin + ", " + EventDefinition.getEventDefArrayAsString(",", indicators));
-			DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, datedeb, datefin, indicators);
+			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " + isEventPersisted + " other params " + stock + ", " + analysisName + ", " + EventDefinition.getEventDefArrayAsString(",", indicators));
+			DataSource.getInstance().cleanEventsForAnalysisNameNStockNIndicators(EVENTSTABLE, stock, analysisName, indicators);
 		}
 
 		//Reset confs
@@ -1235,8 +1235,8 @@ public class EventsResources {
 		
 		LOGGER.info("DELETE events " + Arrays.stream(indicators).map(e -> e.getEventDefinitionRef()).reduce((r,e) -> r + "," + e) + " for " + analysisName);
 		
-		Date datedeb = DateFactory.DEFAULT_DATE;
-		Date datefin = DateFactory.getNowEndDate();
+//		Date datedeb = DateFactory.DEFAULT_DATE;
+//		Date datefin = DateFactory.getNowEndDate();
 
 		for (EventInfo eventInfo : indicators) {
 			if (eventInfo.equals(EventDefinition.PARAMETERIZED)) throw new IllegalArgumentException("Can't directly deal with PARAMETERIZED. Use EventInfo Sub set instead");
@@ -1248,19 +1248,19 @@ public class EventsResources {
 				EventsForAnalisysNameCacheHolder eventsForAnalysis = EVENTS_CACHE.get(analysisName);
 				if (eventsForAnalysis != null) {
 					for (Stock stock : eventsForAnalysis.keySet()) {
-						removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, datedeb, datefin, indicators);
+						removeEventsFromEventsSoftCacheFor(stock, eventsForAnalysis, indicators);
 					}
 				}
 			}
 			if (isCachePersistent && !isEventPersisted) {
-				DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSCACHETABLE, analysisName, datedeb, datefin, indicators);
+				DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSCACHETABLE, analysisName, indicators);
 			}
 		}
 
 		//DB
 		if (isEventPersisted || !isEventCached) {
-			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " + isEventPersisted + " other params " + analysisName + ", " + datedeb + ", " + datefin + ", " + EventDefinition.getEventDefArrayAsString(",", indicators));
-			DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, datedeb, datefin, indicators);
+			LOGGER.info("Cleaning Events in db, cached is " + isEventCached + ", persist is " + isEventPersisted + " other params " + analysisName + ", " + EventDefinition.getEventDefArrayAsString(",", indicators));
+			DataSource.getInstance().cleanEventsForAnalysisNameNIndicators(EVENTSTABLE, analysisName, indicators);
 		}
 
 		//Reset confs
@@ -1346,11 +1346,11 @@ public class EventsResources {
 
 	}
 
-	private void removeEventsFromEventsSoftCacheFor(Stock stock, EventsForAnalisysNameCacheHolder eventsForAnalysis, Date startDate, Date endDate, EventInfo... indicators) {
+	private void removeEventsFromEventsSoftCacheFor(Stock stock, EventsForAnalisysNameCacheHolder eventsForAnalysis, EventInfo... indicators) {
 
 		List<EventInfo> indicatorsList = Arrays.asList(indicators);
 		if (eventsForAnalysis != null) {
-			eventsForAnalysis.deleteEventsFromStockSoftCache(stock, startDate, endDate, indicatorsList);
+			eventsForAnalysis.deleteEventsFromStockSoftCache(stock, indicatorsList);
 		}
 	}
 

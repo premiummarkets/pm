@@ -371,6 +371,5 @@ public class OperationTest {
 		return results;
 		
 	}
-	
 
 }

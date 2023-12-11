@@ -31,7 +31,8 @@ public class IfOperation extends FlowOperation {
 	}
 	
 	public IfOperation() {
-		this("If", "If 1rst operand is true then run second operand else run the third operand.",
+		this("If", "If 1rst operand is true then run second operand else run the third operand. "
+					+ "To insure the flow, the first operand can be of any kind but the other operands shoudl be references. ",
 		     new StringOperation("condition", "if", "if condition", new StringValue("TRUE")),
 			 new OperationReferenceOperation("operationReference", "then", "then", null),
 			 new OperationReferenceOperation("operationReference", "else", "else", null));

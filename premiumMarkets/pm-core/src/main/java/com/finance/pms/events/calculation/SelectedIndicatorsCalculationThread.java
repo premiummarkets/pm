@@ -233,7 +233,7 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				
 				if (calcBounds != null) {
 					LOGGER.info("Updating tunedConf (on unrecovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
-					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln,calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
+					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
 				}
 				
 				emptyReturn(returnedSymbolEvents);

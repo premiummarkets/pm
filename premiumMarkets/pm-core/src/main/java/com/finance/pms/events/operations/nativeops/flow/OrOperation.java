@@ -33,7 +33,8 @@ public class OrOperation extends FlowOperation {
 	public OrOperation() {
 		this("fOr", "Runs the first operand, if the first operand has an error or no result or returns false, runs the second operand, and so on until a result is returned."
 				+ "Will return the first successful input results in case of success. "
-				+ "Will return false if all of the inputs fail or have no result or returns false.",
+				+ "Will return false if all of the inputs fail or have no result or returns false. "
+				+ "To insure the flow, the first operand can be of any kind but the other operands shoudl be references. ",
 			 new OperationReferenceOperation("operationReference", "operation", "operation", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
@@ -90,14 +91,16 @@ public class OrOperation extends FlowOperation {
 				opiRes = i;
 			}
 			if (isTrue(targetStock, opiRes)) {
+				LOGGER.info("Operand " + this.getOperands().get(iCpt).getReference() + " is true and will stop this: " + this.getReference());
 				res = Optional.of(opiRes);
 				break;
 			}
+			if (iCpt < inputs.size() -1) iCpt++;
 		};
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output
 		final Throwable fRootCause = rootCause;
 		final int fICpt = iCpt;
-		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'OR' expression is false (stopped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
+		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'OR' all operands are false (stopped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
 
 	}
 
@@ -125,8 +128,13 @@ public class OrOperation extends FlowOperation {
 		String reduce = getOperands().stream()
 				.map(e -> e.resultHint(targetStockInfo, thisCallStack))
 				.filter(e -> !e.isEmpty())
-				.reduce((r, e) -> r + " or " + e).orElse("");
+				.reduce((r, e) -> r + " fallback " + e).orElse("");
 		return reduce;
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return  getOperands().get(0).emptyValue();
 	}
 
 }

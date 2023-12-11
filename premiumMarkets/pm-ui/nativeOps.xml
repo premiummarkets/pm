@@ -1337,6 +1337,27 @@
             <isVarArgs>false</isVarArgs>
             <runInSequence>false</runInSequence>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unEnvOperation">
+            <reference>unenv</reference>
+            <description>Removes a named value from the env</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>variable</referenceAsOperand>
+                    <description>variable name</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>mevar</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                    <runInSequence>false</runInSequence>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+            <runInSequence>false</runInSequence>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
             <description>Subtraction of two historical data series (a,b) -&gt; a - b</description>
@@ -2066,7 +2087,7 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>true</runInSequence>
+                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
@@ -2087,7 +2108,7 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>true</runInSequence>
+                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -2096,7 +2117,7 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>true</runInSequence>
+                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -2105,7 +2126,7 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>true</runInSequence>
+                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>

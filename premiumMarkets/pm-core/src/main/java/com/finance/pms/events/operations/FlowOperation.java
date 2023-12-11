@@ -26,11 +26,6 @@ public abstract class FlowOperation extends Operation {
 	}
 
 	@Override
-	public Value<?> emptyValue() {
-		return  getOperands().get(getOperands().size() -1).emptyValue();
-	}
-
-	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
 	}

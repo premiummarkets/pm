@@ -29,7 +29,8 @@ public class AndOperation extends FlowOperation {
 	public AndOperation() {
 		this("fAnd", "Runs the first operand, if the first operand has no error and a result and is not false, runs the second operand, and so on until all inputs are run. "
 				+ "Will return the last input results in case of success. "
-				+ "Will return false if any of the inputs fails or has no result or returns false.",
+				+ "Will return false if any of the inputs fails or has no result or returns false. "
+				+ "To insure the flow, the first operand can be of any kind but the other operands shoudl be references. ",
 			 new OperationReferenceOperation("operationReference", "operation", "operation", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -85,16 +86,17 @@ public class AndOperation extends FlowOperation {
 				opiRes = i;
 			}
 			if (isFalse(targetStock, opiRes)) {
+				LOGGER.info(this.getOperands().get(iCpt).getReference() + " is false and will stop this: " + this.getReference());
 				res = Optional.empty();
 				break;
 			}
 			res = Optional.of(opiRes);
-			iCpt++;
+			if (iCpt < inputs.size() -1) iCpt++;
 		};
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output
 		final Throwable fRootCause = rootCause;
 		final int fICpt = iCpt;
-		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'AND' expression is false (stopped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
+		return res.orElseThrow(() -> new FlowException(this.getReference() + " 'AND' one operand is false (stopped by operand " + this.getOperands().get(fICpt).getReference() + ")" + ((fRootCause != null)?": " + fRootCause:"."), fRootCause));  //Throw to handle roll backs in the service;
 
 	}
 
@@ -118,8 +120,14 @@ public class AndOperation extends FlowOperation {
 		String reduce = getOperands().stream()
 				.map(e -> e.resultHint(targetStockInfo, thisCallStack))
 				.filter(e -> !e.isEmpty())
-				.reduce((r, e) -> r + " and " + e).orElse("");
+				.reduce((r, e) -> r + " also " + e).orElse("");
 		return reduce;
+	}
+	
+
+	@Override
+	public Value<?> emptyValue() {
+		return  getOperands().get(getOperands().size() -1).emptyValue();
 	}
 
 }

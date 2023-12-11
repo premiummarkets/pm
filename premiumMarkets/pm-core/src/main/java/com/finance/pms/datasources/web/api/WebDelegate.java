@@ -84,33 +84,43 @@ public class WebDelegate {
 		return httpClient;
 	}
 	
-	public JsonObject postHttpJson(HttpPost postTrain) throws IOException, ClientProtocolException {
+	public JsonObject postHttpJson(HttpPost postRequest) throws IOException, ClientProtocolException, ServerException {
 		JsonObject responseJson;
 		try (
-				CloseableHttpResponse putResponse = getHttpClient().execute(postTrain);
+				CloseableHttpResponse postResponse = getHttpClient().execute(postRequest);
 				StringWriter writer = new StringWriter();
 				WriterOutputStream outStream = new WriterOutputStream(writer);
 			) {
-			putResponse.getEntity().writeTo(outStream);
+			if (postResponse.getStatusLine().getStatusCode() != 200) {
+				throw new ServerException(
+    					"Invalid response from the api: " + postResponse.getStatusLine().getStatusCode() + ". "
+    					+ "Offended request " + postRequest);
+			}
+			postResponse.getEntity().writeTo(outStream);
 			responseJson = new JsonParser().parse(writer.toString()).getAsJsonObject();
-			if (responseJson.size() == 0) throw new RuntimeException("The api didn't return a valid response: " + responseJson + ", url " + postTrain.toString());
+			if (responseJson.size() == 0) throw new RuntimeException("The api didn't return a valid response: " + responseJson + ", url " + postRequest.toString());
 		}
 		return responseJson;
 	}
 	
-	public String postHttpString(HttpPost postTrain) throws IOException, ClientProtocolException {
+	public String postHttpString(HttpPost postRequest) throws IOException, ClientProtocolException, ServerException {
 		try (
-				CloseableHttpResponse putResponse = getHttpClient().execute(postTrain);
+				CloseableHttpResponse postResponse = getHttpClient().execute(postRequest);
 				StringWriter writer = new StringWriter();
 				WriterOutputStream outStream = new WriterOutputStream(writer);
 			) {
-			putResponse.getEntity().writeTo(outStream);
+			postResponse.getEntity().writeTo(outStream);
+			if (postResponse.getStatusLine().getStatusCode() != 200) {
+				throw new ServerException(
+    					"Invalid response from the api: " + postResponse.getStatusLine().getStatusCode() + ". "
+    					+ "Offended request " + postRequest);
+			}
 			return writer.toString();
 		}
 		
 	}
 	
-	public String httpGetFile(String fileName) {
+	public String httpGetFile(String fileName) throws ServerException {
 		
 		String[] split = fileName.split(".+?" + File.separator + "(?=[^" + File.separator + "]+$)"); //".+?/(?=[^/]+$)"
 		String fileNameBaseName = split[split.length-1];
@@ -146,7 +156,7 @@ public class WebDelegate {
 		
 	}
 
-	private String doHttpGetFile(String fileNameBaseNameWOExt, String localFileCopyName) {
+	private String doHttpGetFile(String fileNameBaseNameWOExt, String localFileCopyName) throws ServerException {
 		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/csvfile/autoPortfolioLogs/"+fileNameBaseNameWOExt);
 	    try (
 	    		CloseableHttpResponse getResponse = getHttpClient().execute(getPredictionFile);
@@ -154,12 +164,15 @@ public class WebDelegate {
 	    		PrintWriter out1 = new PrintWriter(outFile);
 	    ) {
     		if (getResponse.getStatusLine().getStatusCode() != 200) {
-    			LOGGER.warn("Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". It is assumed that the file " + fileNameBaseNameWOExt + " is not present in the server.");
+    			throw new ServerException(
+    					"Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". "
+    					+ "The requested file " + fileNameBaseNameWOExt + " may not be present on the server.");
     		} else {
     			out1.append(EntityUtils.toString(getResponse.getEntity()));
     		}
 		} catch (Exception e) {
 			LOGGER.error(e, e);
+			throw new ServerException(e);
 		}
 		return localFileCopyName;
 	}

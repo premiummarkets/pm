@@ -86,6 +86,7 @@ import com.finance.pms.events.operations.nativeops.flow.LogOperation;
 import com.finance.pms.events.operations.nativeops.flow.MetaOperation;
 import com.finance.pms.events.operations.nativeops.flow.OrOperation;
 import com.finance.pms.events.operations.nativeops.flow.TargetStockDelegateOperation;
+import com.finance.pms.events.operations.nativeops.flow.UnEnvOperation;
 import com.finance.pms.events.operations.nativeops.trans.RequiredShiftWrapperOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.events.quotations.QuotationDataType;
@@ -103,7 +104,7 @@ import com.finance.pms.events.scoring.TunedConfMgr;
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, NamedListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
 	LogOperation.class,
-	RequiredShiftWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class, AndOperation.class, OrOperation.class})
+	RequiredShiftWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class, UnEnvOperation.class, AndOperation.class, OrOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
