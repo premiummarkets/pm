@@ -31,20 +31,19 @@ public class OrOperation extends FlowOperation {
 	//XXX The recursive operands calls are not exact. The first valid element should prevail (as per runInSequence)
 	//XXX For boolean recursion, one element false will make this false: although that may not be the effectively calculated element.
 	public OrOperation() {
-		this("fOr", "Runs the first operand, if the first operand has an error or no result or returns false, runs the second operand, and so on until a result is returned."
+		this("fOr", "Or Fallback operation. "
+				+ "Runs the first operand, if the first operand has an error or no result or returns false, runs the second operand, and so on until a result is returned."
 				+ "Will return the first successful input results in case of success. "
 				+ "Will return false if all of the inputs fail or have no result or returns false. "
-				+ "To insure the flow, the first operand can be of any kind but the other operands shoudl be references. ",
+				+ "To insure the flow, the first operand can be of any kind but the other operands shoudl be operation references. ",
 			 new OperationReferenceOperation("operationReference", "operation", "operation", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
-		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 
 	public OrOperation(ArrayList<Operation> operands, String outputSelector) {
 		this();
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
-		this.getOperands().stream().forEach(op -> op.setRunInSequence(true));
 	}
 	
 	@Override

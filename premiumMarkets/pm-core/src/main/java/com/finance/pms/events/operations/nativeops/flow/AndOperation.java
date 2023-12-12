@@ -27,10 +27,11 @@ public class AndOperation extends FlowOperation {
 	}
 	
 	public AndOperation() {
-		this("fAnd", "Runs the first operand, if the first operand has no error and a result and is not false, runs the second operand, and so on until all inputs are run. "
+		this("fAnd", "And Then operation. "
+				+ "Runs the first operand, if the first operand has no error and a result and is not false, runs the second operand, and so on until all inputs are run. "
 				+ "Will return the last input results in case of success. "
-				+ "Will return false if any of the inputs fails or has no result or returns false. "
-				+ "To insure the flow, the first operand can be of any kind but the other operands shoudl be references. ",
+				+ "Will throw a flow exception if any of the inputs fails or has no result or returns false. "
+				+ "To insure the flow, the first operand can be of any kind but the other operands should be operation references. ",
 			 new OperationReferenceOperation("operationReference", "operation", "operation", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -120,14 +121,14 @@ public class AndOperation extends FlowOperation {
 		String reduce = getOperands().stream()
 				.map(e -> e.resultHint(targetStockInfo, thisCallStack))
 				.filter(e -> !e.isEmpty())
-				.reduce((r, e) -> r + " also " + e).orElse("");
+				.reduce((r, e) -> r + " and then " + e).orElse("");
 		return reduce;
 	}
 	
 
 	@Override
 	public Value<?> emptyValue() {
-		return  getOperands().get(getOperands().size() -1).emptyValue();
+		return  getOperands().get(getOperands().size()-1).emptyValue();
 	}
 
 }
