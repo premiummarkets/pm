@@ -15,7 +15,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -27,7 +26,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>input data</reference>
@@ -35,12 +33,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmMightyChaikinOperation">
             <reference>chaikin_</reference>
@@ -56,7 +52,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -68,12 +63,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="requiredShiftWrapperOperation">
             <reference>shiftWrapper</reference>
@@ -89,7 +82,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -97,12 +89,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="sum">
             <reference>sum_</reference>
@@ -110,7 +100,6 @@
             <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmAroonOperation">
             <reference>aroon_</reference>
@@ -126,7 +115,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -136,7 +124,6 @@
             </availableOutputSelectors>
             <outputSelector>down</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="logOperation">
             <reference>log</reference>
@@ -152,7 +139,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="nullOperation">
                     <reference>passThroughValue</reference>
@@ -160,12 +146,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="oProfitOperation">
             <reference>oProfit</reference>
@@ -177,12 +161,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="csvFileFilterOperation">
             <reference>csvFilterOperation</reference>
@@ -198,7 +180,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -210,7 +191,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -222,7 +202,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -234,12 +213,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="lnPeriodicOperation">
             <reference>periodicLn_</reference>
@@ -255,7 +232,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -263,12 +239,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unarySum">
             <reference>sumUnary_</reference>
@@ -280,7 +254,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -288,12 +261,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="randomOperation">
             <reference>gx_random</reference>
@@ -309,7 +280,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -321,7 +291,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -333,7 +302,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -345,7 +313,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -357,7 +324,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="eventMapOperation">
                     <reference>data</reference>
@@ -366,12 +332,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitDrivenOperation">
             <reference>gx_profit</reference>
@@ -387,7 +351,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -399,7 +362,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -411,7 +373,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -423,7 +384,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="eventMapOperation">
                     <reference>Event Series to analyse (an Indicator)</reference>
@@ -431,12 +391,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="buyAndHoldOperation">
             <reference>buyAndHold</reference>
@@ -448,12 +406,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="getOperation">
             <reference>get</reference>
@@ -469,7 +425,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="nullOperation">
                     <reference>defaultValue</reference>
@@ -477,12 +432,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitOperation">
             <reference>profit</reference>
@@ -498,7 +451,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="eventMapOperation">
                     <reference>data</reference>
@@ -507,12 +459,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityOperation">
             <reference>volatilityCalculator</reference>
@@ -528,7 +478,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -540,7 +489,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Input data</reference>
@@ -548,7 +496,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -563,7 +510,6 @@
             </availableOutputSelectors>
             <outputSelector>atDate</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryProduct">
             <reference>productUnary_</reference>
@@ -575,7 +521,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -583,12 +528,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profitWalkerOperation">
             <reference>gx_pwalker</reference>
@@ -604,7 +547,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -616,7 +558,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -628,12 +569,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ta4JOperation">
             <reference>ta4jOperation</reference>
@@ -649,7 +588,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -661,7 +599,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -673,12 +610,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="triggerPointJoiner">
             <reference>triggerPointJoiner</reference>
@@ -691,7 +626,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -703,7 +637,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -712,12 +645,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="inverseOperation">
             <reference>inverse</reference>
@@ -729,7 +660,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Data as divisor</reference>
@@ -737,12 +667,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="statsOperation">
             <reference>stat</reference>
@@ -758,7 +686,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -767,7 +694,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>historical data</reference>
@@ -775,7 +701,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -790,7 +715,6 @@
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="volatilityOtherOperation">
             <reference>volatilityOtherCalculator</reference>
@@ -806,7 +730,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -815,7 +738,6 @@
             </availableOutputSelectors>
             <outputSelector>stdevLnVolatility</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryDivision">
             <reference>divisionUnary_</reference>
@@ -827,7 +749,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>divisor</reference>
@@ -835,12 +756,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandRatioNormalizerOperation">
             <reference>bandRNrmlzr</reference>
@@ -856,7 +775,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>actualCenter</reference>
@@ -868,7 +786,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>distanceToNewCenter</reference>
@@ -880,7 +797,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>distanceToActualCenter</reference>
@@ -892,7 +808,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Data to normalise</reference>
@@ -900,16 +815,14 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="orOperation">
             <reference>fOr</reference>
-            <description>Runs the first operand, if the first operand has an error or no result or returns false, runs the second operand, and so on until a result is returned.Will return the first successful input results in case of success. Will return false if all of the inputs fail or have no result or returns false.</description>
+            <description>Or Fallback operation. Runs the first operand, if the first operand has an error or no result or returns false, runs the second operand, and so on until a result is returned.Will return the first successful input results in case of success. Will return false if all of the inputs fail or have no result or returns false. To insure the flow, the first operand can be of any kind but the other operands shoudl be operation references. </description>
             <operands>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -918,12 +831,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>true</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="randomizeStringOperation">
             <reference>randomizeString</reference>
@@ -939,12 +850,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="envOperation">
             <reference>env</reference>
@@ -960,7 +869,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="nullOperation">
                     <reference>defaultValue</reference>
@@ -968,12 +876,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="filterOperation">
             <reference>filter_</reference>
@@ -985,7 +891,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>filtering series on which applies the filter (where x eq/gt/lt .. than threshold)</reference>
@@ -993,7 +898,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1005,7 +909,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1017,7 +920,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -1029,7 +931,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -1039,7 +940,6 @@
             </availableOutputSelectors>
             <outputSelector>eq</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="product">
             <reference>product_</reference>
@@ -1047,7 +947,6 @@
             <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="recursiveOperation">
             <reference>recursive_</reference>
@@ -1063,7 +962,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>seed</reference>
@@ -1072,7 +970,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>paramsData</reference>
@@ -1081,7 +978,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -1091,7 +987,6 @@
             </availableOutputSelectors>
             <outputSelector>rates</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="leftShifterOperation">
             <reference>leftShifter</reference>
@@ -1103,7 +998,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Data to shift</reference>
@@ -1111,12 +1005,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsExporterOperation">
             <reference>iosExporter</reference>
@@ -1132,7 +1024,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -1144,7 +1035,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -1156,7 +1046,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -1165,12 +1054,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listOperation">
             <reference>listOfThings</reference>
@@ -1178,7 +1065,6 @@
             <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="flipOperation">
             <reference>flipAround</reference>
@@ -1190,7 +1076,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Data to flip around</reference>
@@ -1198,12 +1083,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="equalsOperation">
             <reference>equals</reference>
@@ -1215,7 +1098,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="nullOperation">
                     <reference>anyValue</reference>
@@ -1223,12 +1105,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="refiterOperation">
             <reference>refit</reference>
@@ -1241,7 +1121,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>refiter</reference>
@@ -1250,12 +1129,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsLooseAssemblerOperation">
             <reference>iosLooseAssembler</reference>
@@ -1271,7 +1148,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -1283,7 +1159,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -1292,12 +1167,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="concatStringOperation">
             <reference>conc</reference>
@@ -1313,12 +1186,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="negateOperation">
             <reference>neg</reference>
@@ -1330,12 +1201,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unEnvOperation">
             <reference>unenv</reference>
@@ -1351,12 +1220,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subtraction">
             <reference>subtraction_</reference>
@@ -1368,7 +1235,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>subtrahend</reference>
@@ -1376,12 +1242,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsDeltaExporterOperation">
             <reference>iosDeltaExporter</reference>
@@ -1397,7 +1261,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -1409,7 +1272,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -1421,7 +1283,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -1433,7 +1294,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -1442,12 +1302,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmLogRocOperation">
             <reference>logroc</reference>
@@ -1463,7 +1321,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>historical data</reference>
@@ -1471,12 +1328,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="stringEqualsOperation">
             <reference>equalsString</reference>
@@ -1492,12 +1347,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="nullOperation">
             <reference>NONE</reference>
@@ -1505,7 +1358,6 @@
             <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="letOperation">
             <reference>let</reference>
@@ -1521,7 +1373,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="nullOperation">
                     <reference>value</reference>
@@ -1529,12 +1380,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="stockOperation">
             <reference>stock</reference>
@@ -1547,7 +1396,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -1559,7 +1407,6 @@
             </availableOutputSelectors>
             <outputSelector>close</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsWebImporterOperation">
             <reference>iosWebImporter</reference>
@@ -1575,12 +1422,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockDelegateOperation">
             <reference>targetStockDelegate</reference>
@@ -1593,7 +1438,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
@@ -1605,12 +1449,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandNormalizerOperation">
             <reference>bandNormalizer</reference>
@@ -1622,7 +1464,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>upper threshold</reference>
@@ -1630,7 +1471,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>actual center</reference>
@@ -1642,7 +1482,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>integer</reference>
@@ -1654,7 +1493,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>Data to normalise</reference>
@@ -1662,12 +1500,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="numberMathOperation">
             <reference>nMath</reference>
@@ -1683,7 +1519,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -1695,7 +1530,6 @@
             </availableOutputSelectors>
             <outputSelector>sqrt</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmmacdOperation">
             <reference>macd_</reference>
@@ -1711,7 +1545,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1723,7 +1556,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1735,7 +1567,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -1745,7 +1576,6 @@
             </availableOutputSelectors>
             <outputSelector>macd</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="indicatorStatsOperation">
             <reference>indicatorStats</reference>
@@ -1761,7 +1591,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -1770,7 +1599,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="eventMapOperation">
                     <reference>data</reference>
@@ -1779,12 +1607,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="targetStockInfoOperation">
             <reference>ctx</reference>
@@ -1800,12 +1626,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmBollingerOperation">
             <reference>bollinger_</reference>
@@ -1821,7 +1645,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1833,7 +1656,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1845,7 +1667,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>String</reference>
@@ -1857,7 +1678,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>input data</reference>
@@ -1865,7 +1685,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -1875,7 +1694,6 @@
             </availableOutputSelectors>
             <outputSelector>middle</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsAssemblerOperation">
             <reference>iosAssembler</reference>
@@ -1891,7 +1709,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -1903,7 +1720,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
@@ -1915,7 +1731,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -1924,12 +1739,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dataTypeCheckOperation">
             <reference>dataTypeCheck</reference>
@@ -1942,12 +1755,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="metaOperation">
             <reference>meta</reference>
@@ -1963,7 +1774,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1975,12 +1785,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="talibAssemblerOperation">
             <reference>talibAssembler</reference>
@@ -1996,7 +1804,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -2005,7 +1812,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="listOperation">
                     <reference>parameters</reference>
@@ -2014,12 +1820,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="mathOperation">
             <reference>math</reference>
@@ -2031,7 +1835,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors>
@@ -2041,7 +1844,6 @@
             </availableOutputSelectors>
             <outputSelector>exponential</outputSelector>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="division">
             <reference>division_</reference>
@@ -2053,7 +1855,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="doubleMapOperation">
                     <reference>divisor</reference>
@@ -2061,12 +1862,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="operationReferenceOperation">
             <reference>operationReference</reference>
@@ -2074,11 +1873,10 @@
             <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="andOperation">
             <reference>fAnd</reference>
-            <description>Runs the first operand, if the first operand has no error and a result and is not false, runs the second operand, and so on until all inputs are run. Will return the last input results in case of success. Will return false if any of the inputs fails or has no result or returns false.</description>
+            <description>And Then operation. Runs the first operand, if the first operand has no error and a result and is not false, runs the second operand, and so on until all inputs are run. Will return the last input results in case of success. Will throw a flow exception if any of the inputs fails or has no result or returns false. To insure the flow, the first operand can be of any kind but the other operands should be operation references. </description>
             <operands>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -2087,16 +1885,14 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ifOperation">
             <reference>If</reference>
-            <description>If 1rst operand is true then run second operand else run the third operand.</description>
+            <description>If 1rst operand is true then run second operand else run the third operand. To insure the flow, the first operand can be of any kind but the other operands shoudl be operation references. </description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>condition</reference>
@@ -2108,7 +1904,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -2117,7 +1912,6 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
@@ -2126,12 +1920,10 @@
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
-                    <runInSequence>false</runInSequence>
                 </operand>
             </operands>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
-            <runInSequence>false</runInSequence>
         </operation>
     </operations>
 </nativeOperationsBasic>

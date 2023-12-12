@@ -98,7 +98,7 @@ import com.finance.pms.events.scoring.TunedConfMgr;
  * Operands: resolved at runtime.
  * Parameters: preset operands already resolved.
  **/
-@XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs","runInSequence"} )
+@XmlType(propOrder = { "reference", "referenceAsOperand", "description", "formulae", "parameter", "defaultValue", "operands", "availableOutputSelectors", "outputSelector", "isVarArgs"} )
 @XmlSeeAlso({
 	Condition.class, MapOperation.class, StringerOperation.class, NumbererOperation.class, MetaOperation.class, NullOperation.class, IfOperation.class,
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
@@ -110,6 +110,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
 	
 	protected final Boolean isDisplay;
+	private Boolean runInSequence = false;
 
 	private String formulae;
 	
@@ -135,7 +136,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	private String operationReference;
 
 	private Boolean isVarArgs = false;
-	private Boolean runInSequence = false;
+
 
 	@XmlElementWrapper(name = "availableOutputSelectors")
 	@XmlElement(name = "availableOutputSelector")
@@ -904,6 +905,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return operationReference;
 	}
 	
+	@XmlTransient
 	public Boolean getRunInSequence() {
 		return runInSequence;
 	}
