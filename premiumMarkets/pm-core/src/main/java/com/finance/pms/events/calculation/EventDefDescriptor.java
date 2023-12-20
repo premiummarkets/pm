@@ -43,7 +43,7 @@ public interface EventDefDescriptor {
 
 	String getHtmlBearishDescription();
 
-	Color getColor(int grpIdx, int outputIdx) throws NoSuchElementException;
+	Color getColor(int grpIdx, int outputIdx) throws Exception;
 
 	Boolean displayValues();
 
@@ -57,9 +57,9 @@ public interface EventDefDescriptor {
 
 	String getMainLabelForGroup(int grpIdx);
 
-	Set<OutputDescr> nonMULTIOutputDescr();
+	Set<OutputDescr> nonMULTIOutputDescr() throws Exception;
 
-	Set<OutputDescr> mULTIOutputDescr();
+	Set<OutputDescr> mULTIOutputDescr() throws Exception;
 
 	Set<OutputDescr> allOutputDescr();
 

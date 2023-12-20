@@ -271,7 +271,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				final Boolean literalsOnly = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis).compareTo(targetStock.getEndDate()) > 0;
 				
 				List<Future<Value<?>>> futures = new ArrayList<>(Collections.nCopies(nbOperands, (Future<Value<?>>) null));
-				ExecutorService executor = CalculateThreadExecutor.getJoinForkExecutorInstance(); //Executors.newFixedThreadPool(2); //Test
+				ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance(); //Executors.newFixedThreadPool(2); //Test
+				
+				if (CalculateThreadExecutor.needsThrottling(executor)) {
+					LOGGER.warn("Run in sequence throttle activated for " + this);
+					operands.forEach(o -> o.setRunInSequence(true));
+				}
+			
 				for (int i = 0; i < nbOperands; i++) {
 					
 					final Operation operand = operands.get(i);

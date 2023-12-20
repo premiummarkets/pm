@@ -157,6 +157,7 @@ import com.finance.pms.datasources.web.currency.CurrencyConverter;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
@@ -813,6 +814,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 										getParent().getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
 
 										Portfolio portfolio = modelControler.getPortfolio(selectionIndex);
+										TargetStockInfo.letGlobalVar("currentPortfolio", portfolio.getName());
 										Table ttomod = (Table) cTabItem[selectionIndex].getData();
 
 										if (portfolio.isUiDirty() || ttomod.getItems().length != portfolio.getListShares().size()) {

@@ -93,7 +93,8 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 	};
 
 	@Override
-	public void callbackForAnalysis(ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers,
+	public void callbackForAnalysis(
+			ArrayList<String> analysisList, Date startAnalyseDate, Date endAnalysisDate, Set<Observer> engineObservers,
 			X rootParam, @SuppressWarnings("unchecked") Collection<? extends Object>...viewStateParams) throws NotEnoughDataException {
 
 		String periodType = MainPMScmd.getMyPrefs().get("events.periodtype", "daily");
@@ -108,7 +109,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 		List<Stock> stockList = buildStockListFrom(rootParam);
 
 		Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputRet = new HashMap<Stock, Map<EventInfo,EventDefCacheEntry>>();
-		if (stockList.size() == 0) throw new NotEnoughDataException(null,"No stock selected. Select a stock or a list of stocks to analyse before running this.", new Throwable());
+		if (stockList.size() == 0) throw new NotEnoughDataException(null, "No stock selected. Select a stock or a list of stocks to analyse before running this.", new Throwable());
 
 		for (int i = 0; i < analysers.length; i++) {
 
@@ -121,7 +122,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 			IndicatorAnalysisCalculationRunnableMessage actionThread = new IndicatorAnalysisCalculationRunnableMessage(
 					SpringContext.getSingleton(), analyzer, SelectedIndicatorsCalculationService.getAnalysisName(), periodType, 
 					stockList, datedeb, datefin, 
-					engineObservers.toArray(new Observer[0])); 
+					engineObservers.toArray(new Observer[0]));
 
 			//Set calculators as dirty if required (This can be handled at the calculator level for further update
 			if (viewStateParams != null && viewStateParams.length == 2 && viewStateParams[1] != null) {

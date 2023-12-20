@@ -223,8 +223,9 @@ public class VolatilityClassifier {
 	 * 
 	 * @param volFilteredOutputList: name of the PORTFOLIO list where the stocks are pick up from. It also has to match a switch case in filterStocks
 	 * @param updateInputSourceList: if the source used to generate the output list above mentioned should be updated  
-	 * 			ex: "YAHOOINDICES,BETA:SCREENER" -> "VOLATILITY,BETA:UNKNOWN"
-	 * 				"SLICKSTOCKPYTHONINDICES,SP500:SP" -> "VOLATILITY,SNP:UNKNOWN"
+	 * 	Examples of existing filters: 
+	 * 			"YAHOOINDICES,BETA:SCREENER" -> "VOLATILITY,BETA:UNKNOWN"
+	 * 			"SLICKSTOCKPYTHONINDICES,SP500:SP" -> "VOLATILITY,SNP:UNKNOWN"
 	 * @return
 	 * @throws Exception
 	 */

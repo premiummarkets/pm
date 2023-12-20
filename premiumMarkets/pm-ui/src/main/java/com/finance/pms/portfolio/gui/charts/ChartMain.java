@@ -501,21 +501,24 @@ public class ChartMain extends Chart {
 
 									Date date = new Date((long) dataset.getXValue(series, item));
 									x = df.format(date);
-
+									
+									barTip = barSerie.get(date).getToolTip();
+									String[] barToolTipSplit = barSerie.get(date).getToolTip().split("\n");
 									switch (serieDef.getId() % 3) {
 									case 0:
 										type = EventType.BULLISH;
 										desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
-										barTip = barSerie.get(date).getToolTip().split("\n")[0].replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");;
+										if (barToolTipSplit.length == 2) barTip = barToolTipSplit[0]; //bull:
 										break;
 									case 2:
 										type = EventType.BEARISH;
 										desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
-										barTip = barSerie.get(date).getToolTip().split("\n")[1].replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");;
+										if (barToolTipSplit.length == 2) barTip = barToolTipSplit[1]; //bear:
 										break;
 									default:
 										break;
 									}
+									barTip = barTip.replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");
 									
 									String profitTip = "";
 									if (serieDef.getTuningRes() != null) {

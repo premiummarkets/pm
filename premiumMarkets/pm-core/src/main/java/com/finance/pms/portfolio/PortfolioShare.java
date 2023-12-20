@@ -287,7 +287,7 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 * @return
 	 */
 	@Transient
-	public BigDecimal getGainAnnualised(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+	public BigDecimal getGainAnnualisedPercent(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
 		double cummulativeReturn = getGainTotalPercent(currentStartDate, currentEndDate, currency, isLatestOnly).doubleValue();
 		double nbDays = TimeUnit.DAYS.convert(currentEndDate.getTime() - currentStartDate.getTime(), TimeUnit.MILLISECONDS);
 		LOGGER.info("getGainAnnualised, nb days since first transaction: " + nbDays + " for " + this);

@@ -302,6 +302,7 @@ public class SpringContext extends GenericApplicationContext {
 			putInPrefs("quotationretrieval.semaphore.nbthread",props);
 			putInPrefs("trendeventscalculation.semaphore.nbthread",props);
 			putInPrefs("indicatortunning.semaphore.nbthread",props);
+			putInPrefs("operandsloop.semaphore.nbthread",props);
 
 			//Analyse
 			if (props.containsKey("mas.daysbackwardday"))

@@ -65,6 +65,11 @@ public interface AutoPortfolioWays {
 	String extractPortfolioTransactionLog(Date startDate, Date endDate, Boolean isLatestTransactionOnly) throws Throwable;
 	SortedSet<TransactionElement> getTransactions();
 	
+	//Perfs
+	public BigDecimal getGainAnnualisedPercent(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public BigDecimal getGainRealisedPercent(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public SortedSet<TransactionElement> transactionsSortedByDate(Date startDate, Date endDate, Boolean isLatestTransactionOnly);
+	
 	//Other things
 	String getName();
 

@@ -145,7 +145,7 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 		SortedSet<TransactionElement> transactions = this.getTransactions(isLatestOnly);
 		if (transactions.size() > 0) {
 			Date firstTransactionDate = transactions.first().getDate();
-			return super.getGainAnnualised(firstTransactionDate, calcSlidingEndDate(), displayedCurrency, isLatestOnly);
+			return super.getGainAnnualisedPercent(firstTransactionDate, calcSlidingEndDate(), displayedCurrency, isLatestOnly);
 		} else {
 			return BigDecimal.ZERO;
 		}	

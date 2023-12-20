@@ -54,6 +54,7 @@ import com.finance.pms.events.operations.nativeops.calc.MathOperation;
 import com.finance.pms.events.operations.nativeops.calc.NegateOperation;
 import com.finance.pms.events.operations.nativeops.calc.NumberMathOperation;
 import com.finance.pms.events.operations.nativeops.calc.OProfitOperation;
+import com.finance.pms.events.operations.nativeops.calc.PortfolioOperation;
 import com.finance.pms.events.operations.nativeops.calc.Product;
 import com.finance.pms.events.operations.nativeops.calc.ProfitDrivenOperation;
 import com.finance.pms.events.operations.nativeops.calc.ProfitOperation;
@@ -184,6 +185,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(targetStockDelegateOperation);
 		DataTypeCheckOperation dataTypeCheckOperation = new DataTypeCheckOperation();
 		nativeOperations.addOperation(dataTypeCheckOperation);
+		PortfolioOperation portfolioOperation = new PortfolioOperation();
+		nativeOperations.addOperation(portfolioOperation);
 
 		//Pm
 		PMMACDOperation pmMacdOperation = new PMMACDOperation();

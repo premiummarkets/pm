@@ -1160,7 +1160,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	}
 
-	protected void checkChartSelectionValidity() {
+	private void checkChartSelectionValidity() {
 
 		SortedSet<EventInfo> updatedChartedEvtDefsTrends = initChartedEvtDefsTrendsSet();
 		for (EventInfo eventInfo : chartedEvtDefsTrends) {

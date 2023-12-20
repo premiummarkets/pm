@@ -120,7 +120,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		Arrays.setAll(randoms, i -> Math.random());
 	}
 
-	private  Map<OutputId, OutputDescr> getOutputDescrFlatList() {
+	private  Map<OutputId, OutputDescr> getOutputDescrFlatList() throws Exception {
 		if (outputDescrFlatList == null) {
 			initLists();
 		}
@@ -142,11 +142,11 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		throw new NoSuchElementException();
 	}
 
-	protected void initLists() throws NoSuchElementException {
+	protected void initLists() throws Exception {
 		initDescriptionsList();
 	}
 
-	protected void initDescriptionsList() {
+	protected void initDescriptionsList() throws Exception {
 		List<ChartedOutputGroup> chartedOutputGroups = getChartedOutputGroups();
 
 		outputDescrFlatList = new ConcurrentHashMap<>();
@@ -162,8 +162,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	}
 
-	private List<ChartedOutputGroup> getChartedOutputGroups() {
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("No group to be found for the dynamic description of " + descriptorReference+ ". Its calculation may be in progress?");
+	private List<ChartedOutputGroup> getChartedOutputGroups() throws Exception {
+		if (chartedOutputGroups == null) throw new Exception("No group to be found for the dynamic description of " + descriptorReference+ ". Its calculation may be in progress?");
 		return chartedOutputGroups;
 	}
 
@@ -197,13 +197,13 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 		try {
 			initLists();
-		} catch (NoSuchElementException e) {
+		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
 	}
 
 	@Override
-	public Color getColor(int groupIdx, int outputIdx) throws NoSuchElementException {
+	public Color getColor(int groupIdx, int outputIdx) throws Exception {
 
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
@@ -250,7 +250,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public int getGroupsCount() {
-		return getChartedOutputGroups().size();
+		try {
+			return getChartedOutputGroups().size();
+		} catch (Exception e) {
+			LOGGER.warn("getChartedOutputGroups: " + e);
+			return 0;
+		}
 	}
 
 	@Override
@@ -296,16 +301,26 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String getMainLabelForGroup(int groupIdx) {
-		return getChartedOutputGroups().get(groupIdx).getThisGroupMainOutputReference().getReference();
+		try {
+			return getChartedOutputGroups().get(groupIdx).getThisGroupMainOutputReference().getReference();
+		} catch (Exception e) {
+			LOGGER.warn("getMainLabelForGroup: " + e);
+			return "NoMainLabelFound";
+		}
 	}
 
 	@Override
 	public Set<OutputDescr> allOutputDescr() {
-		return new HashSet<>(getOutputDescrFlatList().values());
+		try {
+			return new HashSet<>(getOutputDescrFlatList().values());
+		} catch (Exception e) {
+			LOGGER.warn("allOutputDescr: " + e);
+			return new HashSet<>();
+		}
 	}
 
 	@Override
-	public Set<OutputDescr> nonMULTIOutputDescr() {
+	public Set<OutputDescr> nonMULTIOutputDescr() throws Exception {
 		HashSet<OutputDescr> nonMultiOutputDescr = new HashSet<>();
 
 		Set<OutputDescr> filteredODs = getOutputDescrFlatList().values().stream()
@@ -317,7 +332,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Set<OutputDescr> mULTIOutputDescr() {
+	public Set<OutputDescr> mULTIOutputDescr() throws Exception {
 		HashSet<OutputDescr> nonMultiOutputDescr = new HashSet<>();
 
 		Set<OutputDescr> filteredODs = getOutputDescrFlatList().values().stream()
@@ -358,7 +373,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String getGroupFullDescriptionFor(int groupIndex) {
-		return getChartedOutputGroups().get(groupIndex).toString();
+		try {
+			return getChartedOutputGroups().get(groupIndex).toString();
+		} catch (Exception e) {
+			LOGGER.warn("getGroupFullDescriptionFor: " + e);
+			return "NoDescriptionFound";
+		}
 	}
 
 }

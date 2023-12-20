@@ -38,12 +38,13 @@ public class OutputReference implements Comparable<OutputReference> {
 //	private static MyLogger LOGGER = MyLogger.getLogger(OutputReference.class);
 
 	private String reference;
+	
 	private String operationReference;
 	private String outputSelector;
 	private String formula;
-	private String referenceAsOperand;
 	private StringableValue constant;
 	
+	private String referenceAsOperand;
 	private Boolean hasFailed = false;
 	
 	//FIXME multiOutputDiscriminator and outputSelector should two distinctive attributes

@@ -47,6 +47,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
@@ -876,13 +877,24 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				//Non Multi
 				chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
-					Set<OutputDescr> nonMultiOutputDescr = t.getEventDefDescriptor().nonMULTIOutputDescr();
-					availableOutputs.addAll(nonMultiOutputDescr);
+					try {
+						Set<OutputDescr> nonMultiOutputDescr = t.getEventDefDescriptor().nonMULTIOutputDescr();
+						availableOutputs.addAll(nonMultiOutputDescr);
+					} catch (Exception e) {
+						LOGGER.warn("nonMULTIOutputDescr: " + e);
+					}
 				});
 
 				//Multi
 				Set<OutputDescr> multiOutputDescrLimited = chartTarget.getChartedEvtDefsTrends().stream()
-						.flatMap(t -> t.getEventDefDescriptor().mULTIOutputDescr().stream())
+						.flatMap(t -> {
+							try {
+								return t.getEventDefDescriptor().mULTIOutputDescr().stream();
+							} catch (Exception e) {
+								LOGGER.warn("mULTIOutputDescr: " + e);
+								return Stream.empty();
+							}
+						})
 						.limit(100)
 						.collect(Collectors.toSet());
 				availableOutputs.addAll(multiOutputDescrLimited);

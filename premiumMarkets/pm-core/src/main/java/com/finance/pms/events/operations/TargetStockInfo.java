@@ -74,6 +74,8 @@ public class TargetStockInfo {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
 	
+	private static Map<String, String> glogal = new HashMap<>();
+	
 	public class Output {
 
 		private OutputReference outputReference;
@@ -220,6 +222,16 @@ public class TargetStockInfo {
 		this.missingKeys = targetStock.missingKeys;
 	}
 	
+	public static String letGlobalVar(String variableName, String variableValue) {
+		glogal.put(variableName, variableValue);
+		return variableValue;
+	}
+	
+	public static String getGlobalVar(String variableName) {
+		return glogal.get(variableName);
+	}
+	
+	//Supports Stringable Value and Map like Multivalue objects
 	public Value<?> letHeapVar(String variableName, Value<?> variableValue) {
 		
 		String[] nameSplit = variableName.split("\\.");

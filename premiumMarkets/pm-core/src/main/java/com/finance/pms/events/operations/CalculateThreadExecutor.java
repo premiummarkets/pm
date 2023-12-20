@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
@@ -15,6 +16,14 @@ public class CalculateThreadExecutor {
 	
 	public static ExecutorService getRandomInfiniteExecutorInstance() {
 		return SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).getRandomInfiniteExecutor();
+	}
+	
+	public static Boolean needsThrottling(ExecutorService executorService) {
+		if (executorService instanceof ThreadPoolExecutor) {
+			int activeCount = ((ThreadPoolExecutor) executorService).getActiveCount();
+		    if (activeCount > Integer.valueOf(MainPMScmd.getMyPrefs().get("operandsloop.semaphore.nbthread","10000"))) return true; 
+		}
+		return false;
 	}
 	
 	public static ExecutorService getJoinForkExecutorInstance() {

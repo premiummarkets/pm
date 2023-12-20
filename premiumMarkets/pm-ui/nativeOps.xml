@@ -1307,6 +1307,21 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="portfolioOperation">
+            <reference>portfolioStats</reference>
+            <description>Portfolio shares perfs over time.</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Data as time series reference</reference>
+                    <description>Data as time series reference</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="pmLogRocOperation">
             <reference>logroc</reference>
             <description>Roc logarithmic over a period</description>
