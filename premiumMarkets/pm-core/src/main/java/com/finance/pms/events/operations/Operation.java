@@ -383,12 +383,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				
 				//Operands chart cache
 				if (isInChart) {
-					synchronized (targetStock.getChartedOutputGroupsAsync()) {
-						try {
-							targetStock.populateChartedOutputGroups(this, calculationStatus(targetStock, thisCallStack), thisCallStack, operandsOutputs);
-						} catch (NoCalculationAvailable e) {
-							LOGGER.warn("Can't update chart cache. Some calculations may have failed: " + e);
-						}
+					try {
+						targetStock.populateChartedOutputGroups(this, calculationStatus(targetStock, thisCallStack), thisCallStack, operandsOutputs);
+					} catch (NoCalculationAvailable e) {
+						LOGGER.warn("Can't update chart cache. Some calculations may have failed: " + e);
 					}
 				}
 				

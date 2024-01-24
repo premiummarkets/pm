@@ -63,11 +63,11 @@ public class PortfolioOperation extends DoubleMapOperation implements MultiValue
 				SortedSet<TransactionElement> transactions = shareForStock.getTransactions(false);
 				if (transactions.size() > 0) {
 					Date firstTransactionDate = transactions.first().getDate();
-					SortedMap<Date, Double> anualised = numericableMapValue.getDateKeys().stream().collect(Collectors.toMap(k -> k, k -> {
+					SortedMap<Date, Double> annualised = numericableMapValue.getDateKeys().stream().collect(Collectors.toMap(k -> k, k -> {
 						double anu = shareForStock.getGainAnnualisedPercent(firstTransactionDate, k, currency, false).doubleValue();
 						return anu;
 					}, (a, b) -> b, TreeMap::new));
-					DoubleMapValue result = new DoubleMapValue(anualised);
+					DoubleMapValue result = new DoubleMapValue(annualised);
 					SortedMap<Date, Double> realised = numericableMapValue.getDateKeys().stream().collect(Collectors.toMap(k -> k, k -> {
 						double rgain = shareForStock.getGainRealisedPercent(dateAtZero, k, currency, false).doubleValue();
 						return rgain;

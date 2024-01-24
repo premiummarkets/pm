@@ -89,6 +89,10 @@ public class SystemEnvironment {
 		return env.getNvp(stock, compositeName);
 	}
 	
+	public Optional<Object> readOldNvps(Stock stock, String compositeName) {
+		return env.getOldNvp(stock, compositeName);
+	}
+	
 	private void initCalcEnv() {
 		
 		File envFile = new File(JSON_ENV_PATH);
@@ -136,7 +140,7 @@ public class SystemEnvironment {
 		public Map<String, Object> getOldNvps() {
 			return oldNvps;
 		}
-		private Map<String, Object> getStockEnvNvps() {
+		private Map<String, Object> getNvps() {
 			return stockEnvNvps;
 		}
 	}
@@ -158,10 +162,24 @@ public class SystemEnvironment {
 			return Optional.ofNullable(stockEnv).orElseGet(() -> {
 				this.getEnvForStocks().put(stock.getSymbol(), new StockEnv()); 
 				return this.getEnvForStocks().get(stock.getSymbol());
-			}).getStockEnvNvps();
+			}).getNvps();
 		}
 		
-		private Map<String, Object> getOldNvpFor(Stock stock) {
+		@SuppressWarnings("rawtypes")
+		private Optional<Object> getNvp(Stock stock, String compositeName) {
+			Map<String, Object> nameValuePairsForStock = getNameValuePairsFor(stock);
+			String[] nameSplit = compositeName.split("\\.");
+			Object subMap = nameValuePairsForStock;
+			for (String namePart : nameSplit) {
+				if (subMap instanceof Map) {
+					subMap = ((Map) subMap).get(namePart);
+				}
+			}
+			Optional<Object> ofNullable = Optional.ofNullable(subMap);
+			return ofNullable;
+		}
+		
+		private Map<String, Object> getOldNameValuePairsFor(Stock stock) {
 			StockEnv stockEnv = envForStocks.get(stock.getSymbol());
 			return Optional.ofNullable(stockEnv).orElseGet(() -> {
 				this.getEnvForStocks().put(stock.getSymbol(), new StockEnv()); 
@@ -170,8 +188,8 @@ public class SystemEnvironment {
 		}
 		
 		@SuppressWarnings("rawtypes")
-		private Optional<Object> getNvp(Stock stock, String compositeName) {
-			Map<String, Object> nameValuePairsForStock = getNameValuePairsFor(stock);
+		private Optional<Object> getOldNvp(Stock stock, String compositeName) {
+			Map<String, Object> nameValuePairsForStock = getOldNameValuePairsFor(stock);
 			String[] nameSplit = compositeName.split("\\.");
 			Object subMap = nameValuePairsForStock;
 			for (String namePart : nameSplit) {
@@ -219,7 +237,7 @@ public class SystemEnvironment {
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public void backupNvp(Stock stock, String compositeName, Object ov) {
-			Map<String, Object> oldNvpsForStock = getOldNvpFor(stock);
+			Map<String, Object> oldNvpsForStock = getOldNameValuePairsFor(stock);
 			String[] nameSplit = compositeName.split("\\.");
 			List<String> namePath = Arrays.asList(nameSplit).subList(0, nameSplit.length -1);
 			Object subMap = oldNvpsForStock;
