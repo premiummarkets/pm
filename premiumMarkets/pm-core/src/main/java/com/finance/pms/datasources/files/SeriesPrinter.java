@@ -225,19 +225,20 @@ public class SeriesPrinter {
 		return series.entrySet().stream().collect(
 		        ArrayList::new, (r, e) -> {
 		            SortedMap<Date, double[]> seriesN = e.getValue();
+		            String seriesNKey = e.getKey();
 		            int maxWidth = seriesN.values().stream().max( (x,y) -> x.length - y.length ).orElse(new double[1]).length;
 		            if (maxWidth > 1) {
 		            	int paddingSize = String.format("%d", maxWidth).length();
 		                Optional<String> header = IntStream.range(0, maxWidth)
 		                		.mapToObj(i -> {
-									String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "" : headersPrefixes.get(e.getKey()).get(i) + "_";
-		                        	return  String.format("%0" + paddingSize + "d", (int)i) + "_" + prefix + e.getKey();
+									String prefix = (headersPrefixes.get(seriesNKey).isEmpty())? "" : headersPrefixes.get(seriesNKey).get(i) + "_";
+		                        	return  String.format("%0" + paddingSize + "d", (int)i) + "_" + prefix + seriesNKey;
 		                        })
 		                		.reduce((a, b) -> a + "," + b);
 		                r.add(header.get());
 		            } else {
-		            	String prefix = (headersPrefixes.get(e.getKey()).isEmpty())? "" : headersPrefixes.get(e.getKey()).get(0) + "_";
-		                r.add(prefix + e.getKey());
+						String prefix = (headersPrefixes.get(seriesNKey).isEmpty())? "" : headersPrefixes.get(seriesNKey).get(0) + "_";
+		                r.add(prefix + seriesNKey);
 		            }
 		            seriesWidths.add(maxWidth);
 		        },

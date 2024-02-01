@@ -91,7 +91,10 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 			
 			if (!Double.isNaN(rounding)) {
 				factorisedInput = factorisedInput.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
-					return Arrays.stream(e.getValue()).map(d -> Precision.round(d, rounding.intValue(), BigDecimal.ROUND_HALF_EVEN)).toArray();
+					return Arrays.stream(e.getValue()).map(d -> {
+						@SuppressWarnings("deprecation") int roundHalfEven = BigDecimal.ROUND_HALF_EVEN;
+						return Precision.round(d, rounding.intValue(), roundHalfEven);
+					}).toArray();
 				}, (a,b) -> a, TreeMap::new));
 			}
 			

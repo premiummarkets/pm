@@ -71,7 +71,7 @@ public class BooleanValue extends Value<Boolean> implements StringableValue, Clo
 	}
 
 	@Override
-	public String getValueAsString() {
+	public String getAsStringable() {
 		return value.toString();
 	}
 

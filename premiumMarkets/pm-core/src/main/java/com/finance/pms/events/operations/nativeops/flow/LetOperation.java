@@ -57,7 +57,7 @@ public class LetOperation extends VarOperation {
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		Operation operand1 = getOperands().get(1);
 		Optional<Value<?>> optParameter1 = operand1.getOrRunParameter(targetStock);
-		String valueAsString = ((StringableValue) optParameter1.orElse(new StringValue(operand1.toFormulaeShort(targetStock)))).getValueAsString().replaceAll("\"","");
+		String valueAsString = ((StringableValue) optParameter1.orElse(new StringValue(operand1.toFormulaeShort(targetStock)))).getAsStringable().replaceAll("\"","");
 		return valueAsString;
 	}
 

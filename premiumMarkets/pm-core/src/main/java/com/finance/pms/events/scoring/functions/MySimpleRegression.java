@@ -23,7 +23,7 @@ public class MySimpleRegression implements StatsFunction {
 		double intercept = simpleRegression.getIntercept();
 		double slope = simpleRegression.getSlope();
 
-		return intercept + slope*(lastX-firstX);
+		return intercept + slope * (lastX - firstX);
 	}
 
 	private SimpleRegression simpleRegression(SortedMap<Date, Double> lookBack, double firstX) {
@@ -45,7 +45,7 @@ public class MySimpleRegression implements StatsFunction {
 		
 		TreeMap<Date, Double> collected = subMap.keySet().stream().collect(Collectors.toMap(k -> k, k -> {
 			double currentX = k.getTime()/DAY_IN_MILLI;
-			return intercept + slope*(currentX-firstX);
+			return intercept + slope * (currentX - firstX);
 		}, (a, b) -> a, TreeMap<Date,Double>::new));
 		
 		return collected;
@@ -66,6 +66,11 @@ public class MySimpleRegression implements StatsFunction {
 	@Override
 	public List<String> getOutputsRefs() {
 		return Arrays.asList("mysimpleregression");
+	}
+
+	@Override
+	public int getMinPeriod() {
+		return 2;
 	}
 
 }

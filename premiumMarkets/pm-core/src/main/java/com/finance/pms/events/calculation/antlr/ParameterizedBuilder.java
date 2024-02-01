@@ -46,11 +46,13 @@ import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.apache.tools.ant.filters.StringInputStream;
 
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
@@ -65,16 +67,21 @@ public abstract class ParameterizedBuilder extends Observable {
 	protected class ObsMsg {
 		private ObsMsgType type;
 		private Operation  operation;
-		public ObsMsg(ObsMsgType type, Operation operation) {
+		private Optional<String> oldIdentifier;
+		public ObsMsg(ObsMsgType type, Operation operation, Optional<String> oldIdentifier) {
 			super();
 			this.type = type;
 			this.operation = operation;
+			this.oldIdentifier = oldIdentifier;
 		}
 		public ObsMsgType getType() {
 			return type;
 		}
 		public Operation getOperation() {
 			return operation;
+		}
+		public Optional<String> getOldIdentifier() {
+			return oldIdentifier;
 		}
 	}
 
@@ -214,7 +221,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				if (!isNewOp) {
 					try {
 						LOGGER.info("Updating usage of " + identifier);
-						replaceInUse(operation);
+						replaceInUse(operation, identifier);
 					} catch (StackOverflowError e) {
 						throw new InstantiationException("Can't solve : " + formulaParser + ". The operation is calling its self. Please fix.");
 					}
@@ -230,7 +237,7 @@ public abstract class ParameterizedBuilder extends Observable {
 				throw new InstantiationException("Can't solve : " + formulaParser + ". Please fix.");
 			}
 
-			updateCaches(operation, isNewOp);
+			updateCaches(operation, (isNewOp)?Optional.of(identifier):Optional.empty());
 
 		} catch (Exception e) {
 			LOGGER.error(e, e);
@@ -243,14 +250,58 @@ public abstract class ParameterizedBuilder extends Observable {
 		}
 
 	}
+	
+	public void renameFormula(String oldIdentifier, String newIdentifier) throws IOException {
 
-	public void removeFormula(String identifier, Boolean keepDisabled) throws IOException {
+		FormulaParser formulaParser = null;
+		try {
+			
+			Operation alreadyExists = getCurrentOperations().get(newIdentifier);
+			if (alreadyExists != null) throw new InstantiationException("Can't rename: " + oldIdentifier + " to " + newIdentifier + ". Operation already exists.");
+
+			Operation oldOperation = getCurrentOperations().get(oldIdentifier);
+			if (oldOperation == null) throw new InstantiationException("Can't rename: " + oldIdentifier + " to " + newIdentifier + ". " + oldIdentifier + " does not exist.");
+			
+			
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Creating parser for formula " + newIdentifier);
+			formulaParser = new FormulaParser(this, newIdentifier, oldOperation.getFormulae(), false);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Parsing for formula " + newIdentifier);
+			runParsing(formulaParser);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Parsing ok for formula " + newIdentifier);
+			Operation newOperation = formulaParser.getBuiltOperation();
+			saveUserOperation(newIdentifier, oldOperation.getFormulae());
+			
+			try {
+				LOGGER.info("Updating usage of " + oldIdentifier + " with " + newIdentifier);
+				replaceInUse(newOperation, oldIdentifier);
+			} catch (StackOverflowError e) {
+				throw new InstantiationException("Can't rename: " + oldIdentifier + " to " + newIdentifier + ". The operation is calling its self? Please fix.");
+			}
+			
+			getCurrentOperations().put(newOperation.getReference(), newOperation);
+			updateCaches(newOperation, Optional.of(oldIdentifier));
+
+			removeFormula(oldIdentifier);
+
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+			throw new IOException(e);
+		} finally {
+			if (formulaParser != null) {
+				if (LOGGER.isDebugEnabled()) LOGGER.debug("Shutting down the parser for " + newIdentifier);
+				formulaParser.shutdown();
+			}
+		}
+		
+	}
+
+	public void removeFormula(String identifier) throws IOException {
 
 		try {
 
 			Operation operation = getCurrentOperations().get(identifier);
 
-			List<Operation> checkInUse = checkInUse(operation, keepDisabled);
+			List<Operation> checkInUse = checkInUse(operation);
 			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
 
 			//Delete pre existing trashed
@@ -261,7 +312,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 			getCurrentOperations().remove(identifier);
 
-			updateCaches(operation, true); //true because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
+			updateCaches(operation, Optional.empty()); //Optional.empty() (ie no previous id) because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
 
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -275,7 +326,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 			Operation operation = getCurrentOperations().get(identifier);
 
-			List<Operation> checkInUse = checkInUse(operation, false);
+			List<Operation> checkInUse = checkInUse(operation);
 			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
 
 			//Delete hard delete (no move to trash)
@@ -288,7 +339,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 			getCurrentOperations().remove(identifier);
 
-			updateCaches(operation, true); //True because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
+			updateCaches(operation, Optional.empty()); //Optional.empty() (ie no previous id) because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
 
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -336,33 +387,49 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	private List<Operation> checkInUse(Operation operation, Boolean checkDisabled) {
+	private List<Operation> checkInUse(Operation operation) {
 
-		Map<String, Operation> currentOperationsMap =(checkDisabled)?getCurrentOperations():getThisParserCompliantUserEnabledOperations();
+		Map<String, Operation> currentOperationsMap = getCurrentOperations();
 		List<Operation> values = new ArrayList<Operation>(currentOperationsMap.values());
 		values.remove(values.indexOf(operation));
 
 		List<Operation> actualCheckInUse = actualCheckInUse(values, operation);
-		actualCheckInUse.addAll(notifyChanged(operation, (checkDisabled)?ObsMsgType.OPERATION_cRud:ObsMsgType.OPERATION_cRud_IgnoreDisabled));
-
+//		//FIXME probably not needed anymore
+//		actualCheckInUse.addAll(notifyChanged(operation, Optional.empty(),ObsMsgType.OPERATION_cRud));
+		
 		if (actualCheckInUse.contains(operation)) actualCheckInUse.remove(actualCheckInUse.indexOf(operation));
+		LOGGER.info("Operations/Indicators using " + operation.getReference() + ": " + actualCheckInUse.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
+
 		return actualCheckInUse;
 
 	}
 
-	private void replaceInUse(Operation replacementOp) throws StackOverflowError {
+	private void replaceInUse(Operation replacementOp, String oldIdentifier) throws StackOverflowError {
 
-		List<Operation> usingOperations = actualReplaceInUse(getCurrentOperations().values(), replacementOp);
-		LOGGER.info("Operations using " + replacementOp.getReference() + ": " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
+		String newIdentifier = replacementOp.getReference();
+		
+		//All Ops and Inds: getCurrentOperations()
+		List<Operation> usingOpsAndInds = actualReplaceInUse(getCurrentOperations().values(), replacementOp, oldIdentifier);
+		LOGGER.info("Operations/Indicators using " + oldIdentifier + ": " + usingOpsAndInds.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
 
-		List<Operation> usingIndicators = notifyChanged(replacementOp, ObsMsgType.OPERATION_cRud);
+		List<Operation> usingOperations = usingOpsAndInds.stream() 
+	        .filter(o -> !(o instanceof EventInfo)) 
+	        .collect(Collectors.toList());
+		
+		List<Operation> usingIndicators = usingOpsAndInds.stream() 
+		        .filter(o -> o instanceof EventInfo) 
+		        .collect(Collectors.toList());
 
-		LOGGER.info("Indicators using " + replacementOp.getReference() + ": " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
-		actualReplaceInUse(usingIndicators, replacementOp);
+		LOGGER.info("Operations using " + newIdentifier + " after replace: " + usingOperations.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
+		LOGGER.info("Indicators using " + newIdentifier + " after replace: " + usingIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
+		
+		saveReplaceInUse(oldIdentifier, newIdentifier, usingOperations, usingIndicators);
 
 	}
 
-	public abstract List<Operation> notifyChanged(Operation operation, ObsMsgType msgType);
+	protected abstract void saveReplaceInUse(String oldIdentifier, String newIdentifier, List<Operation> usingOperations, List<Operation> usingIndicators);
+
+	public abstract List<Operation> notifyChanged(Operation operation, Optional<String> oldIdentifier, ObsMsgType msgType);
 
 
 	protected List<Operation> actualCheckInUse(Collection<Operation> operations, Operation operationToCheck) {
@@ -400,13 +467,13 @@ public abstract class ParameterizedBuilder extends Observable {
 		}
 	}
 
-	protected List<Operation> actualReplaceInUse(Collection<Operation> operations, Operation replacemetOp) {
+	protected List<Operation> actualReplaceInUse(Collection<Operation> operations, Operation replacemetOp, String oldIdentifier) {
 
 		if (replacemetOp == null) return new ArrayList<>();
 
 		List<Operation> operationUsing = new ArrayList<Operation>();
 		for (Operation operation : operations) {
-			Boolean replacementOpIsUsedByOperation = actualReplacenUseRecursive(operation, replacemetOp);
+			Boolean replacementOpIsUsedByOperation = actualReplacenUseRecursive(operation, replacemetOp, oldIdentifier);
 			if (replacementOpIsUsedByOperation) operationUsing.add(operation);
 		}
 
@@ -415,20 +482,20 @@ public abstract class ParameterizedBuilder extends Observable {
 
 
 	@SuppressWarnings("unchecked")
-	private Boolean actualReplacenUseRecursive(Operation parent, Operation replacementOp) {
+	private Boolean actualReplacenUseRecursive(Operation parent, Operation replacementOp, String oldIdentifier) {
 		Boolean replacementOpIsUsedByParent = false;
 		List<Operation> operations = parent.getOperands();
 		for (int i = 0; i < operations.size(); i++) {
 			
 			//Standard
-			if (!(operations.get(i) instanceof LeafOperation) && replacementOp.getReference().equals(operations.get(i).getReference())) {
+			if (!(operations.get(i) instanceof LeafOperation) && oldIdentifier.equals(operations.get(i).getReference())) {
 				
 				parent.replaceOperand(i, replacementOp); //effective replacement
 				replacementOpIsUsedByParent = true;
 				
 			}
 			if (operations.get(i).getOperands() != null) {
-				replacementOpIsUsedByParent = actualReplacenUseRecursive(operations.get(i), replacementOp) || replacementOpIsUsedByParent;
+				replacementOpIsUsedByParent = actualReplacenUseRecursive(operations.get(i), replacementOp, oldIdentifier) || replacementOpIsUsedByParent;
 			}
 			
 			//OperationReferenceOperation
@@ -436,11 +503,11 @@ public abstract class ParameterizedBuilder extends Observable {
 				OperationReferenceValue<? extends Operation> operationReferenceParameter = (OperationReferenceValue<? extends Operation>) operations.get(i).getParameter();
 				if (operationReferenceParameter != null) {
 					Operation referedOperation = operationReferenceParameter.getValue(null);
-					if (replacementOp.getReference().equals(referedOperation.getReference())) {
+					if (oldIdentifier.equals(referedOperation.getReference())) {
 						operations.get(i).setParameter(new OperationReferenceValue<Operation>((Operation) replacementOp.clone())); //effective replacement
 						replacementOpIsUsedByParent = true;
 					}
-					replacementOpIsUsedByParent = actualReplacenUseRecursive(referedOperation, replacementOp) || replacementOpIsUsedByParent;
+					replacementOpIsUsedByParent = actualReplacenUseRecursive(referedOperation, replacementOp, oldIdentifier) || replacementOpIsUsedByParent;
 				}
 			}
 
@@ -448,46 +515,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		return replacementOpIsUsedByParent;
 	}
 
-
-	public void disableFormula(String identifier) throws IOException  {
-
-		Operation operation = getCurrentOperations().get(identifier);
-		if (operation == null) return;
-
-		try {
-			List<Operation> checkInUse = checkInUse(operation, true);
-			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
-
-			moveToDisabled(identifier);
-			operation.setDisabled(true);
-
-		} catch (Exception e) {
-			throw new IOException(e);
-		}
-
-		updateCaches(operation, false);
-
-	}
-
-	public void enableFormula(String identifier) throws IOException {
-
-		Operation operation = getCurrentOperations().get(identifier);
-		if (operation == null) return;
-
-		try {
-
-			moveToEnabled(identifier);
-			operation.setDisabled(false);
-
-		} catch (Exception e) {
-			throw new IOException(e);
-		}
-
-		updateCaches(operation, false);
-
-	}
-
-	protected abstract List<Operation> updateCaches(Operation operation, Boolean isNewOp);
+	protected abstract List<Operation> updateCaches(Operation operation, Optional<String> oldIdentifier);
 
 	protected void moveToTrash(String identifier) {
 		Boolean moved = move(identifier, userOperationsDir.getAbsolutePath(), trashUserOperationsDir.getAbsolutePath(), true);
@@ -510,7 +538,7 @@ public abstract class ParameterizedBuilder extends Observable {
 		return isRenamedTo;
 	}
 
-	private void saveUserOperation(String identifier, String formula) throws IOException {
+	public void saveUserOperation(String identifier, String formula) throws IOException {
 		File formulaFile = new File(userOperationsDir.getAbsolutePath() + File.separator + identifier + ".txt");
 		BufferedWriter outputStream = new BufferedWriter(new FileWriter(formulaFile));
 		outputStream.write(formula);

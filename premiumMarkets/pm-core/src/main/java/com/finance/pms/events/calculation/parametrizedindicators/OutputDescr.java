@@ -47,7 +47,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	public String fullQualifiedName() {
 
 		//outputReference || discriminentConstant
-		String discriminantReference = (outputReference.getIsLeaf())?discriminentConstant.getValueAsString():outputReference.getReference();
+		String discriminantReference = (outputReference.getIsLeaf())?discriminentConstant.getAsStringable():outputReference.getReference();
 
 		//group (: outputSelector)?
 		String group = getContainer().groupUniqueId().toString().substring(0, 8);
@@ -151,7 +151,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		if (compareTo == 0) {
 			if (this.discriminentConstant == null && o.discriminentConstant == null) return 0;
 			if (this.discriminentConstant != null && o.discriminentConstant == null) return 1;
-			compareTo = this.discriminentConstant.getValueAsString().compareTo(o.discriminentConstant.getValueAsString());
+			compareTo = this.discriminentConstant.getAsStringable().compareTo(o.discriminentConstant.getAsStringable());
 		}
 		return compareTo;
 	}
@@ -162,7 +162,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 		int result = 1;
 		result = prime * result + ((outputReference == null) ? 0 : outputReference.hashCode());
 		result = prime * result + ((container == null) ? 0 : container.hashCode());
-		result = prime * result + ((discriminentConstant == null) ? 0 : discriminentConstant.getValueAsString().hashCode());
+		result = prime * result + ((discriminentConstant == null) ? 0 : discriminentConstant.getAsStringable().hashCode());
 		return result;
 	}
 

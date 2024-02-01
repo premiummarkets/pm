@@ -32,6 +32,12 @@ public class LogOperation extends Operation {
 		this.setOperands(operands);
 		this.setOutputSelector(outputSelector);
 	}
+	
+	@Override
+	public void setOperands(ArrayList<Operation> overridingOperands) throws IllegalArgumentException {
+		overridingOperands.stream().forEach(op -> op.setRunInSequence(true));
+		super.setOperands(overridingOperands);
+	}
 
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {

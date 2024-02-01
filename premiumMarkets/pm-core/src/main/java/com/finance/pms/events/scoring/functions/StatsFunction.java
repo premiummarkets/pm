@@ -15,5 +15,7 @@ public interface StatsFunction {
 	double[] adEvaluateMd(SortedMap<Date, Double> subMap);
 	
 	List<String> getOutputsRefs();
+	
+	int getMinPeriod();
 
 }

@@ -544,6 +544,10 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "[]", param.getParamDescription(), param.getParamSynoptic(), "[]", highLighPosition));
 				foundMatch = true;
 				break;
+			case NLIST:
+				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "{:}", param.getParamDescription(), param.getParamSynoptic(), "{:}", highLighPosition));
+				foundMatch = true;
+				break;
 			case OPREF:
 				alternatives.add(new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, "$", param.getParamDescription(), param.getParamSynoptic(), "$", highLighPosition));
 				foundMatch = true;

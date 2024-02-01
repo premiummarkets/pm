@@ -1394,17 +1394,17 @@ public class MainGui extends SashForm implements RefreshableView {
 
 			if (cursor != null && (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) || cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {
 				cursorCpt++;
-				LOGGER.info("Cursor count +: " + cursorCpt);
+				LOGGER.debug("Cursor count +: " + cursorCpt);
 			} else {
 				cursorCpt--;
-				LOGGER.info("Cursor count -: " + cursorCpt);
+				LOGGER.debug("Cursor count -: " + cursorCpt);
 				if (cursorCpt > 0) {
-					LOGGER.info("Cursor count return: " + cursor.toString());
+					LOGGER.debug("Cursor count return: " + cursor.toString());
 					return;
 				} 
 			}
 			
-			LOGGER.info("Cursor count apply: " + cursor.toString());
+			LOGGER.debug("Cursor count apply: " + cursor.toString());
 			for (Control control : winTable) {
 				if (control != null && !control.isDisposed()) {
 					control.setCursor(cursor);

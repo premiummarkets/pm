@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -79,7 +80,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		nativeOperations = nativeIndicatorsContainer.getCalculators();
 		getCurrentOperations().putAll(nativeOperations);
 	}
-
+	
 	//@PostConstruct
 	public void init() {
 
@@ -110,6 +111,13 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 				{
 					if (operation != null) {
 						clearPreviousCalculationsUsing(operation);
+						if (msg.getOldIdentifier().isPresent()) {
+							try {
+								saveUserOperation(operation.getReference(), operation.getFormulae());
+							} catch (IOException e1) {
+								LOGGER.error(e1, e1);
+							}
+						}
 					}
 					break;
 				}
@@ -123,7 +131,10 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 					}
 					break;
 				case UPDATE_OPS_INMEM_INSTANCES :		//This is just updating the ops lists after an ops crud so no need to delete events.
-					if (operation != null) actualReplaceInUse(getCurrentOperations().values(), operation);
+					if (operation != null) {
+						String oldIdentifier = msg.getOldIdentifier().orElseThrow();
+						actualReplaceInUse(getCurrentOperations().values(), operation, oldIdentifier);
+					}
 					break;
 				case RESET_OPS_INMEM_INSTANCES :		//Reset ops list from scratch
 					resetCaches();
@@ -205,14 +216,14 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	}
 
 	@Override
-	public List<Operation> notifyChanged(Operation operation, ObsMsgType msgType) {
+	public List<Operation> notifyChanged(Operation operation, Optional<String> oldIdentifier, ObsMsgType msgType) {
 		//Nothing
 		return new ArrayList<Operation>();
 	}
 
 	//Is called when Indicators are changed
 	@Override
-	protected List<Operation> updateCaches(Operation operation, Boolean isNewOp) {
+	protected List<Operation> updateCaches(Operation operation, Optional<String> oldIdentifier) {
 		EventDefinition.refreshMaxPassPrefsEventInfo();
 		return new ArrayList<>();
 	}
@@ -246,5 +257,29 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		          .filter(map -> map.getValue() instanceof EventInfo) 
 		          .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
 	}
+	
+
+	@Override
+	protected void saveReplaceInUse(String oldIdentifier, String newIdentifier, List<Operation> usingOperations, List<Operation> usingIndicators) {
+		if (!newIdentifier.equals(oldIdentifier)) {
+			usingOperations.stream().forEach(i -> {
+				try {
+					i.setFormulae(i.getFormulae().replaceAll(oldIdentifier, newIdentifier));
+					parameterizedOperationBuilder.saveUserOperation(i.getReference(), i.getFormulae());
+				} catch (IOException e1) {
+					LOGGER.error(e1, e1);
+				}
+			});
+			usingIndicators.stream().forEach(i -> {
+				try {
+					i.setFormulae(i.getFormulae().replaceAll(oldIdentifier, newIdentifier));
+					saveUserOperation(i.getReference(), i.getFormulae());
+				} catch (IOException e1) {
+					LOGGER.error(e1, e1);
+				}
+			});
+		}
+	}
+
 
 }

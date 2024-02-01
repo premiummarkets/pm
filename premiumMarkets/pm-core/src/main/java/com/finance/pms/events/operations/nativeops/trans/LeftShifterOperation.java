@@ -100,7 +100,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		String thisShortName = "ls";
 		Operation operand0 = getOperands().get(0);
-		String shift = ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getValueAsString();
+		String shift = ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
 		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
 		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);

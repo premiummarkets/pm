@@ -146,7 +146,7 @@ public class OperationTest {
 	@After
 	public void deleteOps() throws IOException {
 		ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
-		parameterizedIndiactorsBuilder.removeFormula("myInd", false);
+		parameterizedIndiactorsBuilder.removeFormula("myInd");
 		
 		ParameterizedOperationBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
 		String[] fomulaes = new String[] {
@@ -154,7 +154,7 @@ public class OperationTest {
 				"falseOperation","trueOperation","falseEnvOperation","trueEnvOperation"};
 		Arrays.stream(fomulaes).forEach(f -> {
 			try {
-				parameterizedOperationBuilder.removeFormula(f, false);
+				parameterizedOperationBuilder.removeFormula(f);
 			} catch (IOException e) {
 				LOGGER.error(e, e);
 			}

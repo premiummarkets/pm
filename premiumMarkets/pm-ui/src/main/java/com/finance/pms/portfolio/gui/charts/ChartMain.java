@@ -532,7 +532,7 @@ public class ChartMain extends Chart {
 												double compoundUnReal = serieDef.getTuningRes().getForecastProfitAtUnReal(date);
 												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
 												profitTip =  period.toToolTip() + " ( cmpnd " + pf.format(compoundReal) + "(r) / " + pf.format(compoundUnReal) + "(ur) / b&h " + pf.format(priceChange) + " ) ";
-												LOGGER.info(((period.getTrend().equals(EventType.BEARISH.name()))?"Buy":"Sell") + " at " + date + " : " + profitTip);
+												LOGGER.debug(((period.getTrend().equals(EventType.BEARISH.name()))?"Buy":"Sell") + " at " + date + " : " + profitTip);
 											}
 										} catch (Exception e) {
 											LOGGER.warn(e,e);

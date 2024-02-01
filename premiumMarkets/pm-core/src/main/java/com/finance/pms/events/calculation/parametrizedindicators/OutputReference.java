@@ -77,7 +77,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		result = prime * result + ((formula == null) ? 0 : formula.hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
-		result = prime * result + ((constant == null) ? 0 : constant.getValueAsString().hashCode());
+		result = prime * result + ((constant == null) ? 0 : constant.getAsStringable().hashCode());
 		return result;
 	}
 	@Override
@@ -112,7 +112,7 @@ public class OutputReference implements Comparable<OutputReference> {
 		if (constant == null) {
 			if (other.constant != null)
 				return false;
-		} else if (!constant.getValueAsString().equals(other.constant.getValueAsString()))
+		} else if (!constant.getAsStringable().equals(other.constant.getAsStringable()))
 			return false;
 
 		return true;
@@ -161,7 +161,7 @@ public class OutputReference implements Comparable<OutputReference> {
 				compareTo = -1;
 			}
 			else {
-				compareTo = this.constant.getValueAsString().compareTo(o.constant.getValueAsString());
+				compareTo = this.constant.getAsStringable().compareTo(o.constant.getAsStringable());
 			}
 		}
 

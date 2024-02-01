@@ -65,6 +65,7 @@ import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
+import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
@@ -85,6 +86,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		private final int thisInputOperandsRequiredShiftFromThis;
 		private final TargetStockInfo targetStock;
 		private final String outputSelector;
+		private int minPeriod;
 		
 		private List<String> doEvalColRefs;
 
@@ -94,6 +96,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			this.thisInputOperandsRequiredShiftFromThis = thisInputOperandsRequiredShiftFromThis;
 			this.targetStock = targetStock;
 			this.outputSelector = outputSelector;
+			this.minPeriod = specificOperation.operandsRequiredStartShift(targetStock, thisInputOperandsRequiredShiftFromThis);
 		}
 
 		@Override
@@ -158,10 +161,17 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		public List<String> getOutputsRefs() {
 			return doEvalColRefs;
 		}
+
+		@Override
+		public int getMinPeriod() {
+			return minPeriod;
+		}
 	}
 
-	private static final int DATA_INPUT_IDX = 2;
 	private static MyLogger LOGGER = MyLogger.getLogger(StatsOperation.class);
+	
+	private static final int DATA_INPUT_IDX = 3;
+	private static final int STAT_OP_IDX = 2;
 	
 	protected StatsOperation(String reference, String description, Operation ... operands) {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
@@ -170,6 +180,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	public StatsOperation() {
 		this("stat", "Moving statistics",
 				new NumberOperation("number", "movingPeriod", "Moving period in data points. 'NaN' means window == data set size", new NumberValue(21.0)),
+				new StringOperation("boolean", "isLenientInit", "If true, in case a lack of heading data, the initial calculation window may start from the minimum period (<= moving period) permited by the stat operation.", new StringValue("FALSE")),
 				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null), //Optional
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm", "specificStat"})));
@@ -188,6 +199,8 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 
 		//Param check
 		Double period = ((NumberValue) inputs.get(0)).getValue(targetStock).doubleValue();
+		Boolean lenientInit = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
+		
 		@SuppressWarnings("unchecked")
 		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(DATA_INPUT_IDX, DATA_INPUT_IDX+1);
 
@@ -252,10 +265,15 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 					public List<String> getOutputsRefs() {
 						return  Arrays.asList(outputSelector);
 					}
+
+					@Override
+					public int getMinPeriod() {
+						return 1;
+					}
 				};
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("specificStat")) {
-				Operation specificOperation = (Operation) ((OperationReferenceValue<?>) inputs.get(1)).getValue(targetStock);
+				Operation specificOperation = (Operation) ((OperationReferenceValue<?>) inputs.get(STAT_OP_IDX)).getValue(targetStock);
 				statFunction = new SpecificStatsFunction(specificOperation, thisCallStack, thisInputOperandsRequiredShiftFromThis, targetStock, outputSelector);
 			}
 			else { //Can I be here anymore as the operation would not comply the grammar??
@@ -280,7 +298,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			} else {
 				Date startDate = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis);
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
-					SortedMap<Date, double[]> movingStat = MapUtils.madMovingStat(data.get(0).getValue(targetStock), startDate, period.intValue(), statFunction);
+					SortedMap<Date, double[]> movingStat = MapUtils.madMovingStat(data.get(0).getValue(targetStock), startDate, period.intValue(), statFunction, lenientInit);
 					return new DoubleArrayMapValue(movingStat, statFunction.getOutputsRefs(), mainInputPosition());
 				};
 				return ValueManipulator.doubleArrayExpender(this, DATA_INPUT_IDX, targetStock, thisOutputRequiredStartShiftByParent, innerCalcFunc, numericableMapValue);
@@ -310,9 +328,10 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		Operation operand0 = getOperands().get(0);
-		String thisShort = getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" + ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getValueAsString();
-		String opsFormulaeShort = super.toFormulaeShort(targetStock);
-		return thisShort + ((opsFormulaeShort.isEmpty())? "" : "_" + opsFormulaeShort);
+		String thisShort = 
+				getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" +
+				((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
+		return "st_" + thisShort;
 	}
 
 	@Override

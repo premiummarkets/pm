@@ -27,7 +27,7 @@ public class EqualsOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		StringableValue firstValue = (StringableValue) inputs.get(0);
-		boolean allEquals = inputs.stream().allMatch(s -> ((StringableValue) s).getValueAsString().replaceAll("\"","").equals(firstValue.getValueAsString().replaceAll("\"","")));
+		boolean allEquals = inputs.stream().allMatch(s -> ((StringableValue) s).getAsStringable().replaceAll("\"","").equals(firstValue.getAsStringable().replaceAll("\"","")));
 		return (allEquals)?new StringValue("TRUE"):new StringValue("FALSE");
 	}
 

@@ -36,21 +36,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
-import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
-import com.finance.pms.PopupMenu;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
 import com.finance.pms.datasources.EventModel;
@@ -61,20 +56,18 @@ import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 
 public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
-	private Button disableFormula;
-
 	public IndicatorBuilderComposite(Composite parent, MainGui mainGui, ComboUpdateMonitor comboUpdateMonitor) {
 		super(parent, mainGui);
 
 		comboUpdateMonitor.addObserver(new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
-				int comboSelectionIdx = formulaReference.getSelectionIndex();
-
+				
 				if (isSaved) {
+					int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
 					updateCombo(false);
-					if (formulaReference.getItemCount() > 0) {
-						forceSelection(comboSelectionIdx % formulaReference.getItemCount());
+					if (formulaReferenceCombo.getItemCount() > 0) {
+						forceSelection(comboSelectionIdx % formulaReferenceCombo.getItemCount());
 					}
 				} else {
 					updateEditableOperationLists();
@@ -99,7 +92,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 		{
 			Button duplicate = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
-			layoutData.horizontalSpan = 1;
+			layoutData.horizontalSpan = 2;
 			duplicate.setLayoutData(layoutData);
 			duplicate.setText("Duplicate");
 			duplicate.setFont(MainGui.DEFAULTFONT);
@@ -126,128 +119,6 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			});
 		}
 
-		{
-			disableFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
-			layoutData.horizontalSpan = 1;
-			disableFormula.setLayoutData(layoutData);
-			disableFormula.setText("Enable ...");
-			disableFormula.setFont(MainGui.DEFAULTFONT);
-			disableFormula.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handleEnableDisableFormula();
-				}
-
-				@SuppressWarnings({ "rawtypes", "unchecked" })
-				private void handleEnableDisableFormula() {
-
-					final Set<EventInfoOpsCompoOperation> availableOperations = new TreeSet(parameterizedBuilder.getThisParserCompliantOperations().values());
-					final Set<EventInfoOpsCompoOperation> enabledOperations = new TreeSet(parameterizedBuilder.getThisParserCompliantUserEnabledOperations().values());
-					availableOperations.remove(parameterizedBuilder.getCurrentOperations().get("operationscompositionner"));//XXX
-
-					ActionDialogAction closeAction = new ActionDialogAction() {
-
-						@Override
-						public void action() {
-							for (Operation eventInfo : availableOperations) {
-								if (enabledOperations.contains(eventInfo)) {
-									if (eventInfo.getDisabled()) enableFormula(eventInfo.getReference());
-								} else {
-									if (!eventInfo.getDisabled()) disableFormula(eventInfo.getReference());
-								}
-							}
-							refreshViews();
-							checkBoxDisabled();
-						}
-					};
-					PopupMenu<EventInfoOpsCompoOperation> popupMenu = new PopupMenu<EventInfoOpsCompoOperation>(IndicatorBuilderComposite.this, disableFormula, availableOperations, enabledOperations, false, true, SWT.CHECK, null, closeAction, false);
-					popupMenu.open();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleEnableDisableFormula();
-				}
-			});
-
-		}
-
-	}
-
-	private void enableFormula(String identifier) {
-
-		if (!isValidId(identifier)) return;
-		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
-		if(isNativeOp(identifier, existingOp)) return;
-
-		try {
-
-			parameterizedBuilder.enableFormula(identifier);
-
-		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), "Formula can't be enabled.", e.toString());
-			LOGGER.warn(e,e);
-			dialog.open();
-			return;
-		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
-			LOGGER.warn(e,e);
-			dialog.open();
-		} 
-
-		clearPreviousCalculationsUsing(identifier);
-
-	}
-
-	private void disableFormula(String identifier) {
-
-		if (!isValidId(identifier)) return;
-		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
-		if(isNativeOp(identifier, existingOp)) return;
-
-		try {
-
-			parameterizedBuilder.disableFormula(identifier);
-
-		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), "Formula can't be disabled.", e.toString());
-			LOGGER.warn(e,e);
-			dialog.open();
-			return;
-		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
-			LOGGER.warn(e,e);
-			dialog.open();
-
-		}
-
-		clearPreviousCalculationsUsing(identifier);
-
-	}
-
-	@Override
-	protected void checkBoxDisabled() {
-
-		if (formulaReference != null && formulaReference.getSelectionIndex() != -1 && formulaReference.getSelectionIndex() < formulaReference.getItems().length) {
-			String selectItem = formulaReference.getItem(formulaReference.getSelectionIndex());
-			Boolean disabled = parameterizedBuilder.getCurrentOperations().get(selectItem).getDisabled();
-			boolean isDisabled = (disabled != null) && disabled;
-			editor.setEnabled(!isDisabled);
-			editor.setEditable(!isDisabled);
-			disableFormula.setSelection(isDisabled);
-			if (isDisabled) {
-				editor.setStyleRange(new StyleRange(0,editor.getText().length(),getDisplay().getSystemColor(SWT.COLOR_GRAY),null,SWT.ITALIC));
-			}  else {
-				editor.setStyleRange(null);
-			}
-
-		} else {
-			editor.setEnabled(disableFormula.getEnabled());
-			editor.setEditable(disableFormula.getEnabled());
-		}
-
 	}
 
 	@Override
@@ -263,7 +134,6 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	@Override
 	protected void clearEditor() {
 		super.clearEditor();
-		disableFormula.setSelection(false);
 		editor.setEnabled(true);
 		editor.setEditable(true);
 	}
@@ -300,11 +170,11 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	}
 
 	@Override
-	protected void deleteAllDisabledOrUnused() {
-		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
+	protected void deleteAllUnused() {
+		Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 		for (Operation indicator: allOps.values()) {
 			try {
-				if (indicator.getDisabled()) parameterizedBuilder.removeFormula(indicator.getReference(), false);
+				if (indicator.getDisabled()) parameterizedBuilder.removeFormula(indicator.getReference());
 			} catch (IOException e) {
 				LOGGER.error(e,e);
 			}

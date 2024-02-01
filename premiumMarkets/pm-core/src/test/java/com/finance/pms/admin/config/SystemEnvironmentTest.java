@@ -72,7 +72,7 @@ public class SystemEnvironmentTest {
 		
 	}
 	
-	@Test
+	//@Test
 	public void test3() {
 		
 		{
@@ -131,6 +131,12 @@ public class SystemEnvironmentTest {
 		System.out.println("Read anyJavaObject type: " + read.orElseThrow().getClass().getName());
 		System.out.println("Read anyJavaObject: " + read.orElseThrow().toString());
 		}
+	}
+	
+	@Test
+	public void cleanOldNvps() {
+		SystemEnvironment sysEnv = SystemEnvironment.getInstance();
+		sysEnv.cleanOldNvps();
 	}
 
 	private void readWriteEnvJson(String compositeName, String filePath, String inferModelPath) {

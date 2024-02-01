@@ -75,7 +75,7 @@ public class MATypeValue extends Value<MAType> implements StringableValue, Clone
 	}
 
 	@Override
-	public String getValueAsString() {
+	public String getAsStringable() {
 		return maTypeValue.name();
 	}
 	

@@ -27,7 +27,7 @@ public class ConcatStringOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String concatenation = inputs.stream()
-			.map(sv -> ((StringableValue)sv).getValueAsString())
+			.map(sv -> ((StringableValue)sv).getAsStringable())
 			.reduce("", (a, e) -> a + e);	
 		return new StringValue(concatenation);
 	}

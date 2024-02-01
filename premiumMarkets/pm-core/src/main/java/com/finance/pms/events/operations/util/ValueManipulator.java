@@ -75,6 +75,7 @@ public class ValueManipulator {
 		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
 				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))
 				.reduce(new ConcurrentSkipListSet<>(), (a, e) -> { a.addAll(e); return a; });
+		LOGGER.info("Transforming NumMap list to ArrayMap. NumMap input is from " + allDates.first() + " to " + allDates.last());
 		
 		SortedMap<Date, double[]> factorisedInput = new TreeMap<>();
 		NavigableMap<Date, double[]> notHeadingNaNs = new TreeMap<>();
@@ -123,12 +124,16 @@ public class ValueManipulator {
 			}
 
 		}
+		LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output before trailing addition is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
 		
 		Map<InputToArrayReturn, SortedMap<Date, double[]>> result = new HashMap<>();
 		result.put(InputToArrayReturn.OTHERUNEXPECTEDNANS, new TreeMap<>());
 		
 		//Heading
 		result.put(InputToArrayReturn.HEADINGNANS, headingNaNs);
+		if (allDates.first().before(factorisedInput.firstKey())) {
+			LOGGER.warn("Transforming NumMap list to ArrayMap. The output head has been cut from " + allDates.first() + " to " + factorisedInput.lastKey());
+		}
 		
 		//Not Heading
 		Boolean keepTrailingNaN = keepAllTrailingNaN || trailingNaNsColIdsToKeep.length != 0;
@@ -159,6 +164,8 @@ public class ValueManipulator {
 		result.put(InputToArrayReturn.TRAILINGNANS, trailingNaNs);
 		if (keepTrailingNaN) factorisedInput.putAll(trailingNaNs); //Adding potential trailing with NaN in the result
 		
+		//Return
+		LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
 		result.put(InputToArrayReturn.RESULTS, factorisedInput);
 		return result;
 	}

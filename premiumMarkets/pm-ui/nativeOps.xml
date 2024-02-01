@@ -687,6 +687,17 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>boolean</reference>
+                    <referenceAsOperand>isLenientInit</referenceAsOperand>
+                    <description>If true, in case a lack of heading data, the initial calculation window may start from the minimum period (&lt;= moving period) permited by the stat operation.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>FALSE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
                 <operand xsi:type="operationReferenceOperation">
                     <reference>operationReference</reference>
                     <referenceAsOperand>specificStat</referenceAsOperand>
@@ -1369,7 +1380,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="nullOperation">
             <reference>NONE</reference>
-            <description>Null operation. Should signify no operation.</description>
+            <description>Null operation. Should signify no operation when assigned or any operation when operand.</description>
             <operands/>
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
@@ -1790,13 +1801,9 @@
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
-                <operand xsi:type="numberOperation">
-                    <reference>number</reference>
-                    <referenceAsOperand>parameter</referenceAsOperand>
+                <operand xsi:type="nullOperation">
+                    <reference>anyValue</reference>
                     <description>Parameter values for each ?</description>
-                    <defaultValue xsi:type="numberValue">
-                        <numberValue>14.0</numberValue>
-                    </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>
@@ -1831,7 +1838,7 @@
                 <operand xsi:type="listOperation">
                     <reference>parameters</reference>
                     <referenceAsOperand>parameters and parameters slices</referenceAsOperand>
-                    <description>[start, end, step] or [x, factor] or ["abc"] or [any]. Use [x, factor] to make this parameter a factor of an other parameter indexed at x. Use ["abc"] for constant string parameters. [any] for any other static parameter</description>
+                    <description>[start, end, step] or [x, factor] or ["abc"] or [any]. Use [x, factor] to make this parameter a factor of an other parameter indexed at x. Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

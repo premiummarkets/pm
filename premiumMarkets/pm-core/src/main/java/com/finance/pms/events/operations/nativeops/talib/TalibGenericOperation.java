@@ -281,7 +281,7 @@ public class TalibGenericOperation extends TalibOperation {
 		String contants = "";
 		for (int i = 0; i < subList.size(); i++) {
 			Value<?> optEle = subList.get(i).getOrRunParameter(targetStock).orElseThrow();
-			String ele = ((StringableValue) optEle).getValueAsString();
+			String ele = ((StringableValue) optEle).getAsStringable();
 			if (inConstantsNames.get(i).type.equals(Integer.TYPE)) {
 				ele = intRounding(((NumberValue) optEle).getNumberValue()).toString();
 			}

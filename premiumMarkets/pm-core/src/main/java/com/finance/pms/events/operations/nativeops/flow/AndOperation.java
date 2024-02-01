@@ -103,7 +103,7 @@ public class AndOperation extends FlowOperation {
 
 	private boolean isFalse(TargetStockInfo targetStock, Value<?> opiRes) {
 		return opiRes == null || 
-				(opiRes instanceof StringableValue && ((StringableValue) opiRes).getValueAsString().replaceAll("\"","").equalsIgnoreCase("FALSE")) ||
+				(opiRes instanceof StringableValue && ((StringableValue) opiRes).getAsStringable().replaceAll("\"","").equalsIgnoreCase("FALSE")) ||
 				(opiRes instanceof MapValue && ((MapValue<?>) opiRes).getValue(targetStock).isEmpty());
 	}
 	
@@ -128,7 +128,7 @@ public class AndOperation extends FlowOperation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return  getOperands().get(getOperands().size()-1).emptyValue();
+		return getOperands().get(getOperands().size()-1).emptyValue();
 	}
 
 }

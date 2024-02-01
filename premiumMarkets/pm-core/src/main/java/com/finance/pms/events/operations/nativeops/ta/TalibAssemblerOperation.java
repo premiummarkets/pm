@@ -13,6 +13,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
@@ -22,11 +24,14 @@ import com.finance.pms.events.operations.nativeops.AnyValueListValue;
 import com.finance.pms.events.operations.nativeops.ArrayMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
+import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
+import com.finance.pms.events.operations.nativeops.MATypeOperation;
+import com.finance.pms.events.operations.nativeops.MATypeValue;
 import com.finance.pms.events.operations.nativeops.MapOperation;
+import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
-import com.finance.pms.events.operations.nativeops.NumbererOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
@@ -64,7 +69,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				new OperationReferenceOperation("operationReference", "operation reference", "Operation to iterate upon", null),
 				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step] or [x, factor] or [\"abc\"] or [any]. "
 						+ "Use [x, factor] to make this parameter a factor of an other parameter indexed at x. "
-						+ "Use [\"abc\"] for constant string parameters. [any] for any other static parameter", null));
+						+ "Use [\"abc\"] for constant string parameters. [any] for any other constant parameter", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
@@ -90,18 +95,48 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		ArrayList<Operation> assembledOpOperands = new ArrayList<>(assembledOperationClone.getOperands());
 		Operation operand = assembledOpOperands.get(0); //Safe init
 		for (int parametersSlicePos = 0; parametersSlicePos < parameters.size(); parametersSlicePos++) {
+			
 			if (parametersSlicePos < assembledOperationClone.getOperands().size()) {
 				operand = assembledOperationClone.getOperands().get(parametersSlicePos);
-			} 
-			if (operand instanceof NumberOperation || operand instanceof NumbererOperation) {
+			} else { //varargs
+				operand = (Operation) assembledOperationClone.getOperands().get(assembledOperationClone.getOperands().size()-1).clone();
+				if (!operand.getIsVarArgs()) throw new RuntimeException("Number of parameters miss match. The last parameter should be varargs.");
+				assembledOpOperands.add(operand);
+			}
+			
+			//parameters.get(parametersSlicePos).size() > 1
+			//number operand or undefined operand with a sliced parameter (which would mean a number is expected)
+			//if ((operand instanceof NumberOperation || operand instanceof NumbererOperation || operand instanceof NullOperation) && parameters.get(parametersSlicePos).size() > 1) {
+			if (parameters.get(parametersSlicePos).size() > 1) { //Number sliced
 				slices.put(parametersSlicePos, parameters.get(parametersSlicePos).stream().map(v -> ((NumberValue)v).getValue(targetStock).doubleValue()).collect(Collectors.toList()));
-			} else if (operand instanceof MapOperation) {
-				// MapOperation) {//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries
-				//FIXME could use OperationRefernces/MetaOperations??
-				//operand.setParameter(getOperands().get(parametersSlicePos +1).getOperands().get(0).run(targetStock,"squashed  => " + this.shortOutputReference(),thisStartShift));
-				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos + PARAMS_START_IDX).getOperands().get(0)); //XXX We get reset the initial operation as it was before up flow inputs calculation
-			} else {
+			//parameters.get(parametersSlicePos).size() == 1
+			} else if (operand instanceof NullOperation) {
+				Operation typedOperand;
+				Object parameterValue = parameters.get(parametersSlicePos).get(0);
+				if (parameterValue instanceof NumberValue) {
+					typedOperand = new NumberOperation();
+				} 
+				else if (parameterValue instanceof StringValue) {
+					typedOperand = new StringOperation();
+				}
+				else if (parameterValue instanceof OperationReferenceValue) {
+					typedOperand = new OperationReferenceOperation();
+				}
+				else if (parameterValue instanceof MATypeValue) {
+					typedOperand = new MATypeOperation();
+				}
+				else { //Not supported as parameter will be reset in the cloning process at each iteration
+					throw new NotImplementedException("FIXME: Parameter doeas not match a leaf operation: " + parameterValue);
+				}
+				typedOperand.setParameter((Value<?>) parameterValue);
+				assembledOpOperands.set(parametersSlicePos, typedOperand);
+			} else if (operand instanceof MapOperation) { //Map operand
+				//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries //FIXME could use OperationReferences
+				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos + PARAMS_START_IDX).getOperands().get(0)); //XXX We reset the initial operation as it was before up flow inputs calculation
+			} else if (operand instanceof LeafOperation) { //Any other leaf operand
 				operand.setParameter(parameters.get(parametersSlicePos).get(0));
+			} else { //Not supported as parameter will be reset in the cloning process at each iteration
+				throw new NotImplementedException("FIXME: Parameter will be reset in the cloning process at each iteration: " + operand);
 			}
 		}
 		assembledOperationClone.getOperands().clear();
@@ -117,7 +152,9 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		
 		ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance();
 		for (double i = 0; i*step < (end-start); i++) {
-			Operation iterationOperationClone = (Operation) assembledOperationClone.clone();
+			
+			Operation iterationOperationClone = (Operation) assembledOperationClone.clone(); //Will clone operation and its operand as well as leaf parameters (String, Number ..).
+			
 			String paramsStringInfo = "";
 			for(Integer operandPos: slices.keySet()) {
 				Value<?> itParameter = null;
@@ -133,12 +170,12 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					itParameter = new NumberValue(slices.get(operandPos).get(0));
 				}
 				paramsStringInfo = paramsStringInfo + "," + itParameter.getValue(targetStock);
-				if (operandPos >= iterationOperationClone.getOperands().size()) {
-					Operation lastOperand = iterationOperationClone.getOperands().get(iterationOperationClone.getOperands().size()-1);
-					if (!lastOperand.getIsVarArgs()) throw new RuntimeException();
-					Operation newVarArgOperand = (Operation) lastOperand.clone();
-					iterationOperationClone.getOperands().add(newVarArgOperand);
-				}
+//				if (operandPos >= iterationOperationClone.getOperands().size()) { //FIXME?? //XXX can I be here as per the assembledOpOperands init??
+//					Operation lastOperand = iterationOperationClone.getOperands().get(iterationOperationClone.getOperands().size()-1);
+//					if (!lastOperand.getIsVarArgs()) throw new RuntimeException();
+//					Operation newVarArgOperand = (Operation) lastOperand.clone();
+//					iterationOperationClone.getOperands().add(newVarArgOperand);
+//				}
 				iterationOperationClone.getOperands().get(operandPos).setParameter(itParameter);
 			}
 			//LOGGER.info("Running: " + iterationOperationClone.getReference() + " with params " + paramsStringInfo);
@@ -150,21 +187,13 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					
 					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 					
-					//FIXME why do I need this shift here? The run should sort it out? => probably this is because iterationOperationClone assembly is not an operand.
-					int assembleeOperandStartShift = iterationOperationClone.operandsRequiredStartShift(targetStock, assemblerInputStartShift);
-					//int assembleeOperandStartShift = 0;
-					
 					LOGGER.info(
-							"Running assemblee: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 
-							" and shift " + assemblerInputStartShift + " and added operands shift " + assembleeOperandStartShift +
+							"Running assemblee: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + " and assemblee output shift " + assemblerInputStartShift +
 							". From " + df.format(targetStock.getStartDate(assemblerInputStartShift)) + " to " + df.format(targetStock.getEndDate()));
 					
-					NumericableMapValue run = (NumericableMapValue) iterationOperationClone.run(targetStock, thisCallStack, assemblerInputStartShift + assembleeOperandStartShift);
+					NumericableMapValue run = (NumericableMapValue) iterationOperationClone.run(targetStock, thisCallStack, assemblerInputStartShift);
 					
-					//LOGGER.info("Done: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo);
-					LOGGER.info(
-							"Yield: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + 
-							" and this shift " + assemblerInputStartShift + " and operands added shift " + assembleeOperandStartShift + ": " + run);
+					LOGGER.info("Yield: " + iterationOperationClone.getReference() + " with params " + fParamsStringInfo + " and assemblee output shift " + assemblerInputStartShift + ": " + run);
 					
 					return run;
 				}
@@ -198,9 +227,10 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 						orElse.substring(0, Math.min(orElse.length(), 15000)));
 			}
 			if (!inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).isEmpty()) {
-				String orElse = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
-																								.reduce((a, e) -> a + " " + e)
-																								.orElse("");
+				String orElse = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS)
+												.entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
+																	.reduce((a, e) -> a + " " + e)
+																	.orElse("");
 				LOGGER.warn("FIXME (other nans)" + this.getReference() + ": " + this.toFormulae(targetStock) + " has NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
@@ -225,7 +255,10 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		Operation operandOpsIdx = this.getOperands().get(OPS_INDEX);
-		String valueAsString = ((OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(targetStock).orElse(new StringValue(operandOpsIdx.toFormulaeShort(targetStock)))).getValueAsString();
+		String valueAsString = (
+									(OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(targetStock)
+									.orElse(new StringValue(operandOpsIdx.toFormulaeShort(targetStock)))
+							   ).getAsStringable().replaceAll("\\$", "");
 		return valueAsString.substring(0, Math.min(5, valueAsString.length()));
 	}
 

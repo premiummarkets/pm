@@ -2,12 +2,10 @@ package com.finance.pms.events.operations.nativeops.flow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -25,7 +23,7 @@ import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 public class EnvOperation extends VarOperation {
@@ -64,7 +62,7 @@ public class EnvOperation extends VarOperation {
 				}
 			else 
 				if (envObject instanceof Number) {
-					return new NumberValue(((Number)envObject).doubleValue());
+					return new NumberValue(((Number) envObject).doubleValue());
 				}
 			else
 				if (envObject instanceof Boolean) {
@@ -76,8 +74,8 @@ public class EnvOperation extends VarOperation {
 				}
 			else
 				if (envObject instanceof JsonObject) {
-					Set<Entry<String, JsonElement>> entrySet = ((JsonObject) envObject).entrySet();
-					return new NamedListValue((Map<String, ?>) entrySet.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getAsString())));
+					Map<String, Object> myMap = new Gson().fromJson(envObject.toString(), HashMap.class);
+					return new NamedListValue(myMap);
 				}
 			else {
 				throw new NotImplementedException("FIXME: translation to Value, " + envObject + "@" + envObject.getClass().getName() + " found for " + variableName);
@@ -88,7 +86,7 @@ public class EnvOperation extends VarOperation {
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		Optional<Value<?>> thisParameter = this.getOrRunParameter(targetStock);
-		String valueAsString = ((StringableValue) thisParameter.orElse(new StringValue(""))).getValueAsString().replaceAll("\"","");
+		String valueAsString = ((StringableValue) thisParameter.orElse(new StringValue(""))).getAsStringable().replaceAll("\"","");
 		if (valueAsString.isEmpty()) return "";
 		String[] split = valueAsString.split("\\.");
 		String variableName = split[split.length-1];

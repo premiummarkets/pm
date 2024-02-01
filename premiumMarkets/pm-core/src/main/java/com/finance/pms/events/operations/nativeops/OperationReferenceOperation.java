@@ -34,17 +34,17 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@Override
 	public String toFormulae(TargetStockInfo targetStock) {
-		return ((StringableValue) getParameter()).getValueAsString();
+		return ((StringableValue) getParameter()).getAsStringable();
 	}
 	
 	@Override
 	public String toFormulaeShort(TargetStockInfo stockInfo) {
-		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeShort(stockInfo), ov -> ov.getValueAsString());
+		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeShort(stockInfo), ov -> ov.getAsStringable());
 	}
 	
 	@Override
 	public String toFormulaeDevelopped() {
-		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeDevelopped(), ov -> ov.getValueAsString());
+		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeDevelopped(), ov -> ov.getAsStringable());
 	}
 
 	private <T> T reccurentProceeds(Function<OperationReferenceValue<? extends Operation>, T> isUsedAsIsFunc, Function<OperationReferenceValue<? extends Operation>, T> isUsedAsCloneFunc) {
@@ -169,7 +169,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 
 	@Override
 	public String resultHint(TargetStockInfo targetStock, List<StackElement> callStack) {
-		return reccurentProceeds(ov -> ov.getValue(targetStock).resultHint(targetStock, addThisToStack(callStack, 0, targetStock)), ov -> ov.getValueAsString());
+		return reccurentProceeds(ov -> ov.getValue(targetStock).resultHint(targetStock, addThisToStack(callStack, 0, targetStock)), ov -> ov.getAsStringable());
 	}
 	
 }

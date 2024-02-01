@@ -147,7 +147,7 @@ public abstract class ANTLRParserHelper {
 								"A native operation is supposed NOT to be a composition of other ops (its parameters can only be LeafOperation : Double or MapOfDouble). Hence it is not reentrant either :" + operation);
 					}
 					if (operand.getParameter() == null) {
-						String defaultAsString = (operand.getDefaultValue() != null)?((StringableValue) operand.getDefaultValue()).getValueAsString():null;
+						String defaultAsString = (operand.getDefaultValue() != null)?((StringableValue) operand.getDefaultValue()).getAsStringable():null;
 						try {
 							editorOpDescr.addParam(editorOpDescr.new Param(operand.getReferenceAsOperand(), operand.getClass(), operand.synoptic(), operand.getDescription(), defaultAsString, operand.getIsVarArgs()));
 						} catch (Exception e) {

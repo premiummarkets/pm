@@ -121,6 +121,16 @@ public class SystemEnvironment {
 		}
 	}
 	
+	public void cleanOldNvps() {
+		synchronized (this) {
+			initCalcEnv();
+			this.env.envForStocks.forEach((k,v) -> {
+				v.oldNvps.clear();
+			});
+			storeCalcEnv(env);
+		}
+	}
+	
 	private void storeCalcEnv(Env env) {
 		try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(JSON_ENV_PATH))) {
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();

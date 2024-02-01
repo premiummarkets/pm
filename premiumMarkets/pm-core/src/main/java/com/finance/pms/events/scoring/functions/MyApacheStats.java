@@ -41,11 +41,18 @@ import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
 
 public class MyApacheStats implements StatsFunction {
 
-	AbstractUnivariateStatistic statistic;
+	private AbstractUnivariateStatistic statistic;
+	private int minPeriod = 1;
 
 	public MyApacheStats(AbstractUnivariateStatistic statistic) {
 		super();
 		this.statistic = statistic;
+	}
+	
+	public MyApacheStats(AbstractUnivariateStatistic statistic,  int minPeriod ) {
+		super();
+		this.statistic = statistic;
+		this.minPeriod = minPeriod;
 	}
 
 	@Override
@@ -120,6 +127,11 @@ public class MyApacheStats implements StatsFunction {
 	@Override
 	public List<String> getOutputsRefs() {
 		return Arrays.asList(statistic.getClass().getSimpleName().toLowerCase());
+	}
+
+	@Override
+	public int getMinPeriod() {
+		return minPeriod;
 	}
 	
 	

@@ -26,7 +26,7 @@ public class NegateOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisFullStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		StringableValue value = (StringableValue) inputs.get(0);
-		boolean isTrue = ((StringableValue) value).getValueAsString().replaceAll("\"","").equalsIgnoreCase("TRUE");
+		boolean isTrue = ((StringableValue) value).getAsStringable().replaceAll("\"","").equalsIgnoreCase("TRUE");
 		return (isTrue)?new StringValue("FALSE"):new StringValue("TRUE");
 	}
 

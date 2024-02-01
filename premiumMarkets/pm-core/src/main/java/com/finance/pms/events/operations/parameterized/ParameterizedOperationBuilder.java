@@ -30,10 +30,12 @@
 package com.finance.pms.events.operations.parameterized;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -49,6 +51,7 @@ import com.finance.pms.events.operations.nativeops.ta.TalibIndicatorsComposition
 import com.finance.pms.events.operations.nativeops.talib.TalibOperationGenerator;
 
 public class ParameterizedOperationBuilder extends ParameterizedBuilder {
+
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ParameterizedOperationBuilder.class);
 
@@ -103,12 +106,12 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 	 * For notifying the indicators builder and access the user indicators list.
 	 */
 	@Override
-	public List<Operation> notifyChanged(Operation operation, ObsMsgType msgType) {
+	public List<Operation> notifyChanged(Operation operation, Optional<String> oldIdentifier, ObsMsgType msgType) {
 
 		List<Operation> actualCheckInUse = new ArrayList<Operation>();
 		try {
 			this.setChanged();
-			this.notifyObservers(new ObsMsg(msgType, operation));
+			this.notifyObservers(new ObsMsg(msgType, operation, oldIdentifier));
 		} catch (InUseException e) {
 			actualCheckInUse.addAll(e.getInUse());
 		}
@@ -118,14 +121,14 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 
 
 	@Override
-	protected List<Operation> updateCaches(Operation operation, Boolean isNewOp) {
+	protected List<Operation> updateCaches(Operation operation, Optional<String> oldIdentifier) {
 
 		List<Operation> actualCheckInUse = new ArrayList<Operation>();
-		if (!isNewOp) {
+		if (oldIdentifier.isPresent()) { //Not a new operation
 			updateEditableOperationLists();
 			try {
 				this.setChanged();
-				this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation));
+				this.notifyObservers(new ObsMsg(ObsMsgType.UPDATE_OPS_INMEM_INSTANCES, operation, oldIdentifier));
 			} catch (InUseException e) {
 				actualCheckInUse.addAll(e.getInUse());
 			}
@@ -151,12 +154,12 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 	public void resetCaches() {
 
 		List<String> crippled = resetUserOperations();
-		if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : "+crippled);
+		if (!crippled.isEmpty()) throw new RuntimeException("Some operations have invalid formulas. Please review : " + crippled);
 
 		//TODO Remove update here and in observer as they are done in combo update?
 		updateEditableOperationLists();
 		this.setChanged();
-		this.notifyObservers(new ObsMsg(ObsMsgType.RESET_OPS_INMEM_INSTANCES, null));
+		this.notifyObservers(new ObsMsg(ObsMsgType.RESET_OPS_INMEM_INSTANCES, null, Optional.empty()));
 
 	}
 
@@ -182,6 +185,24 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 		          .stream() 
 		          .filter(map -> !(map.getValue() instanceof EventInfo)) 
 		          .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
+	}
+	
+	@Override
+	protected void saveReplaceInUse(String oldIdentifier, String newIdentifier, List<Operation> usingOperations, List<Operation> usingIndicators) {
+		if (!newIdentifier.equals(oldIdentifier)) {
+			usingOperations.stream().forEach(i -> {
+				try {
+					i.setFormulae(i.getFormulae().replaceAll(oldIdentifier, newIdentifier));
+					saveUserOperation(i.getReference(), i.getFormulae());
+				} catch (IOException e1) {
+					LOGGER.error(e1, e1);
+				}
+			});
+			usingIndicators.stream().forEach(i -> {
+				i.setFormulae(i.getFormulae().replaceAll(oldIdentifier, newIdentifier));
+				notifyChanged(i, Optional.of("editedMarker"), ObsMsgType.OPERATION_CrUD);
+			});
+		}
 	}
 
 }

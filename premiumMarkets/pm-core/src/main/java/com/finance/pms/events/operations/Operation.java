@@ -713,7 +713,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		Optional<Value<?>> orRunParameter = this.getOrRunParameter(targetStock);
 		if (orRunParameter.isPresent() && orRunParameter.get() instanceof StringableValue) {
-			return ((StringableValue) orRunParameter.get()).getValueAsString();
+			return ((StringableValue) orRunParameter.get()).getAsStringable();
 		}
 
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
@@ -723,7 +723,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public String toFormulaeDevelopped() {
 
 		if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
-			return ((StringableValue) this.getParameter()).getValueAsString();
+			return ((StringableValue) this.getParameter()).getAsStringable();
 		}
 
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
@@ -854,7 +854,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}
 
 		String referenceSyno = ParameterizedOperationBuilder.readableCamelCase(((this.referenceAsOperand != null)?this.referenceAsOperand:this.reference));
-		String defaultSyno = (defaultValue == null)?"":" (defaults to "+((StringableValue) defaultValue).getValueAsString()+")";
+		String defaultSyno = (defaultValue == null)?"":" (defaults to "+((StringableValue) defaultValue).getAsStringable()+")";
 		String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":"\nOutput selectors : " + outputSelectorSynoptic;
 		String paramsSyno = (operandsSynoptic.isEmpty())?"":"\nOperands : " + operandsSynoptic;
 		return referenceSyno + defaultSyno + outSelectorSyno + paramsSyno;
@@ -877,7 +877,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			sep = " or ";
 		}
 		String referenceSyno = (this.referenceAsOperand != null)?this.referenceAsOperand:this.reference;
-		String defaultSyno = (defaultValue == null)?"":" (defaults to " + ((StringableValue) defaultValue).getValueAsString() + ")";
+		String defaultSyno = (defaultValue == null)?"":" (defaults to " + ((StringableValue) defaultValue).getAsStringable() + ")";
 		String outSelectorSyno = (outputSelectorSynoptic.isEmpty())?"":":"+outputSelectorSynoptic;
 		String paramsSyno = (operandsSynoptic.isEmpty())?"": "("+operandsSynoptic+")";
 		return referenceSyno + outSelectorSyno + paramsSyno + defaultSyno;

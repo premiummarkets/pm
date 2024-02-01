@@ -76,13 +76,17 @@ public class StringValue extends Value<String> implements StringableValue, Clone
 	}
 
 	@Override
-	public String getValueAsString() {
+	public String getAsStringable() {
 		return "\""+stringValue+"\"";
 	}
 	
 	@Override
 	public StringValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
 		return this;
+	}
+	
+	public boolean isBoolean() {
+		return ("TRUE".equalsIgnoreCase(stringValue) || "FALSE".equalsIgnoreCase(stringValue));
 	}
 
 }

@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -47,6 +48,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -109,6 +111,7 @@ import com.finance.pms.events.calculation.antlr.ParameterizedBuilder.InUseExcept
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder.ObsMsgType;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.portfolio.ShareListMgr;
+import com.finance.pms.portfolio.gui.ActionDialogForm;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class OperationBuilderComposite extends Composite {
@@ -122,7 +125,7 @@ public class OperationBuilderComposite extends Composite {
 	protected RefreshableView mainGuiParent;
 
 	private Label errorLabel;
-	protected Combo formulaReference;
+	protected Combo formulaReferenceCombo;
 	protected StyledText editor;
 	protected Boolean isSaved;
 	private boolean createDefaultIndicatorOnSave;
@@ -254,14 +257,14 @@ public class OperationBuilderComposite extends Composite {
 			formulaReferenceLabel.setFont(MainGui.DEFAULTFONT);
 			formulaReferenceLabel.setBackground(MainGui.pOPUP_BG);
 
-			formulaReference = new Combo(this, SWT.SINGLE | SWT.SIMPLE | SWT.V_SCROLL);
+			formulaReferenceCombo = new Combo(this, SWT.SINGLE | SWT.SIMPLE | SWT.V_SCROLL);
 			GridData refLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
 			refLayoutData.horizontalSpan = 3;
-			formulaReference.setLayoutData(refLayoutData);
-			formulaReference.setFont(MainGui.CONTENTFONT);
+			formulaReferenceCombo.setLayoutData(refLayoutData);
+			formulaReferenceCombo.setFont(MainGui.CONTENTFONT);
 			String siteUrl = MainPMScmd.getMyPrefs().get("site.url", "none.com");
-			formulaReference.setToolTipText("Help available at http://"+siteUrl+"/html/swtui.html#UserGuidances");
-			formulaReference.addMouseListener(new MouseListener() {
+			formulaReferenceCombo.setToolTipText("Help available at http://"+siteUrl+"/html/swtui.html#UserGuidances");
+			formulaReferenceCombo.addMouseListener(new MouseListener() {
 
 				@Override
 				public void mouseUp(MouseEvent e) {
@@ -276,7 +279,7 @@ public class OperationBuilderComposite extends Composite {
 				public void mouseDoubleClick(MouseEvent e) {
 				}
 			});
-			formulaReference.addSelectionListener(new SelectionListener() {
+			formulaReferenceCombo.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -291,7 +294,7 @@ public class OperationBuilderComposite extends Composite {
 				public void widgetDefaultSelected(SelectionEvent e) {
 				}
 			});
-			formulaReference.addKeyListener(new KeyListener() {
+			formulaReferenceCombo.addKeyListener(new KeyListener() {
 
 				@Override
 				public void keyReleased(KeyEvent event) {
@@ -383,13 +386,13 @@ public class OperationBuilderComposite extends Composite {
 								public void action() {
 									try {
 										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-										int selectionIndex = formulaReference.getSelectionIndex();
-										deleteAllDisabledOrUnused();
-										formulaReference.removeAll();
+										int selectionIndex = formulaReferenceCombo.getSelectionIndex();
+										deleteAllUnused();
+										formulaReferenceCombo.removeAll();
 										isSaved = true;
 										updateCombo(true);
-										if (formulaReference.getItemCount() > 0) {
-											forceSelection(selectionIndex % formulaReference.getItemCount());
+										if (formulaReferenceCombo.getItemCount() > 0) {
+											forceSelection(selectionIndex % formulaReferenceCombo.getItemCount());
 										}
 									} finally {
 										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -409,9 +412,35 @@ public class OperationBuilderComposite extends Composite {
 		addThisCompositeExtratButtons();
 		{
 
+			Button renameFormula = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			//layoutData.horizontalSpan = 3;
+			renameFormula.setLayoutData(layoutData);
+			renameFormula.setText("Rename " + builderLabel());
+			renameFormula.setFont(MainGui.DEFAULTFONT);
+			renameFormula.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					handleRename();
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+
+		}
+		{
+
 			Button deleteFormula = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
-			layoutData.horizontalSpan = 3;
+			//layoutData.horizontalSpan = 3;
 			deleteFormula.setLayoutData(layoutData);
 			deleteFormula.setText("Delete " + builderLabel());
 			deleteFormula.setFont(MainGui.DEFAULTFONT);
@@ -431,17 +460,17 @@ public class OperationBuilderComposite extends Composite {
 								public void action() {
 									try {
 										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-										int selectionIndex = formulaReference.getSelectionIndex();
+										int selectionIndex = formulaReferenceCombo.getSelectionIndex();
 										try {
 											deleteFormula(getFormatedReferenceTxt());
 										} finally {
 											OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
 										}
-										formulaReference.removeAll();
+										formulaReferenceCombo.removeAll();
 										isSaved = true;
 										updateCombo(true);
-										if (formulaReference.getItemCount() > 0) {
-											forceSelection(selectionIndex % formulaReference.getItemCount());
+										if (formulaReferenceCombo.getItemCount() > 0) {
+											forceSelection(selectionIndex % formulaReferenceCombo.getItemCount());
 										}
 									} finally {
 										OperationBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
@@ -462,8 +491,8 @@ public class OperationBuilderComposite extends Composite {
 		{
 
 			Button saveFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
-			layoutData.horizontalSpan = 3;
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			//layoutData.horizontalSpan = 3;
 			saveFormula.setLayoutData(layoutData);
 			saveFormula.setText(saveButtonTxt());
 			saveFormula.setFont(MainGui.DEFAULTFONT);
@@ -493,11 +522,11 @@ public class OperationBuilderComposite extends Composite {
 
 	}
 
-	protected void deleteAllDisabledOrUnused() {
-		Map<String, Operation> allOps = parameterizedBuilder.getUserCurrentOperations();
+	protected void deleteAllUnused() {
+		Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 		for (String opId : allOps.keySet()) {
 			try {
-				parameterizedBuilder.removeFormula(opId, true);
+				parameterizedBuilder.removeFormula(opId);
 			} catch (IOException e) {
 				LOGGER.info(opId + " is used and won't be disabled");
 			}
@@ -734,16 +763,70 @@ public class OperationBuilderComposite extends Composite {
 
 		}
 	}
+	
+	protected synchronized void handleRename() {
+
+		String oldId = getFormatedReferenceTxt();
+
+		if (!isSaved) {
+			LOGGER.info("Handling saving of " + oldId + ". Is saved: " + isSaved);
+			if (isValidId(oldId)) {
+				saveOrUpdateFormula(oldId, true);
+			}
+			LOGGER.info(oldId + " is saved ? : " + isSaved);
+		}
+		
+		ActionDialogForm actionDialogForm = new ActionDialogForm(getShell(), "Ok", null, "Rename");
+		final Text newIdText = new Text(actionDialogForm.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
+		newIdText.setText("Type in the new identifier");
+		newIdText.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+			}
+			@Override
+			public void focusGained(FocusEvent e) {
+				if (newIdText.getText().equals("Type in the new identifier")) newIdText.setText("");
+			}
+		});
+		
+		ActionDialogAction action = new ActionDialogAction() {
+			@Override
+			public void action() {
+				
+				actionDialogForm.values[0] = newIdText.getText();
+				try {
+					LOGGER.info("Saving warning dialog running " + oldId + ". Is saved: " + isSaved);
+					String newId = (String) actionDialogForm.values[0];
+					parameterizedBuilder.renameFormula(oldId, newId);
+					LOGGER.info("Updated and saved " + oldId + ". Is saved: " + isSaved);
+					
+					updateComboAndSelect(newId, true);
+					
+					clearPreviousCalculationsUsing(oldId);
+					refreshViews();
+					
+				} catch (Exception e) {
+					openDialog(true, "Can't rename.", e);
+				}
+			}
+			
+		};
+		
+		actionDialogForm.setControl(newIdText);
+		actionDialogForm.setAction(action);
+		actionDialogForm.open();
+		
+	}
 
 	protected void updateComboAndSelect(String selectedOpRef, Boolean reciprocate) {
 
-		int comboSelectionIdx = formulaReference.getSelectionIndex();
+		int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
 
 		if (isSaved) {
 
-			formulaReference.removeAll();
+			formulaReferenceCombo.removeAll();
 			updateCombo(reciprocate);
-			String[] items = formulaReference.getItems();
+			String[] items = formulaReferenceCombo.getItems();
 			for (int i = 0; i < items.length; i++) {
 				if (selectedOpRef.equals(items[i])) {
 					comboSelectionIdx = i;
@@ -815,7 +898,7 @@ public class OperationBuilderComposite extends Composite {
 			return;
 
 		try {
-			parameterizedBuilder.removeFormula(identifier, true);
+			parameterizedBuilder.removeFormula(identifier);
 		} catch (IOException e) {
 			openDialog(true, "Formula can't be deleted.", e);
 			return;
@@ -862,12 +945,12 @@ public class OperationBuilderComposite extends Composite {
 	protected void clearPreviousCalculationsUsing(String identifier) {
 		Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
 		if (operation == null) {
-			LOGGER.warn("No operation was found in User Current Operations for identifier: "+identifier);
+			LOGGER.warn("No operation was found in User Current Operations for identifier: " + identifier);
 		} else {
 			try {
 				parameterizedBuilder.clearPreviousCalculationsUsing(operation);
 			} catch (InUseException e) {
-				parameterizedBuilder.notifyChanged(operation, ObsMsgType.OPERATION_CrUD);
+				parameterizedBuilder.notifyChanged(operation, Optional.empty(), ObsMsgType.OPERATION_CrUD);
 			}
 		}
 	}
@@ -899,7 +982,7 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void changeEditorText(String newId) {
 		if (newId != null && !newId.isEmpty()) {
-			int indexOf = formulaReference.indexOf(newId);
+			int indexOf = formulaReferenceCombo.indexOf(newId);
 			if (indexOf != -1) {
 				forceSelection(indexOf);
 			} else {
@@ -1015,7 +1098,7 @@ public class OperationBuilderComposite extends Composite {
 		LOGGER.info("Refresh for: " + identifier + ", if is saved: " + isSaved);
 		if (isSaved) {
 			if (createDefaultIndicatorOnSave) {
-				parameterizedBuilder.notifyChanged(parameterizedBuilder.getCurrentOperations().get(identifier), ObsMsgType.CREATE_INDICTOR);
+				parameterizedBuilder.notifyChanged(parameterizedBuilder.getCurrentOperations().get(identifier), Optional.empty(), ObsMsgType.CREATE_INDICTOR);
 			}
 			clearPreviousCalculationsUsing(identifier);
 			refreshViews();
@@ -1085,7 +1168,7 @@ public class OperationBuilderComposite extends Composite {
 	}
 
 	String getFormatedReferenceTxt() {
-		return format(formulaReference.getText());
+		return format(formulaReferenceCombo.getText());
 	}
 
 	protected NextToken expectedTokens(String formula) {
@@ -1138,15 +1221,23 @@ public class OperationBuilderComposite extends Composite {
 	protected void updateCombo(boolean reciprocate) {
 
 		if (isSaved) {
+			
+			int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
+			
+			formulaReferenceCombo.removeAll();
 
 			Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 
 			SortedSet<String> itemSet = new TreeSet<String>(allOps.keySet());
-			formulaReference.setItems(itemSet.toArray(new String[0]));
+			formulaReferenceCombo.setItems(itemSet.toArray(new String[0]));
 
 			updateEditableOperationLists();
 
 			if (reciprocate) comboUpdateMonitor.notifyObservers();
+			
+			if (formulaReferenceCombo.getItemCount() > 0) {
+				forceSelection(comboSelectionIdx % formulaReferenceCombo.getItemCount());
+			}
 
 		}
 
@@ -1158,8 +1249,8 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void forceSelection(int selected) {
 
-		if (selected != -1 && selected < formulaReference.getItemCount()) {
-			formulaReference.select(selected);
+		if (selected != -1 && selected < formulaReferenceCombo.getItemCount()) {
+			formulaReferenceCombo.select(selected);
 			setEditorText(parameterizedBuilder.getUserCurrentOperations().get(getFormatedReferenceTxt()).getFormulae());
 			setErrorLabel("");
 			checkBoxDisabled();
@@ -1495,12 +1586,12 @@ public class OperationBuilderComposite extends Composite {
 			@Override
 			public void update(Observable o, Object arg) {
 
-				int comboSelectionIdx = formulaReference.getSelectionIndex();
+				int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
 
 				if (isSaved) {
 					updateCombo(false);
-					if (formulaReference.getItemCount() > 0) {
-						forceSelection(comboSelectionIdx % formulaReference.getItemCount());
+					if (formulaReferenceCombo.getItemCount() > 0) {
+						forceSelection(comboSelectionIdx % formulaReferenceCombo.getItemCount());
 					}
 				} else {
 					updateEditableOperationLists();

@@ -17,8 +17,9 @@ import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.conditional.BooleanValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
-import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
@@ -37,19 +38,19 @@ public class MetaOperation extends Operation {
 	public MetaOperation() {
 		this("meta", "Takes any function formulae, as prepared, with '?' in place of numeric parameters and its numeric parameters as input.", 
 				new StringOperation("string", "formulae", "Prepared formulae. Ex sma(?, close)", new StringValue("sma(?, close)")),
-				new NumberOperation("number", "parameter", "Parameter values for each ?", new NumberValue(14.0)));
+				new NullOperation("anyValue", "Parameter values for each ?. Should be a leaf operation with value representable as string like String, Number.."));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
 	@Override
-	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String preparedFormula = ((StringValue) inputs.get(0)).getValue(targetStock);
-		List<Number> parametersInPlace = inputs.subList(1, inputs.size()).stream().map(n -> ((NumberValue) n).getValue(targetStock)).collect(Collectors.toList());
+		List<String> parametersInPlace = inputs.subList(1, inputs.size()).stream().map(n -> ((StringableValue)n).getAsStringable()).collect(Collectors.toList());
 		
 		String formula = preparedFormula;
-		for(Number paramInPlace: parametersInPlace) {
-			formula = formula.replaceFirst("\\?", paramInPlace.toString());
+		for(String paramInPlace: parametersInPlace) {
+			formula = formula.replaceFirst("\\?", paramInPlace);
 		}
 		
 		ParameterizedBuilder parameterizedOperationBuilder = SpringContext.getSingleton().getBean(ParameterizedOperationBuilder.class);
@@ -71,16 +72,9 @@ public class MetaOperation extends Operation {
 			}
 
 			Operation operation = (Operation) parameterizedOperationBuilder.getCurrentOperations().get(operationNewId).clone();
-			
-			//FIXME why do I need this shift here? The run should sort it out?
-			int operationOperandsStartShift = operation.operandsRequiredStartShift(targetStock, thisStartShift);
-//			int operationOperandsStartShift = 0;
-			
-			LOGGER.info(
-					"Running meta: " + operation.getReference() + " with formulea: " + formula + 
-					" and shift: " + thisStartShift + " and operands shift: " + operationOperandsStartShift);
-			
-			Value<?> output = operation.run(targetStock, thisCallStack, thisStartShift + operationOperandsStartShift);
+
+			LOGGER.info("Running meta: " + operation.getReference() + " with formulea: " + formula + " and operand output shift: " + thisOperandsStartShift);
+			Value<?> output = operation.run(targetStock, thisCallStack, thisOperandsStartShift);
 			
 			return output;
 			
@@ -111,9 +105,12 @@ public class MetaOperation extends Operation {
 		for (int i = 0; i < subList.size(); i++) {
 			Operation operandI = subList.get(i);
 			Value<?> parameterValue = operandI.getOrRunParameter(targetStock).orElse(new StringValue(operandI.toFormulaeShort(targetStock)));
-			String ele = ((StringableValue) parameterValue).getValueAsString();
+			String ele = ((StringableValue) parameterValue).getValue(targetStock).toString();
 			if (parameterValue instanceof NumberValue) {
 				ele = Long.valueOf(Math.round(((NumberValue) parameterValue).getNumberValue().doubleValue())).toString();
+			}
+			if (parameterValue instanceof BooleanValue || (parameterValue instanceof StringValue && ((StringValue)parameterValue).isBoolean()) ) {
+				ele = ele.substring(0,1);
 			}
 			parameters = parameters + "_" + ele;
 		}

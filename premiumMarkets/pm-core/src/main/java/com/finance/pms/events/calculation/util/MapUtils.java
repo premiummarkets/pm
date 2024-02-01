@@ -85,17 +85,21 @@ public class MapUtils {
 		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
 	}
 	
-	public static SortedMap<Date, double[]> madMovingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats) {
+	public static SortedMap<Date, double[]> madMovingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats, boolean lenientInit) {
 
 		ArrayList<Date> keySet = new ArrayList<Date>(map.tailMap(startDate).keySet());
+		int startIdx = period;
+		if (lenientInit) {
+			startIdx = apacheStats.getMinPeriod();
+		}
 
 		final TreeMap<Date, double[]> movingStats =
-				IntStream.range(period, keySet.size())
+				IntStream.range(startIdx, keySet.size())
 				.mapToObj(i -> i)
 				.collect(Collectors.toMap(
 						endWindow -> keySet.get(endWindow),
 						endWindow -> {
-							Integer startWindow = endWindow - period;
+							Integer startWindow = endWindow - Math.min(endWindow, period);
 							SortedMap<Date,Double> values =
 									MapUtils.subMapInclusive(map, keySet.get(startWindow), keySet.get(endWindow)).keySet()
 									.stream()
@@ -111,7 +115,7 @@ public class MapUtils {
 				.filter(k -> Arrays.stream(movingStats.get(k)).allMatch(d -> !Double.isNaN(d)))
 				.collect(Collectors.toMap(k -> k, k -> movingStats.get(k), (a, b) -> a, TreeMap<Date,double[]>::new));
 		
-		Date firstValidResult = keySet.get(period);
+		Date firstValidResult = keySet.get(startIdx);
 		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
 	}
 

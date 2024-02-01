@@ -10,7 +10,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 public class NullOperation extends Operation {
 	
 	public NullOperation() {
-		super("NONE","Null operation. Should signify no operation.");
+		super("NONE","Null operation. Should signify no operation when assigned or any operation when operand.");
 	}
 
 	public NullOperation(String reference) {

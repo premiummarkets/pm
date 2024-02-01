@@ -1072,7 +1072,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		boolean isNotDefault = isNotDefault(cursor);
 		if (cursor != null && isNotDefault) {
 
-			LOGGER.info("Cursor charts count +:");
+			LOGGER.debug("Cursor charts count +:");
 			if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING))) {
 				awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
 			} else if (cursor.equals(CursorFactory.getCursor(SWT.CURSOR_SIZENS))) {
@@ -1083,7 +1083,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		} else {
 			super.getCursor();
-			if (isNotDefault(super.getCursor())) LOGGER.info("Cursor charts count -:");
+			if (isNotDefault(super.getCursor())) LOGGER.debug("Cursor charts count -:");
 			awtPredefinedCursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR);
 		}
 
