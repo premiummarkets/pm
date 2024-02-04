@@ -1,6 +1,5 @@
 package com.finance.pms.events.operations.nativeops.flow;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.zip.Checksum;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.calculation.antlr.NextToken;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
@@ -63,16 +61,7 @@ public class MetaOperation extends Operation {
 		
 		try {
 			
-			NextToken checkNextToken = parameterizedOperationBuilder.checkNextToken(formula);
-			if (checkNextToken != null) throw new RuntimeException("Invalid formulae. " + operationNewId + ". Formula: " + formula + ". Error: " + checkNextToken);
-			Operation existingOperation = parameterizedOperationBuilder.getCurrentOperations().get(operationNewId);
-			if (existingOperation == null) {
-				LOGGER.info("Adding formulae. " + operationNewId + ": " + formula);
-				parameterizedOperationBuilder.addFormula(operationNewId, formula);
-			}
-
-			Operation operation = (Operation) parameterizedOperationBuilder.getCurrentOperations().get(operationNewId).clone();
-
+			Operation operation = parameterizedOperationBuilder.buildOneTimeOperation(operationNewId, formula);
 			LOGGER.info("Running meta: " + operation.getReference() + " with formulea: " + formula + " and operand output shift: " + thisOperandsStartShift);
 			Value<?> output = operation.run(targetStock, thisCallStack, thisOperandsStartShift);
 			
@@ -80,13 +69,6 @@ public class MetaOperation extends Operation {
 			
 		} catch (Exception e) {
 			LOGGER.error(e,e);
-		} finally {
-			LOGGER.info("Destroying formulae. " + operationNewId + ": " + formula);
-			try {
-				parameterizedOperationBuilder.destroyFormula(operationNewId);
-			} catch (IOException e) {
-				LOGGER.error(e, e);
-			}
 		}
 		
 		return new DoubleMapValue();

@@ -164,11 +164,11 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				if (LOGGER.isDebugEnabled()) LOGGER.debug("Early exit : " + e);
 			}
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception stack :"+ exceptions);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Exception stack :" + exceptions);
 
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 			for (RecognitionExceptionHolder exceptionHolder : exceptions) {
-				if (LOGGER.isDebugEnabled()) if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine+"\\,"+exceptionHolder.toCsv());
+				if (LOGGER.isDebugEnabled()) if (LOGGER.isDebugEnabled()) LOGGER.debug(parsedLine + "\\," + exceptionHolder.toCsv());
 			}
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("---------------------------------------------------");
 
@@ -372,7 +372,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 						addUsualSuspectSuggestions(" ", " ", priorityList, eofPosition);
 					} else {
 						altPrioListForTokType(priorityList, AltType.DELETE, -1)
-						.add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid or Incomplete Entry", "'" +";"+ "' expected.", null, deletePosition));
+						.add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid or Incomplete Entry", "'" + ";" + "' expected.", null, deletePosition));
 					}
 					break;
 				}
@@ -386,7 +386,8 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allOpsAndStockDataAsAlts = new ArrayList<Alternative>();
 					Boolean foundMatching = addAllOps(allOpsAndStockDataAsAlts, tokenTxt, eofPosition);
 					if (!foundMatching && deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "Operation or stock historical output expected.", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(
+								new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid operation", "Operation or stock historical output expected.", null, deletePosition));
 					} 
 					else if (!allOpsAndStockDataAsAlts.isEmpty()) {
 						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allOpsAndStockDataAsAlts);
@@ -402,21 +403,22 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					//' ' is actually KEYWORDS or part of it but has to be seen as SYNTAX from the UI point of view
 					//					if ( exception instanceof MismatchedTokenException  && !NAMED_TOKENS.contains(expectedTxt) && !eofToken) {
 					//						altPrioListForTokType(priorityList, AltType.DELETE, 1)
-					//						.add(new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid entry", (isWhiteChar?"White Space":"'"+expectedTxt+"'")+" expected.", null, deletePosition));
+					//						.add(new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid entry", (isWhiteChar?"White Space":"'" + expectedTxt + "'")+" expected.", null, deletePosition));
 					//						//break;
 					//					}
 					if (exception instanceof UnwantedTokenException  && !NAMED_TOKENS.contains(expectedTxt) ) {
 						if (!eofToken) {
 							altPrioListForTokType(priorityList, AltType.DELETE, 1)
-							.add(new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid entry", (isWhiteChar?"White Space":"'"+expectedTxt+"'")+" expected.", null, deletePosition));
+							.add(new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid character", (isWhiteChar?"White Space":"'" + expectedTxt + "'") + " expected.", null, deletePosition));
 						} else {
 							altPrioListForTokType(priorityList, AltType.SUGGESTION, 1)
-							.add(new Alternative(AltType.SUGGESTION,  (isWhiteChar?TokenType.SYNTAX:TokenType.KEYWORDS), expectedTxt, "Insert", (isWhiteChar?"White Space":"'"+expectedTxt+"'")+" expected.", null, eofPosition));
+							.add(new Alternative(AltType.SUGGESTION,  (isWhiteChar?TokenType.SYNTAX:TokenType.KEYWORDS), expectedTxt, "Insert", (isWhiteChar?"White Space":"'" + expectedTxt + "'")+" expected.", null, eofPosition));
 						}
 						break;
 					}
 					if (exception instanceof MissingTokenException) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", (isWhiteChar?"White Space":"'"+expectedTxt+"'")+" expected.", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(
+								new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Missing entry", (isWhiteChar?"White Space":"'" + expectedTxt + "'")+" expected.", null, deletePosition));
 						break;
 					}
 				}
@@ -438,7 +440,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
 					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt.equals(";")?"":tokenTxt, parsedLine, deletePosition, new String[]{"is bearish when", "is bearish if not bullish;", "is bearish if not bullish and", "is bearish if not bullish or"}, "To set the bearish expression : ", TokenType.KEYWORDS);
 					if (!foundMatch) {//&& deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'is bearish when/if' expected", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid condition", "'is bearish when/if' expected", null, deletePosition));
 					} 
 					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
 				}
@@ -447,7 +449,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allPresetConditions = new ArrayList<Alternative>();
 					Boolean foundMatching = addSuggsAsAltsContainsMatch(allPresetConditions, tokenTxt, parsedLine, deletePosition, new String[]{"is bearish if not bullish;", "is bearish if not bullish and ", "is bearish if not bullish or "}, "Condition : ", TokenType.KEYWORDS);
 					if (!foundMatching) { //&& deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "is bearish when/if' expected", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid condition", "is bearish when/if' expected", null, deletePosition));
 					}
 					if (!allPresetConditions.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allPresetConditions);
 					break;
@@ -456,7 +458,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
 					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"is bullish when"}, "To set the bullish expression : ", TokenType.KEYWORDS);
 					if (!foundMatch) { // && deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'is bullish when' expected", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid condition", "'is bullish when' expected", null, deletePosition));
 					} 
 					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
 				}
@@ -464,7 +466,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
 					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"also display"}, "To set the additional display : ", TokenType.KEYWORDS);
 					if (!foundMatch) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'also display' expected", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid statement", "'also display' expected", null, deletePosition));
 					} 
 					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
 				}
@@ -472,7 +474,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allBoolTokens = new ArrayList<Alternative>();
 					Boolean foundMatch = addSuggsAsAltsContainsMatch(allBoolTokens, tokenTxt, parsedLine, deletePosition, new String[]{"override start shift with"}, "To set a constant calculation start date shift : ", TokenType.KEYWORDS);
 					if (!foundMatch) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "'also display' expected", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid override", "'also display' expected", null, deletePosition));
 					} 
 					else if (!allBoolTokens.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allBoolTokens);
 				}
@@ -497,7 +499,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 					List<Alternative> allOpsAndStockDataAsAlts = new ArrayList<Alternative>();
 					Boolean foundMatching = addAllOps(allOpsAndStockDataAsAlts, tokenTxt.equals("(")?"":tokenTxt, eofPosition);
 					if (!foundMatching && deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "Operation or stock historical output expected.", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid operation", "Operation or stock historical output expected.", null, deletePosition));
 					} 
 					else if (!allOpsAndStockDataAsAlts.isEmpty()) {
 						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allOpsAndStockDataAsAlts);
@@ -513,7 +515,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 
 					Boolean foundMatching = addSuggsAsAltsContainsMatch(allPresetConditions, tokenTxt, parsedLine, deletePosition, sortedConditionOnopsTokens, "Condition : ", TokenType.KEYWORDS);
 					if (!foundMatching) { //&& deleteFilter) {
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry", "Condition on historical output excepted.", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid condition", "Condition on historical output excepted.", null, deletePosition));
 					}
 					if (!allPresetConditions.isEmpty()) altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allPresetConditions);
 					//break;
@@ -527,7 +529,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 						if (lastStack.equals("checkOperationValidity") && exception instanceof InvalidOperationException) {
 							deletePosition =  new int[]{exception.line,exception.charPositionInLine-1};
 						}
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid entry",  "Operation or stock historical output expected.", null, deletePosition));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, tokenTxt, "Invalid operation",  "Operation or stock historical output expected.", null, deletePosition));
 					} 
 					else if (!allOpsAndStockDataAsAlts.isEmpty()) {
 						altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(allOpsAndStockDataAsAlts);
@@ -536,7 +538,7 @@ public class ANTLRIndicatorsParserHelper extends ANTLRParserHelper {
 				else if (lastStack.equals("unknown")) {
 					boolean isWhiteChar = expectedTxt.equals(WHITECHARVALUE) || expectedTxt.isEmpty();
 					altPrioListForTokType(priorityList, AltType.DELETE, 1)
-					.add(new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid entry", (isWhiteChar?"White Space":"'"+expectedTxt+"'")+" expected.", null, deletePosition));
+					.add(new Alternative(AltType.DELETE, TokenType.DELETE, tokenTxt, "Invalid entry", (isWhiteChar?"White Space":"'" + expectedTxt + "'")+" expected.", null, deletePosition));
 				}
 
 			}

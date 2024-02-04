@@ -53,33 +53,39 @@ public class EnvOperation extends VarOperation {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> defaultValue = inputs.get(1);
 		
-		Object envObject = SystemEnvironment.getInstance().read(targetStock.getStock(), variableName).orElse(defaultValue);
+		Object envObject = SystemEnvironment.getInstance().read(targetStock.getStock(), variableName).orElse(null);
+		
+		
+		if (envObject == null) {
+			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means orThrow and the value is needed -> Throw an Exception.
+					((NumberValue)defaultValue).getValue(targetStock).equals(Double.NaN)) {
+				throw new RuntimeException("Value needed and not provided for " + variableName);
+			} else {
+				envObject = defaultValue;
+			}
+		}
+		
 		if (envObject instanceof Value) {
 			return (Value<?>) envObject;
-		} else {
-				if (envObject instanceof String) {
-					return new StringValue((String) envObject);
-				}
-			else 
-				if (envObject instanceof Number) {
-					return new NumberValue(((Number) envObject).doubleValue());
-				}
-			else
-				if (envObject instanceof Boolean) {
-					return new BooleanValue(Boolean.valueOf((boolean) envObject));
-				}
-			else
-				if (envObject instanceof Map) {
-					return new NamedListValue((Map<String, ?>) envObject);
-				}
-			else
-				if (envObject instanceof JsonObject) {
-					Map<String, Object> myMap = new Gson().fromJson(envObject.toString(), HashMap.class);
-					return new NamedListValue(myMap);
-				}
-			else {
-				throw new NotImplementedException("FIXME: translation to Value, " + envObject + "@" + envObject.getClass().getName() + " found for " + variableName);
-			}	
+		} 
+		else if (envObject instanceof String) {
+			return new StringValue((String) envObject);
+		}
+		else if (envObject instanceof Number) {
+			return new NumberValue(((Number) envObject).doubleValue());
+		}
+		else if (envObject instanceof Boolean) {
+			return new BooleanValue(Boolean.valueOf((boolean) envObject));
+		}
+		else if (envObject instanceof Map) {
+			return new NamedListValue((Map<String, ?>) envObject);
+		}
+		else if (envObject instanceof JsonObject) {
+			Map<String, Object> myMap = new Gson().fromJson(envObject.toString(), HashMap.class);
+			return new NamedListValue(myMap);
+		}
+		else {
+			throw new NotImplementedException("FIXME: translation to Value, " + envObject + "@" + envObject.getClass().getName() + " found for " + variableName);	
 		}
 	}
 	

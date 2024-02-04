@@ -49,14 +49,16 @@ public class AndOperation extends FlowOperation {
 	}
 
 	@Override
-	protected Boolean stopOperandsCalculationsOnError() {
+	protected Boolean stopOperandsCalculationsOnError(Exception exception, Operation operand) {
+		LOGGER.info(this.getReference() + " will stop on operand '" + operand.getReference() + "' calculation with exception: " + exception);  
 		return true;
 	}
 	
 	@Override
-	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> callRes) {
-		LOGGER.info("Operand of " + this.getReference() + " result " + callRes);
-		return isFalse(stockInfo, callRes); //stop if false => true
+	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Operation operand, Value<?> callRes) {
+		boolean isFalse = isFalse(stockInfo, callRes);
+		LOGGER.info(this.getReference() + " will stop on operand '" + operand.getReference() + "' calculation if true==" + isFalse + ", from result: " + callRes);
+		return isFalse; //stop if false => true
 	}
 
 	@Override
@@ -92,6 +94,7 @@ public class AndOperation extends FlowOperation {
 				break;
 			}
 			res = Optional.of(opiRes);
+			LOGGER.info(this.getOperands().get(iCpt).getReference() + " is " + res + " in this: " + this.getReference());
 			if (iCpt < inputs.size() -1) iCpt++;
 		};
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output

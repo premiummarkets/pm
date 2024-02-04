@@ -434,29 +434,35 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 
 	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStockOpt, Optional<String> userOperationName) {
-		if (targetStockOpt.isPresent() ) {
-			TargetStockInfo targetStock = targetStockOpt.get();
-			StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock).orElse(null);
-			String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock));
-			if (rootFileFullPath != null) {
+		try {
+			if (targetStockOpt.isPresent()) {
+				TargetStockInfo targetStock = targetStockOpt.get();
 				if ((getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock).map(v -> Boolean.valueOf(((StringValue) v).getValue(targetStock))).orElse(false))) {
 					getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("INIT"));
 				}
-				try {
-					Path rootFile = Path.of(URI.create("file://" + rootFileFullPath));
-					LOGGER.info("Deleting file local copy: " + rootFile.toString());
-					boolean exist = Files.exists(rootFile);
-					if (exist) {
-						try {
-							Files.delete(rootFile);
-						} catch (IOException e) {
-							LOGGER.error(e, e);
+				getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock).ifPresent(rootFileValue -> {
+					try {
+						String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock));
+						if (rootFileFullPath != null) {
+	
+							Path rootFile = Path.of(URI.create("file://" + rootFileFullPath));
+							LOGGER.info("Deleting file local copy: " + rootFile.toString());
+							boolean exist = Files.exists(rootFile);
+							if (exist) {
+								try {
+									Files.delete(rootFile);
+								} catch (IOException e) {
+									LOGGER.error(e, e);
+								}
+							}
 						}
+					} catch (Exception e1) {
+						LOGGER.error("Can't create path from " + rootFileValue, e1);
 					}
-				} catch (Exception e1) {
-					LOGGER.error("Can't create path from " + rootFileFullPath, e1);
-				}
+				});
 			}
+		} catch(Exception e) {
+			LOGGER.warn(e);
 		}
 	}
 	

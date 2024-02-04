@@ -53,13 +53,16 @@ public class OrOperation extends FlowOperation {
 	}
 
 	@Override
-	protected Boolean stopOperandsCalculationsOnError() {
+	protected Boolean stopOperandsCalculationsOnError(Exception exception, Operation operand) {
+		LOGGER.info(this.getReference() + " will continue on operand '" + operand.getReference() + "' calculation with exception: " + exception); 
 		return false;
 	}
 	
 	@Override
-	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> call) {
-		return false;
+	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Operation operand, Value<?> callRes) {
+		boolean isTrue = isTrue(stockInfo, callRes);
+		LOGGER.info(this.getReference() + " will stop on operand '" + operand.getReference() + "' calculation if true==" + isTrue + " from result: " + callRes);
+		return isTrue; //stop if true => true
 	}
 
 	@Override
@@ -94,6 +97,7 @@ public class OrOperation extends FlowOperation {
 				res = Optional.of(opiRes);
 				break;
 			}
+			LOGGER.info(this.getOperands().get(iCpt).getReference() + " is " + res + " in this: " + this.getReference());
 			if (iCpt < inputs.size() -1) iCpt++;
 		};
 		//return res.orElse(new DoubleMapValue()); //orElse empty DoubleMapValue for convenience as this the most likely expected output

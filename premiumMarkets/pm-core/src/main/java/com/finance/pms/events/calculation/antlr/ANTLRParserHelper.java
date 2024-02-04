@@ -93,9 +93,9 @@ public abstract class ANTLRParserHelper {
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 			String line = null;
-			parsedLine = ((line = bufferedReader.readLine()) != null)?line:"";
+			parsedLine = ((line = bufferedReader.readLine()) != null)? line : "";
 			while ((line = bufferedReader.readLine()) != null) {
-				parsedLine = parsedLine + "\n"+ line;
+				parsedLine = parsedLine + "\n" + line;
 			}
 			inputStream.reset();
 		} catch (IOException e1) {

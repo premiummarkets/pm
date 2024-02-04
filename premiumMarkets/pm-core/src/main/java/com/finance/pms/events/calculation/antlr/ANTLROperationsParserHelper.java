@@ -120,7 +120,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 
 			CommonTokenStream tokens = new  CommonTokenStream(lexer);
 			ParameterizedOperationsParser parser = new ParameterizedOperationsParser(tokens, state);
-			EditorOpsParserDelegate editorParserDelegate = new EditorOpsParserDelegate(tokens, state,  nativeOpEditorDescrs, userCurrentOpEditorDescrs);
+			EditorOpsParserDelegate editorParserDelegate = new EditorOpsParserDelegate(tokens, state, nativeOpEditorDescrs, userCurrentOpEditorDescrs);
 			parser.setParserDelegate(editorParserDelegate);
 			OpsParserErrorReporter parserErrorReport = new OpsParserErrorReporter(parser, exceptions, parsedLine);
 			parser.setMyErrorReporter(parserErrorReport);
@@ -212,19 +212,19 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							if (exceptionHolder.getNeedsClosing() != null) {
 								altPrioListForTokType(priorityList, AltType.SUGGESTION, 10)
 								.add(new Alternative(
-										AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken()+"" , "Syntax suggestion", 
+										AltType.SUGGESTION, TokenType.SYNTAX, exceptionHolder.getExpectedToken()+"" , "Syntax suggestion", 
 										"Insert a '" + exceptionHolder.getExpectedToken() + "' to close " + exceptionHolder.getNeedsClosing().getName() + " statement.", null, position));
 								if (exceptionHolder.getNeedsClosing().undeterministicParamCount()) {
 									altPrioListForTokType(priorityList, AltType.SUGGESTION, 10)
 									.add(new Alternative(
-											AltType.SUGGESTION,TokenType.SYNTAX, ",", "Syntax suggestion", 
+											AltType.SUGGESTION, TokenType.SYNTAX, ",", "Syntax suggestion", 
 											"Insert a comma to add up arguments to " + exceptionHolder.getNeedsClosing().getName(), null, position));
 								}
 							}
 						} else {//Other syntax
 							altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).
 							add(new Alternative(
-									AltType.SUGGESTION,TokenType.SYNTAX, exceptionHolder.getExpectedToken() , 
+									AltType.SUGGESTION, TokenType.SYNTAX, exceptionHolder.getExpectedToken() , 
 									"Syntax suggestion", "Insert a '" + exceptionHolder.getExpectedToken() + "'", null, position));
 						}
 					} 
@@ -247,13 +247,13 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						int[] position = new int[]{exception.line, exception.charPositionInLine-1+ pce.getParsedTxt().length()-1};
 						switch (pce.getQualifier()) {
 						case TYPE:
-							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE,TokenType.DELETE, pce.getParsedTxt(), "Invalid entry", pce.getErrorMsg(), null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE, TokenType.DELETE, pce.getParsedTxt(), "Invalid type", pce.getErrorMsg(), null, position));
 							break;
 						case SYNTAX:
-							altPrioListForTokType(priorityList, AltType.DELETE, 4).add(new Alternative(AltType.DELETE,TokenType.DELETE, pce.getParsedTxt(), "Invalid entry", pce.getErrorMsg(), null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 4).add(new Alternative(AltType.DELETE, TokenType.DELETE, pce.getParsedTxt(), "Invalid syntax", pce.getErrorMsg(), null, position));
 							break;
 						case TOOMANYARGS:
-							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE,TokenType.DELETE, pce.getParsedTxt(), "Invalid entry", pce.getErrorMsg(), null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE, TokenType.DELETE, pce.getParsedTxt(), "Invalid arg", pce.getErrorMsg(), null, position));
 							break;
 						case NOTENOUGHARGS :
 						{
@@ -277,7 +277,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							String currentOpStr = (((InvalidOperationException) exception).token != null)?((InvalidOperationException) exception).token.getText():null;
 							currentOpStr = (currentOpStr != null)?currentOpStr: " ";
 							int[] position = new int[]{exception.line, exception.charPositionInLine + currentOpStr.length()-1-1};
-							altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry",  " Invalid operation EOF", null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE, TokenType.DELETE, " ", "Invalid operation",  " Invalid operation EOF", null, position));
 						}
 					}
 					else if (exception instanceof MissingOutputSelectorException) {
@@ -289,14 +289,14 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						currentOutput = (currentOutput == null || currentOutput.equals("<EOF>"))?"":currentOutput;
 						if (currentOp == null) {
 							int[] position = new int[]{exception.line, exception.charPositionInLine -1};
-							altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry",  "Invalid entry", null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, " ", "Invalid condition",  "Invalid condition", null, position));
 						} else
 							if (expected != null && expected.length > 0) {
 
 								int[] position = new int[]{exception.line, exception.charPositionInLine -1};
-								Boolean foundMatching = addSuggsAsAlts(alternatives, currentOutput , position, "Output selector option required for "+currentOp.getName()+" : ", expected);
+								Boolean foundMatching = addSuggsAsAlts(alternatives, currentOutput , position, "Output selector option required for " + currentOp.getName() + " : ", expected);
 								if (!foundMatching) {
-									altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry", "Condition on historical output excepted.", null, position));
+									altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, currentOutput, "Invalid operation", "Condition on historical output excepted.", null, position));
 								}
 								if (!alternatives.isEmpty()) {
 									altPrioListForTokType(priorityList, AltType.SUGGESTION, 0).addAll(alternatives);
@@ -304,12 +304,12 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							} 
 							else {
 								int[] position = new int[]{exception.line, exception.charPositionInLine -1};
-								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry",  currentOp.getName() + " doesn't support output selectors", null, position));
+								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, currentOutput, "Invalid selector", currentOp.getName() + " doesn't support output selectors", null, position));
 							}
 					}
 					else {
 						LOGGER.warn("Unmatched exception for suggestions " + exceptionHolder);
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry", (exception != null)?exception.toString():" ", null, new int[]{0, 0}));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, " ", "Invalid character", (exception != null)?exception.toString():" ", null, new int[]{0, 0}));
 					}
 
 				//Errors
@@ -318,7 +318,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						Token token = ((InvalidOperationException) exception).token;
 						String currentOpStr = (token !=null && token.getText() != null)? token.getText() : " ";
 						int[] position = new int[]{exception.line, exception.charPositionInLine - (currentOpStr.length() + 1)};
-						altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry", " Invalid operation", null, position));
+						altPrioListForTokType(priorityList, AltType.DELETE, 5).add(new Alternative(AltType.DELETE, TokenType.DELETE, " ", "Invalid operation", " Invalid operation", null, position));
 					}
 					else if (exception instanceof NoViableAltException) {///NoViableAltException + !EOF  : DELETE FILTER (-SYNTAX)deleteFilter
 						//Nothing
@@ -329,13 +329,13 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 						int[] position = new int[]{exception.line, exception.charPositionInLine + pce.getParsedTxt().length()-1};
 						switch (pce.getQualifier()) {
 						case TYPE:
-							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE,TokenType.DELETE, pce.getParsedTxt(), "Invalid entry", pce.getErrorMsg(), null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE, TokenType.DELETE, pce.getParsedTxt(), "Invalid type", pce.getErrorMsg(), null, position));
 							break;
 						case SYNTAX:
-							altPrioListForTokType(priorityList, AltType.DELETE, 4).add(new Alternative(AltType.DELETE,TokenType.DELETE, pce.getParsedTxt(), "Invalid entry", pce.getErrorMsg(), null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 4).add(new Alternative(AltType.DELETE, TokenType.DELETE, pce.getParsedTxt(), "Invalid syntax", pce.getErrorMsg(), null, position));
 							break;
 						case TOOMANYARGS:
-							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE,TokenType.DELETE, pce.getParsedTxt(), "Invalid entry", pce.getErrorMsg(), null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 2).add(new Alternative(AltType.DELETE, TokenType.DELETE, pce.getParsedTxt(), "Invalid arg", pce.getErrorMsg(), null, position));
 							break;	
 							//end of line cases but doesn't show as such as the position is set at the start of the first arg
 						case NOTENOUGHARGS :
@@ -348,8 +348,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 								int[] commaPosition = new int[]{exception.line, exception.charPositionInLine + pce.getParsedTxt().length() -1};
 								altPrioListForTokType(priorityList, AltType.SUGGESTION, 0)
 								.add(
-										new Alternative(AltType.SUGGESTION,TokenType.SYNTAX, ",",  "Syntax suggestion", "Insert a Comma to add up arguments to "+currentOp.getName(), null, commaPosition)
-										);	
+										new Alternative(AltType.SUGGESTION, TokenType.SYNTAX, ",",  "Syntax suggestion", "Insert a Comma to add up arguments to " + currentOp.getName(), null, commaPosition)
+									);	
 							}
 							break;
 						}  
@@ -359,15 +359,15 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 					} 
 					else if  (exception instanceof MissingTokenException)  {
 						int[] position = new int[]{exception.line, exception.charPositionInLine};
-						altPrioListForTokType(priorityList, AltType.DELETE, 1).add(new Alternative(AltType.DELETE,TokenType.DELETE, exceptionHolder.getExpectedToken(), "Invalid entry",  "'"+exceptionHolder.getExpectedToken()+"' expected.", null, position));
+						altPrioListForTokType(priorityList, AltType.DELETE, 1).add(new Alternative(AltType.DELETE, TokenType.DELETE, exceptionHolder.getExpectedToken(), "Invalid entry",  "'" + exceptionHolder.getExpectedToken() + "' expected.", null, position));
 					}
 					else if (exception instanceof UnwantedTokenException) {
 						int[] position = new int[]{exception.line, exception.charPositionInLine};
-						altPrioListForTokType(priorityList, AltType.DELETE, 1).add(new Alternative(AltType.DELETE,TokenType.DELETE, exception.c+"", "Invalid entry",  "'"+exceptionHolder.getExpectedToken()+"' expected.", null, position));
+						altPrioListForTokType(priorityList, AltType.DELETE, 1).add(new Alternative(AltType.DELETE, TokenType.DELETE, exception.c + "", "Invalid character",  "'" + exceptionHolder.getExpectedToken() + "' expected.", null, position));
 					} 
 					else if (exception instanceof EarlyExitException) {
 						int[] position = new int[]{exception.line, exception.charPositionInLine};
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, ""+(char)exception.c, "Invalid entry", "", null, position));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, "" + (char)exception.c, "Invalid ending", "", null, position));
 					}  
 					else if (exception instanceof MissingOutputSelectorException) {
 						MissingOutputSelectorException missingOutputSelectorException = (MissingOutputSelectorException) exception;
@@ -380,18 +380,18 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 							position =  new int[]{exception.line, exception.charPositionInLine};
 						} 
 						if (currentOp == null) {
-							altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry", "Invalid entry ", null, position));
+							altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, " ", "Invalid entry", "Invalid entry ", null, position));
 						} else
 							if (expected != null && expected.length > 0) {
-								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry","Invalid output selector for " + currentOp.getName(), null, position));
+								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, currentOutput, "Invalid selector", "Invalid output selector for " + currentOp.getName(), null, position));
 							} else {
-								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, currentOutput, "Invalid entry",  currentOp.getName() + " doesn't support output selectors", null, position));
+								altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, currentOutput, "Invalid selector", currentOp.getName() + " doesn't support output selectors", null, position));
 							}
 
 					}
 					else {
 						LOGGER.warn("Unmatched exception for errors " + exceptionHolder);
-						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, " ", "Invalid entry", (exception != null)?exception.toString():" ", null, new int[]{0, 0}));
+						altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, " ", "Invalid entry", (exception != null)?exception.toString():" ", null, new int[]{0, 0}));
 					}
 
 				}		
@@ -419,7 +419,7 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			}
 
 			if (deleteFilter && !suggFilter.isEmpty()) {
-				altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE,TokenType.DELETE, suggFilter, "Invalid entry", "Please delete", null, filterPosition));
+				altPrioListForTokType(priorityList, AltType.DELETE, 0).add(new Alternative(AltType.DELETE, TokenType.DELETE, suggFilter, "Invalid entry", "Please delete", null, filterPosition));
 			}
 
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Final position : "+state.tokenStartLine+", "+state.tokenStartCharPositionInLine);
@@ -427,11 +427,11 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 			if (parsedLine.length() > finalCaretPosition) {
 				String excedent = parsedLine.substring(finalCaretPosition, parsedLine.length());
 				altPrioListForTokType(priorityList, AltType.DELETE, 0)
-				.add(new Alternative(AltType.DELETE,TokenType.DELETE, excedent, "Invalid entry", "Please delete", null, new int[]{state.tokenStartLine, state.tokenStartCharPositionInLine+excedent.length()}));
+				.add(new Alternative(AltType.DELETE, TokenType.DELETE, excedent, "Invalid entry", "Please delete", null, new int[]{state.tokenStartLine, state.tokenStartCharPositionInLine+excedent.length()}));
 			}
 
 			//NextToken
-			NextToken nextToken= null;
+			NextToken nextToken = null;
 			if (replay) {
 				nextToken = checkNextToken(new StringInputStream(parsedLine.substring(0, parsedLine.length()-1)));
 				if (nextToken != null) {
@@ -450,8 +450,8 @@ public class ANTLROperationsParserHelper extends ANTLRParserHelper {
 				}
 			}
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Priority list : "+priorityList);
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Next token alternatives : "+nextToken);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Priority list: " + priorityList);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Next token alternatives: " + nextToken);
 
 			return nextToken;
 

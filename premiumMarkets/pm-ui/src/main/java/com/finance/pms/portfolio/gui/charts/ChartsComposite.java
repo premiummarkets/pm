@@ -169,11 +169,15 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 
-		this.slidingEndDate = maxDate();
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(this.slidingEndDate);
-		calendar.add(Calendar.YEAR, -1);
-		this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
+		try {
+			this.slidingEndDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20221003"));//maxDate();
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(this.slidingEndDate);
+			calendar.add(Calendar.YEAR, -1);
+			this.slidingStartDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20180903"));//DateFactory.midnithDate(calendar.getTime());
+		} catch (ParseException e) {
+			LOGGER.error(e, e);
+		}
 
 		this.logComposite = logComposite;
 		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHighlighted(), logComposite);
@@ -701,15 +705,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						});
 					}
 					//end
-					{
-//						endDateLabel = new Label(slidingGroup, SWT.NONE);
-//						GridData endOneYearBackData = new GridData(SWT.END, SWT.FILL,false, false);
-//						endOneYearBackData.horizontalSpan=2;
-//						endDateLabel.setLayoutData(endOneYearBackData);
-//						endDateLabel.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
-//						endDateLabel.setBackground(innerBgColor);
-//						endDateLabel.setFont(MainGui.DEFAULTFONT);
-							
+					{							
 						endDateButton = new Button(slidingGroup, SWT.PUSH);
 						GridData endOneYearBackData = new GridData(SWT.BEGINNING, SWT.FILL,false, false);
 						endOneYearBackData.horizontalSpan=2;

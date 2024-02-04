@@ -22,8 +22,8 @@ public class LogOperation extends Operation {
 	}
 
 	public LogOperation() {
-		this("log", "Pass through which logs an additional message.",
-				new StringOperation("string", "message", "message to log", new StringValue("hello world!")),
+		this("log", "Pass through which logs an additional message. The _ character will be replaced with white spaces.",
+				new StringOperation("string", "message", "Message to log", new StringValue("hello_world")),
 				new NullOperation("passThroughValue"));
 	}
 

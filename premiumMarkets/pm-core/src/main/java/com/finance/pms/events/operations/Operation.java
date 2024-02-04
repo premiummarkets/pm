@@ -44,7 +44,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -308,18 +307,18 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 											output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredShiftFromThis, Operation.this);
 											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart);
 											if (!isForbidThisParameterValue()) operand.setParameter(output);
-											stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, output));
+											stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, operand, output));
 											return output;
 										} else {
 											return operand.emptyValue();
 										}
 									} catch (StackException e) {
 										myOutputReferenceUnfinished.setHasFailed(true);
-										stopCalcOnErr.set(stopOperandsCalculationsOnError());
+										stopCalcOnErr.set(stopOperandsCalculationsOnError(e, operand));
 										throw e;
 									} catch (Exception e) {
 										myOutputReferenceUnfinished.setHasFailed(true);
-										stopCalcOnErr.set(stopOperandsCalculationsOnError());
+										stopCalcOnErr.set(stopOperandsCalculationsOnError(e, operand));
 										throw new StackException("Failing operand (" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(targetStock), thisCallStack, e);
 									} finally {
 										synchronized (targetStock) {
@@ -341,7 +340,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								Value<?> callOutput = callable.call();
 								//stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, callOutput));
 								if (stopCalcOnCond.get()) {
-									throw new RuntimeException("Stop on condition: " + callOutput);
+									//throw new RuntimeException("Stop on condition: " + callOutput);
+									operandsOutputs.set(i, callOutput);
+									i = nbOperands; //break;
 								} else {
 									operandsOutputs.set(i, callOutput);
 								}
@@ -361,13 +362,17 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					
 				}
 				
-				IntStream.range(0, nbOperands).forEach(j -> {
+
+				//IntStream.range(0, nbOperands).forEach(j -> {
+				for (int j = 0; j < nbOperands; j++) {
 					try {
 						Future<Value<?>> future = futures.get(j);
 						if (future != null) {
 							Value<?> output = future.get();
 							if (stopCalcOnCond.get()) {
-								throw new RuntimeException("Stop on condition: " + output);
+								//throw new RuntimeException("Stop on condition: " + output);
+								operandsOutputs.set(j, output);
+								j = nbOperands; //break;
 							} else {
 								operandsOutputs.set(j, output);
 							}
@@ -379,7 +384,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 							operandsOutputs.set(j, getOperands().get(j).emptyValue());
 						}
 					}
-				});
+				}
+				//);
 				
 				//Operands chart cache
 				if (isInChart) {
@@ -438,11 +444,12 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	}
 	
-	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Value<?> call) {
+	protected boolean stopOperandsCalculationsOnCondition(TargetStockInfo stockInfo, Operation operand, Value<?> call) {
 		return false;
 	}
 
-	protected Boolean stopOperandsCalculationsOnError() {
+	protected Boolean stopOperandsCalculationsOnError(Exception exception, Operation operand) {
+		LOGGER.error(this.getReference() + " will fail on operand '" + operand.getReference() + "' calculation: " + exception);  
 		return true;
 	}
 

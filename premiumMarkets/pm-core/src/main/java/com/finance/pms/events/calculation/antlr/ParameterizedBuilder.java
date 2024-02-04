@@ -526,10 +526,6 @@ public abstract class ParameterizedBuilder extends Observable {
 		move(identifier, userOperationsDir.getAbsolutePath(), disabledUserOperationsDir.getAbsolutePath(), false);
 	}
 
-	private void moveToEnabled(String identifier) {
-		move(identifier, disabledUserOperationsDir.getAbsolutePath(), userOperationsDir.getAbsolutePath(), false);
-	}
-
 	private Boolean move(String identifier, String from, String to, boolean tamper) {
 		File origFile = new File(from + File.separator + identifier + ".txt");
 		File destFile = new File(to + File.separator + identifier + ".txt");
@@ -597,6 +593,20 @@ public abstract class ParameterizedBuilder extends Observable {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				LOGGER.error(e,e);
+			}
+		}
+	}
+	
+	public Operation buildOneTimeOperation(String operationId, String formula) {
+		FormulaParser formulaParser = null;
+		try {
+			formulaParser = new FormulaParser(this, operationId, formula, false);
+			runParsing(formulaParser);
+			Operation operation = formulaParser.getBuiltOperation();
+			return operation;
+		} finally {
+			if (formulaParser != null) {
+				formulaParser.shutdown();
 			}
 		}
 	}

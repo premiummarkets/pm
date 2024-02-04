@@ -10,8 +10,10 @@ import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.VarOperation;
 import com.finance.pms.events.operations.nativeops.NullOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
 public class GetOperation extends VarOperation {
@@ -41,7 +43,13 @@ public class GetOperation extends VarOperation {
 		Value<?> defaultValue = inputs.get(1);
 		
 		Value<?> variableValue = targetStock.getHeapVar(variableName);
-		if (variableValue == null) variableValue = defaultValue; //TODO if default is NaN than this means orThrow and the value is needed -> Throw an Exception.
+		if (variableValue == null) {
+			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means orThrow and the value is needed -> Throw an Exception.
+					((NumberValue)defaultValue).getValue(targetStock).equals(Double.NaN)) {
+				throw new RuntimeException("Value needed and not provided for " + variableName);
+			}
+			variableValue = defaultValue;
+		}
 		
 		LOGGER.info(this.getReference() + ": " + variableName + ", " + variableValue);
 		return variableValue;

@@ -1548,11 +1548,11 @@ public class OperationBuilderComposite extends Composite {
 				styleRange.underlineColor = getDisplay().getSystemColor(SWT.COLOR_RED);
 				editor.setStyleRange(styleRange);
 			} else {
-				LOGGER.warn("Style out of range @ line " + lineNum + ", start column " + endLineOffset + ". Alternative : " + alternative);
+				LOGGER.warn("Style out of range @ line " + lineNum + ", start column " + endLineOffset + ". Alternative: " + alternative);
 			}
 
 			// error Msg
-			String syno = (alternative.getSynoptic() == null) ? "" : " : " + alternative.getSynoptic();
+			String syno = (alternative.getSynoptic() == null) ? "" : ": " + alternative.getSynoptic();
 			String addErrorTxt = "@ line " + lineNum + ", start column " + endLineOffset + " : " + alternative.getAltString() + "\n" + alternative.getDescription() + syno;
 
 			setErrorLabel(addErrorTxt.replaceAll("\n", Text.DELIMITER).replace(". ", "." + Text.DELIMITER));

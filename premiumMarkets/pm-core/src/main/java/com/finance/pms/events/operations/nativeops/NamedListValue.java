@@ -7,8 +7,9 @@ import java.util.stream.Collectors;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.google.gson.Gson;
 
-public class NamedListValue extends Value<Object> implements MultiValue {
+public class NamedListValue extends Value<Object> implements MultiValue, StringableValue {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(NamedListValue.class);
 	
@@ -57,6 +58,11 @@ public class NamedListValue extends Value<Object> implements MultiValue {
 			LOGGER.error(e,e);
 		}
 		return null;
+	}
+
+	@Override
+	public String getAsStringable() {
+		return new Gson().toJson(values, HashMap.class);
 	}
 
 

@@ -3,6 +3,7 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -16,7 +17,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 public class NamedListOperation extends Operation {
 	
 	public NamedListOperation() {
-		super("namedListOfThings","Named list of things (only implemented for numbers).");
+		super("namedListOfThings","Named list of things.");
 	}
 	
 	public NamedListOperation(String reference, String description) {
@@ -45,8 +46,10 @@ public class NamedListOperation extends Operation {
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		int size = inputs.size();
 		List<String> namesOps = inputs.stream().limit(size/2).map(v -> (String) v.getValue(targetStock)).collect(Collectors.toList());
-		double[] valuesOps = inputs.stream().skip(size/2).mapToDouble(v -> ((Number) v.getValue(targetStock)).doubleValue()).toArray();
-		return new NumberArrayValue(valuesOps, namesOps, 0);
+		List<Object> valuesOps = inputs.stream().skip(size/2).map(v -> (v.getValue(targetStock))).collect(Collectors.toList());
+		Map<String, Object> map = IntStream.range(0, namesOps.size()).mapToObj(i -> i).collect(Collectors.toMap(i -> namesOps.get(i), i -> valuesOps.get(i)));
+		return new NamedListValue(map);
+		//return new NumberArrayValue(valuesOps, namesOps, 0);
 	}
 
 
@@ -65,7 +68,7 @@ public class NamedListOperation extends Operation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return new NumberArrayValue();
+		return new NamedListValue();
 	}
 
 }

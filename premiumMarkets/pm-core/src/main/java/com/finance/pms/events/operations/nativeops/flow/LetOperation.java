@@ -26,10 +26,15 @@ public class LetOperation extends VarOperation {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
+	//Example of sub name selection: 
+	//	let("latestPeriod.period",env("ana.trainOp.latest"),NaN) => let("latestPeriod.period", {"period": 12, "modelId": "xxxx"}),NaN)
+	//	will let latestPeriod.period = 12
 	public LetOperation() {
-		this("let", "Let a name value pair in the heap",
-				new StringOperation("string", "variable", "variable name", new StringValue("mevar")),
-				new NullOperation("value"));
+		this("let", "Let a name value pair in the heap. "
+				+ "If the value passed is a named list of values and the let name is composite, the let value will be selected by its composite name from the value passed. "
+				+ "The returned value is the value that is let in the heap.",
+				new StringOperation("string", "variable", "variable name", new StringValue("compositeName")),
+				new NullOperation("valuePassed"));
 	}
 
 	public LetOperation(ArrayList<Operation> operands, String outputSelector) {

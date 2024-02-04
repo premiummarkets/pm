@@ -53,7 +53,7 @@ public class ListOperation extends Operation {
 
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
-		return this.toFormulae(targetStock);
+		return "lO" + this.getOperands().size();
 	}
 
 	@Override

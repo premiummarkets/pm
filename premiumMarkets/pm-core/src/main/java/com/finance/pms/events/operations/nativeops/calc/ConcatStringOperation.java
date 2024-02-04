@@ -27,7 +27,16 @@ public class ConcatStringOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String concatenation = inputs.stream()
-			.map(sv -> ((StringableValue)sv).getAsStringable())
+			.map(sv -> {
+				if (sv == null) {
+					throw new RuntimeException("Invalid inputs for concatenation: " + inputs);
+				}
+				else if (sv instanceof StringableValue) {
+					return ((StringableValue) sv).getAsStringable();
+				} else {
+					return sv.toString().replaceAll(" ", "_");
+				}
+			})
 			.reduce("", (a, e) -> a + e);	
 		return new StringValue(concatenation);
 	}

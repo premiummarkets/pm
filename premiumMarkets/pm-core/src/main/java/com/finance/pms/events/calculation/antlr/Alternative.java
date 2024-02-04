@@ -77,7 +77,7 @@ public class Alternative {
 
 	@Override
 	public String toString() {
-		return "@ line " + highLighPosition[0] + ", start column "+ highLighPosition[1]  +" : '" + altString + "' : " + description;
+		return "@ line " + highLighPosition[0] + ", start column " + highLighPosition[1] + ": '" + altString + "': " + description;
 	}
 
 	public String getSynoptic() {
