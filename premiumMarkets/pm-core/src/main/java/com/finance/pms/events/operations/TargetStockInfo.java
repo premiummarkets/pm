@@ -74,7 +74,7 @@ public class TargetStockInfo {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfo.class);
 	
-	private static Map<String, String> glogal = new HashMap<>();
+	private static Map<String, String> glogal = new ConcurrentHashMap<>();
 	
 	public class Output {
 
@@ -165,7 +165,7 @@ public class TargetStockInfo {
 	private List<Output> gatheredChartableOutputs;
 	private List<ChartedOutputGroup> chartedOutputGroups;
 	
-	private Map<String, Value<?>> heap = new HashMap<>();
+	private Map<String, Value<?>> heap = new ConcurrentHashMap<>();
 
 	private Map<OutputReference, EventsAnalyser> outputAnalysers;
 	private Set<Date> missingKeys = new HashSet<>();
@@ -223,53 +223,63 @@ public class TargetStockInfo {
 	}
 	
 	public static String letGlobalVar(String variableName, String variableValue) {
-		glogal.put(variableName, variableValue);
-		return variableValue;
+		synchronized (glogal) {
+			glogal.put(variableName, variableValue);
+			return variableValue;
+		}
 	}
 	
 	public static String getGlobalVar(String variableName) {
-		return glogal.get(variableName);
+		synchronized (glogal) {
+			return glogal.get(variableName);
+		}
+		
 	}
 	
 	//Supports Stringable Value and Map like Multivalue objects
 	public Value<?> letHeapVar(String variableName, Value<?> variableValue) {
 		
-		String[] nameSplit = variableName.split("\\.");
-		if (nameSplit.length > 1) { //Composite name
-			if (variableValue instanceof MultiValue) {
-				this.heap.put(nameSplit[0], variableValue);
-				Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
-				if (value == null) {
-					throw new RuntimeException("letHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
+		synchronized (heap) {
+			String[] nameSplit = variableName.split("\\.");
+			if (nameSplit.length > 1) { //Composite name
+				if (variableValue instanceof MultiValue) {
+					this.heap.put(nameSplit[0], variableValue);
+					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
+					if (value == null) {
+						throw new RuntimeException("letHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
+					}
+					return value;
+				} else {
+					LOGGER.warn("letHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 				}
-				return value;
-			} else {
-				LOGGER.warn("letHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 			}
+			
+			this.heap.put(variableName, variableValue);
+			return variableValue;
 		}
-		
-		this.heap.put(variableName, variableValue);
-		return variableValue;
 		
 	}
 	
 	public Value<?> getHeapVar(String variableName) {
 		
-		String[] nameSplit = variableName.split("\\.");
-		if (nameSplit.length > 1) { //Composite name
-			Value<?> variableValue = this.heap.get(nameSplit[0]);
-			if (variableValue instanceof MultiValue) {
-				Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
-				if (value == null) {
-					throw new RuntimeException("getHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
+		synchronized (heap) {
+			String[] nameSplit = variableName.split("\\.");
+			if (nameSplit.length > 1) { //Composite name
+				Value<?> variableValue = this.heap.get(nameSplit[0]);
+				if (variableValue instanceof MultiValue) {
+					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
+					if (value == null) {
+						throw new RuntimeException("getHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
+					}
+					return value;
+				} else {
+					LOGGER.warn("getHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 				}
-				return value;
-			} else {
-				LOGGER.warn("getHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 			}
+			
+			return this.heap.get(variableName);
 		}
 		
-		return this.heap.get(variableName);
 	}
 	
 	private Output getCalculatedOutputsCacheFor(OutputReference outputReference) {

@@ -13,7 +13,6 @@ import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
-import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
 public class GetOperation extends VarOperation {
@@ -46,9 +45,12 @@ public class GetOperation extends VarOperation {
 		if (variableValue == null) {
 			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means orThrow and the value is needed -> Throw an Exception.
 					((NumberValue)defaultValue).getValue(targetStock).equals(Double.NaN)) {
+				//LOGGER.warn(this.getReference() + ": No value for " + variableName + ", " + variableValue);
 				throw new RuntimeException("Value needed and not provided for " + variableName);
+			} else {
+				//LOGGER.warn(this.getReference() + ": Value is null for " + variableName + ", " + variableValue  + ". Using default: " + defaultValue);
+				variableValue = defaultValue;
 			}
-			variableValue = defaultValue;
 		}
 		
 		LOGGER.info(this.getReference() + ": " + variableName + ", " + variableValue);

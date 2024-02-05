@@ -109,14 +109,10 @@ public class MetaOperation extends Operation {
 	
 	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStock, Optional<String> userOperationName) {
-		//meta_*
-		//TODO find userParameterized \( -name "c_op_*" -o -name "meta_*" -o -name "k_training_*" \) -delete
 	}
 
 	@Override
 	public void interrupt() throws Exception {
-		//meta_*
-		//TODO find userParameterized \( -name "c_op_*" -o -name "meta_*" -o -name "k_training_*" \) -delete
 	}
 
 	@Override

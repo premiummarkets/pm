@@ -116,6 +116,8 @@ import com.finance.pms.threads.ConfigThreadLocal;
 
 public class OperationBuilderComposite extends Composite {
 
+	protected static final int BUTTONS_COLS_SPAN = 4;
+
 	public static MyLogger LOGGER = MyLogger.getLogger(OperationBuilderComposite.class);
 
 	private UserDialog dialog;
@@ -245,13 +247,13 @@ public class OperationBuilderComposite extends Composite {
 	private void initGui() {
 
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 3;
+		layout.numColumns = BUTTONS_COLS_SPAN;
 		this.setLayout(layout);
 
 		{
 			Label formulaReferenceLabel = new Label(this, SWT.NONE);
 			GridData labelLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-			labelLayoutData.horizontalSpan = 3;
+			labelLayoutData.horizontalSpan = BUTTONS_COLS_SPAN;
 			formulaReferenceLabel.setLayoutData(labelLayoutData);
 			formulaReferenceLabel.setText(formulaReferenceLabelTxt());
 			formulaReferenceLabel.setFont(MainGui.DEFAULTFONT);
@@ -259,7 +261,7 @@ public class OperationBuilderComposite extends Composite {
 
 			formulaReferenceCombo = new Combo(this, SWT.SINGLE | SWT.SIMPLE | SWT.V_SCROLL);
 			GridData refLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-			refLayoutData.horizontalSpan = 3;
+			refLayoutData.horizontalSpan = BUTTONS_COLS_SPAN;
 			formulaReferenceCombo.setLayoutData(refLayoutData);
 			formulaReferenceCombo.setFont(MainGui.CONTENTFONT);
 			String siteUrl = MainPMScmd.getMyPrefs().get("site.url", "none.com");
@@ -327,7 +329,7 @@ public class OperationBuilderComposite extends Composite {
 		{
 			Label editorLabel = new Label(this, SWT.NONE);
 			GridData labelLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-			labelLayoutData.horizontalSpan = 3;
+			labelLayoutData.horizontalSpan = BUTTONS_COLS_SPAN;
 			editorLabel.setLayoutData(labelLayoutData);
 			editorLabel.setText("Type in your formula (Alt+DownArrow for completion)");
 			editorLabel.setFont(MainGui.DEFAULTFONT);
@@ -335,7 +337,7 @@ public class OperationBuilderComposite extends Composite {
 
 			errorLabel = new Label(this, SWT.WRAP);
 			GridData errorLabelLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-			errorLabelLayoutData.horizontalSpan = 3;
+			errorLabelLayoutData.horizontalSpan = BUTTONS_COLS_SPAN;
 			errorLabelLayoutData.widthHint = 100;
 			errorLabel.setLayoutData(errorLabelLayoutData);
 			errorLabel.setText("");
@@ -344,7 +346,7 @@ public class OperationBuilderComposite extends Composite {
 
 			GridData editorLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			editor = new StyledText(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-			editorLayoutData.horizontalSpan = 3;
+			editorLayoutData.horizontalSpan = BUTTONS_COLS_SPAN;
 			editor.setLayoutData(editorLayoutData);
 			editor.setFont(MainGui.CONTENTFONT);
 			{
@@ -410,6 +412,32 @@ public class OperationBuilderComposite extends Composite {
 			});
 		}
 		addThisCompositeExtratButtons();
+		{
+
+			Button checkInUse = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			//layoutData.horizontalSpan = 3;
+			checkInUse.setLayoutData(layoutData);
+			checkInUse.setText("Usage of " + builderLabel());
+			checkInUse.setFont(MainGui.DEFAULTFONT);
+			checkInUse.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					handleCheckInUse();
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+
+		}
 		{
 
 			Button renameFormula = new Button(this, SWT.NONE);
@@ -764,6 +792,20 @@ public class OperationBuilderComposite extends Composite {
 		}
 	}
 	
+	protected synchronized void handleCheckInUse() {
+
+		String identifier = getFormatedReferenceTxt();
+		
+		Operation operation = parameterizedBuilder.getUserCurrentOperations().get(identifier);
+		if (operation == null) {
+			LOGGER.warn("No operation was found in User Current Operations for identifier: " + identifier);
+		} else {
+			List<Operation> using = parameterizedBuilder.checkInUse(operation);
+			openDialog(true, using.stream().map(o -> o.getReference()).reduce((a, e) -> e + ", " + a).orElse("none"), null);
+		}
+		
+	}
+	
 	protected synchronized void handleRename() {
 
 		String oldId = getFormatedReferenceTxt();
@@ -875,6 +917,7 @@ public class OperationBuilderComposite extends Composite {
 
 			Button createDefaultIndicator = new Button(this, SWT.CHECK);
 			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
+			layoutData.horizontalSpan = BUTTONS_COLS_SPAN -2;
 			createDefaultIndicator.setLayoutData(layoutData);
 			createDefaultIndicator.setText("Create Trend Calculator on Save");
 			createDefaultIndicator.setFont(MainGui.DEFAULTFONT);
@@ -1018,7 +1061,7 @@ public class OperationBuilderComposite extends Composite {
 
 		final String formula = formatedEditorTxt();
 		if (formula == null || formula.isEmpty()) {//Is valid?
-			openDialog(false, "Please fill in a valid formula", null);
+			openDialog(true, "Please fill in a valid formula", null);
 			isSaved=false;
 			LOGGER.info("Invalid formulae for " + identifier + ". Is saved: " + isSaved);
 		} else if (!hasChanged(identifier)) {//Has not Changed?
@@ -1076,7 +1119,7 @@ public class OperationBuilderComposite extends Composite {
 			NextToken checkNextToken = parameterizedBuilder.checkNextToken(formula);
 			if (checkNextToken != null) {
 				LOGGER.info("Invalid " + identifier + ". Is saved: " + isSaved);
-				openDialog(false, "Formula " + formula + " can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
+				openDialog(true, "Formula " + formula + " can't be saved.\n Please fill in a valid formula", checkNextToken.toString());
 				isSaved = false;
 			} else {
 				LOGGER.info("Adding formula to operation list: " + identifier + ". Is saved: " + isSaved);
@@ -1086,7 +1129,7 @@ public class OperationBuilderComposite extends Composite {
 
 		} catch (IOException e) {
 			LOGGER.info("An error occurred " + identifier + ". Is saved: " + isSaved);
-			openDialog(false, "Formula can't be saved.\n Please fill in a valid formula", e);
+			openDialog(true, "Formula can't be saved.\n Please fill in a valid formula", e);
 			isSaved = false;
 
 		} catch (Exception e) {

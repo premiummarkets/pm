@@ -91,8 +91,8 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 		{
 			Button duplicate = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
-			layoutData.horizontalSpan = 2;
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
+			layoutData.horizontalSpan = BUTTONS_COLS_SPAN -1;
 			duplicate.setLayoutData(layoutData);
 			duplicate.setText("Duplicate");
 			duplicate.setFont(MainGui.DEFAULTFONT);

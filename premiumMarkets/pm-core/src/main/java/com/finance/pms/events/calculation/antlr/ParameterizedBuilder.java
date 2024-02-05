@@ -387,7 +387,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	private List<Operation> checkInUse(Operation operation) {
+	public List<Operation> checkInUse(Operation operation) {
 
 		Map<String, Operation> currentOperationsMap = getCurrentOperations();
 		List<Operation> values = new ArrayList<Operation>(currentOperationsMap.values());

@@ -130,7 +130,7 @@ public class BarSettingsDialog {
 			GridData txtLayoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
 			evtOccSpanTxt.setLayoutData(txtLayoutData);
 			evtOccSpanTxt.setFont(MainGui.DEFAULTFONT);
-			evtOccSpanTxt.setText(""+barChartSettings.getMaxFill());
+			evtOccSpanTxt.setText("" + barChartSettings.getMaxFill());
 
 			Listener listener = new Listener() {
 				public void handleEvent(Event e) {
@@ -140,7 +140,7 @@ public class BarSettingsDialog {
 					} catch (NumberFormatException pe) {
 						UserDialog inst = new UserDialog(shell, pe.getMessage(), null);
 						inst.open();
-						evtOccSpanTxt.setText(""+barChartSettings.getMaxFill());
+						evtOccSpanTxt.setText("" + barChartSettings.getMaxFill());
 					}
 				}
 			};

@@ -236,7 +236,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		try {
 			lagAmount = getLagAmount(targetStock, getOperands());
 		} catch (Exception e) {
-			LOGGER.warn("Can't calculated the lag amount in order to append to the delta file. Will overwrite ..");
+			LOGGER.warn("Can't calculate the lag amount in order to append to the delta file. Will overwrite ..");
 			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("FALSE"));
 		}
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
