@@ -2,6 +2,7 @@ package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
 
+import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
@@ -25,7 +26,7 @@ public abstract class VarOperation extends Operation {
 
 	@Override
 	public Value<?> emptyValue() {
-		return null;
+		return new StringValue("noVarFound");
 	}
 
 	@Override

@@ -60,7 +60,8 @@ public class EnvOperation extends VarOperation {
 			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means orThrow and the value is needed -> Throw an Exception.
 					((NumberValue)defaultValue).getValue(targetStock).equals(Double.NaN)) {
 				//LOGGER.warn(this.getReference() + ": No value for " + variableName + ", " + envObject);
-				throw new RuntimeException("Value needed and not provided for " + variableName);
+				//throw new RuntimeException("Value needed and not provided for " + variableName); //Can't do this at it will mark this operation as failed
+				return this.emptyValue();
 			} else {
 				//LOGGER.warn(this.getReference() + ": Value is null for " + variableName + ", " + envObject + ". Using default: " + defaultValue);
 				envObject = defaultValue;

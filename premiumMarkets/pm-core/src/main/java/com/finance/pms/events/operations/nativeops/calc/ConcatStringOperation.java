@@ -29,7 +29,7 @@ public class ConcatStringOperation extends StringerOperation {
 		String concatenation = inputs.stream()
 			.map(sv -> {
 				if (sv == null) {
-					throw new RuntimeException("Invalid inputs for concatenation: " + inputs);
+					throw new RuntimeException("Invalid inputs for concatenation: " + inputs); //Can't do this at it will mark this operation as failed
 				}
 				else if (sv instanceof StringableValue) {
 					return ((StringableValue) sv).getAsStringable();
