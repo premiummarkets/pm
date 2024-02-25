@@ -17,7 +17,6 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventMapValue;
-import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.ArrayMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
@@ -35,7 +34,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
-public class ProfitOperation extends ArrayMapOperation implements MultiValuesOutput {
+public class ProfitOperation extends ArrayMapOperation {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(ProfitOperation.class);
 	
@@ -118,11 +117,6 @@ public class ProfitOperation extends ArrayMapOperation implements MultiValuesOut
 	
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return 0;
-	}
-
-	@Override
-	public int mainInputPosition() {
 		return 0;
 	}
 

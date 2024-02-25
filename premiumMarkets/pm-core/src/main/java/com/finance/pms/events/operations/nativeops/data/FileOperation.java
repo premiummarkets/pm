@@ -103,7 +103,6 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 	@Override
 	public int mainInputPosition() {
 		return ((NumberValue)getOperands().get(1).getOrRunParameter(null).orElseThrow()).getValue(null).intValue();
-		//return 0; //FIXME
 	}
 	
 	@Override

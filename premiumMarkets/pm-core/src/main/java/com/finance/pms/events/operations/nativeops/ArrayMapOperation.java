@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.calc.IndicatorStatsOperation;
 import com.finance.pms.events.operations.nativeops.calc.OProfitOperation;
 import com.finance.pms.events.operations.nativeops.calc.PortfolioOperation;
@@ -20,7 +21,7 @@ import com.finance.pms.events.operations.nativeops.ta.TalibAssemblerOperation;
 	IOsAssemblerOperation.class, IOsLooseAssemblerOperation.class, IndicatorStatsOperation.class, TalibAssemblerOperation.class, 
 	OProfitOperation.class, ProfitOperation.class, PortfolioOperation.class
 	})
-public abstract class ArrayMapOperation extends MapOperation {
+public abstract class ArrayMapOperation extends MapOperation implements MultiValuesOutput {
 	
 	public ArrayMapOperation() {
 		super("multi historical data", "Multiple Time series of real historical data or resulting of calculations");
@@ -45,6 +46,21 @@ public abstract class ArrayMapOperation extends MapOperation {
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((DoubleArrayMapValue)inputs.get(0));
+	}
+	
+	@Override
+	public String toFormulaeShort(TargetStockInfo targetStock) {
+		String thisShort = getOperationReference().substring(0,1) + getOperationReference().chars()
+						.filter(c -> Character.isUpperCase(c))
+						.mapToObj(cu -> (char) cu)
+						.reduce("", (r, e) -> r + e, (a, b) -> a + b);
+		//String opsFormulaeShort = super.toFormulaeShort(targetStock);
+		return thisShort; // + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
+	@Override
+	public int mainInputPosition() {
+		return 0;
 	}
 
 }

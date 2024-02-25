@@ -50,4 +50,12 @@ public class RequiredShiftWrapperOperation extends Operation {
 		return new DoubleMapValue();
 	}
 
+	@Override
+	public String toFormulaeShort(TargetStockInfo targetStock) {
+		String opsFormulaeShort = super.toFormulaeShort(targetStock);
+		return "w" + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
+	
+
 }

@@ -121,7 +121,7 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 
 
 	@Override
-	protected List<Operation> updateCaches(Operation operation, Optional<String> oldIdentifier) {
+	public List<Operation> updateCaches(Operation operation, Optional<String> oldIdentifier) {
 
 		List<Operation> actualCheckInUse = new ArrayList<Operation>();
 		if (oldIdentifier.isPresent()) { //Not a new operation

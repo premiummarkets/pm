@@ -60,7 +60,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
-		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName + "_";
+		assemblerGroupName = "ios" + (("NONE".equals(assemblerGroupName))?"":"-" + assemblerGroupName) + "_";
 		
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		Boolean allowLastColumnTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));

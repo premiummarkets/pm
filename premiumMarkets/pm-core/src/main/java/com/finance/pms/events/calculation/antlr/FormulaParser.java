@@ -366,7 +366,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser>, Clone
 
 	@Override
 	public String toString() {
-		return  operationName + " is missing " + missingReference;
+		return  operationName + " is missing " + missingReference + " in " + formula;
 	}
 
 	@Override

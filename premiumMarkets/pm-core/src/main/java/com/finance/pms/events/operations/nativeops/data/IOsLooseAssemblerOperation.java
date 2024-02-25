@@ -10,7 +10,6 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
@@ -21,7 +20,9 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.finance.pms.events.quotations.NoQuotationsException;
 
-public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements MultiValuesOutput {
+public class IOsLooseAssemblerOperation extends IOsAssemblerOperation {
+	
+	private static final int FIRST_INPUT = 2;
 	
 	public IOsLooseAssemblerOperation(String reference, String description, ArrayList<Operation> operands) {
 		super(reference, description, operands);
@@ -47,14 +48,14 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements
 
 	@Override
 	protected int firstInputIdx() {
-		return 2;
+		return FIRST_INPUT;
 	}
 
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		String assemblerGroupName = ((StringValue) inputs.get(0)).getValue(targetStock);
-		assemblerGroupName = ("NONE".equals(assemblerGroupName))?"":"ios-" + assemblerGroupName;
+		assemblerGroupName = "iosL" + (("NONE".equals(assemblerGroupName))?"":"-" + assemblerGroupName) + "_";
 		
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		
@@ -67,11 +68,6 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation implements
 			List<String> inputsOperandsRefs, List<? extends NumericableMapValue> developpedInputs, Boolean allowTrailingNaN)
 			throws NoQuotationsException, NotEnoughDataException {
 		return ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true).get(InputToArrayReturn.RESULTS);
-	}
-	
-	@Override
-	public int mainInputPosition() {
-		return 1;
 	}
 
 }

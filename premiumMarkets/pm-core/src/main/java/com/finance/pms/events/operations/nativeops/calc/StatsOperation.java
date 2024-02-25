@@ -327,10 +327,12 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
-		Operation operand0 = getOperands().get(0);
+		Operation period = getOperands().get(0);
+		Operation leniency = getOperands().get(1);
 		String thisShort = 
 				getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" +
-				((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
+				((StringableValue) period.getOrRunParameter(targetStock).orElse(new StringValue(period.toFormulaeShort(targetStock)))).getAsStringable() + "_" +
+				((StringableValue) leniency.getOrRunParameter(targetStock).orElse(new StringValue(leniency.toFormulaeShort(targetStock)))).getValue(targetStock).toString().substring(0,1);
 		return "st_" + thisShort;
 	}
 

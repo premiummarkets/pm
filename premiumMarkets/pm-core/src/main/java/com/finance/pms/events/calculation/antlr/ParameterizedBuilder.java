@@ -223,7 +223,7 @@ public abstract class ParameterizedBuilder extends Observable {
 						LOGGER.info("Updating usage of " + identifier);
 						replaceInUse(operation, identifier);
 					} catch (StackOverflowError e) {
-						throw new InstantiationException("Can't solve : " + formulaParser + ". The operation is calling its self. Please fix.");
+						throw new InstantiationException("Can't solve: " + formulaParser + ". The operation is calling its self. Please fix.");
 					}
 				}
 
@@ -234,10 +234,10 @@ public abstract class ParameterizedBuilder extends Observable {
 				getCurrentOperations().get(operation.getReference()).setDisabled(false);
 
 			} else {
-				throw new InstantiationException("Can't solve : " + formulaParser + ". Please fix.");
+				throw new InstantiationException("Can't solve: " + formulaParser + ". Please fix.");
 			}
 
-			updateCaches(operation, (isNewOp)?Optional.of(identifier):Optional.empty());
+			updateCaches(operation, (isNewOp)?Optional.empty():Optional.of(identifier));
 
 		} catch (Exception e) {
 			LOGGER.error(e, e);
@@ -592,7 +592,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				LOGGER.error(e,e);
+				LOGGER.error(e, e);
 			}
 		}
 	}
