@@ -49,7 +49,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -124,9 +126,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	private PortfolioComposite portfolioComposite;
 	private LogComposite logComposite;
+	private Map<String, ChartDisplayStrategy> chartDisplayStrategyCache;
 	private ChartDisplayStrategy chartDisplayStrategy;
 
-	private StripedCloseFunction stripedCloseFunction;
 	private List<SlidingPortfolioShare> currentTabShareList;
 
 	private Integer highligtedId;
@@ -169,15 +171,17 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 
-		try {
-			this.slidingEndDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20221003"));//maxDate();
+//		try {
+			this.slidingEndDate = maxDate(); 
+			//this.slidingEndDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20221003"));
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(this.slidingEndDate);
 			calendar.add(Calendar.YEAR, -1);
-			this.slidingStartDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20180903"));//DateFactory.midnithDate(calendar.getTime());
-		} catch (ParseException e) {
-			LOGGER.error(e, e);
-		}
+			this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
+			//this.slidingStartDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20180903"));
+//		} catch (ParseException e) {
+//			LOGGER.error(e, e);
+//		}
 
 		this.logComposite = logComposite;
 		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHighlighted(), logComposite);
@@ -186,12 +190,21 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.sliderSelection = false;
 
-		this.stripedCloseFunction = new StripedCloseRelativeToInvested(true, slidingStartDate, slidingEndDate);
 		this.initGUI();
+		
+		chartDisplayStrategyCache = new HashMap<>();
 		chartDisplayStrategy = new ChartIndicatorDisplay(this, logComposite); //new ChartPerfDisplay(this);
+		addChartDisplayStrategyCache(chartDisplayStrategy.getClass().getName(), chartDisplayStrategy);
 
 	}
-
+	
+	public ChartDisplayStrategy getChartDisplayStrategyCache(String name) {
+		return chartDisplayStrategyCache.get(name);
+	}
+	
+	public void addChartDisplayStrategyCache(String name, ChartDisplayStrategy chartDisplayStrategy) {
+		chartDisplayStrategyCache.put(name, chartDisplayStrategy);
+	}
 
 	protected TreeSet<EventInfo> initChartedEvtDefsTrendsSet() {
 		return new TreeSet<EventInfo>(new Comparator<EventInfo>() {
@@ -225,8 +238,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	void updateCharts(Boolean grantEventsUpdate) {
 
-		stripedCloseFunction.updateStartDate(slidingStartDate);
-		stripedCloseFunction.updateEndDate(slidingEndDate);
+		chartDisplayStrategy.getStripedCloseFunction().updateStartDate(slidingStartDate);
+		chartDisplayStrategy.getStripedCloseFunction().updateEndDate(slidingEndDate);
 
 		int previousSelection = retreivePreviousSelection();
 		if (previousSelection != -1) {
@@ -313,7 +326,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				chartFrame.add(rootHeavyPanel);
 
 				mainChartWraper = new ChartMain(ChartsComposite.DEFAULT_START_DATE, JFreeChartTimePeriod.DAY);
-				mainChartPanel = new ChartPanel(mainChartWraper.initChart(stripedCloseFunction), true, true, true, false, true) {
+				mainChartPanel = new ChartPanel(mainChartWraper.initChart(this.slidingStartDate, this.slidingEndDate), true, true, true, false, true) {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public void restoreAutoBounds(){
@@ -1223,12 +1236,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		return mainChartWraper;
 	}
 
-
-	public StripedCloseFunction getStripedCloseFunction() {
-		return stripedCloseFunction;
-	}
-
-
 	public List<SlidingPortfolioShare> getCurrentTabShareList() {
 		return currentTabShareList;
 	}
@@ -1239,13 +1246,11 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	void setStripedCloseFunction(ChartDisplayStrategy chartDisplayStrategy, StripedCloseFunction stripedCloseFunction) {
-		this.stripedCloseFunction = stripedCloseFunction;
+	void updateDisplay(ChartDisplayStrategy chartDisplayStrategy) {
 		updateButtonsToolTips(chartDisplayStrategy);
 	}
 
-	public void setStripedCloseFunction(StripedCloseFunction stripedCloseFunction) {
-		this.stripedCloseFunction = stripedCloseFunction;
+	public void updateDisplay() {
 		updateButtonsToolTips(this.chartDisplayStrategy);
 	}
 
@@ -1254,9 +1259,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartDisplayStrategy.updateButtonsToolTips();
 	}
 
-	//TODO Use a map and reuse the strategy instead of new so that u keep the state
 	public void setChartDisplayStrategy(ChartDisplayStrategy chartDisplayStrategy) {
-
+		
 		this.chartDisplayStrategy = chartDisplayStrategy;
 
 		//XXX XXX

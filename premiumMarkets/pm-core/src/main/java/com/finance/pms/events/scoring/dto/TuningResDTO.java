@@ -184,9 +184,11 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 
 	/**
-	 * Flog = Math.log(Math.abs(failureWeigh)/successWeigh); </br>
-	 * ROC is the rate of change of a bullish period (i.e. a predicted positive actual rate of change)
-	 * The weigh here is also out of the ROC
+	 * Flog will be = Math.log(Math.abs(failureWeigh)/successWeigh) </br>
+	 *  	=> Math.log(Math.abs(failedTotalROC)/successTotalROC) </br>
+	 * 		=> log(|failedRoc|/(totalROC-failedRoc)) </br>
+	 * ROC is the actual rate of change of a predicted bullish period
+	 * The weigh here is also out of the ROCs of the bullish periods
 	 * 
 	 * @return avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
 	 */
@@ -247,6 +249,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		}
 		variance = variance / nbBullishPeriods;
 		
+		//					avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
 		return new Double[]{avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance};
 	}
 

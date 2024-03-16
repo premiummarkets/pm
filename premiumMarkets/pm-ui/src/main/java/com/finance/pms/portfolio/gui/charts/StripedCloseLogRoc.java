@@ -31,7 +31,6 @@ package com.finance.pms.portfolio.gui.charts;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -41,6 +40,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -49,6 +49,9 @@ import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.functions.HouseTrendSmoother;
+import com.finance.pms.events.scoring.functions.InterpolatorSmoother;
+import com.finance.pms.events.scoring.functions.LinearInterpolatorSmoother;
+import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.TalibSmaSmoother;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
@@ -60,15 +63,17 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 	private NumberFormat numberFormat = new DecimalFormat("0.############ \u2030");
 	private Boolean rootAtZero;
 	private int period;
+	private Boolean normalize;
 
-	public StripedCloseLogRoc(Date arbitraryStartDate, Boolean rootAtZero, int period) {
+	public StripedCloseLogRoc(Date arbitraryStartDate, Date arbitraryEndDate, Boolean rootAtZero, int period, Boolean normalize) {
+		super(arbitraryStartDate, arbitraryEndDate);
 		this.rootAtZero = rootAtZero;
 		this.period = period;
-		updateStartDate(arbitraryStartDate);
+		this.normalize = normalize;
 	}
 
 	@Override
-	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public SortedMap<Date, Double> targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
 		Date endDate = getEndDate(stockQuotations);
@@ -83,12 +88,20 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 		}
 
 		try {
+			
+			InterpolatorSmoother interpolatorSmoother = new LinearInterpolatorSmoother();
+			data = interpolatorSmoother.smooth(data, false);
 
 			TalibSmaSmoother smaSmoother = new TalibSmaSmoother(period);
 			SortedMap<Date, double[]> smoothed = smaSmoother.smooth(data, false);
 
 			HouseTrendSmoother houseTrendSmoother = new HouseTrendSmoother();
 			SortedMap<Date, double[]> houseDerivation = houseTrendSmoother.smooth(smoothed, false);
+			
+			if (normalize) {
+				Normalizer<double[]> normalizer = new Normalizer<>(double[].class, startDate, endDate, -1, 1, 0);
+				houseDerivation = normalizer.normalised(houseDerivation);
+			}
 
 			startDate = (startDate.before(houseDerivation.firstKey()))? houseDerivation.firstKey() : startDate;
 			startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
@@ -96,27 +109,27 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 			return relativeCloses(startDate, endDate, houseDerivation);
 
 		} catch (Exception e) {
-			LOGGER.warn("Not enough data to calculate : "+stockQuotations.getStock());
-			return new Double[0];
+			LOGGER.warn("Not enough data to calculate : " + stockQuotations.getStock());
+			return new TreeMap<>();
 		}
 
 	}
 
-	private Double[] relativeCloses(Date startDate, Date endDate, SortedMap<Date, double[]> houseDerivation) {
+	private SortedMap<Date, Double> relativeCloses(Date startDate, Date endDate, SortedMap<Date, double[]> houseDerivation) {
 
-		List<Double> ret = new ArrayList<Double>();
+		SortedMap<Date, Double> ret = new TreeMap<>();
 
-		SortedMap<Date, double[]> tailMap = houseDerivation.tailMap(startDate);
+		SortedMap<Date, double[]> htTail = houseDerivation.tailMap(startDate);
 
-		double root = (rootAtZero)? tailMap.get(tailMap.firstKey())[0] : 0d;
-		Set<Date> keySet = tailMap.keySet();
+		double root = (rootAtZero)? htTail.get(htTail.firstKey())[0] : 0d;
+		Set<Date> keySet = htTail.keySet();
 		for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
 			Date date = iterator.next();
 			if (date.after(endDate)) break;
-			ret.add(houseDerivation.get(date)[0] - root);
+			ret.put(date, houseDerivation.get(date)[0] - root);
 		}
 
-		return ret.toArray(new Double[0]);
+		return ret;
 	}
 
 	@Override
@@ -136,10 +149,34 @@ public class StripedCloseLogRoc extends StripedCloseFunction {
 
 	@Override
 	public Date getArbitraryStartDateForCalculation(Stock stock) throws NoQuotationsException, NotEnoughDataException {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(arbitraryStartDate);
-		return QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), calendar, -period).getTime();
+		try {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(arbitraryStartDate);
+			return QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), calendar, -period).getTime();
+		} catch (NotEnoughDataException | IllegalArgumentException e) { //IllegalArgumentException FIXME the date zero should be before 1950 not 1970
+			LOGGER.warn(e);
+			return DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);
+		}
+	
 	}
+	
+	@Override
+	protected Date getStartDate(Quotations stockQuotations) {
+		Date startDate = arbitraryEndDate;
+		try {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(arbitraryStartDate);
+			startDate = QuotationsFactories.getFactory().incrementDate(stockQuotations.getStock(), Arrays.asList(QuotationDataType.CLOSE), calendar, -period).getTime();
+		} catch (NotEnoughDataException | IllegalArgumentException e) {
+			LOGGER.warn(e);
+			startDate = DataSource.getInstance().getFirstQuotationDateFromQuotations(stockQuotations.getStock());
+		}
+		startDate = (startDate.before(stockQuotations.getDate(0)))? stockQuotations.getDate(0) : startDate;
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("The start date is: " + startDate);
+		return startDate;
+	}
+	
+	
 
 	@Override
 	public NumberFormat getNumberFormat() {

@@ -110,6 +110,7 @@ import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder.InUseException;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder.ObsMsgType;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.portfolio.ShareListMgr;
 import com.finance.pms.portfolio.gui.ActionDialogForm;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -801,7 +802,9 @@ public class OperationBuilderComposite extends Composite {
 			LOGGER.warn("No operation was found in User Current Operations for identifier: " + identifier);
 		} else {
 			List<Operation> using = parameterizedBuilder.checkInUse(operation);
-			openDialog(true, using.stream().map(o -> o.getReference()).reduce((a, e) -> e + ", " + a).orElse("none"), null);
+			String UsingOperations = using.stream().filter(o -> !(o instanceof EventInfoOpsCompoOperation)).map(o -> o.getReference()).reduce((a, e) -> e + ", " + a).orElse("none");
+			String UsingIndicators = using.stream().filter(o -> (o instanceof EventInfoOpsCompoOperation)).map(o -> o.getReference()).reduce((a, e) -> e + ", " + a).orElse("none");
+			openDialog(true, "Operations: " + UsingOperations + "\nIndicators: " + UsingIndicators, null);
 		}
 		
 	}

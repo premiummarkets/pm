@@ -61,6 +61,7 @@ import com.finance.pms.datasources.shares.ShareDAO;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.currency.CurrencyConverter;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.portfolio.MonitorLevel;
 import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
@@ -253,7 +254,7 @@ public class GnuCashAdvPortfolioParser {
 			SortedSet<TransactionElement> transactionsForStock = PortfolioMgr.getInstance().getPortfolioDAO().loadOrphanTransactionReportFor(stock, account, DateFactory.getNowEndDate());
 			if (transactionsForStock.size() == 0) {
 				throw new NoResultException(
-						""+stock+"\n is in Portfolio "+newPortfolioName +" but no transaction was found in the database regarding the former.\n" +
+						stock + "\n is in Portfolio " + newPortfolioName + " but no transaction was found in the database regarding the former.\n" +
 						"\tPlease check and update the GNUCASH transaction report.\n");
 			}
 
@@ -317,7 +318,7 @@ public class GnuCashAdvPortfolioParser {
 		for (TransactionElement transactionElement : transactionsForStock) {
 			portfolio.rawAddTransaction(transactionElement);
 		}
-		return portfolio.addOrUpdateShareAtDayClose(stock, account, portfolioReportCurrency, DateFactory.getNowEndDate());
+		return portfolio.addOrUpdateShareAtDayClose(stock, account, portfolioReportCurrency, DateFactory.getNowEndDate(), MonitorLevel.INVESTED);
 
 	}
 

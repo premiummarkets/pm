@@ -196,7 +196,7 @@ public class Portfolio extends AbstractSharesList {
 
 	}
 
-	public PortfolioShare addOrUpdateShareAtDayClose(Stock stock, String account, Currency transactionCurrency, Date currentDate) {
+	public PortfolioShare addOrUpdateShareAtDayClose(Stock stock, String account, Currency transactionCurrency, Date currentDate, MonitorLevel mLevel) {
 
 		PortfolioShare portfolioShare = getOrCreatePortfolioShare(stock, transactionCurrency);
 		AlertsMgrDelegate alertsMgrDelegate = new AlertsMgrDelegate(portfolioShare);
@@ -204,6 +204,8 @@ public class Portfolio extends AbstractSharesList {
 		portfolioShare.setExternalAccount(account);
 		if (!portfolioShare.isOwned(currentDate, true)) {
 			portfolioShare.setMonitorLevel(MonitorLevel.NONE);
+		} else {
+			portfolioShare.setMonitorLevel(mLevel);
 		}
 		
 		return portfolioShare;

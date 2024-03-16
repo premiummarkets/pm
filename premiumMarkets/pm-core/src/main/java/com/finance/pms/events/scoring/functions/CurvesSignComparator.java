@@ -27,7 +27,6 @@ public class CurvesSignComparator implements CurvesComparator {
 		AtomicDouble cpt = new AtomicDouble(0);
 		Optional<Double> reduced = normalisedIdealData.entrySet().stream()
 				.map(e -> {
-
 					double[] actualArray = normalisedActualData.get(e.getKey());
 					double[] idealArray = e.getValue();
 					if (actualArray == null) return 0d;
@@ -45,8 +44,10 @@ public class CurvesSignComparator implements CurvesComparator {
 		return reduced.get()/cpt.doubleValue();
 	}
 
-	public double compare(SortedMap<Date, double[]> data, SortedMap<Date, double[]> refData) {
-		return this.compareNormalised(data, refData);
+	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
+		expected = trim(actual, expected);
+		actual = trim(expected, actual);
+		return this.compareNormalised(actual, expected);
 	}
 
 }

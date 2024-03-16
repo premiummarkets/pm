@@ -44,7 +44,9 @@ public enum MarketQuotationProviders_old {
 	GOOGLE (ProvidersTypes.GOOGLE, new GoogleSymbolNameResolver(), "google"),
 	INVESTIR (ProvidersTypes.INVESTIR, new InvestirSymbolNameResolver(), "investir"),
 	INFLATION (ProvidersTypes.INFLATION, new InvestirSymbolNameResolver(), "inflation"),
-	CURRENCY (ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency");
+	CURRENCY (ProvidersTypes.CURRENCY, new InvestirSymbolNameResolver(), "currency"),
+	INTERESTRATES (ProvidersTypes.INTERESTRATES, new InvestirSymbolNameResolver(), "interestrates"),
+	HOUSEPRICES (ProvidersTypes.HOUSEPRICES, new InvestirSymbolNameResolver(), "houseprices");
 	
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SharesListId.class);

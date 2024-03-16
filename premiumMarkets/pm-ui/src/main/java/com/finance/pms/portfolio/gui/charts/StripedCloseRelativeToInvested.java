@@ -34,10 +34,12 @@ import java.math.RoundingMode;
 import java.security.InvalidParameterException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
@@ -56,14 +58,13 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	Boolean includeMoneyOut;
 
 
-	public StripedCloseRelativeToInvested(Boolean includeMoneyOut, Date stratDate, Date endDate) {	
-		super(endDate);
-		this.arbitraryStartDate = stratDate;
+	public StripedCloseRelativeToInvested(Boolean includeMoneyOut, Date startDate, Date endDate) {	
+		super(startDate, endDate);
 		this.includeMoneyOut = includeMoneyOut;
 	}
 
 	@Override
-	public Number[] targetShareData(SlidingPortfolioShare portfolioShare, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public SortedMap<Date, Double> targetShareData(SlidingPortfolioShare portfolioShare, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		if (arbitraryStartDate != null && arbitraryEndDate != null) {
 
@@ -87,20 +88,21 @@ public class StripedCloseRelativeToInvested extends StripedCloseFunction {
 	}
 
 
-	private BigDecimal[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex, BigDecimal unitCost) {
+	private SortedMap<Date, Double> relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex, BigDecimal unitCost) {
 
-		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
+		SortedMap<Date, Double>  retA = new TreeMap<>();
 
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
 			BigDecimal value = BigDecimal.ZERO;
+			QuotationUnit quotationUnit = stockQuotations.get(i);
 			if (unitCost.compareTo(BigDecimal.ZERO) != 0) {
-				BigDecimal close = stockQuotations.get(i).getCloseSplit();
+				BigDecimal close = quotationUnit.getCloseSplit();
 				value = (close.subtract(unitCost).divide(unitCost.abs(), 10, RoundingMode.HALF_EVEN));
 			} 
-			retA.add(value);
+			retA.put(quotationUnit.getDate(), value.doubleValue());
 		}
 
-		return  retA.toArray(new BigDecimal[0]);
+		return  retA;
 	}
 
 	@Override

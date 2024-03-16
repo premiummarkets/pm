@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,7 +129,7 @@ public class OTFTuningFinalizer {
 	 * Periods are from inclusive, to exclusive.
 	 */
 	protected List<PeriodRatingDTO> validPeriods(Stock stock, Date startDate, Date endDate, SortedMap<Date, ? extends Number> qMap, Collection<EventValue> generatedEvents) 
-					throws NotEnoughDataException, InvalidAlgorithmParameterException {
+					throws NotEnoughDataException {
 
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 
@@ -240,8 +239,7 @@ public class OTFTuningFinalizer {
 	public TuningResDTO buildTuningRes(
 			Stock stock, Date startDate, Date endDate,
 			SortedMap<Date, ? extends Number> mapFromQuotationsClose,
-			Collection<EventValue> eventListForEvtDef) 
-					throws NoQuotationsException, NotEnoughDataException, InvalidAlgorithmParameterException {
+			Collection<EventValue> eventListForEvtDef) throws NoQuotationsException, NotEnoughDataException {
 		
 		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
 		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, startDate, endDate);

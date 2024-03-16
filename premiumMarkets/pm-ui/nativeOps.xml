@@ -127,14 +127,14 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="logOperation">
             <reference>log</reference>
-            <description>Pass through which logs an additional message.</description>
+            <description>Pass through which logs an additional message. The _ character will be replaced with white spaces.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>message</referenceAsOperand>
-                    <description>message to log</description>
+                    <description>Message to log</description>
                     <defaultValue xsi:type="stringValue">
-                        <stringValue>hello world!</stringValue>
+                        <stringValue>hello_world</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -774,7 +774,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="bandRatioNormalizerOperation">
             <reference>bandRNrmlzr</reference>
-            <description>Normalise to new center and amplitude keeping the original distance ratios to center</description>
+            <description>Normalise to new center and amplitude keeping the original distance ratios to center. Distance to centre ratio.</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>newcenter</reference>
@@ -1387,22 +1387,22 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="letOperation">
             <reference>let</reference>
-            <description>Let a name value pair in the heap</description>
+            <description>Let a name value pair in the heap. If the value passed is a named list of values and the let name is composite, the let value will be selected by its composite name from the value passed. The returned value is the value that is let in the heap.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>
                     <referenceAsOperand>variable</referenceAsOperand>
                     <description>variable name</description>
                     <defaultValue xsi:type="stringValue">
-                        <stringValue>mevar</stringValue>
+                        <stringValue>compositeName</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="nullOperation">
-                    <reference>value</reference>
-                    <description>value</description>
+                    <reference>valuePassed</reference>
+                    <description>valuePassed</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
@@ -1803,7 +1803,7 @@
                 </operand>
                 <operand xsi:type="nullOperation">
                     <reference>anyValue</reference>
-                    <description>Parameter values for each ?</description>
+                    <description>Parameter values for each ?. Should be a leaf operation with value representable as string like String, Number..</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

@@ -79,21 +79,28 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 	public ChartPerfDisplay(ChartsComposite chartTarget) {
 		super();
-		this.isShutDown = false;
 		this.chartTarget = chartTarget;
+		
+		StripedCloseFunction stripedCloseFunction = this.getStripedCloseFunction();
+		this.setStripedCloseFunction((stripedCloseFunction != null)?stripedCloseFunction:new StripedCloseRelativeToInvested(true, this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
+		
+		init(chartTarget);
+
+	}
+	
+	@Override
+	public void init(ChartsComposite chartTarget) {
+		isShutDown = false;
+		
 		populatePopups(chartTarget.getPopusGroup());
+		
 		this.chartTarget.getMainChartWraper()
 			.initMainPlot(
 					ChartMain.PERCENTAGE_FORMAT,
 					"No data available. Check that the portfolio stocks and sliding date ranges. There may be no quotations available."
 			);
 
-		//TODO keep object and state <= done?
-		//this.chartTarget.setStripedCloseFunction(this, new StripedCloseRelativeToStart(this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
-		StripedCloseFunction stripedCloseFunction = this.chartTarget.getStripedCloseFunction();
-		this.chartTarget.setStripedCloseFunction(this, (stripedCloseFunction != null)?stripedCloseFunction:new StripedCloseRelativeToInvested(true, this.chartTarget.getSlidingStartDate(), this.chartTarget.getSlidingEndDate()));
 		resetChart(true);
-
 	}
 
 	@Override
@@ -126,9 +133,9 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 				}
 			}
 
-			chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
-			chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+			this.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
+			this.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
+			chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), this.getStripedCloseFunction(), getIsApplyColor());
 
 			chartTarget.getMainChartWraper().highLightSerie(chartTarget.getHighligtedId(), 3);
 
@@ -229,8 +236,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						public void action() {
 
 							Boolean isIncludeMoneyOutSelected = true;
-							if (chartTarget.getStripedCloseFunction() instanceof StripedCloseRelativeToInvested) {
-								isIncludeMoneyOutSelected = ((StripedCloseRelativeToInvested) chartTarget.getStripedCloseFunction()).getIncludeMoneyOut();
+							if (ChartPerfDisplay.this.getStripedCloseFunction() instanceof StripedCloseRelativeToInvested) {
+								isIncludeMoneyOutSelected = ((StripedCloseRelativeToInvested) ChartPerfDisplay.this.getStripedCloseFunction()).getIncludeMoneyOut();
 							}
 
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
@@ -253,7 +260,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								@Override
 								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(uPrice.getSelection());
-									chartTarget.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0], chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+									ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseRelativeToInvested((Boolean)actionDialogForm.values[0], chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 									chartTarget.updateCharts(false);
 								}
 							};
@@ -268,7 +275,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 						@Override
 						public void action() {
-							chartTarget.setStripedCloseFunction( new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+							ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 							chartTarget.updateCharts(false);
 						}
 					}),
@@ -281,7 +288,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 							final Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
 							zeroBut.setBackground(MainGui.pOPUP_BG);
 							zeroBut.setFont(MainGui.DEFAULTFONT);
-							zeroBut.setText("Start all from 0");
+							zeroBut.setText("Adjust start all from 0");
 							zeroBut.setToolTipText("If selected, the resulting ROCS will all be starting from 0 at the start of the period and than be drawn relative to this point.\nIf not the resulting ROCs will naturally oscillate around 0.");
 							zeroBut.setSelection(false);
 							final Text smthPeriodTxt = new Text(actionDialogForm.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
@@ -300,24 +307,33 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 									if (smthPeriodTxt.getText().equals(pString)) smthPeriodTxt.setText("");
 								}
 							});
+							final Button normTick =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
+							normTick.setBackground(MainGui.pOPUP_BG);
+							normTick.setFont(MainGui.DEFAULTFONT);
+							normTick.setText("Normalise outputs");
+							normTick.setToolTipText("All outputs will be normalise between -1 and 1 before being added to the chart.");
+							normTick.setSelection(true);
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(zeroBut.getSelection());
 									String text = smthPeriodTxt.getText();
 									Integer pSmth;
+									Boolean normalize = normTick.getSelection();
 									try {
 										pSmth = Integer.valueOf(text);
 										actionDialogForm.values[1] = pSmth;
+										actionDialogForm.values[2] = normalize;
 									} catch (NumberFormatException e) {
 										pSmth = StripedCloseLogRoc.DEFAULTLOGROCSMTH;
 									}
-									chartTarget.setStripedCloseFunction(new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), (Boolean)actionDialogForm.values[0], pSmth));
+									//Date slidingStartDateAdjusted = DateUtils.addDays(chartTarget.getSlidingStartDate(), -pSmth);
+									ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), (Boolean) actionDialogForm.values[0], pSmth, normalize));
 									chartTarget.updateCharts(false);
 								}
 							};
 
-							actionDialogForm.setControl(zeroBut, smthPeriodTxt);
+							actionDialogForm.setControl(zeroBut, smthPeriodTxt, normTick);
 							actionDialogForm.setAction(actionDialogAction);
 							actionDialogForm.open();
 
@@ -336,7 +352,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 								symbolSplit = refereeRef.split("\\|\\|-\\|\\|")[0];
 								isinSplit = refereeRef.split("\\|\\|-\\|\\|")[1];
 							} catch (Exception e) {
-								LOGGER.warn("Invalid previous referee : "+refereeRef);
+								LOGGER.warn("Invalid previous referee: " + refereeRef);
 							}
 
 							final String previousSymbol = symbolSplit;
@@ -364,6 +380,14 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 						}
 					}),
+					new TransfoInfo("Normalized", new ActionDialogAction() {
+
+						@Override
+						public void action() {
+							ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseNormalized(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+							chartTarget.updateCharts(false);
+						}
+					}),
 					new TransfoInfo("Real Price", new ActionDialogAction() {
 
 						@Override
@@ -375,7 +399,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 								@Override
 								public void action() {
-									chartTarget.setStripedCloseFunction(new StripedCloseRealPrice());
+									ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseRealPrice(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 									chartTarget.updateCharts(false);
 								}
 							};
@@ -397,7 +421,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 					final Set<TransfoInfo> selectTransfo = new HashSet<TransfoInfo>();
 					for (TransfoInfo transfoInfo : transfos) {
-						if (chartTarget.getStripedCloseFunction().lineToolTip().toLowerCase().contains(transfoInfo.info().toLowerCase())) {
+						if (ChartPerfDisplay.this.getStripedCloseFunction().lineToolTip().toLowerCase().contains(transfoInfo.info().toLowerCase())) {
 							selectTransfo.add(transfoInfo);
 						}
 					}
@@ -498,7 +522,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			if (refereeQuotations != null && refereeQuotations.size() != 0) {//Initialised
 
 				try {
-					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+					this.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 				} catch (InvalidAlgorithmParameterException e) {
 					LOGGER.error("",e);
 				}
@@ -510,7 +534,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 					loadRefereeQuotations(stock);
 				} catch (Exception e) {
 					LOGGER.warn("Unable to initialise referee "+previousSymbol+ " " + previousIsin);
-					chartTarget.setStripedCloseFunction(new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+					this.setStripedCloseFunction(new StripedCloseRelativeToStart(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 				}
 			}
 
@@ -524,7 +548,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 		try {
 			if (null == stock) throw new InvalidAlgorithmParameterException("Referee can't be null");
 			refereeQuotations  = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, ChartsComposite.DEFAULT_START_DATE, DateFactory.getNowEndDate(), true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
-			chartTarget.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+			this.setStripedCloseFunction(new StripedCloseRelativeToReferee(refereeQuotations, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
 		} catch (NoQuotationsException e) {
 			throw new RuntimeException(e);
 		}
@@ -547,7 +571,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 		chartTarget.getMainChartWraper().resetBarChart();
 		chartTarget.getMainChartWraper().resetIndicChart();
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), this.getStripedCloseFunction(), getIsApplyColor());
 
 	}
 
@@ -581,7 +605,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 		if (!isShutDown) {
 			comparisonModeBut.setText("Comparison mode ...");
-			comparisonModeBut.setToolTipText(cmpModeToolTipRoot + "The current comparison mode is '" + chartTarget.getStripedCloseFunction().lineToolTip() + "'");
+			comparisonModeBut.setToolTipText(cmpModeToolTipRoot + "The current comparison mode is '" + this.getStripedCloseFunction().lineToolTip() + "'");
 			chartTarget.chartBoutonsGroup.setSize(chartTarget.chartBoutonsGroup.getBounds().width, chartTarget.chartBoutonsGroup.getBounds().height);
 			chartTarget.chartBoutonsGroup.layout();
 		}

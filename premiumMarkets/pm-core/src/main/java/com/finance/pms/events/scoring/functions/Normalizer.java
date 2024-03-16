@@ -81,9 +81,14 @@ public class Normalizer<T> {
 		double min = calculatedMinMax[0];
 		double max = calculatedMinMax[1];
 		
-		double delta = (maxNorm - minNorm) / (max - min);
+		//max == min: this is  a straight line
+		//max == min == 0: this is a straight line of 0s
+		double delta = (max == min)?(max == 0)?0:(maxNorm - minNorm)/Math.abs(max):(maxNorm - minNorm)/(max - min);
+		
+		//fit min actual value to minNorm if no actual centre is provided //XXX This is arbitrary, should it be the max(|max|,|min|) instead?
 		double normedPivot = minNorm;
 		double actualPivot = min;
+		
 		if (!Double.isNaN(actualCenter)) {
 			normedPivot = (maxNorm - minNorm)/2 + minNorm;
 			actualPivot = actualCenter;
@@ -91,7 +96,8 @@ public class Normalizer<T> {
 
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
-			double destValueAti = delta * (value - actualPivot) + normedPivot ;
+			//From BandRatioNormalizerOperation: (value - actualPivot) * distanceToNewCenter/distanceToActualCenter  + normedPivot
+			double destValueAti = (value - actualPivot) * delta + normedPivot ;
 			ret.put(date, tOf(destValueAti));
 		}
 

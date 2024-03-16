@@ -55,6 +55,8 @@ public class MarketQuotationProviders {
 	public static final MarketQuotationProviders GOOGLE = new MarketQuotationProviders("GOOGLE", new GoogleSymbolNameResolver(), "google");
 	public static final MarketQuotationProviders INVESTIR = new MarketQuotationProviders("INVESTIR", new InvestirSymbolNameResolver(), "investir");
 	public static final MarketQuotationProviders INFLATION = new MarketQuotationProviders("INFLATION", new InvestirSymbolNameResolver(), "inflation");
+	public static final MarketQuotationProviders INTERESTRATES = new MarketQuotationProviders("INTERESTRATES", new InvestirSymbolNameResolver(), "interestRates");
+	public static final MarketQuotationProviders HOUSEPRICES = new MarketQuotationProviders("HOUSEPRICES", new InvestirSymbolNameResolver(), "housePrices");
 	public static final MarketQuotationProviders CURRENCY = new MarketQuotationProviders("CURRENCY", new InvestirSymbolNameResolver(), "currency");
 	public static final MarketQuotationProviders DIXHUITDIXHUIT = new MarketQuotationProviders("DIXHUITDIXHUIT", new InvestirSymbolNameResolver(), "dixHuitDixHuit");
 	public static final MarketQuotationProviders INVESTING = new MarketQuotationProviders("INVESTING", new InvestirSymbolNameResolver(), "investing");
@@ -67,6 +69,8 @@ public class MarketQuotationProviders {
 		MarketQuotationProviders.addMarketQuotationProvider(GOOGLE);
 		MarketQuotationProviders.addMarketQuotationProvider(INVESTIR);
 		MarketQuotationProviders.addMarketQuotationProvider(INFLATION);
+		MarketQuotationProviders.addMarketQuotationProvider(INTERESTRATES);
+		MarketQuotationProviders.addMarketQuotationProvider(HOUSEPRICES);
 		MarketQuotationProviders.addMarketQuotationProvider(CURRENCY);
 		MarketQuotationProviders.addMarketQuotationProvider(DIXHUITDIXHUIT);
 		MarketQuotationProviders.addMarketQuotationProvider(INVESTING);

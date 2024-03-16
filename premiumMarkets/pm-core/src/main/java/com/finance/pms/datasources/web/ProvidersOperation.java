@@ -20,7 +20,6 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 @Deprecated
-
 public class ProvidersOperation extends Providers implements QuotationProvider {
 	
 	private static final String QUOTE_UPDATE = "QuoteUpdate";

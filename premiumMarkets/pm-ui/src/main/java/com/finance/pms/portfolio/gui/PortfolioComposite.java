@@ -172,6 +172,7 @@ import com.finance.pms.portfolio.Portfolio;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.PortfolioShare;
 import com.finance.pms.portfolio.UserPortfolio;
+import com.finance.pms.portfolio.gui.charts.ChartDisplayStrategy;
 import com.finance.pms.portfolio.gui.charts.ChartIndicatorDisplay;
 import com.finance.pms.portfolio.gui.charts.ChartPerfDisplay;
 import com.finance.pms.portfolio.gui.charts.ChartsComposite;
@@ -986,7 +987,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						public void widgetSelected(SelectionEvent evt) {
 							if (indicatorMenuItem.getSelection()) {
 								chartsComposite.shutDownDisplay();
-								chartsComposite.setChartDisplayStrategy(new ChartIndicatorDisplay(chartsComposite, logComposite));
+								ChartDisplayStrategy chartDisplayStrategy = chartsComposite.getChartDisplayStrategyCache(ChartIndicatorDisplay.class.getName());
+								if (chartDisplayStrategy == null) {
+									chartDisplayStrategy = new ChartIndicatorDisplay(chartsComposite, logComposite);
+									chartsComposite.addChartDisplayStrategyCache(ChartIndicatorDisplay.class.getName(), chartDisplayStrategy);
+								} else {
+									chartDisplayStrategy.init(chartsComposite);
+								}
+								chartsComposite.setChartDisplayStrategy(chartDisplayStrategy);
 							}
 						}
 					});
@@ -1000,7 +1008,14 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 						public void widgetSelected(SelectionEvent evt) {
 							if (perfsMenuItem.getSelection()) {
 								chartsComposite.shutDownDisplay();
-								chartsComposite.setChartDisplayStrategy(new ChartPerfDisplay(chartsComposite));
+								ChartDisplayStrategy chartDisplayStrategy = chartsComposite.getChartDisplayStrategyCache(ChartPerfDisplay.class.getName());
+								if (chartDisplayStrategy == null) {
+									chartDisplayStrategy = new ChartPerfDisplay(chartsComposite);
+									chartsComposite.addChartDisplayStrategyCache(ChartPerfDisplay.class.getName(), chartDisplayStrategy);
+								} else {
+									chartDisplayStrategy.init(chartsComposite);
+								}
+								chartsComposite.setChartDisplayStrategy(chartDisplayStrategy);
 							}
 						}
 					});
@@ -3000,7 +3015,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 				LOGGER.warn("No transaction file selected. Transactions won't be updated.");
 			}
 		} catch (final Exception e) {
-			PortfolioComposite.LOGGER.error("Can't read GNUCASH transaction file : "+ transactionFile[0], e);
+			PortfolioComposite.LOGGER.error("Can't read GNUCASH transaction file : " + transactionFile[0], e);
 			Runnable runnable = new Runnable() {
 				public void run() {
 					UserDialog errorDialog = new UserDialog(getShell(), "Can't read GNUCASH transaction file : " + transactionFile[0], e.toString());
@@ -3011,7 +3026,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 			return;
 		}
 
-		String[] paths = selectFilePaths(MainGui.APP_NAME+" - Select any of your GNUCASH 'Advanced Portfolio' HTML exports.");
+		String[] paths = selectFilePaths(MainGui.APP_NAME + " - Select any of your GNUCASH 'Advanced Portfolio' HTML exports.");
 		final GnuCashAdvPortfolioParser gnuCashAdvPortfolioParser = new GnuCashAdvPortfolioParser(DataSource.getInstance().getShareDAO(), PortfolioMgr.getInstance().getCurrencyConverter());
 
 		for (String path : paths) {

@@ -127,6 +127,14 @@
 		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
 		<property name="sharesListId" value="UNKNOWN" />
 	</bean>
+	<bean id="interestRatesProviderSource" class="com.finance.pms.datasources.web.ProvidersInterestRates"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
+	<bean id="housePricesProviderSource" class="com.finance.pms.datasources.web.ProvidersHousePrices"  parent="provider">
+		<constructor-arg type="java.lang.String"  value="${dbproperites_file}"/>
+		<property name="sharesListId" value="UNKNOWN" />
+	</bean>
 	<bean id="currencyProviderSource" class="com.finance.pms.datasources.web.ProvidersCurrency"  parent="provider">
 		<constructor-arg type="java.lang.String"  value="${installdir}/db.properties"/>
 		<property name="sharesListId" value="UNKNOWN" />

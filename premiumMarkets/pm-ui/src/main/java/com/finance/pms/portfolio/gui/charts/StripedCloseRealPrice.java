@@ -29,12 +29,13 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
@@ -43,11 +44,12 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 
 	private NumberFormat numberFormat = new DecimalFormat("0.####");
 
-	public StripedCloseRealPrice() {
+	public StripedCloseRealPrice(Date arbitraryStartDate, Date arbitraryEndDate) {
+		super(arbitraryStartDate, arbitraryEndDate);
 	}
 
 	@Override
-	public Number[] targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	public SortedMap<Date, Double> targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
 		Date endDate = getEndDate(stockQuotations);
@@ -58,14 +60,15 @@ public class StripedCloseRealPrice extends StripedCloseFunction {
 		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
 	}
 
-	private Number[] relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	private SortedMap<Date, Double> relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 		
-		ArrayList<BigDecimal>  retA = new ArrayList<BigDecimal>();
+		SortedMap<Date, Double>  retA = new TreeMap<>();
 		for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-			retA.add(stockQuotations.get(i).getCloseSplit());
+			QuotationUnit quotationUnit = stockQuotations.get(i);
+			retA.put(quotationUnit.getDate(), quotationUnit.getCloseSplit().doubleValue());
 		}
 
-		return  retA.toArray(new BigDecimal[0]);
+		return  retA;
 	}
 
 	@Override

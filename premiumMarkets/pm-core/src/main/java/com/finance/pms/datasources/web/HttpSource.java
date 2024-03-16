@@ -304,8 +304,9 @@ public abstract class HttpSource implements SourceConnector {
 			response.close();
 		}
 
-		if (!otherExeptions.isEmpty() && resultSet.isEmpty()) {
-			throw new IOException("Error(s) while parsing Url " + formater.getUrl() + " : "+ otherExeptions );
+		if (!otherExeptions.isEmpty()) {
+			LOGGER.warn("Unreadable lines:" + otherExeptions);
+			if (resultSet.isEmpty()) throw new IOException("Error(s) while parsing Url " + formater.getUrl() + " : "+ otherExeptions );
 		}
 
 		return resultSet;

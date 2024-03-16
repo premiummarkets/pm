@@ -29,27 +29,33 @@
  */
 package com.finance.pms.portfolio.gui.charts;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
 
 
-public class StripedCloseRelativeToStart extends StripedCloseFunction {
+public class StripedCloseNormalized extends StripedCloseFunction {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseRelativeToStart.class);
+	protected static MyLogger LOGGER = MyLogger.getLogger(StripedCloseNormalized.class);
 
-	NumberFormat numberFormat = new DecimalFormat("#0.00 %");
+	private NumberFormat numberFormat = new DecimalFormat("#0.00 %");
+	private Boolean rootAtZero = false;
 
-	public StripedCloseRelativeToStart(Date arbitraryStartDate, Date arbitraryEndDate) {
+	public StripedCloseNormalized(Date arbitraryStartDate, Date arbitraryEndDate) {
 		super(arbitraryStartDate, arbitraryEndDate);
 	}
 
@@ -58,28 +64,39 @@ public class StripedCloseRelativeToStart extends StripedCloseFunction {
 	public SortedMap<Date, Double> targetShareData(SlidingPortfolioShare ps, Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
 
 		Date startDate = getStartDate(stockQuotations);
-		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0,startDate);
-
 		Date endDate = getEndDate(stockQuotations);
+
+		startDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, startDate);
 		endDateQuotationIndex.value = stockQuotations.getClosestIndexBeforeOrAtDateOrIndexZero(startDateQuotationIndex.value, endDate);
 
-		return relativeCloses(stockQuotations, startDateQuotationIndex, endDateQuotationIndex);
+		SortedMap<Date, Double> data = new TreeMap<Date, Double>();
+		List<QuotationUnit> quotationUnits = stockQuotations.getQuotationUnits(startDateQuotationIndex.value, endDateQuotationIndex.value);
+		for (QuotationUnit quotationUnit : quotationUnits) {
+			data.put(quotationUnit.getDate(), quotationUnit.getCloseSplit().doubleValue());
+		}
+		
+		Mean meanOp = new Mean();
+		double mean = meanOp.evaluate(data.values().stream().mapToDouble(d -> d).toArray());
+		StandardDeviation standardDeviationOp = new StandardDeviation();
+		double stdev = standardDeviationOp.evaluate(data.values().stream().mapToDouble(d -> d).toArray());
+
+		return relativeCloses(startDate, endDate, data, mean, stdev);
 
 	}
 
-	private SortedMap<Date, Double> relativeCloses(Quotations stockQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex) {
+	private SortedMap<Date, Double> relativeCloses(Date startDate, Date endDate, SortedMap<Date, Double> data, double mean, double stdev) {
 
-		SortedMap<Date, Double>  retA = new TreeMap<>();
-
-		BigDecimal realCloseRoot = stockQuotations.get(startDateQuotationIndex.value).getCloseSplit();
-		if (realCloseRoot != null && realCloseRoot.compareTo(BigDecimal.ZERO) != 0) {
-			for (int i = startDateQuotationIndex.value; i <= endDateQuotationIndex.value; i++) {
-				BigDecimal relatedCloseValue = stockQuotations.get(i).getCloseSplit().subtract(realCloseRoot).divide(realCloseRoot, 10, RoundingMode.HALF_EVEN);
-				retA.put(stockQuotations.get(i).getDate(), relatedCloseValue.doubleValue());
-			}
+		SortedMap<Date, Double> ret = new TreeMap<>();
+		data = data.tailMap(startDate);
+		Double pivot = (rootAtZero)?(data.get(startDate)-mean)/stdev:0d;
+		Set<Date> keySet = data.keySet();
+		for (Iterator<Date> iterator = keySet.iterator(); iterator.hasNext();) {
+			Date date = iterator.next();
+			if (date.after(endDate)) break;
+			ret.put(date, (data.get(date)-mean)/stdev - pivot);
 		}
 
-		return  retA;
+		return ret;
 	}
 
 	@Override

@@ -151,25 +151,30 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		super();
 
 		this.trendSettings = new BarSettings();
-		
 		this.logComposite = logComposite;
-
 		this.chartTarget = chartTarget;
+		this.setStripedCloseFunction(new StripedCloseRealPrice(chartTarget.getSlidingStartDate(), chartTarget.getAnalysisEndDate()));
+		
+		init(chartTarget);
+
+	}
+
+	@Override
+	public void init(ChartsComposite chartTarget) {
+		
 		populatePopups(chartTarget.getPopusGroup());
+		
 		this.chartTarget.getMainChartWraper()
-			.initMainPlot(
-				ChartMain.NUMBER_FORMAT, 
-				"Nothing to display?\n" +
-						"First select a stock in your portfolio.\n" +
-						"Then use '" + TRENDBUTTXT + "' and/or '" + INDICATORSBUTTXT + "' buttons to select calculators.\n" +
-				"Also check the portfolio stocks and sliding date ranges. Quotations have to be available."
-			);
-
-
-		this.chartTarget.setStripedCloseFunction(this, new StripedCloseRealPrice());
-
+		.initMainPlot(
+			ChartMain.NUMBER_FORMAT, 
+			"Nothing to display?\n" +
+					"First select a stock in your portfolio.\n" +
+					"Then use '" + TRENDBUTTXT + "' and/or '" + INDICATORSBUTTXT + "' buttons to select calculators.\n" +
+			"Also check the portfolio stocks and sliding date ranges. Quotations have to be available."
+		);
+		
+		this.chartTarget.updateDisplay(this);
 		resetChart(true);
-
 	}
 
 	@Override
@@ -336,9 +341,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				sShare.setDisplayOnChart(true);
 			}
 		}
-		chartTarget.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
-		chartTarget.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
-		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), chartTarget.getStripedCloseFunction(), getIsApplyColor());
+		this.getStripedCloseFunction().updateStartDate(chartTarget.getSlidingStartDate());
+		this.getStripedCloseFunction().updateEndDate(chartTarget.getSlidingEndDate());
+		chartTarget.getMainChartWraper().updateLineDataSet(chartTarget.getCurrentTabShareList(), this.getStripedCloseFunction(), getIsApplyColor());
 
 	}
 

@@ -52,6 +52,8 @@ public enum ProvidersTypes {
 	INVESTIR("investir","Investir"),
 	DIXHUITDIXHUIT("dixHuitDixHuit","dixHuitDixHuit"),
 	INFLATION("inflation","Inflation"),
+	INTERESTRATES("interestrates","interestRates"),
+	HOUSEPRICES("houseprices","housePrices"),
 	CURRENCY("currency","Currency"),
 	INVESTING("investing","Investing"),
 	STOCKSYMBOLAPI("stockSymbolApi","stockSymbolApi"), 

@@ -86,7 +86,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 			firstDate = from.getTime();
 			lastDate = DateFactory.getNowEndDate();
 		} else { //amount < 0
-			firstDate = DateFactory.dateAtZero();
+			firstDate = DateFactory.dateAt1900();
 			lastDate = from.getTime();
 		}
 		try {

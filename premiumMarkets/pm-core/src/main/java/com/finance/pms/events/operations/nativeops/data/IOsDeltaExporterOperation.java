@@ -117,18 +117,6 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, inputsOperandsRefs.size() -1);
 			SortedMap<Date, double[]> factorisedInput = inputListToArray.get(InputToArrayReturn.RESULTS);
 			
-			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {
-				String nansLines = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream()
-																			.map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
-																			.reduce((a, e) -> a + " " + e)
-																			.orElse("");
-				List<Date> nansDates = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().filter(k -> !knownMissingKeys.contains(k)).collect(Collectors.toList());
-				String nansResultSummary = inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size()).reduce((a, e) -> a + " " + e).orElse("");
-				String nansDetails = nansResultSummary + ". Unexpected: " + nansLines.substring(0, Math.min(nansLines.length(), 15000));
-				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
-				//LOGGER.error("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
-			}
-			
 			//Append or over write
 			if (!Double.isNaN(rounding)) {
 				factorisedInput = factorisedInput.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
@@ -144,6 +132,25 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
 			
+			//Error check
+			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {
+				String nansLines = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream()
+																			.map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
+																			.reduce((a, e) -> a + " " + e)
+																			.orElse("");
+				List<Date> nansDates = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().filter(k -> !knownMissingKeys.contains(k)).collect(Collectors.toList());
+				String nansResultSummary = inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size()).reduce((a, e) -> a + " " + e).orElse("");
+				String nansDetails = nansResultSummary + ". Unexpected: " + nansLines.substring(0, Math.min(nansLines.length(), 15000));
+				
+				SeriesPrinter.printo(baseFilePath + "_ERRONEOUS_" + InputToArrayReturn.RESULTS, headersPrefixes, series);
+				LinkedHashMap<String, SortedMap<Date, double[]>> unexpectedNansSeries = new LinkedHashMap<>();
+				unexpectedNansSeries.put(headersPrefix, inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS));
+				SeriesPrinter.printo(baseFilePath + "_ERRONEOUS_" + InputToArrayReturn.OTHERUNEXPECTEDNANS, headersPrefixes, unexpectedNansSeries);
+				
+				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
+			}
+			
+			//Effective print
 			String deltaFile;
 			if (append) {
 				synchronized (LOGGER) {

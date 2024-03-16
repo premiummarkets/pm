@@ -87,7 +87,8 @@ public abstract class CurvesComparatorOldBase implements CurvesComparator {
 		this.end = endCal.getTime();
 	}
 
-	public CurveErr compare(SortedMap<Date, double[]> data, SortedMap<Date, double[]> refData) {
+	//CurveErr: best shift and error (double) + the error when no shift is applied + all the test shifts and their errors list.
+	public CurveErr compareShifted(SortedMap<Date, double[]> data, SortedMap<Date, double[]> refData) {
 		
 		int foldSize = 21;
 		double realErr = Double.MAX_VALUE;
@@ -168,6 +169,13 @@ public abstract class CurvesComparatorOldBase implements CurvesComparator {
 	
 	protected abstract SortedMap<Date, double[]> normalize(Date slotStart, Date slotEnd, SortedMap<Date, double[]> data);
 	
+	@Override
+	public double compare(SortedMap<Date, double[]> refline, SortedMap<Date, double[]> challenger) {
+		refline = trim(challenger, refline);
+		challenger = trim(refline, challenger);
+		return compareShifted(refline, challenger).realErr;
+	}
+
 	public class CurveErr {
 		
 		private SortedSet<ErrShift> sortedBestShifts;

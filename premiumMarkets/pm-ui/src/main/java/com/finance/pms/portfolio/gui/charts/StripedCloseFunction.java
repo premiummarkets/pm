@@ -31,6 +31,7 @@ package com.finance.pms.portfolio.gui.charts;
 
 import java.text.NumberFormat;
 import java.util.Date;
+import java.util.SortedMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
@@ -52,16 +53,14 @@ public abstract class StripedCloseFunction {
 	protected Date arbitraryStartDate;
 	protected Date arbitraryEndDate;
 
-	protected StripedCloseFunction() {
-		super();
-	}
 
-	protected StripedCloseFunction(Date arbitraryEndDate) {
+	protected StripedCloseFunction(Date arbitraryStartDate, Date arbitraryEndDate) {
 		super();
+		this.arbitraryStartDate = arbitraryStartDate;
 		this.arbitraryEndDate = arbitraryEndDate;
 	}
 
-	public abstract Number[] targetShareData(SlidingPortfolioShare ps, Quotations splitFreeQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
+	public abstract SortedMap<Date,Double> targetShareData(SlidingPortfolioShare ps, Quotations splitFreeQuotations, MInteger startDateQuotationIndex, MInteger endDateQuotationIndex);
 
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;
@@ -77,7 +76,7 @@ public abstract class StripedCloseFunction {
 
 		Date startDate = this.arbitraryStartDate;
 		startDate = (startDate.before(stockQuotations.getDate(0)))? stockQuotations.getDate(0) : startDate;
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("The start date is : " + startDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("The start date is: " + startDate);
 
 		return startDate;
 	}
@@ -87,7 +86,7 @@ public abstract class StripedCloseFunction {
 		Date endDate = this.arbitraryEndDate;
 		Integer lastQuoteI = stockQuotations.size()-1;
 		endDate = (endDate.after(stockQuotations.getDate(lastQuoteI)))? stockQuotations.getDate(lastQuoteI) : endDate;
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("The end date is : " + endDate);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("The end date is: " + endDate);
 
 		return endDate;
 	}

@@ -31,8 +31,10 @@ package com.finance.pms.datasources.web;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -48,7 +50,7 @@ import com.finance.pms.datasources.db.ValidatableDated;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DailyQuotation;
-import com.finance.pms.datasources.web.formaters.DayQuoteInflationFormater;
+import com.finance.pms.datasources.web.formaters.DayQuoteHousePricesFormater;
 import com.finance.pms.datasources.web.formaters.LineFormater;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
@@ -57,30 +59,18 @@ import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.portfolio.InflationUpdateObserver;
 
-public class ProvidersInflation extends Providers implements QuotationProvider, ProvidersRates {
+public class ProvidersHousePrices extends Providers implements QuotationProvider, ProvidersRates {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersInflation.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersHousePrices.class);
 
-	private static Stock inflationStock;
-
-	public static final Stock inflationStock() {
-		if (inflationStock == null) {
-			inflationStock = DataSource.getInstance().loadStockBySymbol("Inflation");
-		}
-		return inflationStock;
+	protected ProvidersHousePrices() {
+		super();
 	}
 
-	protected ProvidersInflation() {
+	public ProvidersHousePrices(String pathToProps) {
 		super();
-		this.addObserver(new InflationUpdateObserver());
-	}
-
-	public ProvidersInflation(String pathToProps) {
-		super();
-		this.httpSource = new HttpSourceInflation(pathToProps, this);
-		this.addObserver(new InflationUpdateObserver());
+		this.httpSource = new HttpSourceHousePrices(pathToProps, this);
 	}
 
 	@Override
@@ -88,40 +78,52 @@ public class ProvidersInflation extends Providers implements QuotationProvider, 
 
 		try {
 
-			if (!stock.equals(ProvidersInflation.inflationStock())) {
-				String message = "Error: This should be used to retrieve inflation historical only, not: " + stock.toString();
-				LOGGER.error(message);
-				throw new RuntimeException(message);
-			}
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			Date volumeAvail = sdf.parse("20050101");
+			
+			Date startQ = (start.before(volumeAvail))? start: volumeAvail;
+			Quotations periodQuotations = QuotationsFactories.getFactory().
+												getSplitFreeQuotationsInstance(stock, startQ, end, false, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
+			
+			List<QuotationUnit> validWebDbQ = periodQuotations.getQuotationUnits(0, periodQuotations.size()-1).stream()
+												//Valid only if volume was present as latest HPIs come without the volume. This applies only at or after volumeAvail date
+												.filter(qu -> ORIGIN.WEB.equals(qu.getOrigin()) && 
+														(qu.getDate().before(volumeAvail) || (qu.getDate().compareTo(volumeAvail) >= 0) && qu.getVolumeSplit() != 0)) 
+												.collect(Collectors.toList()); 
+			List<QuotationUnit> usersDbQ = periodQuotations.getQuotationUnits(0, periodQuotations.size()-1).stream()
+												.filter(qu -> (ORIGIN.USER.equals(qu.getOrigin())))
+												.collect(Collectors.toList());
 
-			long twoMonthAndHalf = (long) (DateFactory.DAYINMILLI*31.0*1.0); //(long) DateFactory.DAYINMILLI*31.0*2.5;
-			SimpleDateFormat sdf = new SimpleDateFormat("MMM yy");
-			Date lastWebDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
+			BigDecimal formerWebDbClose = validWebDbQ.get(validWebDbQ.size()-1).getCloseRaw();
+			Date formerWebDbDate = validWebDbQ.get(validWebDbQ.size()-1).getDate();
 			
-			Quotations lastQuotations = 
-					QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, start, end, false, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.CLOSE);
-			List<QuotationUnit> formerUsersDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
-					.filter(qu -> ORIGIN.USER.equals(qu.getOrigin()))
-					.collect(Collectors.toList());
-			List<QuotationUnit> webDbQ = lastQuotations.getQuotationUnits(0, lastQuotations.size()-1).stream()
-					.filter(qu -> ORIGIN.WEB.equals(qu.getOrigin()))
-					.collect(Collectors.toList()); 
-			BigDecimal lastClose = webDbQ.get(webDbQ.size()-1).getCloseRaw();
-			Date lastDate = webDbQ.get(webDbQ.size()-1).getDate();
+			Calendar formerWebDbCalendar = Calendar.getInstance();
+			formerWebDbCalendar.setTime(formerWebDbDate);
+			int n = 6;
+			formerWebDbCalendar.add(Calendar.MONTH, n);
 			
-			boolean isLastLessThan2AndHalfMonthOld = lastWebDate.getTime() + twoMonthAndHalf >= end.getTime();
-			if (isLastLessThan2AndHalfMonthOld) {//Inflation can be updated monthly only
-				lastQuoteInterpolation(stock, lastClose, lastDate, end, formerUsersDbQ);
+			SimpleDateFormat sdfMonth = new SimpleDateFormat("MM");
+			SimpleDateFormat sdfYear = new SimpleDateFormat("yyyy");
+			Calendar now = DateFactory.getNowEndDateCalendar();
+			int currentYear = now.get(Calendar.YEAR);
+			int currentMonth = now.get(Calendar.MONTH);
+			int formerValidYear =  formerWebDbCalendar.get(Calendar.YEAR);
+			int formeValidMonth =  formerWebDbCalendar.get(Calendar.MONTH);
+			if (currentYear < formerValidYear || (currentYear == formerValidYear && currentMonth <= formeValidMonth)) {//monthly only
+				lastQuoteInterpolation(stock, formerWebDbClose, formerWebDbDate, end, usersDbQ);
 				throw new HttpException(
-					"Inflation data can only be updated once in " + twoMonthAndHalf/(31.0*DateFactory.DAYINMILLI) + " months.\n" +
-					"You already updated up to " + sdf.format(lastWebDate)
+					"House prices data can only be updated once in " + (n +1) + " month.\n" +
+					"You already updated up to " + sdfYear.format(formerWebDbDate) + "/" + sdfMonth.format(formerWebDbDate)
 				);
 			}
 
-			MyUrl url = this.httpSource.getStockQuotationURL(null,null,null,null,null,null,null);
+			String region = stock.getSymbol().replaceAll("hpi", "");
+			MyUrl url = this.httpSource.getStockQuotationURL(region , 
+											sdfYear.format(formerWebDbDate), sdfMonth.format(formerWebDbDate), "01", 
+											sdfYear.format(now.getTime()), sdfMonth.format(now.getTime()), "01");
 
 			TreeSet<ValidatableDated> queries = initValidatableSet();
-			LineFormater dsf = new DayQuoteInflationFormater(url, stock, stock.getMarketValuation().getCurrency().name(), start);
+			LineFormater dsf = new DayQuoteHousePricesFormater(url, stock, start);
 			List<ValidatableDated> readPage = this.httpSource.readURL(dsf).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
 			readPage = filterToEndDate(end, readPage);
 			
@@ -141,22 +143,20 @@ public class ProvidersInflation extends Providers implements QuotationProvider, 
 				
 				List<Validatable> urlResultsSorted = readPage.stream().sorted((i1, i2) -> ((DailyQuotation)i2).compareTo(i1)).collect(Collectors.toList());
 				DailyQuotation lastWebQuotation = (DailyQuotation) urlResultsSorted.get(0);
-				lastClose = (BigDecimal) lastWebQuotation.getClose();
-				lastDate = lastWebQuotation.getQuoteDate();
+				formerWebDbClose = (BigDecimal) lastWebQuotation.getClose();
+				formerWebDbDate = lastWebQuotation.getQuoteDate();
 				
 			}
 
-			lastQuoteInterpolation(stock, lastClose, lastDate, end, formerUsersDbQ);
+			lastQuoteInterpolation(stock, formerWebDbClose, formerWebDbDate, end, usersDbQ);
 
 		} catch (NoQuotationsException e) {
 			LOGGER.error(e);
-		} finally {
-			this.setChanged();
-			this.notifyObservers(end);
+		} catch (ParseException e) {
+			LOGGER.error(e, e);
 		}
-
 	}
-
+	
 	@Override
 	public String getStockRefName(Stock stock) {
 		return stock.getSymbol();

@@ -56,7 +56,7 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 	private static final int DATAINPUTIDX = 4;
 
 	public BandRatioNormalizerOperation() {
-		super("bandRNrmlzr", "Normalise to new center and amplitude keeping the original distance ratios to center",
+		super("bandRNrmlzr", "Normalise to new center and amplitude keeping the original distance ratios to center. Distance to centre ratio.",
 				new NumberOperation("newcenter","newCenter","new center", new NumberValue(0.0)),
 				new NumberOperation("actualCenter","actualCenter","actual center", new NumberValue(0.0)), 
 				new NumberOperation("distanceToNewCenter","distanceToNewCenter","distance to new center", new NumberValue(1.0)),
@@ -92,11 +92,12 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 		NumericableMapValue doubleMapValue = new DoubleMapValue();
 		try {
 			SortedMap<Date, Double> value = data.get(0).getValue(targetStock);
+			//FIXME: distanceToActualCenter == 0
 			TreeMap<Date, Double> normalized = 
 					value.entrySet().stream()
 					.collect(Collectors.toMap(
 							e -> e.getKey(), 
-							e ->  ((e.getValue() - actualCenter)/distanceToActualCenter) * distanceToNewCenter + newCenter, 
+							e ->  (e.getValue() - actualCenter) * distanceToNewCenter/distanceToActualCenter + newCenter, 
 							(a,b) -> a, TreeMap::new));
 			doubleMapValue.getValue(targetStock).putAll(normalized);
 			

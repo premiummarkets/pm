@@ -94,6 +94,7 @@ public abstract class ChartDisplayStrategy {
 	}
 
 	protected ChartsComposite chartTarget;
+	private StripedCloseFunction stripedCloseFunction;
 	private ActionDialog popupDialog;
 
 	public abstract void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted);
@@ -188,5 +189,15 @@ public abstract class ChartDisplayStrategy {
 	}
 
 	public abstract void cleanPreviousStockSelection();
+	
+	public StripedCloseFunction getStripedCloseFunction() {
+		return stripedCloseFunction;
+	}
+
+	public void setStripedCloseFunction(StripedCloseFunction stripedCloseFunction) {
+		this.stripedCloseFunction = stripedCloseFunction;
+	}
+
+	public abstract void init(ChartsComposite chartTarget);
 
 }

@@ -56,7 +56,16 @@ public class DateFactory {
 	public static Date dateAtZero() {
 
 		Calendar calendar = Calendar.getInstance();
-		calendar.set(1970, 0, 1, 0, 0, 0);
+		calendar.set(1970, 0, 1, 0, 0, 0); //FIXME the date zero should be before 1950 not 1970: dateAt1900
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+
+	}
+	
+	public static Date dateAt1900() {
+
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(1900, 0, 1, 0, 0, 0); 
 		calendar.set(Calendar.MILLISECOND, 0);
 		return calendar.getTime();
 

@@ -243,6 +243,7 @@
     								<versionRange>[2.8,)</versionRange>
     								<goals>
     									<goal>sources</goal>
+    									<goal>copy-dependencies</goal>
     								</goals>
     							</pluginExecutionFilter>
     							<action>

@@ -320,15 +320,12 @@ public class ChartMain extends Chart {
 	}
 
 
-	public JFreeChart initChart(final StripedCloseFunction stripedCloseFunction) {
+	public JFreeChart initChart(Date arbitraryStartDate, Date arbitraryEndDate) {
 
 		Runnable runnable = new Runnable() {
 
 			@Override
 			public void run() {
-
-				Date arbitraryStartDate = stripedCloseFunction.getArbitraryStartDateForChart();
-				Date arbitraryEndDate = stripedCloseFunction.getArbitraryEndDate();
 				
 				//Domain
 				xAxis = new DateAxis();
@@ -780,13 +777,14 @@ public class ChartMain extends Chart {
 
 			MInteger startIdx = new MInteger();
 			MInteger endIdx = new MInteger();
-			Number[] relativeCloses = stripedCloseFunction.targetShareData(portfolioShare, bdQuotes, startIdx, endIdx);
-			List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(startIdx.value, endIdx.value);
+			SortedMap<Date, Double> relativeCloses = stripedCloseFunction.targetShareData(portfolioShare, bdQuotes, startIdx, endIdx);
+			//List<QuotationUnit> quotationUnits = bdQuotes.getQuotationUnits(startIdx.value, endIdx.value);
 
-			for (int i = 0; i <= Math.min(relativeCloses.length-1, endIdx.value-startIdx.value); i++) {
-				QuotationUnit trade = quotationUnits.get(i);
-				RegularTimePeriod period = new Day(trade.getDate());
-				Number value = relativeCloses[i].doubleValue();
+			//for (int i = 0; i <= Math.min(relativeCloses.size()-1, endIdx.value-startIdx.value); i++) {
+			for (Date date: relativeCloses.keySet()) {
+				//QuotationUnit trade = quotationUnits.get(i);
+				RegularTimePeriod period = new Day(date);
+				Number value = relativeCloses.get(date);
 				timeSeries.add(new TimeSeriesDataItem(period, value));
 			}
 

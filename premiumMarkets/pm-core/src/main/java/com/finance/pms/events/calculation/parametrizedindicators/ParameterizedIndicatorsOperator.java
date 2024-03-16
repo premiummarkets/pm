@@ -153,7 +153,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 				Date firstValidQuotations = validQuotationsDates.get(0);
 				if (currentKeyDate.compareTo(firstValidQuotations) >= 0 && !validQuotationsDates.contains(currentKeyDate)) {
 					LOGGER.warn(currentKeyDate + " (" + currentKeyDate.getClass() + ") was not found in " + validQuotationsDates);
-					LOGGER.warn("firstValidQuotations: " + firstValidQuotations + " (" + firstValidQuotations.getClass() + "), Operator validity filter: " + quotationsValidity()); 
+					LOGGER.warn("firstValidQuotations: " + firstValidQuotations + " (" + firstValidQuotations.getClass() + "), Operator validity filter: " + quotationsValidity());
 					invalids.add(currentKey);
 				} else {
 					if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {

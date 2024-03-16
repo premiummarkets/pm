@@ -19,6 +19,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 public class SystemEnvironment {
@@ -87,6 +88,36 @@ public class SystemEnvironment {
 	
 	public Optional<Object> read(Stock stock, String compositeName) {
 		return env.getNvp(stock, compositeName);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Optional<String> findPath(Stock stock, String rootCompositeName, String keyName, String valueTofind) {
+		Optional<Object> nvp = env.getNvp(stock, rootCompositeName);
+		Object envObject = nvp.orElse("");
+		
+		Map<String, Object> envMap;
+		if (envObject instanceof JsonObject) {
+			envMap = new Gson().fromJson(envObject.toString(), HashMap.class);
+		} else
+		if (envObject instanceof Map) {
+			envMap = ((Map<String, Object>) envObject);
+		} else {
+			return Optional.empty();
+		}
+		
+		for (Object keyObject: envMap.keySet()) {
+			String subroot = (String) keyObject;
+			if (keyName.equals(subroot) && envMap.get(keyName).equals(valueTofind)) {
+				return Optional.of(rootCompositeName + "." + subroot);
+			} else {
+				Optional<String> foundComposite = findPath(stock, rootCompositeName + "." + subroot, keyName, valueTofind);
+				if (foundComposite.isPresent()) {
+					return foundComposite;
+				}
+			}
+		};
+		
+		return Optional.empty();
 	}
 	
 	public Optional<Object> readOldNvps(Stock stock, String compositeName) {
