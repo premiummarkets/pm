@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.google.gson.Gson;
 
@@ -36,11 +35,6 @@ public class NamedListValue extends Value<Object> implements MultiValue, Stringa
 	@Override
 	public Object getValue(TargetStockInfo targetStock) {
 		return values;
-	}
-
-	@Override
-	public NamedListValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		return this;
 	}
 	
 	@Override

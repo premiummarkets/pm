@@ -109,11 +109,6 @@ public class OperationReferenceValue<T extends Operation> extends Value<T> imple
 	}
 
 	@Override
-	public OperationReferenceValue<T> filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		return this;
-	}
-
-	@Override
 	public String getAsStringable() {
 		return "$" + operation.getReference() + "$";
 	}

@@ -84,7 +84,10 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 			SortedMap<Date, double[]> factorisedInput = inputListToArray.get(InputToArrayReturn.RESULTS);
 			
 			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {
-				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "): " + inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream()
+//				throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "): " + inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream()
+//																							.filter(k -> !knownMissingKeys.contains(k))
+//																							.collect(Collectors.toList()));
+				LOGGER.warn("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "): " + inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream()
 																							.filter(k -> !knownMissingKeys.contains(k))
 																							.collect(Collectors.toList()));
 			}

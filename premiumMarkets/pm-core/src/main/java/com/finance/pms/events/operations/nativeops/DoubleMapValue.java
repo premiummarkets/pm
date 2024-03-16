@@ -7,16 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.quotations.QuotationDataType;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class DoubleMapValue extends NumericableMapValue implements MultiMapValue {
 
@@ -40,21 +33,6 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 
 	public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
 		return map;
-	}
-	
-	@Override
-	public DoubleMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		try {
-			Stock stock = targetStock.getStock();
-			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
-			Quotations quotations  = QuotationsFactories.getFactory()
-					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
-			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-			this.map = map.entrySet().stream().filter(e -> exactMapFromQuotations.containsKey(e.getKey())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-			return this;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	@Override

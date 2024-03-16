@@ -32,7 +32,6 @@ package com.finance.pms.events.operations.nativeops;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 
@@ -52,7 +51,5 @@ public abstract class Value<T> implements Cloneable {
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
-
-	public abstract Value<T> filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent);
 
 }

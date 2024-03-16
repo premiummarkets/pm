@@ -34,12 +34,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.Operation;
-import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
@@ -61,18 +58,10 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 		additionalOutputs = new TreeMap<String, NumericableMapValue>();
 		additionalOutputsTypes = new HashMap<String, Type>();
 	}
-	
-	@Override
-	public BooleanMultiMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		super.filterToParentRequirements(targetStock, startShift, parent);
-		this.additionalOutputs = additionalOutputs.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequirements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
-		return this;
-	}
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey()+ ", last key " + map.lastKey():"");
+		return this.getClass().getSimpleName() + ": size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey()+ ", last key " + map.lastKey():"");
 	}
 
 	@Override

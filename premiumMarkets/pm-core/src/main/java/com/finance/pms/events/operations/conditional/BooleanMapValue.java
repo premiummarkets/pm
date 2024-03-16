@@ -33,17 +33,10 @@ import java.util.Date;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MapValue;
-import com.finance.pms.events.quotations.QuotationDataType;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 public class BooleanMapValue extends MapValue<Boolean> implements Cloneable {
 
@@ -83,23 +76,6 @@ public class BooleanMapValue extends MapValue<Boolean> implements Cloneable {
 			LOGGER.error(e,e);
 		}
 		return null;
-	}
-
-	@Override
-	public BooleanMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		
-		try {
-			Stock stock = targetStock.getStock();
-			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
-			Quotations quotations = QuotationsFactories.getFactory()
-					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
-			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-			this.map = map.entrySet().stream().filter(e -> exactMapFromQuotations.containsKey(e.getKey())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-			return this;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		
 	}
 
 }

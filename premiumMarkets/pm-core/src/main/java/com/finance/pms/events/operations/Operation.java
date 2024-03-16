@@ -304,7 +304,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 										};
 										if (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
 											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
-											output = output.filterToParentRequirements(targetStock, thisInputOperandsRequiredShiftFromThis, Operation.this);
 											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart);
 											if (!isForbidThisParameterValue()) operand.setParameter(output);
 											stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, operand, output));

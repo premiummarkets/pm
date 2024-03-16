@@ -33,7 +33,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 @XmlRootElement
@@ -89,11 +88,6 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 	        return String.format("%d", numberValue.longValue());
 	    else
 	        return String.format("%.2f", numberValue);
-	}
-	
-	@Override
-	public NumberValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-		return this;
 	}
 
 }

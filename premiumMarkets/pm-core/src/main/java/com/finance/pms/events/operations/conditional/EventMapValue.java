@@ -40,20 +40,14 @@ import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
-import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StringableMapValue;
-import com.finance.pms.events.quotations.QuotationDataType;
-import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
 
 @XmlRootElement
 /**
@@ -109,26 +103,6 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 					}, (a,b) -> a + b, TreeMap::new)); //);
 		}
 		return collectedUnaryMapValue; //XXX There may be merge conflicts as Date is not a unique key in SortedMap<EventKey, EventValue>
-
-	}
-	
-	@Override
-	public EventMapValue filterToParentRequirements(TargetStockInfo targetStock, int startShift, Operation parent) {
-
-		try {
-			Stock stock = targetStock.getStock();
-			ValidityFilter filterFor = ValidityFilter.getFilterFor(parent.getRequiredStockData());
-			Quotations quotations  = QuotationsFactories.getFactory()
-					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(startShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
-			SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
-			this.eventData = eventData.entrySet().stream().filter(e -> exactMapFromQuotations.containsKey(e.getKey().getDate())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-
-			this.additionalOutputs = additionalOutputs.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().filterToParentRequirements(targetStock, startShift, parent), (a, b) -> a, TreeMap::new));
-			return this;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 
 	}
 
