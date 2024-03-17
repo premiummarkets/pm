@@ -64,7 +64,6 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
-import com.finance.pms.events.quotations.QuotationsFactories;
 /**
  * 
  * @author guil
@@ -129,7 +128,6 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			long startTime = new Date().getTime();
 			LOGGER.info("STARTING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime + ". "
 						+ "Formulae: " + eventInfoOpsCompoOperationHolder.toFormulaeDevelopped());
-			//EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder.clone())
 			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder).run(targetStock, new ArrayList<>(), 0); //Should have been cloned by the caller.
 											
 			long finishTime = new Date().getTime();
@@ -139,33 +137,20 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	
 			SortedMap<EventKey, EventValue> returnedEvents = eventMapValue.getEventMap();
 
-			//Finding duplicates and invalid dates
-			List<Date> validQuotationsDates = new ArrayList<>(
-					QuotationsFactories.getFactory().buildExactSMapFromQuotationsClose(quotations, quotations.getFirstDateShiftedIdx(), quotations.getLastDateIdx()).keySet());
+			//Finding duplicates
 			EventKey previousKey = null;
 			SortedSet<EventKey> duplicates = new TreeSet<EventKey>();
-			SortedSet<EventKey> invalids = new TreeSet<EventKey>();
 			for (EventKey currentKey : returnedEvents.keySet()) {
 
 				Date previousKeyDate = (previousKey == null)? null : previousKey.getDate();
 				Date currentKeyDate = currentKey.getDate();
 				
-				Date firstValidQuotations = validQuotationsDates.get(0);
-				if (currentKeyDate.compareTo(firstValidQuotations) >= 0 && !validQuotationsDates.contains(currentKeyDate)) {
-					LOGGER.warn(currentKeyDate + " (" + currentKeyDate.getClass() + ") was not found in " + validQuotationsDates);
-					LOGGER.warn("firstValidQuotations: " + firstValidQuotations + " (" + firstValidQuotations.getClass() + "), Operator validity filter: " + quotationsValidity());
-					invalids.add(currentKey);
-				} else {
-					if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
-						duplicates.add(currentKey);
-						duplicates.add(previousKey);
-					}
-					previousKey = currentKey;
+				if (previousKeyDate != null && previousKeyDate.compareTo(currentKeyDate) == 0) {
+					duplicates.add(currentKey);
+					duplicates.add(previousKey);
 				}
+				previousKey = currentKey;
 				
-			}
-			if (!invalids.isEmpty()) {
-				throw new WarningException("Invalid event dates for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + invalids);
 			}
 			if (!duplicates.isEmpty()) {
 				throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + duplicates);

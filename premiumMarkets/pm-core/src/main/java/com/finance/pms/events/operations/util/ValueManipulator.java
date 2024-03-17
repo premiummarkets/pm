@@ -70,8 +70,6 @@ public class ValueManipulator {
 			TargetStockInfo targetStock, Collection<? extends NumericableMapValue> developpedInputs, 
 			Boolean keepAnyNaN, Boolean keepAllTrailingNaN, Integer... trailingNaNsColIdsToKeep) {
 		
-		
-		
 		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
 				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))
 				.reduce(new ConcurrentSkipListSet<>(), (a, e) -> { a.addAll(e); return a; });

@@ -46,6 +46,7 @@ public class InputFileChecker {
 		LOGGER.info("Removing known missing keys from operands for " + stock + ": " + missingKeys);
 		expectedkeySet.removeAll(missingKeys);
 		
+		//Input (importedData) contains all keys from quotation
 		boolean allMatch = expectedkeySet.subList(0, headingNans).stream().allMatch(k -> importedData.containsKey(k));
 		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching: heading NaNs" +
 																									" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
@@ -62,16 +63,18 @@ public class InputFileChecker {
 		if (!allMatch) throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching: trailing NaNs" + 
 																									" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
 		
-		Set<Date> actualKeySet = importedData.keySet();
-		allMatch = actualKeySet.stream().allMatch(k -> exactMapFromQuotations.containsKey(k));
-		if (!allMatch) {
-			ArrayList<Date> actualKeyList = new ArrayList<Date>(actualKeySet);
-			List<Date> notMatching =  actualKeyList.subList(headingNans, actualKeyList.size()-trailingNans).stream()
-					.filter(k -> !exactMapFromQuotations.containsKey(k))
-					.collect(Collectors.toList());
-			throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching quotations keys set and has " + notMatching.size() + " additionnal keys: " + notMatching.toString() + 
-																						" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
-		}
+		//FIXME the reference is not quotations from the DB anymore as in fact the close reference can be interpolated
+//		//Quotation contains all keys from input (importedData)
+//		Set<Date> actualKeySet = importedData.keySet();
+//		allMatch = actualKeySet.stream().allMatch(k -> exactMapFromQuotations.containsKey(k));
+//		if (!allMatch) {
+//			ArrayList<Date> actualKeyList = new ArrayList<Date>(actualKeySet);
+//			List<Date> notMatching =  actualKeyList.subList(headingNans, actualKeyList.size()-trailingNans).stream()
+//					.filter(k -> !exactMapFromQuotations.containsKey(k))
+//					.collect(Collectors.toList());
+//			throw new NotEnoughDataException(stock, firstDate, lastDate, String.format("Output is not matching quotations keys set and has " + notMatching.size() + " additionnal keys: " + notMatching.toString() + 
+//																						" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
+//		}
 		
 	}
 	

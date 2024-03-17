@@ -142,10 +142,12 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 				String nansResultSummary = inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size()).reduce((a, e) -> a + " " + e).orElse("");
 				String nansDetails = nansResultSummary + ". Unexpected: " + nansLines.substring(0, Math.min(nansLines.length(), 15000));
 				
-				//SeriesPrinter.printo(baseFilePath + "_ERRONEOUS_" + InputToArrayReturn.RESULTS, headersPrefixes, series);
-				LinkedHashMap<String, SortedMap<Date, double[]>> unexpectedNansSeries = new LinkedHashMap<>();
-				unexpectedNansSeries.put(headersPrefix, inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS));
-				SeriesPrinter.printo(baseFilePath + "_ERRONEOUS_" + InputToArrayReturn.OTHERUNEXPECTEDNANS, headersPrefixes, unexpectedNansSeries);
+				if (LOGGER.isInfoEnabled()) {
+					//SeriesPrinter.printo(baseFilePath + "_ERRONEOUS_" + InputToArrayReturn.RESULTS, headersPrefixes, series);
+					LinkedHashMap<String, SortedMap<Date, double[]>> unexpectedNansSeries = new LinkedHashMap<>();
+					unexpectedNansSeries.put(headersPrefix, inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS));
+					SeriesPrinter.printo(baseFilePath + "_ERRONEOUS_" + InputToArrayReturn.OTHERUNEXPECTEDNANS, headersPrefixes, unexpectedNansSeries);
+				}
 				
 				//throw new Exception("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
 				LOGGER.warn("Unexpected NaN data in series (known NaNs " + knownMissingKeys + "). Summary: " + nansDates + ". Details: " + nansDetails);
