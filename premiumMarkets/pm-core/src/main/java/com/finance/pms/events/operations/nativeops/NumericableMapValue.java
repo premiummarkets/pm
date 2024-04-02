@@ -43,6 +43,8 @@ public abstract class NumericableMapValue extends MapValue<Double> implements Cl
 	public abstract SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo);
 
 	public abstract List<Date> getDateKeys();
+	
+	public abstract List<String> getReferences();
 
 	@Override
 	public String toString() {

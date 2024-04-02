@@ -2,6 +2,8 @@ package com.finance.pms.events.operations.nativeops;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,13 +17,14 @@ import com.finance.pms.events.operations.TargetStockInfo;
 
 @XmlRootElement
 public class NamedListOperation extends Operation {
+
 	
 	public NamedListOperation() {
 		super("namedListOfThings","Named list of things.");
 	}
 	
-	public NamedListOperation(String reference, String description) {
-		super(reference, description);
+	public NamedListOperation(String reference) {
+		super(reference, reference);
 	}
 
 	public NamedListOperation(String reference, String description, ArrayList<? extends Operation> operands) {
@@ -46,12 +49,49 @@ public class NamedListOperation extends Operation {
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		int size = inputs.size();
 		List<String> namesOps = inputs.stream().limit(size/2).map(v -> (String) v.getValue(targetStock)).collect(Collectors.toList());
-		List<Object> valuesOps = inputs.stream().skip(size/2).map(v -> (v.getValue(targetStock))).collect(Collectors.toList());
-		Map<String, Object> map = IntStream.range(0, namesOps.size()).mapToObj(i -> i).collect(Collectors.toMap(i -> namesOps.get(i), i -> valuesOps.get(i)));
+		@SuppressWarnings("unchecked")
+		List<Object> valuesOps = inputs.stream().skip(size/2).map(v -> {
+			Object value = v.getValue(targetStock);
+			if (value instanceof Collection) {
+				return listOParams((Collection<Value<?>>) value, targetStock);
+			} else {
+				return otherScalar(v, targetStock);
+			}
+		}).collect(Collectors.toList());
+		Map<String, Object> map = IntStream.range(0, namesOps.size())
+				.mapToObj(i -> i)
+				.collect(HashMap::new, (a, i) -> a.put(namesOps.get(i), valuesOps.get(i)), HashMap::putAll);
+				//.collect(Collectors.toMap(i -> namesOps.get(i), i -> valuesOps.get(i), (a, b) -> a, HashMap::new)); //NullPointer
 		return new NamedListValue(map);
-		//return new NumberArrayValue(valuesOps, namesOps, 0);
 	}
 
+	@SuppressWarnings("unchecked")
+	private Object listOParams(Collection<Value<?>> collection, TargetStockInfo targetStock) {
+		return collection.stream()
+		.map(v -> {
+			Object value = v.getValue(targetStock);
+			if (value instanceof Collection) {
+				return listOParams((Collection<Value<?>>) value, targetStock);
+			} else {
+				return otherScalar(v, targetStock);
+			}
+		})
+		.collect(Collectors.toList());
+	}
+	
+	private Object otherScalar(Value<?> v, TargetStockInfo targetStock) {
+		Object value = v.getValue(targetStock);
+		if (v instanceof StringValue && ((StringValue) v).isBoolean()) {
+			return Boolean.valueOf(value.toString());
+		}
+		if (v instanceof StringValue && ((StringValue) v).isNone()) {
+			return null;
+		}
+		if (v instanceof NumberValue && ((Number) value).doubleValue() == ((Number) value).intValue()) {
+			return Integer.valueOf(((Number) value).intValue());
+		}
+		return v.getValue(targetStock);
+	}
 
 	@Override
 	public String toFormulae(TargetStockInfo targetStock) {

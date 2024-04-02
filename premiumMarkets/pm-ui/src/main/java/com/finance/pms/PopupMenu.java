@@ -182,8 +182,8 @@ public class PopupMenu<T extends InfoObject> {
 			Rectangle parentShellBounds = rootParent.getShell().getBounds();
 			Rectangle parentBounds = controlParent.getParent().getBounds();
 			Rectangle pparentBounds = controlParent.getParent().getParent().getBounds();
-			int x =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, parentShellBounds.x + pparentBounds.x +parentBounds.x + controlParent.getBounds().x));
-			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, parentShellBounds.y + pparentBounds.y +parentBounds.y + controlParent.getBounds().y));
+			int x =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, parentShellBounds.x + pparentBounds.x + parentBounds.x + controlParent.getBounds().x));
+			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, parentShellBounds.y + pparentBounds.y + parentBounds.y + controlParent.getBounds().y));
 			//selectionShell.setBounds(x, y, selectionShell.getBounds().width, selectionShell.getBounds().height);
 			selectionShell.setLocation(x, y);
 
@@ -297,7 +297,7 @@ public class PopupMenu<T extends InfoObject> {
 						if ((e.stateMask & SWT.CONTROL) != 0 && buttonInfo.isMain()) {
 							for (Control otherButton : selectionShell.getChildren()) {
 								@SuppressWarnings("unchecked") T data = (T) ((Button)otherButton).getData();
-								if (data != null &&  data.groupId() != null && data.groupId().equals(buttonInfo.groupId())) {
+								if (data != null && data.groupId() != null && data.groupId().equals(buttonInfo.groupId())) {
 									((Button)otherButton).setSelection(false);
 									selectionSet.remove(data);
 								}

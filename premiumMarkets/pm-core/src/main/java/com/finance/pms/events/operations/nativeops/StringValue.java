@@ -82,5 +82,9 @@ public class StringValue extends Value<String> implements StringableValue, Clone
 	public boolean isBoolean() {
 		return ("TRUE".equalsIgnoreCase(stringValue) || "FALSE".equalsIgnoreCase(stringValue));
 	}
+	
+	public boolean isNone() {
+		return ("None".equalsIgnoreCase(stringValue));
+	}
 
 }

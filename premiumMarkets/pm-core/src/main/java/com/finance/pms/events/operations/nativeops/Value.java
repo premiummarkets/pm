@@ -36,7 +36,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventMapValue;
 
 @XmlRootElement
-@XmlSeeAlso({NumberValue.class, NumericableMapValue.class, EventMapValue.class, StringValue.class, AnyValueListValue.class})
+@XmlSeeAlso({NumberValue.class, NumericableMapValue.class, EventMapValue.class, StringValue.class, AnyValueListValue.class, NamedListValue.class})
 public abstract class Value<T> implements Cloneable {
 
 	public Value() {

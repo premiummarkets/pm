@@ -118,11 +118,11 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
             if (taskIds.contains(TaskId.FetchLists) ) { // && isFetchListStocks() ) {
 
-                if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
+                if (!lastTaskOfThisGroup.equals(TaskId.FetchLists) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam, eventModel.otherViewParams))) {
 
                     eventModel.setLastQuotationFetch(DateFactory.DEFAULT_DATE);
 
-                    tasksGroup.add(new EventRefreshTask(TaskId.FetchLists, eventModel.rootViewParam , eventModel.otherViewParams) {
+                    tasksGroup.add(new EventRefreshTask(TaskId.FetchLists, eventModel.rootViewParam, eventModel.otherViewParams) {
                         public void run() {
                             try {
                                 eventModel.callbackForlastListFetch();
@@ -143,9 +143,9 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
             if (taskIds.contains(TaskId.FetchRecos)) {
 
-                if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
+                if (!lastTaskOfThisGroup.equals(TaskId.FetchRecos) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam, eventModel.otherViewParams))) {
 
-                    tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos, eventModel.rootViewParam , eventModel.otherViewParams) {
+                    tasksGroup.add(new EventRefreshTask(TaskId.FetchRecos, eventModel.rootViewParam, eventModel.otherViewParams) {
                         public void run() {
                             try {
                                 eventModel.callbackForReco();
@@ -164,9 +164,9 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
             if (taskIds.contains(TaskId.FetchQuotations) ) { // && isFetchQuotes()) {
 
-                if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams) )) {
+                if (!lastTaskOfThisGroup.equals(TaskId.FetchQuotations) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam, eventModel.otherViewParams))) {
 
-                    tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations, eventModel.rootViewParam , eventModel.otherViewParams) {
+                    tasksGroup.add(new EventRefreshTask(TaskId.FetchQuotations, eventModel.rootViewParam, eventModel.otherViewParams) {
                         public void run() {
                             try {
                                 eventModel.callbackForlastQuotationFetch(startAnalyseDate, endAnalysisDate);
@@ -187,12 +187,12 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
             if (taskIds.contains(TaskId.Clean)) {
 
-                if (!lastTaskOfThisGroup.equals(TaskId.Clean) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
+                if (!lastTaskOfThisGroup.equals(TaskId.Clean) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam, eventModel.otherViewParams))) {
 
                     eventModel.resetAnalysisList();
                     eventModel.getAnalysisList().add("selectedIndsCalculator");
 
-                    tasksGroup.add(new EventRefreshTask(TaskId.Clean, eventModel.rootViewParam , eventModel.otherViewParams) {
+                    tasksGroup.add(new EventRefreshTask(TaskId.Clean, eventModel.rootViewParam, eventModel.otherViewParams) {
                         public void run() {
                             try {
                                 eventModel.callbackForAnalysisClean();
@@ -213,12 +213,12 @@ public class EventRefreshController implements SelectionListener { //MouseListen
 
             if (taskIds.contains(TaskId.Analysis)) {
 
-                if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams, startAnalyseDate, endAnalysisDate)) ) {
+                if (!lastTaskOfThisGroup.equals(TaskId.Analysis) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam, eventModel.otherViewParams, startAnalyseDate, endAnalysisDate))) {
 
                     eventModel.resetAnalysisList();
                     eventModel.getAnalysisList().add("selectedIndsCalculator");
 
-                    tasksGroup.add(new EventRefreshTask(TaskId.Analysis, eventModel.rootViewParam , eventModel.otherViewParams, startAnalyseDate, endAnalysisDate) {
+                    tasksGroup.add(new EventRefreshTask(TaskId.Analysis, eventModel.rootViewParam, eventModel.otherViewParams, startAnalyseDate, endAnalysisDate) {
                         public void run() {
                             try {
                                 eventModel.callbackForlastAnalyse(startAnalyseDate, endAnalysisDate);
@@ -239,8 +239,8 @@ public class EventRefreshController implements SelectionListener { //MouseListen
             //TODO you need add params for alerts as well or you can't run it twice ...
             if (taskIds.contains(TaskId.Alerts)) {
 
-                if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam , eventModel.otherViewParams)) ) {
-                    tasksGroup.add(new EventRefreshTask(TaskId.Alerts, eventModel.rootViewParam , eventModel.otherViewParams) {
+                if (!lastTaskOfThisGroup.equals(TaskId.Alerts) || (taskIsValid = isValidTask(lastTaskOfThisGroup, eventModel.rootViewParam, eventModel.otherViewParams))) {
+                    tasksGroup.add(new EventRefreshTask(TaskId.Alerts, eventModel.rootViewParam, eventModel.otherViewParams) {
                         public void run() {
                             try {
                                 eventModel.callbackForAlerts();

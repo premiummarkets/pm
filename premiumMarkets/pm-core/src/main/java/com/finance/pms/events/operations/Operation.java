@@ -257,7 +257,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				//List<Optional<Value<?>>> nonDataSensitivesOutputs = runNonDataSensitives(targetStock, thisCallStack, operands);
 
 				//Operands chart Cache
-				int maxDepth = (targetStock.isMainConditionStack(thisCallStack))?7:8;
+				int maxDepth = 6 + ((targetStock.isMainConditionStack(thisCallStack))?1:2);
 				boolean isInChart = isDisplay && targetStock.getEventInfoOpsCompoOperation().isKeepEvents() && thisCallStack.size() <= maxDepth;
 				
 				//Operands Calculation

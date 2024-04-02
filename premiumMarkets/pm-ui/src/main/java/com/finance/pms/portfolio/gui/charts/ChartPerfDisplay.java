@@ -37,8 +37,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
@@ -280,55 +278,57 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 						}
 					}),
 					new TransfoInfo("Change to Previous day (log ROC)", new ActionDialogAction() {
-
+						
 						@Override
 						public void action() {
+							
+							Integer previousSmthPeriod = Integer.valueOf(MainPMScmd.getMyPrefs().get("charts.logROCPeriod", "21"));
 
 							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Log ROC settings");
+							
 							final Button zeroBut =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
 							zeroBut.setBackground(MainGui.pOPUP_BG);
 							zeroBut.setFont(MainGui.DEFAULTFONT);
 							zeroBut.setText("Adjust start all from 0");
 							zeroBut.setToolTipText("If selected, the resulting ROCS will all be starting from 0 at the start of the period and than be drawn relative to this point.\nIf not the resulting ROCs will naturally oscillate around 0.");
 							zeroBut.setSelection(false);
+							
 							final Text smthPeriodTxt = new Text(actionDialogForm.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
-							final String pString = "Log ROC smoothing period";
 							smthPeriodTxt.setFont(MainGui.CONTENTFONT);
-							smthPeriodTxt.setText(pString);
-							smthPeriodTxt.setToolTipText("In order to reflect some trend, the ROC must be calculated after smoothing the quotations.\nEnter here the smoothing period number.\nDefault will be "+StripedCloseLogRoc.DEFAULTLOGROCSMTH+" days.");
-							smthPeriodTxt.addFocusListener(new FocusListener() {
-
-								@Override
-								public void focusLost(FocusEvent e) {
-								}
-
-								@Override
-								public void focusGained(FocusEvent e) {
-									if (smthPeriodTxt.getText().equals(pString)) smthPeriodTxt.setText("");
-								}
-							});
+							smthPeriodTxt.setText(previousSmthPeriod.toString());
+							smthPeriodTxt.setToolTipText("In order to reflect some trend, the ROC must be calculated after smoothing the quotations.\nEnter here the smoothing period number.");
+							
 							final Button normTick =  new Button(actionDialogForm.getParent(), SWT.CHECK | SWT.LEAD);
 							normTick.setBackground(MainGui.pOPUP_BG);
 							normTick.setFont(MainGui.DEFAULTFONT);
 							normTick.setText("Normalise outputs");
 							normTick.setToolTipText("All outputs will be normalise between -1 and 1 before being added to the chart.");
 							normTick.setSelection(true);
+							
 							ActionDialogAction actionDialogAction = new ActionDialogAction() {
 								@Override
 								public void action() {
 									actionDialogForm.values[0] = Boolean.valueOf(zeroBut.getSelection());
-									String text = smthPeriodTxt.getText();
-									Integer pSmth;
-									Boolean normalize = normTick.getSelection();
+
 									try {
-										pSmth = Integer.valueOf(text);
-										actionDialogForm.values[1] = pSmth;
-										actionDialogForm.values[2] = normalize;
+										actionDialogForm.values[1] = Integer.valueOf(smthPeriodTxt.getText());
 									} catch (NumberFormatException e) {
-										pSmth = StripedCloseLogRoc.DEFAULTLOGROCSMTH;
+										actionDialogForm.values[1] = previousSmthPeriod.toString();
 									}
-									//Date slidingStartDateAdjusted = DateUtils.addDays(chartTarget.getSlidingStartDate(), -pSmth);
-									ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseLogRoc(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), (Boolean) actionDialogForm.values[0], pSmth, normalize));
+
+									actionDialogForm.values[2] = normTick.getSelection();
+									
+									try {
+										MainPMScmd.getMyPrefs().put("charts.logROCPeriod", actionDialogForm.values[1].toString());
+										MainPMScmd.getMyPrefs().flushy();
+									} catch (Exception e) {
+										LOGGER.warn(e,e);
+									}
+
+									ChartPerfDisplay.this.setStripedCloseFunction(
+											new StripedCloseLogRoc(
+													chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
+													(Boolean) actionDialogForm.values[0], (Integer) actionDialogForm.values[1], (Boolean) actionDialogForm.values[2]));
 									chartTarget.updateCharts(false);
 								}
 							};
@@ -392,20 +392,8 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 						@Override
 						public void action() {
-
-							final ActionDialogForm actionDialogForm = new ActionDialogForm(chartTarget.getShell(), "Ok", null, "Real Price Settings");
-					
-							ActionDialogAction actionDialogAction = new ActionDialogAction() {
-
-								@Override
-								public void action() {
-									ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseRealPrice(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
-									chartTarget.updateCharts(false);
-								}
-							};
-							actionDialogForm.setAction(actionDialogAction);
-							actionDialogForm.open();
-
+							ChartPerfDisplay.this.setStripedCloseFunction(new StripedCloseRealPrice(chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate()));
+							chartTarget.updateCharts(false);
 						}
 					})
 			}));

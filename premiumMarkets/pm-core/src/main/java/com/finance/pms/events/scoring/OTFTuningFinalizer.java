@@ -200,8 +200,12 @@ public class OTFTuningFinalizer {
 			}
 			Number qUnitDateValueBeforeOrAtEndDate = qMap.get(qUnitDateBeforeOrAtEndDate);
 
-			if (qUnitDateBeforeOrAtEndDate.before(period.getFrom())) 
-				throw new RuntimeException("Last quotation date " + qUnitDateBeforeOrAtEndDate + " is before last period start " + period.getFrom() + " for " + stock);
+			if (qUnitDateBeforeOrAtEndDate.before(period.getFrom())) {
+				//throw new RuntimeException("Last quotation date " + qUnitDateBeforeOrAtEndDate + " is before last period start " + period.getFrom() + " for " + stock);
+				LOGGER.warn("Last quotation date " + qUnitDateBeforeOrAtEndDate + " is before last period start " + period.getFrom() + " for " + stock);
+				qUnitDateBeforeOrAtEndDate = endDate;
+			}
+			
 			period.setTo(qUnitDateBeforeOrAtEndDate);
 			period.setPriceAtTo(qUnitDateValueBeforeOrAtEndDate.doubleValue());
 			period.setRealised(false);

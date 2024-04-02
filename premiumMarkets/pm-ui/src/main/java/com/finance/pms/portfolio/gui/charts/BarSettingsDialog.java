@@ -199,7 +199,7 @@ public class BarSettingsDialog {
 				}
 
 				private void handle() {
-					barChartSettings.setIsZerobased(isZeroBase.getSelection());
+					barChartSettings.setIsZeroBased(isZeroBase.getSelection());
 					action.action();
 
 				}
@@ -274,7 +274,7 @@ public class BarSettingsDialog {
 		}
 		{
 			final Spinner alphaSpinner = new Spinner(shell, SWT.WRAP);
-			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,false,false);
+			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,true,false);
 			layoutData.horizontalSpan = 2;
 			alphaSpinner.setLayoutData(layoutData);
 			alphaSpinner.setFont(MainGui.DEFAULTFONT);
@@ -307,6 +307,34 @@ public class BarSettingsDialog {
 				}
 
 			});
+		}
+		{
+			final Button autoSetTimeLine = new Button(shell, SWT.CHECK);
+			GridData layoutData = new GridData(SWT.FILL,SWT.TOP,false,false);
+			layoutData.horizontalSpan = 2;
+			autoSetTimeLine.setLayoutData(layoutData);
+			autoSetTimeLine.setBackground(MainGui.pOPUP_BG);
+			autoSetTimeLine.setFont(MainGui.DEFAULTFONT);
+			autoSetTimeLine.setText("Auto adjust timeline");
+			autoSetTimeLine.setToolTipText("The timeline can autoadjust by skiping weekends if the bar chart data set does not provided data over the weekend.");
+			autoSetTimeLine.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					barChartSettings.setAutoSetTimeLine(autoSetTimeLine.getSelection());
+					action.action();
+				}
+			});
+			autoSetTimeLine.setSelection(barChartSettings.getAutoSetTimeLine());
 		}
 
 

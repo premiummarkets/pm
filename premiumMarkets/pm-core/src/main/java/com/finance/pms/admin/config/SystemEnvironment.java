@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 public class SystemEnvironment {
@@ -212,8 +213,15 @@ public class SystemEnvironment {
 			String[] nameSplit = compositeName.split("\\.");
 			Object subMap = nameValuePairsForStock;
 			for (String namePart : nameSplit) {
-				if (subMap instanceof Map) {
-					subMap = ((Map) subMap).get(namePart);
+				try {
+					if (subMap instanceof JsonObject) {
+						subMap = new Gson().fromJson(subMap.toString(), HashMap.class);
+					}
+					if (subMap instanceof Map) {
+						subMap = ((Map) subMap).get(namePart);
+					}
+				} catch (JsonSyntaxException e) {
+					LOGGER.warn("Json Object is not a map: " + subMap + ": " + e);
 				}
 			}
 			Optional<Object> ofNullable = Optional.ofNullable(subMap);

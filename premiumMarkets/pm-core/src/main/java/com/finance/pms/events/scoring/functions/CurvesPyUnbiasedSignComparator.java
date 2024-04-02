@@ -16,7 +16,7 @@ public class CurvesPyUnbiasedSignComparator implements CurvesComparator {
 
 	private double threshold;
 
-	protected CurvesPyUnbiasedSignComparator(double threshold) {
+	public CurvesPyUnbiasedSignComparator(double threshold) {
 		super();
 		this.threshold = threshold;
 	}

@@ -127,4 +127,9 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 		return new ArrayList<>(map.keySet());
 	}
 
+	@Override
+	public List<String> getReferences() {
+		return getColumnsReferences();
+	}
+
 }

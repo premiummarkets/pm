@@ -79,15 +79,16 @@ public class OperationBuilderDialog {
 
 		shell.setLayout(new GridLayout());
 		shell.setBackground(MainGui.pOPUP_BG);
-
+		//shell.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
 		Group opGrp = new Group(shell, SWT.NONE);
 		opGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		opGrp.setLayout(new GridLayout());
 		opGrp.setText("Customise and Create Operations");
 		opGrp.setFont(MainGui.DEFAULTFONT);
 		opGrp.setBackground(MainGui.pOPUP_GRP);
-		OperationBuilderComposite operationBuilderDialog = new OperationBuilderComposite(opGrp, mainGui);
-		operationBuilderDialog.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		OperationBuilderComposite operationBuilderComposite = new OperationBuilderComposite(shell, mainGui);
+		operationBuilderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		Group indcGrp = new Group(shell, SWT.NONE);
 		indcGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -95,13 +96,15 @@ public class OperationBuilderDialog {
 		indcGrp.setText("Customise and Create Indicators");
 		indcGrp.setFont(MainGui.DEFAULTFONT);
 		indcGrp.setBackground(MainGui.pOPUP_GRP);
-		IndicatorBuilderComposite indicatorBuilderComposite = new IndicatorBuilderComposite(indcGrp, mainGui, operationBuilderDialog.getComboUpdateMonitor());
-		operationBuilderDialog.obsComboUpdateMonitor(indicatorBuilderComposite.getComboUpdateMonitor());
+		IndicatorBuilderComposite indicatorBuilderComposite = new IndicatorBuilderComposite(shell, mainGui);
 		indicatorBuilderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		operationBuilderComposite.obsComboUpdateMonitor(indicatorBuilderComposite.getComboUpdateMonitor());
+		indicatorBuilderComposite.obsComboUpdateMonitor(operationBuilderComposite.getComboUpdateMonitor());
 
 		shell.layout();
 
-		operationBuilderDialog.forceSelection(0);
+		operationBuilderComposite.forceSelection(0);
 		indicatorBuilderComposite.forceSelection(0);
 
 	}

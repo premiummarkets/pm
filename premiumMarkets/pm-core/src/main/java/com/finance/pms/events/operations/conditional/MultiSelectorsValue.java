@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
+import com.google.common.collect.Lists;
 
 //Used as a cache for GraphableMapValue to avoid multiple recalculations when several outputs are available (via selectors) for the same operation.
 public class MultiSelectorsValue extends DoubleMapValue {
@@ -77,7 +78,6 @@ public class MultiSelectorsValue extends DoubleMapValue {
 		return ret;
 	}
 
-
 	@Override
 	public Object clone() {
 		try {
@@ -96,5 +96,12 @@ public class MultiSelectorsValue extends DoubleMapValue {
 	public String getCalculationSelector() {
 		return calculationSelector;
 	}
+
+	@Override
+	public List<String> getReferences() {
+		return Lists.asList(getCalculationSelector(), new String[] {});
+	}
+	
+	
 
 }

@@ -29,6 +29,7 @@
  */
 package com.finance.pms.events.operations.conditional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -121,7 +122,7 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() +" : size is "+eventData.size() + ((eventData.size() > 0)?", first key "+eventData.firstKey()+ ", last key "+eventData.lastKey():"");
+		return this.getClass().getSimpleName() + " : size is "+eventData.size() + ((eventData.size() > 0)?", first key " + eventData.firstKey() + ", last key " + eventData.lastKey():"");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -138,7 +139,7 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 			}
 			return clone;
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.error(e, e);
 		}
 		return null;
 	}
@@ -161,6 +162,11 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 	@Override
 	public Boolean isLooseCoupled() {
 		return isLooseCoupled;
+	}
+
+	@Override
+	public List<String> getReferences() {
+		return new ArrayList<String>(getAdditionalOutputsTypes().keySet());
 	}
 
 }

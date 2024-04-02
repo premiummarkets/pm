@@ -387,7 +387,9 @@ public class ChartMain extends Chart {
 	}
 
 
-	public void updateBarDataSet(final SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barSeries, final int lineSerieIdx, final BarSettings barSettings, final Rectangle2D plotArea) {
+	public void updateBarDataSet(Stock selectedShare, Date slideStart, Date slideEnd, Boolean autoAdjustTimeLine, 
+									final SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barSeries, 
+									final int lineSerieIdx, final BarSettings barSettings, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
 
@@ -396,6 +398,10 @@ public class ChartMain extends Chart {
 				try {
 					
 					setCursor(java.awt.Cursor.WAIT_CURSOR);
+					
+					Timeline segmentedTimeline = adjustedTimeLine(selectedShare, slideStart, slideEnd, autoAdjustTimeLine);
+					DateAxis domainAxis = (DateAxis) mainPlot.getDomainAxis();
+					domainAxis.setTimeline(segmentedTimeline);
 
 					TimeSeriesCollection barDataSets = new TimeSeriesCollection();
 
@@ -666,7 +672,7 @@ public class ChartMain extends Chart {
 		EventQueue.invokeLater(runnable);
 	}
 
-	public void updateIndicDataSet(Stock selectedShare, Date slideStart, Date slideEnd, final Map<EventInfo, SortedMap<Date, double[]>> eventsSeries, final Rectangle2D plotArea) {
+	public void updateIndicDataSet(Stock selectedShare, Date slideStart, Date slideEnd, Boolean autoAdjustTimeLine, final Map<EventInfo, SortedMap<Date, double[]>> eventsSeries, final Rectangle2D plotArea) {
 
 		Runnable runnable = new Runnable() {
 
@@ -693,13 +699,8 @@ public class ChartMain extends Chart {
 					}
 					
 					//Domain WE fix
-					Quotations quotations = getQuotationUnitsAllClose(selectedShare, Currency.NAN, slideStart, slideEnd);
-					SortedMap<Date, double[]> quotationsMap = QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations);
-					boolean includeWeekends = quotationsMap.keySet().stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
-					LOGGER.info("Including weekends - continous quotations: " + includeWeekends);
+					Timeline segmentedTimeline = adjustedTimeLine(selectedShare, slideStart, slideEnd, autoAdjustTimeLine);
 					DateAxis domainAxis = (DateAxis) combinedDomainXYPlot.getDomainAxis();
-					//Timeline segmentedTimeline = includeWeekends?new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0):SegmentedTimeline.newMondayThroughFridayTimeline();
-					Timeline segmentedTimeline = new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0);
 					domainAxis.setTimeline(segmentedTimeline);
 
 					//Chart
@@ -733,6 +734,20 @@ public class ChartMain extends Chart {
 		};
 
 		EventQueue.invokeLater(runnable);
+	}
+	
+	private Timeline adjustedTimeLine(Stock selectedShare, Date slideStart, Date slideEnd, Boolean autoAdjustTimeLine) throws NoQuotationsException, NotEnoughDataException {
+		Timeline segmentedTimeline;
+		if (autoAdjustTimeLine) {
+			Quotations quotations = getQuotationUnitsAllClose(selectedShare, Currency.NAN, slideStart, slideEnd);
+			SortedMap<Date, double[]> quotationsMap = QuotationsFactories.getFactory().buildExactMapFromQuotationsClose(quotations);
+			boolean includeWeekends = quotationsMap.keySet().stream().anyMatch(d -> Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek().getValue() >= 6);
+			LOGGER.info("Including weekends - continous quotations: " + includeWeekends);
+			segmentedTimeline = includeWeekends?new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0):SegmentedTimeline.newMondayThroughFridayTimeline();
+		} else {
+			segmentedTimeline = new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0);
+		}
+		return segmentedTimeline;
 	}
 	
 	public void setChartPanel(ChartPanel chartPanel) {

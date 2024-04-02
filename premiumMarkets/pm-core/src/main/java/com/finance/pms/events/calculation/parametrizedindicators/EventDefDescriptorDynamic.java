@@ -189,7 +189,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		});
 		sortedGroups.addAll(chartedOutputGroups);
 
-		this.chartedOutputGroups =  Collections.synchronizedList(new ArrayList<>(sortedGroups));
+		this.chartedOutputGroups = Collections.synchronizedList(new ArrayList<>(sortedGroups));
 
 		if (invisibleGroup != null) {
 			this.chartedOutputGroups.add(invisibleGroup);

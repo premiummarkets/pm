@@ -14,6 +14,10 @@ public class CalculateThreadExecutor {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(CalculateThreadExecutor.class);
 	
+	public static CalculateThreadExecutor getInstance() {
+		return  SpringContext.getSingleton().getBean(CalculateThreadExecutor.class);
+	}
+	
 	public static ExecutorService getRandomInfiniteExecutorInstance() {
 		return SpringContext.getSingleton().getBean(CalculateThreadExecutor.class).getRandomInfiniteExecutor();
 	}

@@ -74,4 +74,9 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 		return additionalOutputsTypes;
 	}
 
+	@Override
+	public List<String> getReferences() {
+		return new ArrayList<String>(getAdditionalOutputs().keySet());
+	}
+
 }

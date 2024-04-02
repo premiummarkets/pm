@@ -56,7 +56,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
@@ -250,6 +249,7 @@ public class OperationBuilderComposite extends Composite {
 		GridLayout layout = new GridLayout();
 		layout.numColumns = BUTTONS_COLS_SPAN;
 		this.setLayout(layout);
+		//this.setSize(SWT.DEFAULT, 300);
 
 		{
 			Label formulaReferenceLabel = new Label(this, SWT.NONE);
@@ -345,9 +345,10 @@ public class OperationBuilderComposite extends Composite {
 			errorLabel.setFont(MainGui.CONTENTFONT);
 			errorLabel.setForeground(getDisplay().getSystemColor(SWT.COLOR_RED));
 
-			GridData editorLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			editor = new StyledText(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+			GridData editorLayoutData = new GridData(SWT.FILL, SWT.TOP, true, true);
 			editorLayoutData.horizontalSpan = BUTTONS_COLS_SPAN;
+			editorLayoutData.heightHint = editorHeight();
 			editor.setLayoutData(editorLayoutData);
 			editor.setFont(MainGui.CONTENTFONT);
 			{
@@ -416,7 +417,7 @@ public class OperationBuilderComposite extends Composite {
 		{
 
 			Button checkInUse = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			//layoutData.horizontalSpan = 3;
 			checkInUse.setLayoutData(layoutData);
 			checkInUse.setText("Usage of " + builderLabel());
@@ -442,7 +443,7 @@ public class OperationBuilderComposite extends Composite {
 		{
 
 			Button renameFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			//layoutData.horizontalSpan = 3;
 			renameFormula.setLayoutData(layoutData);
 			renameFormula.setText("Rename " + builderLabel());
@@ -468,7 +469,7 @@ public class OperationBuilderComposite extends Composite {
 		{
 
 			Button deleteFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			//layoutData.horizontalSpan = 3;
 			deleteFormula.setLayoutData(layoutData);
 			deleteFormula.setText("Delete " + builderLabel());
@@ -520,7 +521,7 @@ public class OperationBuilderComposite extends Composite {
 		{
 
 			Button saveFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.END, SWT.TOP, false, false);
+			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
 			//layoutData.horizontalSpan = 3;
 			saveFormula.setLayoutData(layoutData);
 			saveFormula.setText(saveButtonTxt());
@@ -551,6 +552,10 @@ public class OperationBuilderComposite extends Composite {
 
 	}
 
+	protected int editorHeight() {
+		return 400;
+	}
+
 	protected void deleteAllUnused() {
 		Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 		for (String opId : allOps.keySet()) {
@@ -568,7 +573,7 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void initPopup() {
 
-		popupShell = new Shell(getShell(), SWT.ON_TOP | SWT.RESIZE);
+		popupShell = new Shell(getShell(), SWT.ON_TOP | SWT.RESIZE | SWT.NO_TRIM);
 		getShell().addListener(SWT.Traverse, new Listener() {
 			public void handleEvent(Event event) {
 				switch (event.detail) {
@@ -594,13 +599,10 @@ public class OperationBuilderComposite extends Composite {
 		tokenAltsTable.setHeaderVisible(true);
 		tokenAltsColumns = new TableColumn[3];
 		tokenAltsColumns[0] = new TableColumn(tokenAltsTable, SWT.LEFT);
-		tokenAltsColumns[0].setWidth(50);
 		tokenAltsColumns[1] = new TableColumn(tokenAltsTable, SWT.LEFT);
 		tokenAltsColumns[1].setText("description");
-		tokenAltsColumns[1].setWidth(50);
 		tokenAltsColumns[2] = new TableColumn(tokenAltsTable, SWT.LEFT);
 		tokenAltsColumns[2].setText("synoptic and defaults");
-		tokenAltsColumns[2].setWidth(50);
 
 		if (editorListeners.get(VerifyKeyListener.class) != null) editor.removeVerifyKeyListener((VerifyKeyListener) editorListeners.get(VerifyKeyListener.class));
 		VerifyKeyListener vkListener = new VerifyKeyListener() {
@@ -818,7 +820,7 @@ public class OperationBuilderComposite extends Composite {
 			if (isValidId(oldId)) {
 				saveOrUpdateFormula(oldId, true);
 			}
-			LOGGER.info(oldId + " is saved ? : " + isSaved);
+			LOGGER.info(oldId + " is saved?: " + isSaved);
 		}
 		
 		ActionDialogForm actionDialogForm = new ActionDialogForm(getShell(), "Ok", null, "Rename");
@@ -889,6 +891,7 @@ public class OperationBuilderComposite extends Composite {
 
 			Button freshReload = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
+			layoutData.horizontalSpan = BUTTONS_COLS_SPAN -1;
 			freshReload.setLayoutData(layoutData);
 			freshReload.setText("Reload all formulas");
 			freshReload.setFont(MainGui.DEFAULTFONT);
@@ -916,22 +919,22 @@ public class OperationBuilderComposite extends Composite {
 
 			});
 		}
-		{
-
-			Button createDefaultIndicator = new Button(this, SWT.CHECK);
-			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
-			layoutData.horizontalSpan = BUTTONS_COLS_SPAN -2;
-			createDefaultIndicator.setLayoutData(layoutData);
-			createDefaultIndicator.setText("Create Trend Calculator on Save");
-			createDefaultIndicator.setFont(MainGui.DEFAULTFONT);
-			createDefaultIndicator.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent evt) {
-					createDefaultIndicatorOnSave = createDefaultIndicator.getSelection();
-				}
-			});
-
-		}
+//		{
+//
+//			Button createDefaultIndicator = new Button(this, SWT.CHECK);
+//			GridData layoutData = new GridData(SWT.END, SWT.TOP, true, false);
+//			layoutData.horizontalSpan = BUTTONS_COLS_SPAN -2;
+//			createDefaultIndicator.setLayoutData(layoutData);
+//			createDefaultIndicator.setText("Create Trend Calculator on Save");
+//			createDefaultIndicator.setFont(MainGui.DEFAULTFONT);
+//			createDefaultIndicator.addSelectionListener(new SelectionAdapter() {
+//				@Override
+//				public void widgetSelected(SelectionEvent evt) {
+//					createDefaultIndicatorOnSave = createDefaultIndicator.getSelection();
+//				}
+//			});
+//
+//		}
 
 	}
 
@@ -1227,8 +1230,7 @@ public class OperationBuilderComposite extends Composite {
 		List<Alternative> filteredAlts = new ArrayList<Alternative>();
 		for (Alternative alternative : nextToken.getAlternatives()) {
 			if (alternative.getHighLighPosition()[0] != -1 && alternative.getHighLighPosition()[1] != -1) {
-				int tokenPosition = ANTLROperationsParserHelper.translatePositionToCaret(editor.getText(), alternative.getHighLighPosition()[0],
-						alternative.getHighLighPosition()[1]);
+				int tokenPosition = ANTLROperationsParserHelper.translatePositionToCaret(editor.getText(), alternative.getHighLighPosition()[0], alternative.getHighLighPosition()[1]);
 				if (tokenPosition < formula.length()
 						&& (alternative.getTokenType().equals(TokenType.SYNTAX) || alternative.getTokenType().equals(TokenType.KEYWORDS))) {
 					String trimedF = formula.substring(tokenPosition).trim();
@@ -1389,9 +1391,9 @@ public class OperationBuilderComposite extends Composite {
 		editor.setText(newFormula);
 
 		this.getShell().layout();
-		Point size = this.getShell().getSize();
-		Point computeSize = this.getShell().computeSize(size.x, SWT.DEFAULT);
-		this.getShell().setSize(size.x, Math.max(size.y, computeSize.y));
+//		Point size = this.getShell().getSize();
+//		Point computeSize = this.getShell().computeSize(size.x, SWT.DEFAULT);
+//		this.getShell().setSize(size.x, Math.max(size.y, computeSize.y));
 
 	}
 
@@ -1508,9 +1510,10 @@ public class OperationBuilderComposite extends Composite {
 			Alternative data = alternatives.get(i);
 
 			String token = data.getAltString();
-			String description = (data.getDescription() != null) ? data.getDescription() + "    " : "    ";
-			String synoptic = (data.getSynoptic() != null && data.getDefaultValue() == null) ? data.getSynoptic() : ((data.getDefaultValue() != null) ? data
-					.getDefaultValue() : "");
+			String description = (data.getDescription() != null) ? data.getDescription().trim() : "####";
+			String synoptic = (data.getSynoptic() != null && data.getDefaultValue() == null) ? 
+										data.getSynoptic().trim() : 
+										((data.getDefaultValue() != null) ? data.getDefaultValue().trim() : "####");
 
 			if (i < items.length) {
 				items[i].setData(data);
@@ -1518,7 +1521,7 @@ public class OperationBuilderComposite extends Composite {
 				items[i].setText(1, description);
 				items[i].setText(2, synoptic);
 			} else {
-				TableItem tableItem = new TableItem(tokenAltsTable, SWT.WRAP);
+				TableItem tableItem = new TableItem(tokenAltsTable, SWT.WRAP | SWT.LEFT);
 				tableItem.setData(data);
 				tableItem.setText(0, token);
 				tableItem.setText(1, description);
@@ -1527,7 +1530,7 @@ public class OperationBuilderComposite extends Composite {
 		}
 		tokenAltsTable.remove(alternatives.size(), tokenAltsTable.getItems().length - 1);
 
-		LOGGER.info("Alternatives size " + alternatives.size() + ". Alternatives : " + (alternatives.subList(0, Math.min(alternatives.size(), 20)) + "..."));
+		LOGGER.info("Alternatives size " + alternatives.size() + ". Alternatives: " + (alternatives.subList(0, Math.min(alternatives.size(), 20)) + "..."));
 
 		if (tokenAltsTable.getItems().length > 0) {
 			tokenAltsTable.select(0);
@@ -1550,13 +1553,13 @@ public class OperationBuilderComposite extends Composite {
 		getPopupShell().setBounds(eventBounds.x, eventBounds.y + eventBounds.height, Math.min(popupSize.x, getShell().getSize().x), Math.min(200, popupSize.y) + 10);
 		getPopupShell().setVisible(showContextPopup);
 
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("Items : " + tokenAltsTable.getItems());
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("Items: " + tokenAltsTable.getItems());
 		if (LOGGER.isDebugEnabled()) {
 			String itemsStr = "";
 			for (TableItem tableItem : tokenAltsTable.getItems()) {
-				itemsStr = itemsStr + tableItem.getText(0) + ":" + tableItem.getText(1) + " , ";
+				itemsStr = itemsStr + tableItem.getText(0) + ": " + tableItem.getText(1) + " , ";
 			}
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("ItemStr size " + tokenAltsTable.getItems().length + ". Items str : " + itemsStr);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("ItemStr size " + tokenAltsTable.getItems().length + ". Items str: " + itemsStr);
 		}
 
 	}
@@ -1578,7 +1581,7 @@ public class OperationBuilderComposite extends Composite {
 			endCaretOffset = Math.min(endCaretOffset, editor.getText().length());
 
 			// Style
-			LOGGER.info("Style attempt @ line " + lineNum + ", start column " + endLineOffset + ". Alternative : " + alternative);
+			LOGGER.info("Style attempt @ line " + lineNum + ", start column " + endLineOffset + ". Alternative: " + alternative);
 
 			int length = alternative.getAltType().equals(ANTLRParserHelper.AltType.DELETE) ? alternative.getAltString().length() : 1;
 			if (endCaretOffset <= editor.getText().length() && endCaretOffset - length >= 0) {

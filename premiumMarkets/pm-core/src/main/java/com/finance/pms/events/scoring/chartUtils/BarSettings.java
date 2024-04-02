@@ -41,7 +41,8 @@ public class BarSettings {
 	private Boolean isZeroBased;
 	private Boolean isGradient;
 	private Boolean sideBySide;
-	private Boolean isReachTop; 
+	private Boolean isReachTop;
+	private Boolean autoSetTimeLine;
 
 	
 	public BarSettings() {
@@ -52,6 +53,7 @@ public class BarSettings {
 		this.isReachTop =  Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isReachTop", "false"));
 		this.isGradient = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isGradient", "false"));
 		this.sideBySide  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isSideBySide", "false")); //TODO?? => calculate some kind of density
+		this.autoSetTimeLine  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.autoSetTimeLine", "false"));
 	}
 	
 	public Double getAlphaDividend() {
@@ -80,7 +82,7 @@ public class BarSettings {
 	public Boolean getIsZeroBased() {
 		return isZeroBased;
 	}
-	public void setIsZerobased(Boolean isZerobased) {
+	public void setIsZeroBased(Boolean isZerobased) {
 		try {
 			MainPMScmd.getMyPrefs().putBoolean("chart.isZeroBased", isZerobased);
 		} catch (Exception e) {
@@ -104,13 +106,13 @@ public class BarSettings {
 		return sideBySide;
 	}
 
-	public void setSideBySide(Boolean isReachTop) {
+	public void setSideBySide(Boolean isSideBySide) {
 		try {
-			MainPMScmd.getMyPrefs().putBoolean("chart.isSideBySide", isReachTop);
+			MainPMScmd.getMyPrefs().putBoolean("chart.isSideBySide", isSideBySide);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		this.sideBySide = isReachTop;
+		this.sideBySide = isSideBySide;
 	}
 
 	public Boolean getIsReachTop() {
@@ -126,5 +128,17 @@ public class BarSettings {
 		this.isReachTop = isReachTop;
 	}
 
-	
+	public Boolean getAutoSetTimeLine() {
+		return autoSetTimeLine;
+	}
+
+	public void setAutoSetTimeLine(Boolean autoSetTimeLine) {
+		try {
+			MainPMScmd.getMyPrefs().putBoolean("chart.autoSetTimeLine", autoSetTimeLine);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		this.autoSetTimeLine = autoSetTimeLine;
+	}
+
 }

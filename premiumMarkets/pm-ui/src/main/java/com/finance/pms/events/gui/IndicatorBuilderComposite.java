@@ -34,8 +34,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -56,25 +54,26 @@ import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 
 public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
-	public IndicatorBuilderComposite(Composite parent, MainGui mainGui, ComboUpdateMonitor comboUpdateMonitor) {
+	public IndicatorBuilderComposite(Composite parent, MainGui mainGui) {
 		super(parent, mainGui);
 
-		comboUpdateMonitor.addObserver(new Observer() {
-			@Override
-			public void update(Observable o, Object arg) {
-				
-				if (isSaved) {
-					int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
-					updateCombo(false);
-					if (formulaReferenceCombo.getItemCount() > 0) {
-						forceSelection(comboSelectionIdx % formulaReferenceCombo.getItemCount());
-					}
-				} else {
-					updateEditableOperationLists();
-				}
-
-			}
-		});
+//		comboUpdateMonitor.addObserver(new Observer() {
+//			@Override
+//			public void update(Observable o, Object arg) {
+//				
+//				if (isSaved) {
+//					int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
+//					updateCombo(false);
+//					if (formulaReferenceCombo.getItemCount() > 0) {
+//						forceSelection(comboSelectionIdx % formulaReferenceCombo.getItemCount());
+//					}
+//				} else {
+//					updateEditableOperationLists();
+//				}
+//
+//			}
+//		});
+//		obsComboUpdateMonitor(comboUpdateMonitor);
 	}
 
 	@Override
@@ -119,6 +118,11 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 			});
 		}
 
+	}
+
+	@Override
+	protected int editorHeight() {
+		return super.editorHeight()/3;
 	}
 
 	@Override

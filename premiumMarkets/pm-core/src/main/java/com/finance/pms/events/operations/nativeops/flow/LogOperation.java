@@ -13,12 +13,14 @@ import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
-public class LogOperation extends Operation {
-	
+public class LogOperation extends PassThroughOperation {
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(LogOperation.class);
 	
+	private static final int UPSTREAM_OPERATION_IDX = 1;
+	
 	public LogOperation(String reference, String description, Operation ... operands) {
-		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
+		super(UPSTREAM_OPERATION_IDX, reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
 	}
 
 	public LogOperation() {
@@ -42,18 +44,8 @@ public class LogOperation extends Operation {
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String message = ((StringValue) inputs.get(0)).getValue(targetStock);
-		LOGGER.info(getReference() + ": " + message.replaceAll("_", " ") + " in " + this.getOperands().get(1).toFormulaeShort(targetStock));
-		return inputs.get(1);
-	}
-
-	@Override
-	public Value<?> emptyValue() {
-		 return getOperands().get(1).emptyValue();
-	}
-
-	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return 0;
+		LOGGER.info(getReference() + ": " + message.replaceAll("_", " ") + " in " + this.getOperands().get(UPSTREAM_OPERATION_IDX).toFormulaeShort(targetStock));
+		return inputs.get(UPSTREAM_OPERATION_IDX);
 	}
 	
 }

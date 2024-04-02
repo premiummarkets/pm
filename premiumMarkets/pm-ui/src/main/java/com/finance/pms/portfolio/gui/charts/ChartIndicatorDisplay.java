@@ -88,6 +88,7 @@ import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartBarUtils;
@@ -145,6 +146,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private BarSettingsDialog trendSettingsDialog;
 
 	private Button recalculationButton;
+	private PopupMenu<EventInfo> recalculationPopupMenu;
 
 
 	public ChartIndicatorDisplay(ChartsComposite chartTarget, LogComposite logComposite) {
@@ -275,15 +277,48 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 		RefreshableView parentView = chartTarget;
 		final EventRefreshController ctrller = new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
-
+			
 			@Override
 			public void widgetSelected(SelectionEvent evt) {
+				
+				if (chartTarget.getChartedEvtDefsTrends().size() > 1) {
+					Set<EventInfo> selectedForRefresh = new HashSet<>();
+					
+					ActionDialogAction deactivateAction = new ActionDialogAction() {
 
+						@Override
+						public void action() {
+							chartTarget.getHightlitedEventModel().setViewParam(0, selectedForRefresh);
+							doAction(selectedShare, evt);
+							recalculationPopupMenu.getSelectionShell().setVisible(false);
+						}
+
+					};
+					
+					if (recalculationPopupMenu == null || recalculationPopupMenu.getSelectionShell().isDisposed()) {
+						recalculationPopupMenu = new PopupMenu<EventInfo>(chartTarget, recalculationButton, notUpToDateEI, selectedForRefresh, false, true, SWT.CHECK, null, deactivateAction, false);
+						Rectangle parentBounds = chartTarget.getDisplay().map(recalculationButton, null, recalculationButton.getBounds());
+						recalculationPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
+					} else {
+						recalculationPopupMenu.updateAction(notUpToDateEI, selectedForRefresh, null, deactivateAction, false);
+						//					if (activatePopup) {
+						recalculationPopupMenu.getSelectionShell().setVisible(true);
+						recalculationPopupMenu.getSelectionShell().setActive();
+						recalculationPopupMenu.getSelectionShell().setFocus();
+						//					}
+					} 
+				} else {
+					doAction(selectedShare, evt);
+				}
+
+			}
+			
+
+			private void doAction(final Stock selectedShare, SelectionEvent evt) {
 				LOGGER.guiInfo("Cleaning and Recalculating. Thanks for waiting ...");
 				EventTaskQueue.getSingleton().invalidateTasksCreationDates(TaskId.Analysis);
 				//Will clean notUpToDateEI (selected event infos which have no output cached) event infos for this stock
-				this.updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
-
+				updateEventRefreshModelState(0l, TaskId.FetchQuotations, TaskId.Clean, TaskId.Analysis);
 				super.widgetSelected(evt);
 
 				if (!chartTarget.getChartedEvtDefsTrends().isEmpty()) {
@@ -416,7 +451,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 										.buildBarsData(
 												selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
 												ses, tuningRessCache, trendSettings);
-								chartTarget.getMainChartWraper().updateBarDataSet(barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
+								chartTarget.getMainChartWraper().updateBarDataSet(
+										selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(),trendSettings.getAutoSetTimeLine(),
+										barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {
 								LOGGER.error("arg: " + arg + ", chartTarget.getMainChartWraper(): " + chartTarget.getMainChartWraper() + ", chartTarget.getHighligtedId(): "
 										+ chartTarget.getHighligtedId() + ", barChartSettings: " + trendSettings + ", chartTarget.getPlotChartDimensions(): "
@@ -511,9 +548,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				Set<OutputDescr> allOutputDescr = t.getEventDefDescriptor().allOutputDescr();
 				return allOutputDescr.stream().map( od -> od.toString()).reduce((r,e) -> r + "\n\t\t" + e).orElse("None");
 			}).reduce((r,e) -> r + " " + e));} catch (Exception e) {LOGGER.warn("Cannot debug this", e);};
-
-			chartTarget.getMainChartWraper().updateIndicDataSet(selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(),  eventsSeries, chartTarget.getPlotChartDimensions());
+			
+			chartTarget.getMainChartWraper().updateIndicDataSet(
+					selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), trendSettings.getAutoSetTimeLine(),
+					eventsSeries, chartTarget.getPlotChartDimensions());
 		}
+		
 
 	}
 
@@ -699,11 +739,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				stopCalculationsButton.setText("Stop Calculations");
 				RefreshableView parentView = chartTarget;
 				stopCalculationsButton.addSelectionListener(
-						new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
+				new EventRefreshController(chartTarget.getHightlitedEventModel(), parentView, ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME)) {
 
 					@Override
 					public void widgetSelected(SelectionEvent evt) {
 						LOGGER.guiInfo("Stoping Calculations.");
+						
+						CalculateThreadExecutor.getInstance().close();
+						
 						SelectedIndicatorsCalculationService analyzer = (SelectedIndicatorsCalculationService) SpringContext.getSingleton().getBean("selectedIndsCalculator");
 						analyzer.getFutureTracker().stream().forEach(o -> {
 							try {
@@ -712,13 +755,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 								LOGGER.error(e, e);
 							}
 						});
+						
 						Set<Thread> runningThreads = Thread.getAllStackTraces().keySet();
 						List<Thread> filter = runningThreads.stream()
 								.filter(t -> t.getName().contains("my-calculation-thread"))
 								.collect(Collectors.toList());
 						filter.stream().forEach(t -> t.interrupt());
 						boolean allInterrupted = filter.stream().allMatch(t -> t.isInterrupted());
+						
 						if (allInterrupted) analyzer.getFutureTracker().clear();
+						
 						super.widgetSelected(evt);
 					}
 

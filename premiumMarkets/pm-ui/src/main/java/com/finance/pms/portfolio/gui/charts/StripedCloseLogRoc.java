@@ -58,8 +58,6 @@ import com.tictactec.ta.lib.MInteger;
 
 public class StripedCloseLogRoc extends StripedCloseFunction {
 
-	public static final int DEFAULTLOGROCSMTH = 50;
-
 	private NumberFormat numberFormat = new DecimalFormat("0.############ \u2030");
 	private Boolean rootAtZero;
 	private int period;
