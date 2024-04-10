@@ -147,7 +147,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 								dataSet.addSeries(timeSeries);
 
-								renderer.setSeriesPaint(seriesIdx, eventDefDescriptor.getColor(groupIdx, outputIdx));
+								renderer.setSeriesPaint(seriesIdx, eventDefDescriptor.getColor(rendererIdx, groupIdx, outputIdx));
 								renderer.setSeriesShape(seriesIdx, new Rectangle(new Dimension(100, 100)));
 
 								XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {

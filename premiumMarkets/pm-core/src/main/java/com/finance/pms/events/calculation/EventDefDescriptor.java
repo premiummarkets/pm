@@ -43,7 +43,7 @@ public interface EventDefDescriptor {
 
 	String getHtmlBearishDescription();
 
-	Color getColor(int grpIdx, int outputIdx) throws Exception;
+	Color getColor(int rendererIdx, int grpIdx, int outputIdx) throws Exception;
 
 	Boolean displayValues();
 

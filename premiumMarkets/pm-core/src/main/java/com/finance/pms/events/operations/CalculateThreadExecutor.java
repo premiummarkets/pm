@@ -104,8 +104,9 @@ public class CalculateThreadExecutor {
 	
 	public void close() {
 		semaphore.drainPermits();
-		randomInfiniteExecutor.shutdown();
-		joinForkExecutor.shutdown();
+		randomInfiniteExecutor.shutdownNow();
+		joinForkExecutor.shutdownNow();
+		semaphore.release(Integer.valueOf(MainPMScmd.getMyPrefs().get("indicatorcalculator.semaphore.nbthread","5")));
 	}
 	
 

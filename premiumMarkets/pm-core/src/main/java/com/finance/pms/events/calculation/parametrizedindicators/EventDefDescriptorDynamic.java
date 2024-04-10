@@ -203,12 +203,12 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Color getColor(int groupIdx, int outputIdx) throws Exception {
+	public Color getColor(int rendererIdx, int groupIdx, int outputIdx) throws Exception {
 
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
 		int alpha = (int) (255 - 128*((double) groupIdx)/getGroupsCount());
-		Color[] grpColors = COLORS[groupIdx % COLORS.length];
+		Color[] grpColors = COLORS[ ((rendererIdx*getGroupsCount() + groupIdx)) % COLORS.length];
 
 		switch (getOutputDescr(groupIdx, outputIdx).getType()) {
 		case CONSTANT :

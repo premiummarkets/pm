@@ -51,11 +51,13 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * see 
  * ee19d8ce-650a-4f8b-b0c4-46a51d0c3655_IBM_k_training_0b6df74a-eeb0-47b7-a8b7-de1a9ec71f66.csv from 
  * fileOperation(iosExporter("autoPortfolioLogs",targetStockInfo("symbol"),iosAssembler("FALSE","FALSE",ogHouseTrendSMA(),ogHouseTrendUnNorm(),ogHouseTrendUnNormNLFix())),1,0)
+ * This should be worked around by interpolating the input data before shifting it.
  * @param <T>
  * noDataLoss: 
- * 	will complement the shit with the data that may have been cut (left is > 0 or right if < 0)
- * 	The issue is that in this algorithm the keySet does not span over the cut period. Hence the made up dates using QuotationsFactories.getFactory().incrementDate calls.
- * 
+ * 	will complement the shift with the data that may have been cut (left is > 0 or right if < 0)
+ * 	The issue is that in this algorithm the keySet does not span over the cut period. 
+ * 	Hence the made up dates (base on the upstream stock real quotation key set) using QuotationsFactories.getFactory().incrementDate.
+ *  This can be an issue as this arbitrary increment does not reflect a potential interpolation of the upstream data.
  */
 public class LeftShifter<T> {
 	
@@ -87,13 +89,13 @@ public class LeftShifter<T> {
 			int nbMissingDays = data.size() - shiftedOutput.size();
 			Calendar calendar = Calendar.getInstance();
 
-			if (nbDaysAhead > 0) {
+			if (nbDaysAhead > 0) {//Complementing left
 				calendar.setTime(shiftedOutput.firstKey());
 				for (int i = 1; i <= nbMissingDays; i++) {
 					QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, calendar, -1);
 					shiftedOutput.put(calendar.getTime(), data.get(keyList.get(j0-i)));
 				}
-			} else {
+			} else {//Complementing right
 				calendar.setTime(shiftedOutput.lastKey());
 				for (int i = 0; i < nbMissingDays; i++) {
 					QuotationsFactories.getFactory().incrementDate(stock, quotationsDataTypes, calendar, +1);

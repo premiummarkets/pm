@@ -31,18 +31,11 @@ package com.finance.pms.events.gui;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
-import com.finance.pms.CursorFactory;
 import com.finance.pms.MainGui;
 import com.finance.pms.SpringContext;
 import com.finance.pms.UserDialog;
@@ -56,24 +49,6 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	public IndicatorBuilderComposite(Composite parent, MainGui mainGui) {
 		super(parent, mainGui);
-
-//		comboUpdateMonitor.addObserver(new Observer() {
-//			@Override
-//			public void update(Observable o, Object arg) {
-//				
-//				if (isSaved) {
-//					int comboSelectionIdx = formulaReferenceCombo.getSelectionIndex();
-//					updateCombo(false);
-//					if (formulaReferenceCombo.getItemCount() > 0) {
-//						forceSelection(comboSelectionIdx % formulaReferenceCombo.getItemCount());
-//					}
-//				} else {
-//					updateEditableOperationLists();
-//				}
-//
-//			}
-//		});
-//		obsComboUpdateMonitor(comboUpdateMonitor);
 	}
 
 	@Override
@@ -87,36 +62,6 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected void addThisCompositeExtratButtons() {
-
-		{
-			Button duplicate = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
-			layoutData.horizontalSpan = BUTTONS_COLS_SPAN -1;
-			duplicate.setLayoutData(layoutData);
-			duplicate.setText("Duplicate");
-			duplicate.setFont(MainGui.DEFAULTFONT);
-			duplicate.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handleDuplicateFormula();
-				}
-
-				private void handleDuplicateFormula() {
-					IndicatorBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_WAIT));
-					try {
-						duplicateFormula(getFormatedReferenceTxt());
-					} finally {
-						IndicatorBuilderComposite.this.getParent().setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-					}
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handleDuplicateFormula();
-				}
-			});
-		}
 
 	}
 
@@ -133,21 +78,6 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	@Override
 	protected List<String> syntaxTokens() {
 		return EditorIndsLexerDelegate.SYNTAX_TOKENS;
-	}
-
-	@Override
-	protected void clearEditor() {
-		super.clearEditor();
-		editor.setEnabled(true);
-		editor.setEditable(true);
-	}
-
-
-	@Override
-	protected void enableEditor() {
-		editor.setEnabled(true);
-		editor.setEditable(true);
-		editor.setStyleRange(null);
 	}
 
 	@Override
@@ -183,31 +113,6 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 				LOGGER.error(e,e);
 			}
 		}
-	}
-
-	protected void duplicateFormula(String identifier) {
-
-		if (!isValidId(identifier)) return;
-		Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
-		if (isNativeOp(identifier, existingOp)) return;
-
-		try {
-
-			Operation duplicatedOperation = parameterizedBuilder.duplicateOperation(existingOp, new HashMap<String, Operation>());
-			updateComboAndSelect(duplicatedOperation.getReference(), true);
-			refreshViews();
-
-		} catch (IOException e) {
-			UserDialog dialog = new UserDialog(getShell(), "Formula can't be duplicated.", e.toString());
-			LOGGER.warn(e, e);
-			dialog.open();
-			return;
-		} catch (Exception e) {
-			UserDialog dialog = new UserDialog(getShell(), "Found invalid formulas while storing data.", e.toString());
-			LOGGER.warn(e, e);
-			dialog.open();
-		}
-
 	}
 
 }

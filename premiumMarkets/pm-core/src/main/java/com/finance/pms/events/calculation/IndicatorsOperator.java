@@ -112,6 +112,9 @@ public abstract class IndicatorsOperator {
 	 * Double output -> Double chart
 	 * null 		-> Double.NaN 					(WILL break the chart line)
 	 * Double.NaN 	-> Double.NEGATIVE_INFINITY 	(WON'T break the chart line)
+	 *FIXME should it be;
+	 * 	- if the output description is continuous: Null should be filled in with NEGATIVE_INFINITY and NaN should stay as is (as it really is a gap in the output)
+	 * 	- if the output description is discrete: Null should be filled with NaN and existing NaN stay as is.
 	 * @return
 	 */
 	protected Double translateOutputForCharting(Double ds2) {

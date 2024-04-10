@@ -45,17 +45,51 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.finance.pms.admin.install.logging.MyLogger;
+
 public abstract class AutoCompletePopupMenu<T> {
+	
+	public static MyLogger LOGGER = MyLogger.getLogger(AutoCompletePopupMenu.class);
 	
 	private Shell parentShell;
 	private Composite container;
 	private Text textBox;
+	private Table table;
 
 	public AutoCompletePopupMenu(Shell parentShell, Composite container, Text textBox) {
 		super();
 		this.parentShell = parentShell;
 		this.container = container;
 		this.textBox = textBox;
+	}
+	
+
+	private void popupTable(final Shell popupShell) {
+		
+		if (textBox.getText().equals(textBox.getData())) return;
+		
+		Rectangle textBounds = parentShell.getDisplay().map(container, null, textBox.getBounds());
+		popupShell.setVisible(true);
+		popupShell.setBounds(textBounds.x, textBounds.y + textBounds.height, textBounds.width, 300);
+		
+		
+		String typedInString = textBox.getText();
+		List<T> alikes = loadAlikes(typedInString);
+		
+		TableItem[] items = table.getItems();
+		for (int i = 0; i < alikes.size(); i++) {
+			if(i < items.length) {
+				items[i].setText(translateALike(alikes.get(i)));
+			} else {
+				TableItem tableItem = new TableItem(table, SWT.NONE);
+				tableItem.setText(translateALike(alikes.get(i)));
+			}
+		}
+		table.remove(alikes.size(), table.getItems().length-1);
+		
+		if (table.getItems().length > 0) {
+			table.select(0);
+		}
 	}
 	
 	public void initPopupMenu() 	{
@@ -74,11 +108,15 @@ public abstract class AutoCompletePopupMenu<T> {
 		parentShell.addShellListener(new ShellAdapter() {
 			@Override
 			public void shellClosed(ShellEvent evt) {
-				if (!popupShell.isDisposed()) popupShell.dispose();
+				LOGGER.warn("Popupshell is being closed: " + evt);
+				if (!popupShell.isDisposed()) {
+					if (parentShell.isDisposed()) popupShell.dispose();
+					else popupShell.setVisible(false);
+				}
 			}
 		});
 		popupShell.setLayout(new FillLayout());
-		final Table table = new Table(popupShell, SWT.SINGLE);
+		table = new Table(popupShell, SWT.SINGLE);
 		table.setFont(MainGui.CONTENTFONT);
 		
 		textBox.addListener(SWT.KeyDown, new Listener() {
@@ -89,6 +127,8 @@ public abstract class AutoCompletePopupMenu<T> {
 							int index = (table.getSelectionIndex() + 1) % table.getItemCount();
 							table.setSelection(index);
 							event.doit = false;
+						} else {
+							popupTable(popupShell);
 						}
 						break;
 					case SWT.ARROW_UP:
@@ -97,12 +137,19 @@ public abstract class AutoCompletePopupMenu<T> {
 							if (index < 0) index = table.getItemCount() - 1;
 							table.setSelection(index);
 							event.doit = false;
+						} else {
+							popupTable(popupShell);
 						}
 						break;
 					case SWT.CR:
 						if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
-							textBox.setText(table.getSelection()[0].getText());
+							String text = table.getSelection()[0].getText();
+							textBox.setText(text);
 							popupShell.setVisible(false);
+							selectionAction(text);
+							textBox.setData(textBox.getText());
+						} else {
+							popupTable(popupShell);
 						}
 						break;
 					case SWT.ESC:
@@ -111,42 +158,20 @@ public abstract class AutoCompletePopupMenu<T> {
 				}
 			}
 		});
+
 		textBox.addListener(SWT.Modify, new Listener() {
-
 			public void handleEvent(Event event) {
-				final String typedInString = textBox.getText();
-				if (typedInString.length() == 0) {
-					popupShell.setVisible(false);
-				} else {
-					List<T> alikes = loadAlikes(typedInString);
-					
-					TableItem[] items = table.getItems();
-					for (int i = 0; i < alikes.size(); i++) {
-						if(i < items.length) {
-							items[i].setText(transalateALike(alikes.get(i)));
-						} else {
-							TableItem tableItem = new TableItem(table, SWT.NONE);
-							tableItem.setText(transalateALike(alikes.get(i)));
-						}
-					}
-					table.remove(alikes.size(), table.getItems().length-1);
-					
-					if (table.getItems().length > 0) {
-						table.select(0);
-					}
-					
-					Rectangle textBounds = parentShell.getDisplay().map(container, null, textBox.getBounds());
-					popupShell.setBounds(textBounds.x, textBounds.y + textBounds.height, textBounds.width, 150);
-					popupShell.setVisible(true);
-				}
+				popupTable(popupShell);
 			}
-
 		});
 
 		table.addListener(SWT.DefaultSelection, new Listener() {
 			public void handleEvent(Event event) {
-				textBox.setText(table.getSelection()[0].getText());
+				String text = table.getSelection()[0].getText();
+				textBox.setText(text);
 				popupShell.setVisible(false);
+				selectionAction(text);
+				textBox.setData(textBox.getText());
 			}
 		});
 		table.addListener(SWT.KeyDown, new Listener() {
@@ -176,17 +201,15 @@ public abstract class AutoCompletePopupMenu<T> {
 
 		parentShell.addListener(SWT.Move, new Listener() {
 			public void handleEvent(Event event) {
-				popupShell.setVisible(false);
+				if (!popupShell.isDisposed()) popupShell.setVisible(false);
 			}
 		});
 	}
-
-	public Text getTextBox() {
-		return textBox;
-	}
 	
-	public abstract String transalateALike(T alike);
+	public abstract String translateALike(T alike);
 	
 	public abstract List<T> loadAlikes(String typedInString);
+	
+	public abstract void selectionAction(String typedInString);
 
 }

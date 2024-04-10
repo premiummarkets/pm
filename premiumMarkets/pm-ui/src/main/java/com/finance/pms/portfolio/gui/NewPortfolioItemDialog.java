@@ -161,7 +161,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 			
 			autocompleteGroup.setBackground(MainGui.pOPUP_GRP);
 			autocompleteGroup.setFont(biggerFont);
-			autocompleteGroup.setText("Find a share");
+			autocompleteGroup.setText("Search");
 			String toolTiptxt = "Search for a stock in lists existing in your database. You can update these lists using the 'Stock lists and Markets' menu";
 			autocompleteGroup.setToolTipText(toolTiptxt);
 		
@@ -174,14 +174,20 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				final AutoCompletePopupMenu<Stock> autoCompletePopupMenu = new AutoCompletePopupMenu<Stock>(getShell(), autocompleteGroup, textBox) {
 
 					@Override
-					public String transalateALike(Stock alike) {
+					public String translateALike(Stock alike) {
 						return alike.getFriendlyName();
 					}
 
 					@Override
 					public List<Stock> loadAlikes(String typedInString) {
+						if (typedInString == null || typedInString.isBlank()) return new ArrayList<>();
 						List<Stock> alikes = DataSource.getInstance().getShareDAO().loadSharesLike(typedInString, 50);
 						return alikes;
+					}
+
+					@Override
+					public void selectionAction(String typedInString) {
+						//Nothing
 					}
 					
 				};
@@ -196,7 +202,7 @@ public class NewPortfolioItemDialog extends org.eclipse.swt.widgets.Composite {
 				autoCompletAddBut.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseDown(MouseEvent evt) {
-						addSearchSelection(autoCompletePopupMenu.getTextBox());
+						addSearchSelection(textBox);
 					}
 
 				});

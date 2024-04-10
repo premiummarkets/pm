@@ -99,13 +99,13 @@ public class OperationBuilderDialog {
 		IndicatorBuilderComposite indicatorBuilderComposite = new IndicatorBuilderComposite(shell, mainGui);
 		indicatorBuilderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
-		operationBuilderComposite.obsComboUpdateMonitor(indicatorBuilderComposite.getComboUpdateMonitor());
-		indicatorBuilderComposite.obsComboUpdateMonitor(operationBuilderComposite.getComboUpdateMonitor());
+		operationBuilderComposite.opsListUpdateMonitor(indicatorBuilderComposite.getComboUpdateMonitor());
+		indicatorBuilderComposite.opsListUpdateMonitor(operationBuilderComposite.getComboUpdateMonitor());
 
 		shell.layout();
 
-		operationBuilderComposite.forceSelection(0);
-		indicatorBuilderComposite.forceSelection(0);
+//		operationBuilderComposite.forceSelection("");
+//		indicatorBuilderComposite.forceSelection("");
 
 	}
 

@@ -172,7 +172,7 @@ public class EventDefDescriptorStatic implements EventDefDescriptor {
 	}
 
 	@Override
-	public Color getColor(int grpIdx, int i) {
+	public Color getColor(int rendererIdx, int grpIdx, int i) {
 		return colors.get(i);
 	}
 

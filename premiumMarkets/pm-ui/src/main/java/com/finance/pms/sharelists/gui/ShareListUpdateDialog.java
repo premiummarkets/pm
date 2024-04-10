@@ -497,14 +497,20 @@ public class ShareListUpdateDialog extends Dialog implements RefreshableView {
 			AutoCompletePopupMenu<Stock> autoCompletePopupMenu = new AutoCompletePopupMenu<Stock>(getParent().getShell(), insertManualGroup, symbolTxt) {
 
 				@Override
-				public String transalateALike(Stock alike) {
+				public String translateALike(Stock alike) {
 					return alike.getSymbol();
 				}
 
 				@Override
 				public List<Stock> loadAlikes(String typedInString) {
+					if (typedInString == null || typedInString.isBlank()) return new ArrayList<>();
 					List<Stock> alikes = DataSource.getInstance().getShareDAO().loadSharesLike(typedInString, 50);
 					return alikes;
+				}
+
+				@Override
+				public void selectionAction(String typedInString) {
+					//Nothing
 				}
 			};
 			autoCompletePopupMenu.initPopupMenu();

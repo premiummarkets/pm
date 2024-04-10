@@ -30,6 +30,15 @@
 package com.finance.pms.datasources;
 
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.lang.ref.SoftReference;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -43,6 +52,7 @@ import java.util.Observer;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.http.HttpException;
 
@@ -57,6 +67,8 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
+import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
 import com.finance.pms.events.scoring.TunedConfMgr;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
@@ -69,6 +81,12 @@ import com.finance.pms.events.scoring.dto.TuningResDTO;
 public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(PropertyChangeListener.class);
+	
+	private static final String OUTPUT_CACHE_PATH = System.getProperty("installdir") + File.separator + ".output_cache";
+	static {
+		File outputCacheFolder = new File(OUTPUT_CACHE_PATH);
+		if(!outputCacheFolder.exists()) outputCacheFolder.mkdirs();
+	}
 
 	private OTFTuningFinalizer tuningFinalizer;
 	private Observer tuningResObs;
@@ -80,19 +98,103 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	protected X rootViewParam;
 	protected Collection<? extends Object>[] otherViewParams;
 
-	//static Map<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>> outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
-	static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+	static Map<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>> outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
+	//static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	public static Map<EventInfo, EventDefCacheEntry> getOutputCache(Stock stock) {
-		//return (outputCache.get(stock) == null)? null : outputCache.get(stock).get();
-		return outputCache.get(stock);
+		return (outputCache.get(stock) == null)? getFromFileCache(stock) : outputCache.get(stock).get();
+		//return outputCache.get(stock);
+	}
+	private static Map<EventInfo, EventDefCacheEntry> getFromFileCache(Stock stock) {
+		String fileNamePattern = stock.getSymbol() + "%%" +  stock.getIsin()  + "%%" + ".*" + "%%" + SelectedIndicatorsCalculationService.getAnalysisName();
+		File dir = new File(OUTPUT_CACHE_PATH);
+		final File[] files = dir.listFiles(new FilenameFilter() {
+		    @Override
+		    public boolean accept(final File dir, final String name) {
+		        return name.matches(fileNamePattern + "\\.csv");
+		    }
+		});
+		Map<EventInfo, EventDefCacheEntry> map = new HashMap<>();
+		for (final File file : files) {
+			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+				String line;
+				String[] fileNameSplit = file.getName().split("%%");
+				//Stock fileNameSplit[0-1]
+				//"%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName() + 
+				String eventDefinitionRef = fileNameSplit[2];
+				ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
+				EventInfo eventInfo = (EventInfoOpsCompoOperation) parameterizedIndiactorsBuilder.getCurrentOperations().get(eventDefinitionRef);
+				if (eventInfo != null) {
+					SortedMap<Date, double[]> outputMap = new TreeMap<>();
+					SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+					while((line = bufferedReader.readLine()) != null) {
+						String[] split = line.split(",");
+						double[] dbles = Arrays.asList(split).subList(1, split.length).stream().map(s -> Double.valueOf(s)).mapToDouble(Double::doubleValue).toArray();
+						outputMap.put(df.parse(split[0]), dbles);
+					}
+					map.put(eventInfo, new EventDefCacheEntry(outputMap, new UpdateStamp(outputMap.firstKey(), outputMap.lastKey(), false, null)));
+				} else {
+					throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + file.getAbsolutePath());
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		if (!map.isEmpty()) {
+			putOutputCache(stock, map);
+			return map;
+		}
+		return null;
 	}
 	public static void resetOutputCache() {
-		//EventModel.outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
-		EventModel.outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
+		EventModel.outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
+		resetFileCache();
+		//EventModel.outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	}
-	public static void putOutputCache(Map<Stock, Map<EventInfo, EventDefCacheEntry>> callbackForlastAnalyseOutput, Stock stock) {
-		//EventModel.outputCache.put(stock, new SoftReference<>(callbackForlastAnalyseOutput.get(stock)));
-		EventModel.outputCache.put(stock,callbackForlastAnalyseOutput.get(stock));
+	private static void resetFileCache() {
+		File dir = new File(OUTPUT_CACHE_PATH);
+		final File[] files = dir.listFiles(new FilenameFilter() {
+		    @Override
+		    public boolean accept(final File dir, final String name) {
+		        return name.matches(".*\\.csv");
+		    }
+		});
+		for (final File file : files) {
+		    if (!file.delete()) {
+		    	String message = "Can't remove " + file.getAbsolutePath();
+				LOGGER.error(message);
+		    	throw new RuntimeException(message);
+		    }
+		}
+	}
+	public static void putOutputCache(Stock stock, Map<EventInfo, EventDefCacheEntry> eventInfosforStock) {
+		EventModel.outputCache.put(stock, new SoftReference<>(eventInfosforStock));
+		putInFileCache(stock, eventInfosforStock);
+		//EventModel.outputCache.put(stock,callbackForlastAnalyseOutput.get(stock));
+	}
+	//EVENTDEF, EVENTDEFEXTENSION, ANALYSENAME => eventValue.getEventDef(), eventKey.getEventInfoExtra(), eventValue.getEventListName()
+	private static String filename(Stock stock, EventInfo ei) {
+		return stock.getSymbol() + "%%" + stock.getIsin() +  "%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName();
+	}
+	private static void putInFileCache(Stock stock, Map<EventInfo, EventDefCacheEntry> map) {
+		map.keySet().stream()
+		.filter(ei -> OutStampState.OK.equals(map.get(ei).getUpdateStamp().getOutputState()))
+		.forEach(ei -> {
+			String string = filename(stock, ei);
+			String fileName = string + ".csv";
+			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+			try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(OUTPUT_CACHE_PATH + File.separator + fileName))) {
+				map.get(ei).getOutputMap().entrySet().forEach(entry -> {
+					try {
+						bufferedWriter.write(df.format(entry.getKey()) + Arrays.stream(entry.getValue()).mapToObj(d -> d).reduce("", (a, d) -> a + "," + d, (a, b) -> a + b));
+						bufferedWriter.newLine();
+					} catch (IOException e) {
+						LOGGER.warn("Error writing into cache: " + e);
+					}
+				});
+			} catch (Exception e) {
+				LOGGER.warn("Error writing into cache: " + e);
+			}
+		});
 	}
 	public static void dirtyCacheFor(EventInfo eventInfo) {
 		for (Stock stock : outputCache.keySet()) {
@@ -104,9 +206,15 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					if (updateStamp != null) {
 						updateStamp.setDirty();
 					}
+					removeFromFileCache(stock, eventInfo);
 				}
 			}
 		}
+	}
+	private static void removeFromFileCache(Stock stock, EventInfo ei) {
+		String fileName = filename(stock, ei);
+		File file = new File(OUTPUT_CACHE_PATH + File.separator + fileName);
+		file.delete();
 	}
 
 	static Long eventInfoChangeStamp = 0l;

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +28,7 @@ public class SystemEnvironment {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(SystemEnvironment.class);
 	
-	private static final String JSON_ENV_PATH = System.getProperty("installdir") + File.separator + "env.json";
+	private static String JSON_ENV_PATH = System.getProperty("installdir") + File.separator + "env.json";
 
 	private static SystemEnvironment environmentMgt;
 	
@@ -43,9 +44,26 @@ public class SystemEnvironment {
 	}
 
 	private Env env;
+	
+	public Collection<String> getAllStocks() {
+		return env.getEnvForStocks().keySet();
+	}
+	
+	public Collection<String> getAnalysisFor(String stockSymbol) {
+		return env.getEnvForStocks().get(stockSymbol).getNvps().keySet();
+	}
+	
+	public Collection<String> getOldAnalysisFor(String stockSymbol) {
+		return env.getEnvForStocks().get(stockSymbol).getOldNvps().keySet();
+	}
 
 	public SystemEnvironment() {
 			initCalcEnv();
+	}
+	
+	public SystemEnvironment(String envJsonPath) {
+		JSON_ENV_PATH = envJsonPath;
+		initCalcEnv();
 	}
 	
 	public Optional<Object> write(String stockSymbol, String compositeName, Object value) {
