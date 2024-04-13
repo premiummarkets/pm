@@ -33,10 +33,14 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.ref.SoftReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,6 +71,7 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.IncompleteDataSetException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
+import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsBuilder;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
@@ -107,23 +112,33 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	private static Map<EventInfo, EventDefCacheEntry> getFromFileCache(Stock stock) {
 		String fileNamePattern = stock.getSymbol() + "%%" +  stock.getIsin()  + "%%" + ".*" + "%%" + SelectedIndicatorsCalculationService.getAnalysisName();
 		File dir = new File(OUTPUT_CACHE_PATH);
-		final File[] files = dir.listFiles(new FilenameFilter() {
+		final File[] dataFiles = dir.listFiles(new FilenameFilter() {
 		    @Override
 		    public boolean accept(final File dir, final String name) {
 		        return name.matches(fileNamePattern + "\\.csv");
 		    }
 		});
 		Map<EventInfo, EventDefCacheEntry> map = new HashMap<>();
-		for (final File file : files) {
-			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+		for (final File dataFile : dataFiles) {
+			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFile))) {
 				String line;
-				String[] fileNameSplit = file.getName().split("%%");
+				String[] fileNameSplit = dataFile.getName().split("%%");
 				//Stock fileNameSplit[0-1]
 				//"%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName() + 
 				String eventDefinitionRef = fileNameSplit[2];
 				ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
 				EventInfo eventInfo = (EventInfoOpsCompoOperation) parameterizedIndiactorsBuilder.getCurrentOperations().get(eventDefinitionRef);
 				if (eventInfo != null) {
+					//descriptor
+					try(
+						FileInputStream streamIn = new FileInputStream(dataFile.getAbsolutePath().replaceAll("\\.csv", ".ser"));
+						ObjectInputStream objectinputstream = new ObjectInputStream(streamIn);) {
+						EventDefDescriptorDynamic evtDesrc = (EventDefDescriptorDynamic) objectinputstream.readObject();
+						((EventDefDescriptorDynamic) eventInfo.getEventDefDescriptor()).setChartedOutputGroups(evtDesrc.getChartedOutputGroups(), null);
+					} catch (Exception e) {
+						LOGGER.warn("Could not read event info descriptor from cache for " + eventInfo + ": " + e);
+					}
+					//data
 					SortedMap<Date, double[]> outputMap = new TreeMap<>();
 					SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 					while((line = bufferedReader.readLine()) != null) {
@@ -133,14 +148,14 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					}
 					map.put(eventInfo, new EventDefCacheEntry(outputMap, new UpdateStamp(outputMap.firstKey(), outputMap.lastKey(), false, null)));
 				} else {
-					throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + file.getAbsolutePath());
+					throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath());
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
 		if (!map.isEmpty()) {
-			putOutputCache(stock, map);
+			EventModel.outputCache.put(stock, new SoftReference<>(map));
 			return map;
 		}
 		return null;
@@ -155,7 +170,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		final File[] files = dir.listFiles(new FilenameFilter() {
 		    @Override
 		    public boolean accept(final File dir, final String name) {
-		        return name.matches(".*\\.csv");
+		        return name.matches(".*\\.csv") || name.matches(".*\\.ser");
 		    }
 		});
 		for (final File file : files) {
@@ -179,10 +194,19 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		map.keySet().stream()
 		.filter(ei -> OutStampState.OK.equals(map.get(ei).getUpdateStamp().getOutputState()))
 		.forEach(ei -> {
-			String string = filename(stock, ei);
-			String fileName = string + ".csv";
+			String fileName = filename(stock, ei);
+			
+			String descrFileName = fileName + ".ser";
+			try (FileOutputStream fout = new FileOutputStream(OUTPUT_CACHE_PATH + File.separator + descrFileName);
+			ObjectOutputStream oos = new ObjectOutputStream(fout);) {
+				oos.writeObject(ei.getEventDefDescriptor());
+			} catch (Exception e) {
+				LOGGER.warn("Error writing into cache: " + e);
+			}
+			
+			String dataFileName = fileName + ".csv";
 			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-			try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(OUTPUT_CACHE_PATH + File.separator + fileName))) {
+			try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(OUTPUT_CACHE_PATH + File.separator + dataFileName))) {
 				map.get(ei).getOutputMap().entrySet().forEach(entry -> {
 					try {
 						bufferedWriter.write(df.format(entry.getKey()) + Arrays.stream(entry.getValue()).mapToObj(d -> d).reduce("", (a, d) -> a + "," + d, (a, b) -> a + b));
@@ -213,8 +237,10 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	}
 	private static void removeFromFileCache(Stock stock, EventInfo ei) {
 		String fileName = filename(stock, ei);
-		File file = new File(OUTPUT_CACHE_PATH + File.separator + fileName);
-		file.delete();
+		File descrFile = new File(OUTPUT_CACHE_PATH + File.separator + fileName + ".ser");
+		descrFile.delete();
+		File dataFile = new File(OUTPUT_CACHE_PATH + File.separator + fileName + ".csv");
+		dataFile.delete();
 	}
 
 	static Long eventInfoChangeStamp = 0l;

@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -318,10 +319,10 @@ public class TargetStockInfo {
 		return analysisName;
 	}
 	
-	public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events) {
+	public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events, Observer... observers) {
 		SortedMap<EventKey, EventValue> analyzedEvents = events;
 		for (OutputReference key : outputAnalysers.keySet()) {
-			analyzedEvents = outputAnalysers.get(key).analyse(analyzedEvents);
+			analyzedEvents = outputAnalysers.get(key).analyse(analyzedEvents, observers);
 		}
 		return analyzedEvents;
 	}

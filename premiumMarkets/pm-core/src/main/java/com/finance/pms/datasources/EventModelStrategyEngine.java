@@ -141,8 +141,8 @@ public abstract class EventModelStrategyEngine<X> {
 			//Update cache
 			for (Stock stock : callbackForlastAnalyseOutput.keySet()) {
 				Map<EventInfo, EventDefCacheEntry> map4Stock = EventModel.getOutputCache(stock);
-				if (map4Stock == null) {
-					EventModel.putOutputCache( stock, callbackForlastAnalyseOutput.get(stock));
+				if (map4Stock == null || map4Stock.isEmpty()) {
+					EventModel.putOutputCache(stock, callbackForlastAnalyseOutput.get(stock));
 				} else {
 					map4Stock.putAll(callbackForlastAnalyseOutput.get(stock));
 				}

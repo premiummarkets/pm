@@ -49,6 +49,8 @@ import com.finance.pms.threads.ConfigThreadLocal;
 
 public class EventDefDescriptorStatic implements EventDefDescriptor {
 
+	private static final long serialVersionUID = 6896093525841974109L;
+
 	public static MyLogger LOGGER = MyLogger.getLogger(EventDefDescriptorStatic.class);
 
 	public static Color[] STATIC_COLORS = new Color[] {Color.BLACK, Color.ORANGE, Color.GREEN, Color.RED, Color.YELLOW, Color.BLUE};

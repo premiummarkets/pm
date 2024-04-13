@@ -29,6 +29,7 @@
  */
 package com.finance.pms.events.calculation.parametrizedindicators;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,9 @@ import java.util.UUID;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 
-public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
+public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>, Serializable{
+
+	private static final long serialVersionUID = 6947436277777559496L;
 
 	public enum Type {MAIN, SIGNAL, BOTH, CONSTANT, MULTI, MULTISIGNAL, INVISIBLE}; //BOTH is MAIN & SIGNAL
 
@@ -45,7 +48,7 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 	private OutputDescr thisGroupMainOutputDescription;
 	private Map<OutputReference, OutputDescr> components;
 	
-	private Optional<String> groupStatus;
+	private String groupStatus;
 
 	private UUID uuid;
 
@@ -56,7 +59,7 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 		thisGroupMainOutputReference = outputReference;
 		components = new HashMap<>();
 		
-		this.groupStatus = groupStatus;
+		this.groupStatus = groupStatus.orElse("");
 		
 	}
 
@@ -100,7 +103,7 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>{
 		return thisGroupMainOutputReference;
 	}
 	
-	public Optional<String> getGroupStatus() {
+	public String getGroupStatus() {
 		return groupStatus;
 	}
 

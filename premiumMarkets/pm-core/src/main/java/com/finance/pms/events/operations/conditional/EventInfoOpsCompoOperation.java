@@ -53,9 +53,7 @@ import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.FormulaUtils;
-import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
 import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
-import com.finance.pms.events.operations.EventsAnalyser;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -147,29 +145,8 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		}
 
 		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference() + "' at: " + inconsistent);
-
-		///Finalizing this IndicatorOperator using its operands calculations
-		try {
-			//Analysis of above event in light of previously calculated ops
-			if (edata.isEmpty()) {
-				LOGGER.warn("No event data found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
-			} else {
-				edata = targetStock.analyseEvents(edata);
-			}
-
-			//Retrieve exportBaseFileName of the main operation
-			List<ChartedOutputGroup> chartedOutputGroups = targetStock.getChartedOutputGroups();
-			if (chartedOutputGroups.isEmpty()) {
-				if (isDisplay) {
-					LOGGER.warn("No charted group found. The up stream main operation may have failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
-				}
-			} else {
-				EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(chartedOutputGroups.get(0).getThisGroupMainOutputReference());
-				if (eventsAnalyser != null) this.eventDefDescriptor.setExportBaseFileName(eventsAnalyser.getEgFileBaseName());
-			}
-		} catch (Exception e) {
-			LOGGER.warn(e, e);
-		}
+		if (edata.isEmpty()) LOGGER.warn("No event data found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
+		if (targetStock.getChartedOutputGroups().isEmpty() && isDisplay) LOGGER.warn("No charted group found. The up stream main operation may have failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 		
 		return new EventMapValue(edata, false);
 	}

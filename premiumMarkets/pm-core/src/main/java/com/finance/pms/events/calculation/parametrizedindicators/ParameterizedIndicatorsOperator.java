@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -53,6 +54,7 @@ import com.finance.pms.events.calculation.IndicatorsOperator;
 import com.finance.pms.events.calculation.WarningException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.CalculateThreadExecutor;
+import com.finance.pms.events.operations.EventsAnalyser;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
@@ -155,6 +157,12 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			if (!duplicates.isEmpty()) {
 				throw new WarningException("Opposite simultaneous event values for customised calculator '" + this.getEventDefinition().getEventReadableDef() + "': " + duplicates);
 			}
+			
+			//Extra analysers/augmenter
+			returnedEvents = targetStock.analyseEvents(returnedEvents, observers);
+			//Extra analysers/augmenter: Retrieve exportBaseFileName of the main operation XXX
+			EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(targetStock.getChartedOutputGroups().get(0).getThisGroupMainOutputReference());
+			if (eventsAnalyser != null) ((EventDefDescriptorDynamic) this.eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setExportBaseFileName(Optional.of(eventsAnalyser.getEgFileBaseName()));
 			
 			eData.putAll(returnedEvents);
 			

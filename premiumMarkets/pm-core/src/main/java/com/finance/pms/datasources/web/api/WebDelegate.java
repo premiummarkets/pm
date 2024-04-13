@@ -1,12 +1,15 @@
 package com.finance.pms.datasources.web.api;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -120,24 +123,18 @@ public class WebDelegate {
 		
 	}
 	
-	public String httpGetFile(String fileName) throws ServerException {
+	public String getHttpCSVFile(String fileName) throws ServerException {
 		
 		String[] split = fileName.split(".+?" + File.separator + "(?=[^" + File.separator + "]+$)"); //".+?/(?=[^/]+$)"
 		String fileNameBaseName = split[split.length-1];
-		
-//		String fileNameBaseNameWOExt = Optional.ofNullable(fileNameBaseName)
-//							      				.filter(f -> f.contains("."))
-//							      				.map(f -> f.substring(0, fileNameBaseName.lastIndexOf(".")))
-//							      				.orElse(fileNameBaseName);
-		String fileNameBaseNameWOExt = fileNameBaseName.endsWith(".csv")?fileNameBaseName.replaceAll(".csv$", ""):fileNameBaseName;
-		
+		String fileNameBaseNameWOExt = fileNameBaseName.endsWith(".csv")?fileNameBaseName.replaceAll(".csv$", ""):fileNameBaseName;	
 		
 		String localFileCopyName = System.getProperty("installdir") + File.separator + "autoPortfolioLogs" + File.separator + fileNameBaseNameWOExt + ".csv";
 		
 		Path localFileCopyPath = Path.of(URI.create("file://" + localFileCopyName));
 		boolean exist = Files.exists(localFileCopyPath);
 		if (exist) {
-			String remoteFileCopy = doHttpGetFile(fileNameBaseNameWOExt, localFileCopyName + "." + UUID.randomUUID());
+			String remoteFileCopy = doGetHttpCSVFile(fileNameBaseNameWOExt, localFileCopyName + "." + UUID.randomUUID());
 			Path remoteFilePathCopy = Path.of(URI.create("file://" + remoteFileCopy));
 			try {
 				if (localFileCopyPath.toFile().length() != remoteFilePathCopy.toFile().length()) {
@@ -151,13 +148,19 @@ public class WebDelegate {
 				return "NONE";
 			}
 		} else {
-			return doHttpGetFile(fileNameBaseNameWOExt, localFileCopyName);
+			return doGetHttpCSVFile(fileNameBaseNameWOExt, localFileCopyName);
 		}
 		
 	}
 
-	private String doHttpGetFile(String fileNameBaseNameWOExt, String localFileCopyName) throws ServerException {
-		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/csvfile/autoPortfolioLogs/"+fileNameBaseNameWOExt);
+	private String doGetHttpCSVFile(String fileNameBaseNameWOExt, String localFileCopyName) throws ServerException {
+		String encodedFileName;
+		try {
+			encodedFileName = URLEncoder.encode(fileNameBaseNameWOExt, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new ServerException(e);
+		}
+		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/csvfile/autoPortfolioLogs/"+encodedFileName);
 	    try (
 	    		CloseableHttpResponse getResponse = getHttpClient().execute(getPredictionFile);
 	    		FileWriter outFile = new FileWriter(new File(localFileCopyName), false);
@@ -169,6 +172,32 @@ public class WebDelegate {
     					+ "The requested file " + fileNameBaseNameWOExt + " may not be present on the server.");
     		} else {
     			out1.append(EntityUtils.toString(getResponse.getEntity()));
+    		}
+		} catch (Exception e) {
+			LOGGER.error(e, e);
+			throw new ServerException(e);
+		}
+		return localFileCopyName;
+	}
+	
+	public String getHttpGetFile(String fileName, String localFileCopyName, Boolean isDeleteRemote) throws ServerException {
+		String encodedFileName;
+		try {
+			encodedFileName = URLEncoder.encode(fileName, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new ServerException(e);
+		}
+		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/binaryfile/"+encodedFileName+"?delete="+isDeleteRemote);
+	    try (
+	    		CloseableHttpResponse getResponse = getHttpClient().execute(getPredictionFile);
+	    		FileOutputStream outFileStream = new FileOutputStream(new File(localFileCopyName));
+	    ) {
+    		if (getResponse.getStatusLine().getStatusCode() != 200) {
+    			throw new ServerException(
+    					"Invalid response from the api: " + getResponse.getStatusLine().getStatusCode() + ". "
+    					+ "The requested file " + fileName + " may not be present on the server.");
+    		} else {
+    			outFileStream.write(getResponse.getEntity().getContent().readAllBytes());
     		}
 		} catch (Exception e) {
 			LOGGER.error(e, e);

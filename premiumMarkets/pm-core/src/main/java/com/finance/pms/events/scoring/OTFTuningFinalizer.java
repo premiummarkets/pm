@@ -131,6 +131,7 @@ public class OTFTuningFinalizer {
 	protected List<PeriodRatingDTO> validPeriods(Stock stock, Date startDate, Date endDate, SortedMap<Date, ? extends Number> qMap, Collection<EventValue> generatedEvents) 
 					throws NotEnoughDataException {
 
+		qMap = MapUtils.subMapInclusive(qMap, startDate, endDate);
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 
 		PeriodRatingDTO period = null;
@@ -154,34 +155,38 @@ public class OTFTuningFinalizer {
 				throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents); //Check erroneous input with events on the same date
 
 			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
-			SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), nextEvtDate);
-			Double closeSplitedBeforeOrAtEventDate = new BigDecimal(subMapInclusive.get(subMapInclusive.lastKey()).toString()).doubleValue();
+			SortedMap<Date, ? extends Number> tailFromEvent = qMap.tailMap(nextEvtDate);
+			if (tailFromEvent.isEmpty()) {//No quotation available at or after the event
+				LOGGER.warn("The las event: " + eventValue + " happens after the last quotation: " + qMap.lastKey() + ", with calculation bounds: " + startDate + "-" + endDate);
+				break;
+			}
+			Double closeSpltAfterOrAtEventDate = new BigDecimal(tailFromEvent.get(tailFromEvent.firstKey()).toString()).doubleValue();
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				if (period == null) {//First period will be bull
-					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
+					period = new PeriodRatingDTO(nextEvtDate, closeSpltAfterOrAtEventDate, EventType.BULLISH.name()); //Start new period.
 				}
 				else if (period.getTrend().equals(EventType.BEARISH.name())) { //A Bear period is open and the event is bull. We close the period.
 					period.setTo(nextEvtDate);
-					period.setPriceAtTo(closeSplitedBeforeOrAtEventDate);
+					period.setPriceAtTo(closeSpltAfterOrAtEventDate);
 					period.setRealised(true);
 					periods.add(period);
-					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BULLISH.name()); //Start new period.
+					period = new PeriodRatingDTO(nextEvtDate, closeSpltAfterOrAtEventDate, EventType.BULLISH.name()); //Start new period.
 				} 
-				else if (period.getTrend().equals(EventType.BULLISH.name())) {//A bull period is open and the event is bull. We ignore the event.
+				else if (period.getTrend().equals(EventType.BULLISH.name())) { //A bull period is open and the event is bull. We ignore the event.
 					
 				}
 			}
 			else if (eventValue.getEventType().equals(EventType.BEARISH)) {
 				if (period == null) {//First period  will be bear
-					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());
+					period = new PeriodRatingDTO(nextEvtDate, closeSpltAfterOrAtEventDate, EventType.BEARISH.name());
 				}
 				else if (period.getTrend().equals(EventType.BULLISH.name())) { //A Bull period is open and the event is bear. We close the period.
 					period.setTo(nextEvtDate);
 					periods.add(period);
-					period.setPriceAtTo(closeSplitedBeforeOrAtEventDate);
+					period.setPriceAtTo(closeSpltAfterOrAtEventDate);
 					period.setRealised(true);
-					period = new PeriodRatingDTO(nextEvtDate, closeSplitedBeforeOrAtEventDate, EventType.BEARISH.name());//Start new period.
-				} else if (period.getTrend().equals(EventType.BEARISH.name())) {//A bear period is open and the event is bear. We ignore the event.
+					period = new PeriodRatingDTO(nextEvtDate, closeSpltAfterOrAtEventDate, EventType.BEARISH.name());//Start new period.
+				} else if (period.getTrend().equals(EventType.BEARISH.name())) { //A bear period is open and the event is bear. We ignore the event.
 					
 				}
 			}
@@ -191,23 +196,17 @@ public class OTFTuningFinalizer {
 		if (period != null && nextEvtDate != null) {
 			
 			//QuotationUnit quotationUnit = quotations.get(quotations.getClosestIndexBeforeOrAtDateOrIndexZero(0, endDate));
-			Date qUnitDateBeforeOrAtEndDate =  null;
-			if (nextEvtDate.compareTo(qMap.firstKey()) >= 0) { //End date is within the available quotations map start
-				SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, qMap.firstKey(), nextEvtDate);
-				qUnitDateBeforeOrAtEndDate = subMapInclusive.lastKey();
-			} else { //End is before quotation map start?
-				qUnitDateBeforeOrAtEndDate = qMap.firstKey();
-			}
-			Number qUnitDateValueBeforeOrAtEndDate = qMap.get(qUnitDateBeforeOrAtEndDate);
-
-			if (qUnitDateBeforeOrAtEndDate.before(period.getFrom())) {
-				//throw new RuntimeException("Last quotation date " + qUnitDateBeforeOrAtEndDate + " is before last period start " + period.getFrom() + " for " + stock);
-				LOGGER.warn("Last quotation date " + qUnitDateBeforeOrAtEndDate + " is before last period start " + period.getFrom() + " for " + stock);
-				qUnitDateBeforeOrAtEndDate = endDate;
+			Date qUnitDateAroundOrAtEndDate =  null;
+			if (nextEvtDate.compareTo(startDate) < 0) { //End is before quotation map start? => bug? 
+//				LOGGER.warn("Event at " + nextEvtDate + " is out side calculation/quotations boundaries. Last quotation: " + qMap.lastKey() + ", with calculation bounds: " + startDate + "-" + endDate);
+//				qUnitDateAroundOrAtEndDate = qMap.firstKey();
+				throw new NotEnoughDataException(stock, startDate, endDate, "Last event is at " + nextEvtDate + " is before start date " + startDate, new Exception());
+			} else {//End date is within the available quotations map start //But the event could still be after the map end (interpolation)
+				qUnitDateAroundOrAtEndDate = qMap.lastKey();
 			}
 			
-			period.setTo(qUnitDateBeforeOrAtEndDate);
-			period.setPriceAtTo(qUnitDateValueBeforeOrAtEndDate.doubleValue());
+			period.setTo(qUnitDateAroundOrAtEndDate);
+			period.setPriceAtTo(qMap.get(qUnitDateAroundOrAtEndDate).doubleValue());
 			period.setRealised(false);
 			periods.add(period);
 		}

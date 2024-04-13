@@ -30,12 +30,13 @@
 package com.finance.pms.events.calculation;
 
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 
-public interface EventDefDescriptor {
+public interface EventDefDescriptor extends Serializable {
 
 	String getFullNameFor(int grpIdx, int outputIdx) throws NoSuchElementException;
 

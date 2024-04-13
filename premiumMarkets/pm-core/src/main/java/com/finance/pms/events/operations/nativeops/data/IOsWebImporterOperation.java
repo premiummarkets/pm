@@ -44,7 +44,7 @@ public class IOsWebImporterOperation extends StringerOperation {
 
 		synchronized(WebDelegate.class) {
 			try {
-				filePath = web.httpGetFile(filePath);
+				filePath = web.getHttpCSVFile(filePath);
 				webFilesCopies = filePath;
 				return new StringValue(filePath);
 			} catch (ServerException e) {

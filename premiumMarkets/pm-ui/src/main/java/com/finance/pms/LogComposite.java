@@ -29,6 +29,9 @@
  */
 package com.finance.pms;
 
+import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Observable;
@@ -192,14 +195,26 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 				});
 
 			} catch (Exception e) {
-				LOGGER.warn("Unhandled logger notification : "+arg);
+				LOGGER.warn("Unhandled logger notification : " + arg);
 			}
 
 		} else if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DONE)) { //Logger end
 
 			//refresh is done in endJob()
 			//view.refreshView();
-
+			
+		} else if (observerMsg != null && observerMsg.getKey().equals(ObserverMsg.ObsKey.DATA_POST)) { //Post data processing
+			
+			@SuppressWarnings("unchecked")
+			List<String> files = (List<String>) observerMsg.getNameValuePairs().get(0).value;
+			files.stream().forEach(f -> {
+				try {
+					Desktop.getDesktop().open(new File(f));
+				} catch (IOException e) {
+					LOGGER.error(e);
+				}
+			});
+			
 		} else {//Increment
 
 			Display.getDefault().asyncExec(new Runnable() {

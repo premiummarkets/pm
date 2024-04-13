@@ -1,11 +1,15 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
+import java.io.Serializable;
+
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.portfolio.InfoObject;
 
-public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
+public class OutputDescr implements InfoObject, Comparable<OutputDescr>, Serializable {
 
+	private static final long serialVersionUID = -9172972104526800258L;
+	
 	private OutputReference outputReference;
 	private ChartedOutputGroup container;
 
@@ -118,7 +122,7 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr> {
 	public String toolTip() {
 		return ((outputReference.getFormula() != null)?(outputReference.getFormula()).replaceAll("(.{100,200}),", "$1,\n"):fullQualifiedName()) + "\n" +
 				"\nGroup: " + getContainer().groupUniqueId().toString() + "\n" +
-				((isMain())?getContainer().getGroupStatus().map(s -> "\nStatus:\n" + s + "\n").orElse(""):"");
+				((isMain())?"\nStatus:\n" + getContainer().getGroupStatus() + "\n":"");
 	}
 
 	@Override

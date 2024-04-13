@@ -30,6 +30,7 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,9 +55,14 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
  */
 public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
+	private static final long serialVersionUID = -1012511586844509781L;
+
 	private static final int NB_RAND = 1000;
 
-	public class OutputId {
+	public class OutputId implements Serializable {
+		
+		private static final long serialVersionUID = 4451852077556509246L;
+		
 		private int groupIx;
 		private int outputIdx;
 
@@ -111,11 +117,11 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	private List<ChartedOutputGroup> chartedOutputGroups;
 	private Map<OutputId, OutputDescr> outputDescrFlatList;
 
-	private Optional<String> exportBaseFileName;
+	private String exportBaseFileName;
 
 	public EventDefDescriptorDynamic() {
 		super();
-		exportBaseFileName = Optional.empty();
+		exportBaseFileName = "";
 		randoms = new double[NB_RAND];
 		Arrays.setAll(randoms, i -> Math.random());
 	}
@@ -162,8 +168,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	}
 
-	private List<ChartedOutputGroup> getChartedOutputGroups() throws Exception {
-		if (chartedOutputGroups == null) throw new Exception("No group to be found for the dynamic description of " + descriptorReference+ ". Its calculation may be in progress?");
+	public List<ChartedOutputGroup> getChartedOutputGroups() throws Exception {
+		if (chartedOutputGroups == null) throw new Exception("No group to be found for the dynamic description of " + descriptorReference + ". Its calculation may be in progress?");
 		return chartedOutputGroups;
 	}
 
@@ -364,11 +370,11 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 
 	@Override
 	public String getExportBaseFileName() {
-		return exportBaseFileName.orElse("");
+		return exportBaseFileName;
 	}
 
-	public void setExportBaseFileName(String exportBaseFileName) {
-		this.exportBaseFileName = Optional.of(exportBaseFileName);
+	public void setExportBaseFileName(Optional<String> exportBaseFileName) {
+		this.exportBaseFileName = exportBaseFileName.orElse("");
 	}
 
 	@Override

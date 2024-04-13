@@ -41,7 +41,7 @@ public class ObserverMsg {
 	private List<NameValuePair> nameValuePairs;
 	
 	public enum ObsKey {
-		INITMSG, DONE, SCHEDULE, PRGSMSG, NONE, RESETTOTAL;
+		INITMSG, DONE, SCHEDULE, PRGSMSG, NONE, RESETTOTAL, DATA_POST;
 	}
 
 	public ObserverMsg(Stock stock, ObsKey key) {

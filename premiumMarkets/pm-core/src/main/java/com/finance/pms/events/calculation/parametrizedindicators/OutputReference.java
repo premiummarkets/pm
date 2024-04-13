@@ -29,12 +29,16 @@
  */
 package com.finance.pms.events.calculation.parametrizedindicators;
 
+import java.io.Serializable;
+
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 
-public class OutputReference implements Comparable<OutputReference> {
+public class OutputReference implements Comparable<OutputReference>, Serializable {
 	
+	private static final long serialVersionUID = 7698521853387288950L;
+
 //	private static MyLogger LOGGER = MyLogger.getLogger(OutputReference.class);
 
 	private String reference;
