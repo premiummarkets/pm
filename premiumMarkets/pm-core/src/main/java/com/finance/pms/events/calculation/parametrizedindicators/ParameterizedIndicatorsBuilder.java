@@ -173,7 +173,7 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 	private void resetCachesFor(Collection<Operation> impactedIndicators) {
 		for (Operation opInUse : impactedIndicators) {
 			if (opInUse instanceof EventInfo) {
-				EventModel.dirtyCacheFor((EventInfo) opInUse);
+				EventModel.dirtyCacheFor((EventInfo) opInUse, true);
 			} else {
 				LOGGER.warn("This is not an EventInfo : " + opInUse + ". No cache held needs marked dirty.");
 			}

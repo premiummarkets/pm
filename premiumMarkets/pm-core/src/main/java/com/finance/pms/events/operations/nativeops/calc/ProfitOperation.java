@@ -22,8 +22,6 @@ import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.EventMapOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.operations.nativeops.StringOperation;
-import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
@@ -54,15 +52,13 @@ public class ProfitOperation extends ArrayMapOperation {
 
 	public ProfitOperation() {
 		this("profit", "Calculate the profits (the my way) of series of Events from Indicators",
-		new StringOperation("boolean", "unReal", "Add the un realised profit", new StringValue("TRUE")),
 		new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null)); 
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-
-		Boolean addUnReal = Boolean.valueOf(((StringValue) inputs.get(0)).getValue(targetStock));
+		
 		List<SortedMap<EventKey, EventValue>> buySellEventSeries = inputs.subList(1, inputs.size()).stream().map(v -> ((EventMapValue) v).getEventMap()).collect(Collectors.toList());
 
 		try {
@@ -82,9 +78,21 @@ public class ProfitOperation extends ArrayMapOperation {
 				if (buySellEventSerie.isEmpty()) continue;
 				
 				//outs
-				DoubleMapValue currentResultMap = new DoubleMapValue();
-				resultMaps.add(currentResultMap);
+				DoubleMapValue currentProfitMap = new DoubleMapValue();
+				resultMaps.add(currentProfitMap);
 				headers.add(buySellEventSerie.firstKey().getEventInfo().getEventDefinitionRef());
+				
+				DoubleMapValue currentUnrProfitMap = new DoubleMapValue();
+				resultMaps.add(currentUnrProfitMap);
+				headers.add(buySellEventSerie.firstKey().getEventInfo().getEventDefinitionRef() + "_unr");
+				
+				DoubleMapValue currentAnnualProfitMap = new DoubleMapValue();
+				resultMaps.add(currentAnnualProfitMap);
+				headers.add(buySellEventSerie.firstKey().getEventInfo().getEventDefinitionRef() + "_annual");
+				
+				DoubleMapValue currentAnnualUnrProfitMap = new DoubleMapValue();
+				resultMaps.add(currentAnnualUnrProfitMap);
+				headers.add(buySellEventSerie.firstKey().getEventInfo().getEventDefinitionRef() + "_annualUnr");
 				
 				//ins
 				//buySellEventSerie
@@ -96,8 +104,14 @@ public class ProfitOperation extends ArrayMapOperation {
 				
 				qMap.keySet().stream().forEach(qDate -> {
 					if (qDate.compareTo(startDate) >= 0) {
-						Double profitAtDate = (addUnReal)?tuningRes.getForecastProfitAtUnReal(qDate):tuningRes.getForecastProfitAt(qDate);
-						currentResultMap.getValue(targetStock).put(qDate, profitAtDate);
+						Double profitAtDate = tuningRes.getForecastProfitAt(qDate);
+						currentProfitMap.getValue(targetStock).put(qDate, profitAtDate);
+						Double unrProfitAtDate = tuningRes.getForecastProfitAtUnReal(qDate);
+						currentUnrProfitMap.getValue(targetStock).put(qDate, unrProfitAtDate);
+						Double annualProfitAtDate = tuningRes.getForeAnnualProfitAt(qDate);
+						currentAnnualProfitMap.getValue(targetStock).put(qDate, annualProfitAtDate);
+						Double annualProfitUnrAtDate = tuningRes.getForeAnnualProfitAtUnReal(qDate);
+						currentAnnualUnrProfitMap.getValue(targetStock).put(qDate, annualProfitUnrAtDate);
 					}
 				});
 			

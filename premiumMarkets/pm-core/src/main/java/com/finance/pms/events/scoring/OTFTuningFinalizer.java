@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
@@ -440,12 +441,12 @@ public class OTFTuningFinalizer {
 //		+ " / fwght" + pf.format(Math.abs(stats[2])) + " / flog" + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
 //		+ " / min" + pf.format(stats[4]) + " / max" + pf.format(stats[5]) + " / std" + pf.format(Math.sqrt(stats[6])) 
 //		+ ")"
-		public void applyFlog(Double[] statsBetween) {
+		public void applyFlog(Map<String, Double> statsBetween) {
 			
 //			avgROC = statsBetween[0];
-//			failedBullishRatio = statsBetween[1];
-			Double failureWeigh = statsBetween[2];
-			Double successWeigh = statsBetween[3];
+//			failureRatio = statsBetween[1];
+			Double failureWeigh = statsBetween.get("failureWeigh");
+			Double successWeigh = statsBetween.get("successWeigh");
 //			minROC = statsBetween[4];
 //			maxROC = statsBetween[5];
 //			variance = statsBetween[6];
@@ -532,7 +533,7 @@ public class OTFTuningFinalizer {
 		
 		//New
 		//FinalRating finalRating = new FinalRating(nbSuccess, nbFailure, tuningRes.getStockPriceChange());
-		Double[] statsBetween = tuningRes.getStatsBetween(start, end);
+		Map<String, Double> statsBetween = tuningRes.getStatsBetween(start, end, "BULLISH", (x) -> x < 0);
 		finalRating.applyFlog(statsBetween);
 
 		return finalRating;

@@ -1126,5 +1126,22 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			return Optional.empty();
 		}
 	}
+	
+	public List<Operation> findOperandsOfReference(String operationReference) {
+		List<Operation> mathingOperands = new ArrayList<>();
+		if (operationReference.equals(this.getOperationReference())) {
+			mathingOperands.add(this);
+		}
+		if (!operands.isEmpty()) {
+			mathingOperands.addAll(operands.stream().reduce(new ArrayList<Operation>(), (a, o) -> {
+				a.addAll(o.findOperandsOfReference(operationReference));
+				return a;
+			}, (a, b) -> {
+				a.addAll(b);
+				return a;
+			}));
+		}
+		return mathingOperands;
+	}
 
 }

@@ -36,6 +36,8 @@ import com.finance.pms.events.operations.nativeops.Value;
 
 public class BooleanValue extends Value<Boolean> implements StringableValue, Cloneable {
 	
+	private static final long serialVersionUID = -6254135692085793608L;
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanValue.class);
 	
 	Boolean value;

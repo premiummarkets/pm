@@ -38,6 +38,8 @@ import com.finance.pms.events.operations.TargetStockInfo;
 @XmlRootElement
 public class NumberValue extends Value<Number> implements StringableValue, Cloneable {
 
+	private static final long serialVersionUID = 7528335490288317869L;
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(NumberValue.class);
 
 	@XmlElement

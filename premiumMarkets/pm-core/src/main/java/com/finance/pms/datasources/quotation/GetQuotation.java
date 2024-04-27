@@ -29,13 +29,10 @@
  */
 package com.finance.pms.datasources.quotation;
 
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.Callable;
 
@@ -44,8 +41,6 @@ import com.finance.pms.admin.config.EventSignalConfig;
 import com.finance.pms.admin.config.IndicatorsConfig;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
-import com.finance.pms.datasources.db.Query;
-import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.quotation.GetQuotation.GetQuotationResult;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -205,40 +200,6 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 			return ret;
 
 		}
-	}
-
-	private void updateLastQuoteDateForShareInDB(Date lastQuote) {
-
-		if (null == lastQuote) {
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("No last date returned from quotation fetch for : " + stock + ". Assuming that it is up to date.");
-			return;
-		}
-
-		//Mise a jour de la date de derniere quote and name
-		List<Validatable> updateLastQuotesQueries = new ArrayList<Validatable>();
-		final Query uQ = new Query();
-		final Stock s = stock;
-
-		uQ.addValue(lastQuote);
-		uQ.addValue(stock.getName());
-		uQ.addValue(stock.getSymbol());
-		uQ.addValue(stock.getIsin());
-		updateLastQuotesQueries.add(new Stock(s) {
-
-			private static final long serialVersionUID = 2652971454727241110L;
-
-			@Override
-			public Query toDataBase() {
-				return uQ;
-			}
-		});
-
-		try {
-			DataSource.getInstance().executeBlock(updateLastQuotesQueries, DataSource.SHARES.getUPDATELASTQUOTEANDNAME());
-		} catch (SQLException e) {
-			LOGGER.error(e,e);
-		}
-
 	}
 
 	public class GetQuotationResult {

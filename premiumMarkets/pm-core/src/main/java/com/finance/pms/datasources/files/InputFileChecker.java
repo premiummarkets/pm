@@ -41,6 +41,7 @@ public class InputFileChecker {
 		
 		Quotations quotations  = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, firstDate, lastDate, true, stock.getMarketValuation().getCurrency(), 0, validityFilter);
 		SortedMap<Date, Double> exactMapFromQuotations = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
+		exactMapFromQuotations = MapUtils.subMapInclusive(exactMapFromQuotations, firstDate, lastDate);  //Removing potential added head key (when start is over the WE or in a quotation gap?)
 		
 		ArrayList<Date> expectedkeySet = new ArrayList<Date>(exactMapFromQuotations.keySet());
 		LOGGER.info("Removing known missing keys from operands for " + stock + ": " + missingKeys);
@@ -56,7 +57,7 @@ public class InputFileChecker {
 			List<Date> notMatching = expectedkeySet.subList(headingNans, expectedkeySet.size()-trailingNans).stream()
 					.filter(k -> !importedData.containsKey(k) || Arrays.stream(importedData.get(k)).filter(d -> Double.isNaN(d)).count() > 0)
 					.collect(Collectors.toList());
-			throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching quotations with " + notMatching.size() + " missing keys or rows with NaNs: " + notMatching.toString() + 
+			throw new NotEnoughDataException(stock, firstDate, lastDate, "Output is not matching quotations with " + notMatching.size() + " missing keys or rows with NaNs at " + notMatching.toString() + 
 																			String.format(" with params: %s, %s, %s, %s", validityFilter, headingNans, trailingNans, missingKeys), null);
 		}
 		allMatch = expectedkeySet.subList(expectedkeySet.size()-trailingNans, expectedkeySet.size()).stream().allMatch(k -> importedData.containsKey(k));

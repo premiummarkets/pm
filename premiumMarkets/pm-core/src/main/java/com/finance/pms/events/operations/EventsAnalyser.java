@@ -10,7 +10,9 @@ public interface EventsAnalyser {
 
     SortedMap<EventKey, EventValue> analyse(SortedMap<EventKey, EventValue> events, Observer... observers);
 
-    String getEgFileBaseName();
+    default String getEgFileBaseName() {
+    	return null;
+    }
    
 
 }

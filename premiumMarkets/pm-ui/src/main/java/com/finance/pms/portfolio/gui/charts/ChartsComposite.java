@@ -1198,7 +1198,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				sliderSelection = false;
 				chartedEvtDefsTrends.stream()
 						//.filter( ei -> (ei instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) ei).isDateSensitive()))
-						.forEach(dsEi -> EventModel.dirtyCacheFor(dsEi));
+						.forEach(dsEi -> EventModel.dirtyCacheFor(dsEi, false));
 				updateCharts(true);
 				portfolioComposite.slidingDateChange();
 			}

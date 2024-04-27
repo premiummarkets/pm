@@ -106,7 +106,15 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	static Map<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>> outputCache = new HashMap<Stock, SoftReference<Map<EventInfo, EventDefCacheEntry>>>();
 	//static Map<Stock, Map<EventInfo, EventDefCacheEntry>> outputCache = new HashMap<Stock, Map<EventInfo, EventDefCacheEntry>>();
 	public static Map<EventInfo, EventDefCacheEntry> getOutputCache(Stock stock) {
-		return (outputCache.get(stock) == null)? getFromFileCache(stock) : outputCache.get(stock).get();
+		if (outputCache.get(stock) == null) {
+			return getFromFileCache(stock);
+		} else {
+			Map<EventInfo, EventDefCacheEntry> map = outputCache.get(stock).get();
+			if (map == null) {
+				return getFromFileCache(stock); //XXX This will return all event info, this should return only event info for a required list..
+			}
+			return map;
+		}
 		//return outputCache.get(stock);
 	}
 	private static Map<EventInfo, EventDefCacheEntry> getFromFileCache(Stock stock) {
@@ -220,7 +228,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 			}
 		});
 	}
-	public static void dirtyCacheFor(EventInfo eventInfo) {
+	public static void dirtyCacheFor(EventInfo eventInfo, Boolean clearHardCache) {
 		for (Stock stock : outputCache.keySet()) {
 			Map<EventInfo, EventDefCacheEntry> cache4Stock = getOutputCache(stock);
 			if (cache4Stock != null) {
@@ -230,7 +238,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					if (updateStamp != null) {
 						updateStamp.setDirty();
 					}
-					removeFromFileCache(stock, eventInfo);
+					if (clearHardCache) removeFromFileCache(stock, eventInfo);
 				}
 			}
 		}

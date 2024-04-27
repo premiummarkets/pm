@@ -38,6 +38,8 @@ import com.finance.pms.events.operations.parameterized.ParameterizedOperationBui
 
 public class OperationReferenceValue<T extends Operation> extends Value<T> implements StringableValue, Cloneable  {
 	
+	private static final long serialVersionUID = -6241787631502004630L;
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(OperationReferenceValue.class);
 	
 	private T operation;

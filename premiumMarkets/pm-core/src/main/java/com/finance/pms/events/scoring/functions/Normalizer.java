@@ -97,7 +97,7 @@ public class Normalizer<T> {
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
 			//From BandRatioNormalizerOperation: (value - actualPivot) * distanceToNewCenter/distanceToActualCenter  + normedPivot
-			double destValueAti = (value - actualPivot) * delta + normedPivot ;
+			double destValueAti = (value - actualPivot) * delta + normedPivot;
 			ret.put(date, tOf(destValueAti));
 		}
 

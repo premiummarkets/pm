@@ -135,7 +135,45 @@ public class SystemEnvironment {
 				}
 			}
 		};
+
+		return Optional.empty();
+	}
+	
+	/**
+	 * The returned value should be read only
+	 * @param stock
+	 * @param rootCompositeName
+	 * @param keyName
+	 * @param valueTofind
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Optional<String> findPathReadOnlyOldNvp(Stock stock, String rootCompositeName, String keyName, String valueTofind) {
+		Optional<Object> nvp = env.getOldNvp(stock, rootCompositeName);
+		Object envObject = nvp.orElse("");
 		
+		Map<String, Object> envMap;
+		if (envObject instanceof JsonObject) {
+			envMap = new Gson().fromJson(envObject.toString(), HashMap.class);
+		} else
+		if (envObject instanceof Map) {
+			envMap = ((Map<String, Object>) envObject);
+		} else {
+			return Optional.empty();
+		}
+		
+		for (Object keyObject: envMap.keySet()) {
+			String subroot = (String) keyObject;
+			if (keyName.equals(subroot) && envMap.get(keyName).equals(valueTofind)) {
+				return Optional.of(rootCompositeName + "." + subroot);
+			} else {
+				Optional<String> foundComposite = findPathReadOnlyOldNvp(stock, rootCompositeName + "." + subroot, keyName, valueTofind);
+				if (foundComposite.isPresent()) {
+					return foundComposite;
+				}
+			}
+		};
+
 		return Optional.empty();
 	}
 	

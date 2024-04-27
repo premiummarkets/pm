@@ -235,14 +235,10 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(refiterOperation);
 		TriggerPointJoiner triggerPointJoiner = new TriggerPointJoiner();
 		nativeOperations.addOperation(triggerPointJoiner);
-		ProfitDrivenOperation profitDrivenOperation = new ProfitDrivenOperation();
-		nativeOperations.addOperation(profitDrivenOperation);
 		BandNormalizerOperation bandNormalizerOperation = new BandNormalizerOperation();
 		nativeOperations.addOperation(bandNormalizerOperation);
 		BandRatioNormalizerOperation bandNRatioNormalizerOperation = new BandRatioNormalizerOperation();
 		nativeOperations.addOperation(bandNRatioNormalizerOperation);
-		ProfitWalkerOperation profitWalkerOperation = new ProfitWalkerOperation();
-		nativeOperations.addOperation(profitWalkerOperation);
 		TalibAssemblerOperation talibAssemblerOperation = new TalibAssemblerOperation();
 		nativeOperations.addOperation(talibAssemblerOperation);
 		RequiredShiftWrapperOperation requiredShiftWrapperOperation = new RequiredShiftWrapperOperation();
@@ -268,10 +264,16 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(volatilityOperation);
 		VolatilityOtherOperation volatilityOtherOperation = new VolatilityOtherOperation();
 		nativeOperations.addOperation(volatilityOtherOperation);
-		RandomOperation randomOperation = new RandomOperation();
-		nativeOperations.addOperation(randomOperation);
 		Ta4jOperation ta4jOperation = new Ta4jOperation();
 		nativeOperations.addOperation(ta4jOperation);
+		
+		//Strategy
+		ProfitDrivenOperation profitDrivenOperation = new ProfitDrivenOperation();
+		nativeOperations.addOperation(profitDrivenOperation);
+		ProfitWalkerOperation profitWalkerOperation = new ProfitWalkerOperation();
+		nativeOperations.addOperation(profitWalkerOperation);
+		RandomOperation randomOperation = new RandomOperation();
+		nativeOperations.addOperation(randomOperation);
 
 		return nativeOperations;
 	}

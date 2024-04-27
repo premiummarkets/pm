@@ -32,8 +32,12 @@ package com.finance.pms.events.scoring.dto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
@@ -91,20 +95,51 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	public Double getBuyNHoldProfit() {
 		return calculationEndPrice/calculationStartPrice -1;
 	}
+	
+	public Double getBNHAnnualisedProfit() {
+		double cummulativeReturn = calculationEndPrice/calculationStartPrice;
+		return annualisedProfit(cummulativeReturn);
+	}
+
+	private Double annualisedProfit(double cummulativeReturn) {
+		double nbDays = TimeUnit.DAYS.convert(calculationEnd.getTime() - calculationStart.getTime(), TimeUnit.MILLISECONDS);
+		if (nbDays == 0) return 0.0;
+		double annualReturn = Math.pow(1 + cummulativeReturn, 365d/nbDays) - 1;
+		return annualReturn;
+	}
 
 	public Double getForecastProfit() {
 		return getForecastProfitAt(calculationEnd);
+	}
+	
+	public Double getForeAnnualProfit() {
+		return getForeAnnualProfitAt(calculationEnd);
+	}
+	
+	public Double getForeAnnualProfitAt(Date date) {
+		double cummulativeReturn = getForecastProfitAt(date) + 1;
+		return annualisedProfit(cummulativeReturn);
 	}
 	
 	public Double getForecastProfitUnReal() {
 		return getForecastProfitAtUnReal(calculationEnd);
 	}
 	
-	/**
-	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStatsBetween(Date,Date)}
-	 */
-	public Double[] getStats() {
-		return getStatsBetween(calculationStart, calculationEnd);
+	public Double getForeAnnualProfitUnReal() {
+		return getForeAnnualProfitAtUnReal(calculationEnd);
+	}
+	
+	public Double getForeAnnualProfitAtUnReal(Date date) {
+		double cummulativeReturn = getForecastProfitAtUnReal(date) + 1;
+		return annualisedProfit(cummulativeReturn);
+	}
+	
+	public Map<String, Double> getBullStats() {
+		return getStatsBetween(calculationStart, calculationEnd, "BULLISH", (x) -> x < 0);
+	}
+	
+	public Map<String, Double> getBearStats() {
+		return getStatsBetween(calculationStart, calculationEnd, "BEARISH", (x) -> x > 0);
 	}
 
 	public List<PeriodRatingDTO> getPeriods() {
@@ -189,68 +224,101 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	 * 		=> log(|failedRoc|/(totalROC-failedRoc)) </br>
 	 * ROC is the actual rate of change of a predicted bullish period
 	 * The weigh here is also out of the ROCs of the bullish periods
+	 * @param trend 
+	 * @param signFunc 
 	 * 
-	 * @return avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
+	 * @return avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC ...
 	 */
-	public Double[] getStatsBetween(Date from, Date to) {
+	public Map<String, Double> getStatsBetween(Date from, Date to, String trend, Function<Double, Boolean> signFunc) {
 		
 		Double totalROC = 0d;
 		Double failedTotalROC = 0d;
-		double nbBullishPeriods = 0;
-		double nbFailedBullishPeriod = 0;
+		double nbTrendPeriods = 0;
+		double nbFailedTrendPeriod = 0;
 		double maxROC = 0;
 		double minROC = 0;
+		double duration = 0;
+		double maxDuration = Double.NEGATIVE_INFINITY;
+		double minDuration = Double.POSITIVE_INFINITY;
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();
 		PeriodRatingDTO currentPeriod = null; 
 		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(to) <= 0) {
 			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
-			if ("BULLISH".equals(currentPeriod.getTrend())) {//We can't use Enums in a DTO
-				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
-				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
+			if (trend.equals(currentPeriod.getTrend())) {//We can't use Enums in a DTO
+				Double trendPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (!trendPeriodRateOfChange.isNaN() && !trendPeriodRateOfChange.isInfinite()) {
 //					System.out.println(String.format("roc: %s at %s", bullishPeriodRateOfChange, currentPeriod.getTo()));
 //					System.out.println(String.format("totalROC: %s", totalROC));
-					nbBullishPeriods++;
-					totalROC = totalROC + bullishPeriodRateOfChange;
-					if (bullishPeriodRateOfChange < 0) {
-						nbFailedBullishPeriod++;
-						failedTotalROC = failedTotalROC + bullishPeriodRateOfChange; //failedTotalROC is negative
+					nbTrendPeriods++;
+					totalROC = totalROC + trendPeriodRateOfChange;
+					int periodDuration = (int)( (currentPeriod.getTo().getTime() - currentPeriod.getFrom().getTime()) / (1000 * 60 * 60 * 24) );
+					duration = duration + periodDuration;
+					if (signFunc.apply(trendPeriodRateOfChange)) {
+						nbFailedTrendPeriod++;
+						failedTotalROC = failedTotalROC + trendPeriodRateOfChange; //failedTotalROC is negative
 					}
-					if (bullishPeriodRateOfChange > maxROC) {
-						maxROC = bullishPeriodRateOfChange;
+					if (trendPeriodRateOfChange > maxROC) {
+						maxROC = trendPeriodRateOfChange;
 					}
-					if (bullishPeriodRateOfChange < minROC) {
-						minROC = bullishPeriodRateOfChange;
+					if (trendPeriodRateOfChange < minROC) {
+						minROC = trendPeriodRateOfChange;
+					}
+					if (currentPeriod.isRealised() && periodDuration > maxDuration) {
+						maxDuration = periodDuration;
+					}
+					if (currentPeriod.isRealised() && periodDuration < minDuration) {
+						minDuration = periodDuration;
 					}
 				};
 			}
 		}
 //		System.out.println(String.format("totalROC: %s", totalROC));
-		Double avgROC = totalROC / nbBullishPeriods;
-		Double failedBullishRatio = nbFailedBullishPeriod / nbBullishPeriods;
+		Double avgROC = totalROC / nbTrendPeriods;
+		Double avgDuration = duration / nbTrendPeriods;
+		Double failureRatio = nbFailedTrendPeriod / nbTrendPeriods;
 		 
-		double successTotalROC = totalROC - failedTotalROC; //totalROC does accumulate success and failure (ie total = success + failure) and failure is negative
-		double totalSpreadOfROC = successTotalROC + Math.abs(failedTotalROC); //failedTotalROC is negative
+		double successTotalROC = totalROC - failedTotalROC; //totalROC does accumulate success and failure (ie total = success + failure) and failure is negative in case of BULLISH
+		double totalSpreadOfROC = Math.abs(successTotalROC) + Math.abs(failedTotalROC); //failedTotalROC is negative in case of BULLISH
 //		System.out.println(String.format("Total span: %s", totalSpan));
 //		System.out.println(String.format("failedTotalROC: %s", failedTotalROC));
 //		System.out.println(String.format("successTotalROC: %s", successTotalROC));
 		Double failureWeigh = failedTotalROC / totalSpreadOfROC;
 		Double successWeigh = successTotalROC / totalSpreadOfROC;
 		
-		Double variance = 0d;
+		Double varianceOfROC = 0d;
+		Double varianceDuration = 0d;
 		Iterator<PeriodRatingDTO> iterator2 = periods.iterator();
 		while (iterator2.hasNext() && (currentPeriod = iterator2.next()).getTo().compareTo(to) <= 0) {
 			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
-			if ("BULLISH".equals(currentPeriod.getTrend())) {
-				Double bullishPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
-				if (!bullishPeriodRateOfChange.isNaN() && !bullishPeriodRateOfChange.isInfinite()) {
-					variance = variance + (bullishPeriodRateOfChange - avgROC)*(bullishPeriodRateOfChange - avgROC);
+			if (trend.equals(currentPeriod.getTrend())) {
+				Double trendPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (!trendPeriodRateOfChange.isNaN() && !trendPeriodRateOfChange.isInfinite()) {
+					varianceOfROC = varianceOfROC + (trendPeriodRateOfChange - avgROC)*(trendPeriodRateOfChange - avgROC);
+					int periodDuration2 = (int)( (currentPeriod.getTo().getTime() - currentPeriod.getFrom().getTime()) / (1000 * 60 * 60 * 24) );
+					int trendPeriodDuration = periodDuration2;
+					varianceDuration = varianceDuration + (trendPeriodDuration - avgDuration)*(trendPeriodDuration - avgDuration);
 				}
 			}
 		}
-		variance = variance / nbBullishPeriods;
+		varianceOfROC = varianceOfROC / nbTrendPeriods;
+		varianceDuration = varianceDuration / nbTrendPeriods;
 		
-		//					avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
-		return new Double[]{avgROC, failedBullishRatio, failureWeigh, successWeigh, minROC, maxROC, variance};
+		
+		Map<String, Double> results = new HashMap<>();
+		//Bullish stats: avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
+		results.put("avgROC", avgROC);
+		results.put("failureRatio", failureRatio);
+		results.put("failureWeigh", failureWeigh);
+		results.put("successWeigh", successWeigh);
+		results.put("minROC", minROC);
+		results.put("maxROC", maxROC);
+		results.put("varianceOfROC", varianceOfROC);
+		results.put("avgDuration", avgDuration);
+		results.put("varianceDuration", varianceDuration);
+		results.put("minDuration", minDuration);
+		results.put("maxDuration", maxDuration);
+		//return new Double[]{avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceROC};
+		return results;
 	}
 
 	private Double getForecastProfitAt(Date date, boolean unReal) {

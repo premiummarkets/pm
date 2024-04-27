@@ -15,6 +15,8 @@ import com.google.gson.Gson;
 @XmlRootElement
 public class NamedListValue extends Value<Object> implements MultiValue, StringableValue {
 	
+	private static final long serialVersionUID = 5198078574592679752L;
+
 	private static MyLogger LOGGER = MyLogger.getLogger(NamedListValue.class);
 	
 	@XmlElement

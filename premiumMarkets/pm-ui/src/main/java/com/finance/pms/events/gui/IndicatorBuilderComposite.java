@@ -98,7 +98,7 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	protected void clearPreviousCalculationsUsing(String identifier) {
 
 		EventInfoOpsCompoOperation operation = (EventInfoOpsCompoOperation) parameterizedBuilder.getUserCurrentOperations().get(identifier);
-		EventModel.dirtyCacheFor(operation);
+		EventModel.dirtyCacheFor(operation, true);
 		EventModel.updateEventInfoStamp();
 
 	}

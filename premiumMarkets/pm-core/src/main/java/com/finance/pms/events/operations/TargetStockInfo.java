@@ -250,9 +250,10 @@ public class TargetStockInfo {
 						throw new RuntimeException("letHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
 					}
 					return value;
-				} else {
-					LOGGER.warn("letHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
-				}
+				} 
+//				else {
+//					LOGGER.warn("letHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
+//				}
 			}
 			
 			this.heap.put(variableName, variableValue);
@@ -273,9 +274,10 @@ public class TargetStockInfo {
 						throw new RuntimeException("getHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
 					}
 					return value;
-				} else {
-					LOGGER.warn("getHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
 				}
+//				else {
+//					LOGGER.warn("getHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
+//				}
 			}
 			
 			return this.heap.get(variableName);

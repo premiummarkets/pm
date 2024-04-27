@@ -119,12 +119,12 @@ public abstract class EventModelStrategyEngine<X> {
 		} else {
 			SortedSet<EventInfo> eventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 			for (Stock stock : cleanedStocks) {
-				Map<EventInfo, EventDefCacheEntry> outCache4Stock =  EventModel.getOutputCache(stock);
-
+				Map<EventInfo, EventDefCacheEntry> outCache4Stock = EventModel.getOutputCache(stock);
 				if (outCache4Stock != null) {
 					for (EventInfo eventInfo : eventDefs) {
 						outCache4Stock.remove(eventInfo);
 					}
+					EventModel.putOutputCache(stock, outCache4Stock);
 				}
 			}
 		}
@@ -145,6 +145,7 @@ public abstract class EventModelStrategyEngine<X> {
 					EventModel.putOutputCache(stock, callbackForlastAnalyseOutput.get(stock));
 				} else {
 					map4Stock.putAll(callbackForlastAnalyseOutput.get(stock));
+					EventModel.putOutputCache(stock, map4Stock);
 				}
 			}
 

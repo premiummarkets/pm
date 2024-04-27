@@ -31,6 +31,8 @@ package com.finance.pms.events.scoring.chartUtils;
 
 import java.awt.Color;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
@@ -164,11 +166,16 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 	}
 	
 	/**
-	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getStats()}
+	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getBullStats()}
 	 */
-	public Double[] getStats() {
-		if (tuningRes == null) return new Double[5];
-		return tuningRes.getStats();
+	public Map<String, Double> getBullStats() {
+		if (tuningRes == null) return new HashMap<>();
+		return tuningRes.getBullStats();
+	}
+	
+	public Map<String, Double> getBearStats() {
+		if (tuningRes == null) return new HashMap<>();
+		return tuningRes.getBearStats();
 	}
 
 	public Double getStockPriceChange() {

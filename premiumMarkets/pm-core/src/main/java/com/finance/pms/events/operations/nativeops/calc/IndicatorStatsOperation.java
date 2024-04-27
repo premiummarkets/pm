@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -105,9 +106,9 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 					
 					Date start = iterSliderStart.getTime();
 					Date end = iterSliderEnd.getTime();
-					Double[] shiftStats = tuningRes.getStatsBetween(start, end);
-					Double sFW = shiftStats[2];
-					Double sSW = shiftStats[3];
+					Map<String, Double> shiftStats = tuningRes.getStatsBetween(start, end, "BULLISH", (x) -> x < 0);
+					Double sFW = shiftStats.get("failureWeigh");
+					Double sSW = shiftStats.get("successWeigh");
 					double shiftFailureLogweight = 0;
 					if ( (sFW == null || sFW.isNaN() || sFW == 0) && (sSW == null || sSW.isNaN() || sSW == 0)) {//No event in the date range
 						shiftFailureLogweight = Double.NEGATIVE_INFINITY; //This is for non line breaking charting
@@ -128,7 +129,8 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 					
 					results.put(k, new double[] {
 								tuningRes.getForecastProfitBetween(start, end), tuningRes.getForecastProfitUnRealBetween(start, end), buyNHold,
-								shiftStats[0], shiftStats[1], Math.abs(shiftStats[2]), shiftFailureLogweight, shiftStats[4], shiftStats[5], Math.sqrt(shiftStats[6])
+								shiftStats.get("avgROC"), shiftStats.get("failureRatio"), Math.abs(shiftStats.get("failureWeigh")), 
+								shiftFailureLogweight, shiftStats.get("minROC"), shiftStats.get("maxROC"), Math.sqrt(shiftStats.get("varianceROC"))
 							});
 					
 				}

@@ -37,6 +37,8 @@ import com.tictactec.ta.lib.MAType;
 
 public class MATypeValue extends Value<MAType> implements StringableValue, Cloneable {
 
+	private static final long serialVersionUID = -3927084112705169513L;
+
 	protected static MyLogger LOGGER = MyLogger.getLogger(MATypeValue.class);
 
 	@XmlElement

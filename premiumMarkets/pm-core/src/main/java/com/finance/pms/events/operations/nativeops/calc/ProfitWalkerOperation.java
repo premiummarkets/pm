@@ -55,7 +55,7 @@ public class ProfitWalkerOperation extends EventMapOperation {
 			
 			Date startDate = targetStock.getStartDate(0);
 			Stock stock = targetStock.getStock();
-			Quotations quotations  = QuotationsFactories.getFactory()
+			Quotations quotations = QuotationsFactories.getFactory()
 					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, ValidityFilter.CLOSE);
 			SortedMap<Date, Double> qMap = QuotationsFactories.getFactory().buildExactSMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);			
 		
@@ -63,7 +63,7 @@ public class ProfitWalkerOperation extends EventMapOperation {
 			
 			Double bullStartPrice = qMap.get(startDate);
 			Double bearStartPrice = qMap.get(startDate);
-			String evtLstName =  targetStock.getAnalysisName();
+			String evtLstName = targetStock.getAnalysisName();
 			EventInfo evtInfo = EventDefinition.valueOfEventInfo(targetStock.getEventInfoOpsCompoOperation().getReference());
 			for (Date currentDate:qMap.keySet()) {
 				if (bullStartPrice == null || bearStartPrice == null) continue;

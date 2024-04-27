@@ -24,7 +24,7 @@ public class UnEnvOperation extends VarOperation {
 	}
 
 	public UnEnvOperation() {
-		this("unenv", "Removes a named value from the env", new StringOperation("string", "variable", "variable name", new StringValue("mevar")));
+		this("unenv", "Removes a named value from the env.", new StringOperation("string", "variable", "variable name", new StringValue("mevar")));
 
 	}
 

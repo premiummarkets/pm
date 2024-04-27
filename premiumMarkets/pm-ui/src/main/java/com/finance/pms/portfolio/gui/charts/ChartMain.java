@@ -448,9 +448,9 @@ public class ChartMain extends Chart {
 					TimeSeries lineSerie = ((TimeSeriesCollection) mainPlot.getDataset(0)).getSeries(lineSerieIdx);
 					double maxBarValue = barChartDisplayStrategy.maxBarValue(lineSerie);
 					int eventDefSerieIdx = 0;
-					final SimpleDateFormat df = new SimpleDateFormat("dd MMM yy");
+					final SimpleDateFormat df = new SimpleDateFormat("yyyy MM dd");
 					final NumberFormat pf = new DecimalFormat("#0.00%");
-					//final NumberFormat af = new DecimalFormat("#0.00");
+					final NumberFormat nf = new DecimalFormat("#0.00");
 					for (final DataSetBarDescr serieDef : barSeries.keySet()) {
 						SortedMap<Date, BarChart> barSerie = barSeries.get(serieDef);
 
@@ -464,13 +464,15 @@ public class ChartMain extends Chart {
 							String compoundPReal = pf.format(serieDef.getForecastProfit());
 							String compoundPUnReal = pf.format(serieDef.getForecastProfitUnReal());
 							String priceChange = pf.format(serieDef.getStockPriceChange());
-							Double[] stats = serieDef.getStats();
+							//avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
+							Map<String, Double> bullStats = serieDef.getBullStats();
+							Map<String, Double> bearStats = serieDef.getBearStats();
 							String annotationTxt = serieDef.getEventDisplayeDef() + 
 									" ("
 									+ "r" + compoundPReal + " / ur" + compoundPUnReal + " / b&h" + priceChange
-									+ " / avg" + pf.format(stats[0]) + " / fail" + pf.format(stats[1])
-									+ " / fwght" + pf.format(Math.abs(stats[2])) + " / flog" + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
-									+ " / min" + pf.format(stats[4]) + " / max" + pf.format(stats[5]) + " / std" + pf.format(Math.sqrt(stats[6])) 
+									+ " / avg" + pf.format(bullStats.get("avgROC"))
+									+ " / flog" + pf.format(Math.log(Math.abs(bullStats.get("failureWeigh"))/bullStats.get("successWeigh")))
+									+ " / min" + pf.format(bullStats.get("minROC")) + " / max" + pf.format(bullStats.get("maxROC"))
 									+ ")";
 							Date[] dateRange = serieDef.getDateRange();
 							LOGGER.info("Indicator stats from " + dateRange[0] + " to " + dateRange[1] + ": " + annotationTxt);
@@ -479,10 +481,23 @@ public class ChartMain extends Chart {
 							String annotationToolTip = "<html>" 
 								+ serieDef.getEventDisplayeDef() + "<br>"
 								+ "Compound: " + compoundPReal + "(r) " + compoundPUnReal + "(ur) V. Price change: " + priceChange + "<br>"
-								+ "Stats: Avg profit " + pf.format(stats[0]) + ", Failed buy ratio " + pf.format(stats[1]) 
-								+ ", Failure weight " + pf.format(Math.abs(stats[2])) 
-								+ ", failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(Math.abs(stats[2])/stats[3]))
-								+ ", Min/Max profit " + pf.format(stats[4]) + "/" + pf.format(stats[5]) + ", Profit std " + pf.format(Math.sqrt(stats[6])) 
+								
+								+ "Bull Stats: Avg profit " + pf.format(bullStats.get("avgROC")) + ", Failed buy ratio " + pf.format(bullStats.get("failureRatio")) 
+								+ ", Failure weight " + pf.format(Math.abs(bullStats.get("failureWeigh"))) 
+								+ ", Failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(Math.abs(bullStats.get("failureWeigh"))/bullStats.get("successWeigh")))
+								+ ", Min/Max profit " + pf.format(bullStats.get("minROC")) + "/" + pf.format(bullStats.get("maxROC")) + ", Profit std " + pf.format(Math.sqrt(bullStats.get("varianceOfROC")))
+								+ "<br>" 
+								+ "&ensp; Avg duration " + nf.format(bullStats.get("avgDuration")) + ", Std duration " + nf.format(Math.sqrt(bullStats.get("varianceDuration")))
+								+ ", Min duration " + nf.format(bullStats.get("minDuration")) + ", Max duration " + nf.format(bullStats.get("maxDuration"))
+								
+								+ "<br>"
+								+ "Bear Stats: Avg loss " + pf.format(bearStats.get("avgROC")) + ", Failed sell ratio " + pf.format(bearStats.get("failureRatio")) 
+								+ ", Failure weight " + pf.format(bearStats.get("failureWeigh")) 
+								+ ", Failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(bearStats.get("failureWeigh")/Math.abs(bearStats.get("successWeigh"))))
+								+ ", Min/Max loss " + pf.format(bearStats.get("minROC")) + "/" + pf.format(bearStats.get("maxROC")) + ", Loss std " + pf.format(Math.sqrt(bearStats.get("varianceOfROC")))
+								+ "<br>" 
+								+ "&ensp; Avg duration " + nf.format(bearStats.get("avgDuration")) + ", Std duration " + nf.format(Math.sqrt(bearStats.get("varianceDuration")))
+								+ ", Min duration " + nf.format(bearStats.get("minDuration")) + ", Max duration " + nf.format(bearStats.get("maxDuration"))
 								+ "</html>";
 							annotation.setToolTipText(annotationToolTip);
 							annotation.setPaint(Color.BLUE);

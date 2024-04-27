@@ -20,7 +20,7 @@ public class NamedListOperation extends Operation {
 
 	
 	public NamedListOperation() {
-		super("namedListOfThings","Named list of things.");
+		super("namedListOfThings","Recursive named list of things ~ json");
 	}
 	
 	public NamedListOperation(String reference) {

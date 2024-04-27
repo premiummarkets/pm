@@ -121,47 +121,55 @@ public abstract class AutoCompletePopupMenu<T> {
 		
 		textBox.addListener(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
-				switch (event.keyCode) {
-					case SWT.ARROW_DOWN:
-						if (popupShell.isVisible() && table.getItemCount() != 0) {
-							int index = (table.getSelectionIndex() + 1) % table.getItemCount();
-							table.setSelection(index);
-							event.doit = false;
-						} else {
-							popupTable(popupShell);
-						}
-						break;
-					case SWT.ARROW_UP:
-						if (popupShell.isVisible() && table.getItemCount() != 0) {
-							int index = table.getSelectionIndex() - 1;
-							if (index < 0) index = table.getItemCount() - 1;
-							table.setSelection(index);
-							event.doit = false;
-						} else {
-							popupTable(popupShell);
-						}
-						break;
-					case SWT.CR:
-						if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
-							String text = table.getSelection()[0].getText();
-							textBox.setText(text);
+				try {
+					switch (event.keyCode) {
+						case SWT.ARROW_DOWN:
+							if (popupShell.isVisible() && table.getItemCount() != 0) {
+								int index = (table.getSelectionIndex() + 1) % table.getItemCount();
+								table.setSelection(index);
+								event.doit = false;
+							} else {
+								popupTable(popupShell);
+							}
+							break;
+						case SWT.ARROW_UP:
+							if (popupShell.isVisible() && table.getItemCount() != 0) {
+								int index = table.getSelectionIndex() - 1;
+								if (index < 0) index = table.getItemCount() - 1;
+								table.setSelection(index);
+								event.doit = false;
+							} else {
+								popupTable(popupShell);
+							}
+							break;
+						case SWT.CR:
+							if (popupShell.isVisible() && table.getSelectionIndex() != -1) {
+								String text = table.getSelection()[0].getText();
+								textBox.setText(text);
+								popupShell.setVisible(false);
+								selectionAction(text);
+								textBox.setData(textBox.getText());
+							} else {
+								popupTable(popupShell);
+							}
+							break;
+						case SWT.ESC:
 							popupShell.setVisible(false);
-							selectionAction(text);
-							textBox.setData(textBox.getText());
-						} else {
-							popupTable(popupShell);
-						}
-						break;
-					case SWT.ESC:
-						popupShell.setVisible(false);
-						break;
+							break;
+					}
+				} catch (Exception e) {
+					initPopupMenu();
 				}
 			}
 		});
 
 		textBox.addListener(SWT.Modify, new Listener() {
 			public void handleEvent(Event event) {
-				popupTable(popupShell);
+				try {
+					popupTable(popupShell);
+				} catch (Exception e) {
+					initPopupMenu();
+				}
 			}
 		});
 
@@ -187,7 +195,9 @@ public abstract class AutoCompletePopupMenu<T> {
 				/* async is needed to wait until focus reaches its new Control */
 				parentShell.getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						if (popupShell.isDisposed() || parentShell.getDisplay().isDisposed()) return;
+						if (popupShell.isDisposed() || parentShell.getDisplay().isDisposed()) {
+							return;
+						}
 						Control control = parentShell.getDisplay().getFocusControl();
 						if (control == null || (control != textBox && control != table) && control != popupShell) {
 							popupShell.setVisible(false);
