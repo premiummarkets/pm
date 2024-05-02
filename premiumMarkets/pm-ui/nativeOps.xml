@@ -1208,7 +1208,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unEnvOperation">
             <reference>unenv</reference>
-            <description>Removes a named value from the env</description>
+            <description>Removes a named value from the env.</description>
             <operands>
                 <operand xsi:type="stringOperation">
                     <reference>string</reference>

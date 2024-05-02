@@ -87,12 +87,12 @@ public class MapUtils {
 	
 	public static SortedMap<Date, double[]> madMovingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats, boolean lenientInit) {
 
-		TreeMap<Date, Double> noNaNMap = map.keySet()
-				.stream()
-				.filter(k -> !Double.isNaN(map.get(k)))
-				.collect(Collectors.toMap(k -> k, k -> map.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
+//		TreeMap<Date, Double> noNaNMap = map.keySet()
+//				.stream()
+//				.filter(k -> !Double.isNaN(map.get(k)))
+//				.collect(Collectors.toMap(k -> k, k -> map.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
 		
-		ArrayList<Date> keySet = new ArrayList<Date>(noNaNMap.tailMap(startDate).keySet());
+		ArrayList<Date> keySet = new ArrayList<Date>(map.tailMap(startDate).keySet());
 		int startIdx = period;
 		if (lenientInit) {
 			startIdx = apacheStats.getMinPeriod();
@@ -106,10 +106,10 @@ public class MapUtils {
 						endWindow -> {
 							Integer startWindow = endWindow - Math.min(endWindow, period);
 							SortedMap<Date,Double> values =
-									MapUtils.subMapInclusive(noNaNMap, keySet.get(startWindow), keySet.get(endWindow)).keySet()
+									MapUtils.subMapInclusive(map, keySet.get(startWindow), keySet.get(endWindow)).keySet()
 									.stream()
-									.filter(k -> !Double.isNaN(noNaNMap.get(k)))
-									.collect(Collectors.toMap(k -> k, k -> noNaNMap.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
+									//.filter(k -> !Double.isNaN(map.get(k)))
+									.collect(Collectors.toMap(k -> k, k -> map.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
 							return apacheStats.adEvaluateMd(values);
 						},
 						(a, b) -> a, TreeMap<Date,double[]>::new));
@@ -121,7 +121,7 @@ public class MapUtils {
 				.collect(Collectors.toMap(k -> k, k -> movingStats.get(k), (a, b) -> a, TreeMap<Date,double[]>::new));
 		
 		Date firstValidResult = keySet.get(startIdx);
-		return subMapInclusive(noNaNMovingStats, firstValidResult, noNaNMap.lastKey());
+		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
 	}
 
 }

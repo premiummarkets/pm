@@ -29,7 +29,10 @@ public class MySimpleRegression implements StatsFunction {
 	private SimpleRegression simpleRegression(SortedMap<Date, Double> lookBack, double firstX) {
 		SimpleRegression simpleRegression = new SimpleRegression(true);
 		lookBack.keySet().stream().forEach(k -> {
-			simpleRegression.addData(k.getTime()/DAY_IN_MILLI - firstX, lookBack.get(k));
+			Double y = lookBack.get(k);
+			if (!Double.isNaN(y)) {
+				simpleRegression.addData(k.getTime()/DAY_IN_MILLI - firstX, y);
+			}
 		});
 		return simpleRegression;
 	}

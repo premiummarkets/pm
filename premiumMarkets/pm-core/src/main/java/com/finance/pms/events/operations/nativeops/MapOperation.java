@@ -36,7 +36,6 @@ public abstract class MapOperation extends Operation {
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

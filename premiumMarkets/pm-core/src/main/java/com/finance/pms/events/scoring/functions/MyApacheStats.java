@@ -71,7 +71,10 @@ public class MyApacheStats implements StatsFunction {
 	 * @return
 	 */
 	public double dEvaluateCad(Collection<double[]> subMap) {
+		
 		statistic.setData(null);
+		subMap = subMap.stream().filter(ad -> Arrays.stream(ad).allMatch(d -> !Double.isNaN(d))).collect(Collectors.toList());
+		
 		double[] values = new double[subMap.size()];
 		int i = 0;
 		for (double[] element : subMap) {
@@ -83,7 +86,10 @@ public class MyApacheStats implements StatsFunction {
 	}
 	
 	public double[] adEvaluateCad(Collection<double[]> subMap) {
+		
 		statistic.setData(null);
+		subMap = subMap.stream().filter(ad -> Arrays.stream(ad).allMatch(d -> !Double.isNaN(d))).collect(Collectors.toList());
+		
 		SortedMap<Integer, double[]> valuesMap = new TreeMap<>();
 		int i = 0;
 		for (double[] element : subMap) {
@@ -99,7 +105,10 @@ public class MyApacheStats implements StatsFunction {
 	}
 
 	public double dEvaluateCd(Collection<Double> subMap) {
+		
 		statistic.setData(null);
+		subMap = subMap.stream().filter(d -> !Double.isNaN(d)).collect(Collectors.toList());
+		
 		double[] values = new double[subMap.size()];
 		int i = 0;
 		for (Double element : subMap) {
@@ -133,7 +142,5 @@ public class MyApacheStats implements StatsFunction {
 	public int getMinPeriod() {
 		return minPeriod;
 	}
-	
-	
 
 }

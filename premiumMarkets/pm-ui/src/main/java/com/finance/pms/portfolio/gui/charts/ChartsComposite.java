@@ -171,17 +171,27 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		this.currentTabShareList = new ArrayList<SlidingPortfolioShare>();
 
-//		try {
-			this.slidingEndDate = maxDate(); 
+		try {
 			//this.slidingEndDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20221003"));
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(this.slidingEndDate);
-			calendar.add(Calendar.YEAR, -1);
-			this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
+			String savedSlidingEndDate = MainPMScmd.getMyPrefs().get("sliding.enddate", null);
+			if (savedSlidingEndDate != null) {
+				this.slidingEndDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedSlidingEndDate);
+			} else {
+				this.slidingEndDate = maxDate();
+			}
 			//this.slidingStartDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20180903"));
-//		} catch (ParseException e) {
-//			LOGGER.error(e, e);
-//		}
+			String savedSlidingStartDate = MainPMScmd.getMyPrefs().get("sliding.startdate", null);
+			if (savedSlidingStartDate != null) {
+				this.slidingStartDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedSlidingStartDate);
+			} else {
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(this.slidingEndDate);
+				calendar.add(Calendar.YEAR, -1);
+				this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
+			}
+		} catch (ParseException e) {
+			LOGGER.error(e, e);
+		}
 
 		this.logComposite = logComposite;
 		this.hightlitedEventModel = EventModel.getInstance(new RefreshChartHighlighted(), logComposite);
@@ -916,7 +926,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						});
 					}
 
-
 					sliderStartDate.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
 							startSliderUpdateConditional(sliderStartDate, startDateButton, sliderEndDate, endDateButton);
@@ -987,8 +996,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		calendar.add(Calendar.DAY_OF_YEAR, nbDaySinceMin.intValue());
 		slidingStartDate = DateFactory.midnithDate(calendar.getTime());
 
-		startDateButton.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate));
+		String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate);
+		startDateButton.setText(format);
 		startDateButton.setFont(MainGui.DEFAULTFONT);
+		
+		MainPMScmd.getMyPrefs().put("sliding.startdate", format);
+		MainPMScmd.getMyPrefs().flushy();
 	}
 
 
@@ -1035,8 +1048,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		calendar.add(Calendar.DAY_OF_YEAR, nbDaySinceMin.intValue());
 		slidingEndDate = DateFactory.midnithDate(calendar.getTime());
 
-		endDateButton.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
+		String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate);
+		endDateButton.setText(format);
 		endDateButton.setFont(MainGui.DEFAULTFONT);
+		
+		MainPMScmd.getMyPrefs().put("sliding.enddate", format);
+		MainPMScmd.getMyPrefs().flushy();
 
 	}
 

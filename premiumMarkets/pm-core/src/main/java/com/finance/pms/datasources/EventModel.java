@@ -156,7 +156,8 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					}
 					map.put(eventInfo, new EventDefCacheEntry(outputMap, new UpdateStamp(outputMap.firstKey(), outputMap.lastKey(), false, null)));
 				} else {
-					throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath());
+					//throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath());
+					LOGGER.error("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath() + ". Either delete the file or fix the event.");
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
@@ -238,9 +239,9 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					if (updateStamp != null) {
 						updateStamp.setDirty();
 					}
-					if (clearHardCache) removeFromFileCache(stock, eventInfo);
 				}
 			}
+			if (clearHardCache) removeFromFileCache(stock, eventInfo);
 		}
 	}
 	private static void removeFromFileCache(Stock stock, EventInfo ei) {

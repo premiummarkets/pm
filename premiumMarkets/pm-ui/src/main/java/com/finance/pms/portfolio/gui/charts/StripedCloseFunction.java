@@ -64,16 +64,13 @@ public abstract class StripedCloseFunction {
 
 	public void updateEndDate(Date date) {
 		this.arbitraryEndDate = date;
-
 	}
 
 	public void updateStartDate(Date date) {
 		this.arbitraryStartDate = date;
-
 	}
 
 	protected Date getStartDate(Quotations stockQuotations) {
-
 		Date startDate = this.arbitraryStartDate;
 		startDate = (startDate.before(stockQuotations.getDate(0)))? stockQuotations.getDate(0) : startDate;
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("The start date is: " + startDate);

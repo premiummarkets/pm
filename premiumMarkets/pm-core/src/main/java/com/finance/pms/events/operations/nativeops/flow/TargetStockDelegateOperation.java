@@ -16,7 +16,6 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.nativeops.MapOperation;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
@@ -29,7 +28,7 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class TargetStockDelegateOperation extends MapOperation {
+public class TargetStockDelegateOperation extends Operation {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockDelegateOperation.class);
 	
@@ -44,7 +43,7 @@ public class TargetStockDelegateOperation extends MapOperation {
 	}
 
 	@Override
-	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		Operation operationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(0)).getValue(targetStock).clone();
 		String stockSymbolDelegate = ((StringValue) inputs.get(1)).getValue(targetStock);
 
@@ -61,23 +60,27 @@ public class TargetStockDelegateOperation extends MapOperation {
 		
 		//Run against the delegate
 		TargetStockInfo tStockDelegate = new TargetStockInfo(
-				targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), 
+				targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(),
 				stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
-		NumericableMapValue output = (NumericableMapValue) operationClone.run(tStockDelegate, thisCallStack, thisStartShift + 0);
+		tStockDelegate.resetHeap(targetStock.getHeap());
 		
-		//Potential missing keys:
-		try {
-			ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
-			Stock stock = targetStock.getStock();
-			Quotations quotations = QuotationsFactories.getFactory()
-					.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
-			Quotations quotationsDelegate  = QuotationsFactories.getFactory()
-					.getSplitFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
-			List<Date> qDelegateDates = Arrays.asList(quotationsDelegate.getDates());
-			List<Date> missingKeys = Arrays.stream(quotations.getDates()).filter(qd -> !qDelegateDates.contains(qd)).collect(Collectors.toList());
-			targetStock.addMissingData(missingKeys);
-		} catch (NoQuotationsException e) {
-			LOGGER.warn(e);
+		Value<?> output = operationClone.run(tStockDelegate, thisCallStack, thisStartShift + 0);
+		
+		if (output instanceof NumericableMapValue) {
+			//Potential missing keys:
+			try {
+				ValidityFilter filterFor = ValidityFilter.getFilterFor(this.getRequiredStockData());
+				Stock stock = targetStock.getStock();
+				Quotations quotations = QuotationsFactories.getFactory()
+						.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
+				Quotations quotationsDelegate  = QuotationsFactories.getFactory()
+						.getSplitFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
+				List<Date> qDelegateDates = Arrays.asList(quotationsDelegate.getDates());
+				List<Date> missingKeys = Arrays.stream(quotations.getDates()).filter(qd -> !qDelegateDates.contains(qd)).collect(Collectors.toList());
+				targetStock.addMissingData(missingKeys);
+			} catch (NoQuotationsException e) {
+				LOGGER.warn(e);
+			}
 		}
 		
 		return output;
@@ -87,6 +90,11 @@ public class TargetStockDelegateOperation extends MapOperation {
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
 		return 0;
+	}
+
+	@Override
+	public Value<?> emptyValue() {
+		return null;
 	}
 
 }

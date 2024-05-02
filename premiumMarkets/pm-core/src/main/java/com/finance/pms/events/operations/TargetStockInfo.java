@@ -181,7 +181,8 @@ public class TargetStockInfo {
 		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperationHolder;
 		this.stock = stock;
 		
-//		if (stock.getLastQuote().before(endDate)) { //FIXME this can create problems if a quotation map has been initialised before an operation is ran as the quotations map may then be made out of date
+		//FIXME this can create problems if a quotation map has been initialised before an operation is ran as the quotations map may then be made out of date
+//		if (stock.getLastQuote().before(endDate)) {
 //			try {
 //				ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 //				QuotationUpdate quotationUpdate = new QuotationUpdate();
@@ -235,6 +236,15 @@ public class TargetStockInfo {
 			return glogal.get(variableName);
 		}
 		
+	}
+	
+	
+	public void resetHeap(Map<String, Value<?>> newHeap) {
+		this.heap = newHeap;
+	}
+	
+	public Map<String, Value<?>> getHeap() {
+		return this.heap;
 	}
 	
 	//Supports Stringable Value and Map like Multivalue objects
