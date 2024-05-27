@@ -39,6 +39,7 @@ import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayRetur
 
 public class IOsExporterOperation extends FileExporter implements CachableOperation {
 
+	private static final int FILE_PATH_IDX = 1;
 	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);
 	
@@ -68,7 +69,7 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
-		String exportFilePrefix = ((StringValue) inputs.get(1)).getValue(targetStock);
+		String exportFilePrefix = ((StringValue) inputs.get(FILE_PATH_IDX)).getValue(targetStock);
 		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
 		
 		String fileSuffix = UUID.randomUUID().toString() + ".csv"; //targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
@@ -160,8 +161,13 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		String thisShortName = "ioe";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock);
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
+	
+	@Override
+	public Operation getFilePathOperand() {
+		return this.getOperands().get(FILE_PATH_IDX);
 	}
 
 }

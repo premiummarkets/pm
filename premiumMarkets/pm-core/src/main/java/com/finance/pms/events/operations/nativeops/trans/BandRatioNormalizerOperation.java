@@ -97,7 +97,10 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 					value.entrySet().stream()
 					.collect(Collectors.toMap(
 							e -> e.getKey(), 
-							e ->  (e.getValue() - actualCenter) * distanceToNewCenter/distanceToActualCenter + newCenter, 
+							e -> {
+								double d = (e.getValue() - actualCenter) * distanceToNewCenter/distanceToActualCenter + newCenter;
+								return d;
+							}, 
 							(a,b) -> a, TreeMap::new));
 			doubleMapValue.getValue(targetStock).putAll(normalized);
 			

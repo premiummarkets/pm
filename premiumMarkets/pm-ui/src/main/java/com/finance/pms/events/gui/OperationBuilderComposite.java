@@ -412,6 +412,55 @@ public class OperationBuilderComposite extends Composite {
 				initEditorPopup();
 			}
 		}
+		//right columns
+		{
+			Button saveFormula = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
+			saveFormula.setLayoutData(layoutData);
+			saveFormula.setText(saveButtonTxt());
+			saveFormula.setFont(MainGui.DEFAULTFONT);
+			saveFormula.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					handleSave(editorHolder.getFormatedReferenceTxt());
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+		}
+		{
+			Button renameFormula = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
+			//layoutData.horizontalSpan = 3;
+			renameFormula.setLayoutData(layoutData);
+			renameFormula.setText("Rename " + builderLabel());
+			renameFormula.setFont(MainGui.DEFAULTFONT);
+			renameFormula.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					handleRename();
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+		}
+		//left columns
 		{
 			Button deleteUnused = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
@@ -454,59 +503,6 @@ public class OperationBuilderComposite extends Composite {
 			});
 		}
 		{
-
-			Button checkInUse = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
-			//layoutData.horizontalSpan = 3;
-			checkInUse.setLayoutData(layoutData);
-			checkInUse.setText("Usage of " + builderLabel());
-			checkInUse.setFont(MainGui.DEFAULTFONT);
-			checkInUse.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handle();
-				}
-
-				private void handle() {
-					handleCheckInUse();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
-				}
-			});
-
-		}
-		{
-
-			Button renameFormula = new Button(this, SWT.NONE);
-			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
-			//layoutData.horizontalSpan = 3;
-			renameFormula.setLayoutData(layoutData);
-			renameFormula.setText("Rename " + builderLabel());
-			renameFormula.setFont(MainGui.DEFAULTFONT);
-			renameFormula.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					handle();
-				}
-
-				private void handle() {
-					handleRename();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					handle();
-				}
-			});
-
-		}
-		{
-
 			Button deleteFormula = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			//layoutData.horizontalSpan = 3;
@@ -546,17 +542,16 @@ public class OperationBuilderComposite extends Composite {
 					handleDeleteOp();
 				}
 			});
-
 		}
+		//right columns
 		{
-
-			Button saveFormula = new Button(this, SWT.NONE);
+			Button checkInUse = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 			//layoutData.horizontalSpan = 3;
-			saveFormula.setLayoutData(layoutData);
-			saveFormula.setText(saveButtonTxt());
-			saveFormula.setFont(MainGui.DEFAULTFONT);
-			saveFormula.addSelectionListener(new SelectionListener() {
+			checkInUse.setLayoutData(layoutData);
+			checkInUse.setText("Usage of " + builderLabel());
+			checkInUse.setFont(MainGui.DEFAULTFONT);
+			checkInUse.addSelectionListener(new SelectionListener() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -564,7 +559,7 @@ public class OperationBuilderComposite extends Composite {
 				}
 
 				private void handle() {
-					handleSave(editorHolder.getFormatedReferenceTxt());
+					handleCheckInUse();
 				}
 
 				@Override
@@ -572,7 +567,6 @@ public class OperationBuilderComposite extends Composite {
 					handle();
 				}
 			});
-
 		}
 		addThisCompositeExtratButtons();
 
@@ -851,6 +845,35 @@ public class OperationBuilderComposite extends Composite {
 
 	protected void addThisCompositeExtratButtons() {
 		{
+			Button format = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
+			//layoutData.horizontalSpan = 3;
+			format.setLayoutData(layoutData);
+			format.setText("Format " + builderLabel());
+			format.setFont(MainGui.DEFAULTFONT);
+			format.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					String identifier = editorHolder.getFormatedReferenceTxt();
+					handleSave(getToolTipText()); //We need to save make sure the operation is up to date first
+					Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+					String formulaeFormated = existingOp.toFormulaeFormated(80, o -> o.toFormulaeDevelopped());
+					setEditorText(formulaeFormated);
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+		}
+		//left columns
+		{
 
 			Button freshReload = new Button(this, SWT.NONE);
 			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
@@ -986,9 +1009,11 @@ public class OperationBuilderComposite extends Composite {
 				@Override
 				public void action() {
 					LOGGER.info("Saving warning dialog running " + identifier + ".");
-					doSaveFormula(identifier, formula);
-					updateOperationList(true, identifier, false);
-					LOGGER.info("Updated and saved " + identifier + ".");
+					Boolean saved = doSaveFormula(identifier, formula);
+					if (saved) {
+						updateOperationList(true, identifier, false);
+						LOGGER.info("Updated and saved " + identifier + ".");
+					}
 				}
 			};
 			Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
@@ -1018,7 +1043,7 @@ public class OperationBuilderComposite extends Composite {
 
 	}
 
-	protected void doSaveFormula(final String identifier, String formula) {
+	protected Boolean doSaveFormula(final String identifier, String formula) {
 
 		LOGGER.info("Actually persistence of " + identifier + ".");
 
@@ -1048,6 +1073,8 @@ public class OperationBuilderComposite extends Composite {
 			refreshViews();
 			LOGGER.info("Refresh done/running: " + identifier + ".");
 		}
+		
+		return editorHolder.isSaved(identifier);
 
 	}
 

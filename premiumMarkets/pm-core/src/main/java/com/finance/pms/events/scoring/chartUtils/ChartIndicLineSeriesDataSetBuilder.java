@@ -24,7 +24,6 @@ import org.jfree.data.Range;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.Layer;
@@ -100,7 +99,7 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						double groupMinY = Double.MAX_VALUE;
 
 						//Build data set adding data series and tool tips for each output of the group
-						TimeSeriesCollection dataSet = new TimeSeriesCollection();
+						MyTimeSeriesCollection dataSet = new MyTimeSeriesCollection();
 						Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
 						int seriesIdx = 0;
 						for (int k = 0; k < outputIndexes.length; k++) {//Iterate outputs series
@@ -182,8 +181,9 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 									}
 								};
-
-								renderer.setSeriesToolTipGenerator(seriesIdx, xyToolTpGen);
+								//renderer.setSeriesToolTipGenerator(seriesIdx, xyToolTpGen);
+								dataSet.addToolTipGenerator(seriesIdx, xyToolTpGen);
+								
 								seriesIdx++;
 
 							}

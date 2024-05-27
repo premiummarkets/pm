@@ -8,6 +8,10 @@ public interface StringableValue extends Serializable {
 	
 	//Default value as a string that would make sense as input to the String constructor (if any as this is valid only for values from leaf operations!)
 	String getAsStringable();
+	
+	default String getAsPrettyStringable() {
+		return this.getAsStringable();
+	};
 
 	Object getValue(TargetStockInfo targetStock);
 

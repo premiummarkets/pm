@@ -19,5 +19,8 @@ public abstract class FileExporter extends StringerOperation {
 	public FileExporter(String reference, String referenceAsOperand, String description, StringableValue defaultValue) {
 		super(reference, referenceAsOperand, description, defaultValue);
 	}
+	
+	
+	public abstract Operation getFilePathOperand();
 
 }

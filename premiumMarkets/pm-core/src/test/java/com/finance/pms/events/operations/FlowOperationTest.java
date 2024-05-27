@@ -36,9 +36,9 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.threads.ConfigThreadLocal;
 
-public class OperationTest {
+public class FlowOperationTest {
 	
-	private static MyLogger LOGGER = MyLogger.getLogger(OperationTest.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(FlowOperationTest.class);
 	private static SpringContext springContext;
 	
 	

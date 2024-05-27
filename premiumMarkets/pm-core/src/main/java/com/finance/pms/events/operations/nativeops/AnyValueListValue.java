@@ -9,8 +9,10 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 @XmlRootElement
-public class AnyValueListValue<T extends Value<?>> extends ListValue<T> implements Cloneable {
+public class AnyValueListValue<T> extends ListValue<T> implements Cloneable {
 	
+//	private static final long serialVersionUID = 8222260115865630985L;
+
 	private static MyLogger LOGGER = MyLogger.getLogger(AnyValueListValue.class);
 	
 	private List<T> listOfValues;
@@ -45,5 +47,15 @@ public class AnyValueListValue<T extends Value<?>> extends ListValue<T> implemen
 		}
 		return null;
 	}
+
+//	@Override
+//	public String getAsStringable() {
+//		return "[" + listOfValues.stream().map(v -> {
+//			if (v instanceof StringableValue) {
+//				return ((StringableValue)v).getAsStringable();
+//			} else {
+//				return ??;
+//			}}).reduce((a, v) -> a + "," + v).orElse("") + "]";
+//	}
 
 }

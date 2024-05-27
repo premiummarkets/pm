@@ -679,7 +679,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
                     <referenceAsOperand>isLenientInit</referenceAsOperand>
-                    <description>If true, in case a lack of heading data, the initial calculation window may start from the minimum period (&lt;= moving period) permited by the stat operation.</description>
+                    <description>If true, in case a lack of heading data, the initial calculation window may be calculated from the smaller period (&lt;= moving period) as permited by the stat operation in use.</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue>FALSE</stringValue>
                     </defaultValue>
@@ -711,6 +711,7 @@
                 <availableOutputSelector>mmin</availableOutputSelector>
                 <availableOutputSelector>mmax</availableOutputSelector>
                 <availableOutputSelector>mtanhnorm</availableOutputSelector>
+                <availableOutputSelector>mmeanostdevnorm</availableOutputSelector>
                 <availableOutputSelector>specificStat</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
@@ -737,6 +738,25 @@
                 <availableOutputSelector>stdevVolatility</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>stdevLnVolatility</outputSelector>
+            <isVarArgs>false</isVarArgs>
+        </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="constantOperation">
+            <reference>constant_</reference>
+            <description>Draw a map from a constant.</description>
+            <operands>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>constant</referenceAsOperand>
+                    <description>Constant to draw</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="unaryDivision">
@@ -1739,7 +1759,7 @@
                 <operand xsi:type="stringOperation">
                     <reference>boolean</reference>
                     <referenceAsOperand>allowLastColumnTrailingNaN</referenceAsOperand>
-                    <description>If NaN are allowed int the last column of the data set (usefull for targets)</description>
+                    <description>If NaN are allowed in the last column of the data set (usefull for targets)</description>
                     <defaultValue xsi:type="stringValue">
                         <stringValue>FALSE</stringValue>
                     </defaultValue>
@@ -1827,7 +1847,7 @@
                 <operand xsi:type="listOperation">
                     <reference>parameters</reference>
                     <referenceAsOperand>parameters and parameters slices</referenceAsOperand>
-                    <description>[start, end, step] or [x, factor] or ["abc"] or [any]. Use [x, factor] to make this parameter a factor of an other parameter indexed at x. Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
+                    <description>[start, end, step[ or [x, factor] or ["abc"] or [any]. With inclusivity [start, end[ and step must be &gt;= 1. Use [x, factor] to make this parameter a factor of an other parameter indexed at x. Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

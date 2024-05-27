@@ -209,7 +209,7 @@ public class PeriodRatingDTO implements Serializable, IsSerializable,Comparable<
 	}
 
 	public String toCSV() {
-		return from + "," + priceAtFrom + "," + to + "," + priceAtTo + "," + getPriceRateOfChange();
+		return from + "," + priceAtFrom + "," + to + "," + priceAtTo + "," + getPriceRateOfChange() + "," + trend;
 	}
 
 	@Override

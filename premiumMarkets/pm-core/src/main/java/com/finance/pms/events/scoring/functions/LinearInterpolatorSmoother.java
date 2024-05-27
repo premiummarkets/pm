@@ -32,8 +32,11 @@ public class LinearInterpolatorSmoother extends InterpolatorSmoother {
 		List<Double> interValues = DoubleStream.iterate(0d, d -> d < calKeys.size(), d -> d + 1d).mapToObj(d -> interpolate.value(d)).collect(Collectors.toList());
 		
 		TreeMap<Date, double[]> result = IntStream.range(0, calKeys.size())
-													.mapToObj(i -> i).collect(Collectors.toMap(i -> calKeys.get(i), i -> new double[] { interValues.get(i) }, (a, b) -> a, TreeMap::new));
+													.mapToObj(i -> i)
+													.collect(Collectors.toMap(i -> calKeys.get(i), i -> new double[] { interValues.get(i) }, (a, b) -> a, TreeMap::new));
+		
 		return result;
+		
 	}
 
 }

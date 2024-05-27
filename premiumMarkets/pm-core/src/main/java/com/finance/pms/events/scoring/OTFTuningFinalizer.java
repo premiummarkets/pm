@@ -164,7 +164,8 @@ public class OTFTuningFinalizer {
 			Double closeSpltAfterOrAtEventDate = new BigDecimal(tailFromEvent.get(tailFromEvent.firstKey()).toString()).doubleValue();
 			if (eventValue.getEventType().equals(EventType.BULLISH)) {
 				if (period == null) {//First period will be bull
-					period = new PeriodRatingDTO(nextEvtDate, closeSpltAfterOrAtEventDate, EventType.BULLISH.name()); //Start new period.
+					//TODO distinguish continuous form discrete events input??
+					//period = new PeriodRatingDTO(nextEvtDate, closeSpltAfterOrAtEventDate, EventType.BULLISH.name()); //First event is bullish and in case of continuous events may not get the full bullish span: WE IGNORE.
 				}
 				else if (period.getTrend().equals(EventType.BEARISH.name())) { //A Bear period is open and the event is bull. We close the period.
 					period.setTo(nextEvtDate);
@@ -234,8 +235,9 @@ public class OTFTuningFinalizer {
 		String chartFile = "noChartAvailable";
 
 		//Other init
-		BigDecimal firstClose = new BigDecimal(qMap.get(qMap.firstKey()).toString());
-		BigDecimal lastClose = new BigDecimal(qMap.get(qMap.lastKey()).toString());
+		SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, startDate, endDate);
+		BigDecimal firstClose = new BigDecimal(qMap.get(subMapInclusive.firstKey()).toString());
+		BigDecimal lastClose = new BigDecimal(qMap.get(subMapInclusive.lastKey()).toString());
 
 		return new TuningResDTO(periods, csvFile, chartFile, firstClose.doubleValue(), lastClose.doubleValue(), startDate, endDate);
 	}
@@ -247,7 +249,7 @@ public class OTFTuningFinalizer {
 		
 		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
 		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, startDate, endDate);
-		if (LOGGER.isDebugEnabled()) LOGGER.debug(export(buildResOnValidPeriods));
+		if (LOGGER.isInfoEnabled()) LOGGER.info(export(buildResOnValidPeriods));
 
 		return buildResOnValidPeriods;
 	}

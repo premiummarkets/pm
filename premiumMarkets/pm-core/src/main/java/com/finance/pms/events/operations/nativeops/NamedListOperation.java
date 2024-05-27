@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -98,7 +99,30 @@ public class NamedListOperation extends Operation {
 		int size = this.getOperands().size();
 		List<Operation> namesOps = this.getOperands().stream().limit(size/2).collect(Collectors.toList());
 		List<Operation> valuesOps = this.getOperands().stream().skip(size/2).collect(Collectors.toList());
-		return "{" + IntStream.range(0, namesOps.size()).mapToObj(i ->  namesOps.get(i).toFormulae(targetStock) + ":" + valuesOps.get(i).toFormulae(targetStock)).reduce((a,e) -> a + "," + e).orElse("") + "}";
+		return "{" + IntStream.range(0, namesOps.size()).mapToObj(i -> namesOps.get(i).toFormulae(targetStock) + ":" + valuesOps.get(i).toFormulae(targetStock)).reduce((a,e) -> a + "," + e).orElse("") + "}";
+	}
+	
+	@Override
+	public String toFormulaeDevelopped() {
+		int size = this.getOperands().size();
+		List<Operation> namesOps = this.getOperands().stream().limit(size/2).collect(Collectors.toList());
+		List<Operation> valuesOps = this.getOperands().stream().skip(size/2).collect(Collectors.toList());
+		return "{" + IntStream.range(0, namesOps.size()).mapToObj(i -> namesOps.get(i).toFormulaeDevelopped() + ":" + valuesOps.get(i).toFormulaeDevelopped()).reduce((a,e) -> a + "," + e).orElse("") + "}";
+	}
+	
+	@Override
+	public String toFormulaeFormated(int length, Function<Operation, String> formulaeGenFunc) {
+		int size = this.getOperands().size();
+		List<Operation> namesOps = this.getOperands().stream().limit(size/2).collect(Collectors.toList());
+		List<Operation> valuesOps = this.getOperands().stream().skip(size/2).collect(Collectors.toList());
+//		Map<String, String> mapToObj = IntStream.range(0, namesOps.size())
+//				.mapToObj(i -> i)
+//				.collect(Collectors.toMap(
+//						i -> namesOps.get(i).toFormulaeDevelopped().replaceAll("^\"(.*)\"$", "$1"),
+//						i -> valuesOps.get(i).toFormulaeDevelopped().replaceAll("^\"(.*)\"$", "$1")));
+//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//		return gson.toJson(mapToObj, HashMap.class);
+		return "{" + IntStream.range(0, namesOps.size()).mapToObj(i -> namesOps.get(i).toFormulaeFormated(length, formulaeGenFunc) + ":" + valuesOps.get(i).toFormulaeFormated(length, formulaeGenFunc)).reduce((a,e) -> a + "," + e).orElse("") + "}";
 	}
 
 	@Override

@@ -161,8 +161,17 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			//Extra analysers/augmenter
 			returnedEvents = targetStock.analyseEvents(returnedEvents, observers);
 			//Extra analysers/augmenter: Retrieve exportBaseFileName of the main operation XXX
-			EventsAnalyser eventsAnalyser = targetStock.getOutputAnalysers().get(targetStock.getChartedOutputGroups().get(0).getThisGroupMainOutputReference());
-			if (eventsAnalyser != null) ((EventDefDescriptorDynamic) this.eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setExportBaseFileName(Optional.of(eventsAnalyser.getEgFileBaseName()));
+			List<EventsAnalyser> eventsAnalyser = targetStock.getOutputAnalysers().get(targetStock.getChartedOutputGroups().get(0).getThisGroupMainOutputReference());
+			if (eventsAnalyser != null) {
+				Optional<EventsAnalyser> findFirst = eventsAnalyser.stream()
+					.filter(ea -> ea.getEgFileBaseName() != null)
+					.findFirst();
+				Optional<String> of = Optional.empty();
+				if (findFirst.isPresent()) {
+					of = Optional.of(findFirst.get().getEgFileBaseName());
+				};
+				((EventDefDescriptorDynamic) this.eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setExportBaseFileName(of);
+			}
 			
 			eData.putAll(returnedEvents);
 			

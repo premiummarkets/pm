@@ -46,6 +46,7 @@ import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
 import com.finance.pms.events.operations.nativeops.calc.BuyAndHoldOperation;
 import com.finance.pms.events.operations.nativeops.calc.ConcatStringOperation;
+import com.finance.pms.events.operations.nativeops.calc.ConstantOperation;
 import com.finance.pms.events.operations.nativeops.calc.Division;
 import com.finance.pms.events.operations.nativeops.calc.EqualsOperation;
 import com.finance.pms.events.operations.nativeops.calc.IndicatorStatsOperation;
@@ -162,6 +163,9 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(unaryProduct);
 		UnaryDivision unaryDivision = new UnaryDivision();
 		nativeOperations.addOperation(unaryDivision);
+		
+		ConstantOperation constantOperation = new ConstantOperation();
+		nativeOperations.addOperation(constantOperation);
 		
 		NumberMathOperation numberMathOperation = new NumberMathOperation();
 		nativeOperations.addOperation(numberMathOperation);

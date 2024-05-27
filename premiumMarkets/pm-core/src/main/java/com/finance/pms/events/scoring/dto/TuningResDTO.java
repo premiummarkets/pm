@@ -224,12 +224,12 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	 * 		=> log(|failedRoc|/(totalROC-failedRoc)) </br>
 	 * ROC is the actual rate of change of a predicted bullish period
 	 * The weigh here is also out of the ROCs of the bullish periods
-	 * @param trend 
-	 * @param signFunc 
+	 * @param trendInScope 
+	 * @param trendInScopeInvSignFunc 
 	 * 
 	 * @return avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC ...
 	 */
-	public Map<String, Double> getStatsBetween(Date from, Date to, String trend, Function<Double, Boolean> signFunc) {
+	public Map<String, Double> getStatsBetween(Date from, Date to, String trendInScope, Function<Double, Boolean> trendInScopeInvSignFunc) {
 		
 		Double totalROC = 0d;
 		Double failedTotalROC = 0d;
@@ -244,7 +244,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		PeriodRatingDTO currentPeriod = null; 
 		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(to) <= 0) {
 			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
-			if (trend.equals(currentPeriod.getTrend())) {//We can't use Enums in a DTO
+			if (trendInScope.equals(currentPeriod.getTrend())) {//We can't use Enums in a DTO //eg. trendInScope == "BULLISH"
 				Double trendPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (!trendPeriodRateOfChange.isNaN() && !trendPeriodRateOfChange.isInfinite()) {
 //					System.out.println(String.format("roc: %s at %s", bullishPeriodRateOfChange, currentPeriod.getTo()));
@@ -253,7 +253,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 					totalROC = totalROC + trendPeriodRateOfChange;
 					int periodDuration = (int)( (currentPeriod.getTo().getTime() - currentPeriod.getFrom().getTime()) / (1000 * 60 * 60 * 24) );
 					duration = duration + periodDuration;
-					if (signFunc.apply(trendPeriodRateOfChange)) {
+					if (trendInScopeInvSignFunc.apply(trendPeriodRateOfChange)) { //eg trendPeriodRateOfChange < 0
 						nbFailedTrendPeriod++;
 						failedTotalROC = failedTotalROC + trendPeriodRateOfChange; //failedTotalROC is negative
 					}
@@ -290,7 +290,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		Iterator<PeriodRatingDTO> iterator2 = periods.iterator();
 		while (iterator2.hasNext() && (currentPeriod = iterator2.next()).getTo().compareTo(to) <= 0) {
 			if (currentPeriod.getFrom().compareTo(from) < 0) continue;
-			if (trend.equals(currentPeriod.getTrend())) {
+			if (trendInScope.equals(currentPeriod.getTrend())) {
 				Double trendPeriodRateOfChange = currentPeriod.getPriceRateOfChange();
 				if (!trendPeriodRateOfChange.isNaN() && !trendPeriodRateOfChange.isInfinite()) {
 					varianceOfROC = varianceOfROC + (trendPeriodRateOfChange - avgROC)*(trendPeriodRateOfChange - avgROC);

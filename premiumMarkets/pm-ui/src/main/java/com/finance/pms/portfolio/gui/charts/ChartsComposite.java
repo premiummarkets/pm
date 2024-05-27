@@ -32,6 +32,7 @@ package com.finance.pms.portfolio.gui.charts;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.awt.Insets;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -88,6 +89,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.TypedListener;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.entity.XYItemEntity;
+import org.jfree.chart.labels.XYToolTipGenerator;
 
 import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
@@ -101,6 +107,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.scoring.chartUtils.MyTimeSeriesCollection;
 import com.finance.pms.portfolio.gui.PortfolioComposite;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
@@ -110,6 +117,48 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
  * @author Guillaume Thoreton
  */
 public class ChartsComposite extends SashForm implements RefreshableView {
+	
+	private final class MyChartPanel extends ChartPanel {
+		private static final long serialVersionUID = 1L;
+
+		public MyChartPanel(JFreeChart chart, boolean properties, boolean save, boolean print, boolean zoom, boolean tooltips) {
+			super(chart, properties, save, print, zoom, tooltips);
+		}
+
+		@Override
+		public void restoreAutoBounds(){
+			// Do nothing (disable mouse left drag zoom)
+		}
+
+		@Override
+		public String getToolTipText(MouseEvent e) {
+			String result = null;
+		    if (this.getChartRenderingInfo() != null) {
+		        EntityCollection entities = this.getChartRenderingInfo().getEntityCollection();
+		        if (entities != null) {
+		            Insets insets = getInsets();
+		            ChartEntity entity = entities.getEntity(
+		                    (int) ((e.getX() - insets.left) / this.getScaleX()),
+		                    (int) ((e.getY() - insets.top) / this.getScaleY()));
+		            if (entity != null) {
+		            	if (entity instanceof XYItemEntity && ((XYItemEntity) entity).getDataset() instanceof MyTimeSeriesCollection) {
+		            		XYItemEntity xYItemEntity = (XYItemEntity) entity;
+							XYToolTipGenerator xyToolTipGenerator = ((MyTimeSeriesCollection)xYItemEntity.getDataset()).getToolTipGenerator(xYItemEntity.getSeriesIndex());
+		            		if (xyToolTipGenerator != null) {
+		            			result = xyToolTipGenerator.generateToolTip(xYItemEntity.getDataset(), xYItemEntity.getSeriesIndex(), xYItemEntity.getItem());
+		            		} else {
+		            			result = entity.getToolTipText();
+		            		}
+		            	} else {
+		            		result = entity.getToolTipText();
+		            	}
+		            }
+		        }
+		    }
+		    return result;
+		}
+	}
+
 
 	private static final int MINSLIDERVALUE = 1;
 
@@ -155,6 +204,8 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	private Date slidingStartDate;
 	private Date slidingEndDate;
+	private Date buttonStartDate;
+	private Date buttonEndDate;
 	private Boolean sliderSelection;
 
 	private Boolean closeRequested = false;
@@ -171,22 +222,24 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		try {
 			//this.slidingEndDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20221003"));
-			String savedSlidingEndDate = MainPMScmd.getMyPrefs().get("sliding.enddate", null);
-			if (savedSlidingEndDate != null) {
-				this.slidingEndDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedSlidingEndDate);
+			String savedButtonEndDate = MainPMScmd.getMyPrefs().get("button.enddate", null);
+			if (savedButtonEndDate != null) {
+				this.buttonEndDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedButtonEndDate);
 			} else {
-				this.slidingEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
+				this.buttonEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
 			}
+			this.slidingEndDate = this.buttonEndDate;
 			//this.slidingStartDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20180903"));
-			String savedSlidingStartDate = MainPMScmd.getMyPrefs().get("sliding.startdate", null);
-			if (savedSlidingStartDate != null) {
-				this.slidingStartDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedSlidingStartDate);
+			String savedButtonStartDate = MainPMScmd.getMyPrefs().get("button.startdate", null);
+			if (savedButtonStartDate != null) {
+				this.buttonStartDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedButtonStartDate);
 			} else {
 				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(this.slidingEndDate);
+				calendar.setTime(this.buttonEndDate);
 				calendar.add(Calendar.YEAR, -1);
-				this.slidingStartDate = DateFactory.midnithDate(calendar.getTime());
+				this.buttonStartDate = DateFactory.midnithDate(calendar.getTime());
 			}
+			this.slidingStartDate = this.buttonStartDate;
 		} catch (ParseException e) {
 			LOGGER.error(e, e);
 		}
@@ -334,13 +387,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				chartFrame.add(rootHeavyPanel);
 
 				mainChartWraper = new ChartMain(ChartsComposite.DEFAULT_START_DATE, JFreeChartTimePeriod.DAY);
-				mainChartPanel = new ChartPanel(mainChartWraper.initChart(this.slidingStartDate, this.slidingEndDate), true, true, true, false, true) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public void restoreAutoBounds(){
-						// Do nothing (disable mouse left drag zoom)
-					}           
-				};
+				mainChartPanel = new MyChartPanel(mainChartWraper.initChart(this.slidingStartDate, this.slidingEndDate), true, true, true, false, true);
 				mainChartWraper.setChartPanel(mainChartPanel);
 				mainChartWraper.setFrame(chartFrame);
 				
@@ -664,7 +711,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 				    			final DateTime swtDT = new DateTime (dialog, SWT.CALENDAR | SWT.BORDER);
 				    			Calendar calendar = Calendar.getInstance();
-				    			calendar.setTime(slidingStartDate);
+				    			calendar.setTime(buttonStartDate);
 				    			swtDT.setDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 				    			new Label (dialog, SWT.NONE);
 				    			Button ok = new Button (dialog, SWT.PUSH);
@@ -674,11 +721,18 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				    				public void widgetSelected(SelectionEvent e) {
 			                    	  Calendar calendar = Calendar.getInstance();
 			                    	  calendar.set(swtDT.getYear(), swtDT.getMonth(), swtDT.getDay());
-			                    	  Date selectedStartDate = DateFactory.midnithDate(calendar.getTime());
+			                    	  buttonStartDate = DateFactory.midnithDate(calendar.getTime());
+			                    	  
+			                    	  String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
+				                  	  MainPMScmd.getMyPrefs().put("button.startdate", format);
+				                	  MainPMScmd.getMyPrefs().flushy();
+			                		
 									  sliderStart.setSelection(0);
-			                    	  startSliderUpdateConditional(selectedStartDate, slidingEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
+			                    	  startSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
+			                    	  
 			                    	  buttonStart.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate));
 			                    	  buttonStart.setFont(MainGui.DEFAULTFONT);
+			                    	  
 			                    	  sliderChangesApply();
 				    				  dialog.close ();
 				    				}
@@ -735,32 +789,37 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 						buttonEnd.setBackground(innerBgColor);
 						buttonEnd.setFont(MainGui.DEFAULTFONT);
 						buttonEnd.addSelectionListener(new SelectionAdapter() {
-				              @Override     
-				              public void widgetSelected(SelectionEvent e) {
-				      			final Shell dialog = new Shell (ChartsComposite.this.getShell(), SWT.DIALOG_TRIM);
-				    			dialog.setLayout (new GridLayout (3, false));
+							@Override     
+							public void widgetSelected(SelectionEvent e) {
+								final Shell dialog = new Shell (ChartsComposite.this.getShell(), SWT.DIALOG_TRIM);
+								dialog.setLayout (new GridLayout (3, false));
 
-				    			final DateTime swtDT = new DateTime (dialog, SWT.CALENDAR | SWT.BORDER);
-				    			Calendar calendar = Calendar.getInstance();
-				    			calendar.setTime(slidingEndDate);
-				    			swtDT.setDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-				    			new Label (dialog, SWT.NONE);
-				    			Button ok = new Button (dialog, SWT.PUSH);
-				    			ok.setText ("OK");
-				    			ok.setLayoutData(new GridData (SWT.FILL, SWT.CENTER, false, false));
-				    			ok.addSelectionListener (new SelectionAdapter() {
-				    				public void widgetSelected(SelectionEvent e) {
-			                    	  Calendar calendar = Calendar.getInstance();
-			                    	  calendar.set(swtDT.getYear(), swtDT.getMonth(), swtDT.getDay());
-			                    	  Date selectedEndDate = DateFactory.midnithDate(calendar.getTime());
-									  sliderEnd.setSelection(100);
-			                    	  endSliderUpdateConditional(slidingStartDate, selectedEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
-			                    	  buttonEnd.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
-			                    	  buttonEnd.setFont(MainGui.DEFAULTFONT);
-			                    	  sliderChangesApply();
-				    				  dialog.close ();
-				    				}
-				    			}
+								final DateTime swtDT = new DateTime (dialog, SWT.CALENDAR | SWT.BORDER);
+								Calendar calendar = Calendar.getInstance();
+								calendar.setTime(slidingEndDate);
+								swtDT.setDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+								new Label (dialog, SWT.NONE);
+								Button ok = new Button (dialog, SWT.PUSH);
+								ok.setText ("OK");
+								ok.setLayoutData(new GridData (SWT.FILL, SWT.CENTER, false, false));
+								ok.addSelectionListener (new SelectionAdapter() {
+									public void widgetSelected(SelectionEvent e) {
+										Calendar calendar = Calendar.getInstance();
+										calendar.set(swtDT.getYear(), swtDT.getMonth(), swtDT.getDay());
+										buttonEndDate = DateFactory.midnithDate(calendar.getTime());
+
+										String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
+										MainPMScmd.getMyPrefs().put("button.enddate", format);
+										MainPMScmd.getMyPrefs().flushy();
+										
+										sliderEnd.setSelection(100);
+										endSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
+										buttonEnd.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
+										buttonEnd.setFont(MainGui.DEFAULTFONT);
+										sliderChangesApply();
+										dialog.close ();
+									}
+								}
 				    			);
 				    			dialog.setDefaultButton (ok);
 				    			dialog.pack ();
@@ -786,9 +845,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								Calendar calendar = Calendar.getInstance();
 								calendar.setTime(slidingStartDate);
 								calendar.add(Calendar.YEAR, -1);
-								Date selectedStartDate = calendar.getTime();
+								buttonStartDate = calendar.getTime();
+
+								String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
+								MainPMScmd.getMyPrefs().put("button.startdate", format);
+								MainPMScmd.getMyPrefs().flushy();
+
 								sliderStart.setSelection(0);
-								startSliderUpdateConditional(selectedStartDate, slidingEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
+								startSliderUpdateConditional(buttonStartDate, slidingEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
 							}
 
 							@Override
@@ -822,9 +886,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								calendar.setTime(slidingStartDate);
 								calendar.add(Calendar.YEAR, +1);
 								if (calendar.getTime().before(slidingEndDate)) {
-									Date selectedStartDate = calendar.getTime();
+									buttonStartDate = calendar.getTime();
+
+									String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
+									MainPMScmd.getMyPrefs().put("button.startdate", format);
+									MainPMScmd.getMyPrefs().flushy();
+
 									sliderStart.setSelection(0);
-									startSliderUpdateConditional(selectedStartDate, slidingEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
+									startSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
 								} else {
 									chartDisplayStrategy.showPopupDialog("To move the start date further forward, you will need to move the end date first.", "Ok", null, null);
 								}
@@ -863,9 +932,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								calendar.setTime(slidingEndDate);
 								calendar.add(Calendar.YEAR, -1);
 								if (calendar.getTime().after(slidingStartDate)) {
-									Date selectedEndDate = calendar.getTime();
+									buttonEndDate = calendar.getTime();
+									
+									String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
+									MainPMScmd.getMyPrefs().put("button.enddate", format);
+									MainPMScmd.getMyPrefs().flushy();
+									
 									sliderEnd.setSelection(100);
-									endSliderUpdateConditional(slidingStartDate, selectedEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
+									endSliderUpdateConditional(buttonEndDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
 								} else {
 									chartDisplayStrategy.showPopupDialog("To move the end date further backward, you will need to move the start date first.", "Ok", null, null);
 								}
@@ -904,9 +978,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								if (calendar.getTime().after(newDate)) {
 									calendar.setTime(newDate);
 								}
-								Date selectedEndDate = calendar.getTime();
+								buttonEndDate = calendar.getTime();
+								
+								String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
+								MainPMScmd.getMyPrefs().put("button.enddate", format);
+								MainPMScmd.getMyPrefs().flushy();
+								
 								sliderEnd.setSelection(100);
-								endSliderUpdateConditional(slidingStartDate, selectedEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
+								endSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
 							}
 
 							@Override
@@ -926,14 +1005,14 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 					sliderStart.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
-							startSliderUpdateConditional(slidingStartDate, slidingEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
+							startSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
 						}
 					});
 
 					sliderEnd.addListener(SWT.Selection, new Listener() {
 
 						public void handleEvent(Event event) {
-							endSliderUpdateConditional(slidingStartDate, slidingEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
+							endSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
 						}
 					});
 
@@ -951,78 +1030,79 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		}
 	}
 
-	private void startSliderUpdateConditional(Date minDate, Date maxDate, final Slider sliderStartDate, final Button startDateButton, Slider sliderEndDate,  Button endDateButton) {
+	private void startSliderUpdateConditional(Date minDate, Date maxDate, final Slider sliderStart, final Button startDateButton, Slider sliderEnd, Button endDateButton) {
 
-		synchronized (sliderEndDate) {
+		synchronized (sliderSelection) {
 			sliderSelection = true;
 		}
 
-		Integer startSliderValue = sliderStartDate.getSelection();
-
-		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= MINSLIDERVALUE) {
-			if (sliderEndDate.getSelection() <= 100-MINSLIDERVALUE) {
-				int endValue = startSliderValue+MINSLIDERVALUE;
-				sliderEndDate.setSelection(endValue);
-				endSliderUpdate(minDate, maxDate, sliderEndDate, endDateButton, endValue);
+		Integer startSliderValue = sliderStart.getSelection();
+		
+		//If the end slider date is reach we push the end slider
+		if (sliderEnd.getSelection() - sliderStart.getSelection() <= MINSLIDERVALUE) {
+			if (sliderEnd.getSelection() <= 100 - MINSLIDERVALUE) {
+				int endValue = startSliderValue + MINSLIDERVALUE;
+				sliderEnd.setSelection(endValue);
+				endSliderUpdate(minDate, maxDate, sliderEnd, endDateButton, endValue);
 			} else {
-				sliderEndDate.setSelection(99);
-				endSliderUpdate(minDate, maxDate, sliderEndDate, endDateButton, 99);
-				startSliderValue=100-MINSLIDERVALUE;
-				sliderStartDate.setSelection(100-MINSLIDERVALUE);
+				sliderEnd.setSelection(99);
+				endSliderUpdate(minDate, maxDate, sliderEnd, endDateButton, 99);
+				startSliderValue = 100 - MINSLIDERVALUE;
+				sliderStart.setSelection(100 - MINSLIDERVALUE);
 			}
 
 		}
 
-		startSliderUpdate(minDate, maxDate, sliderStartDate, startDateButton, startSliderValue);
+		startSliderUpdate(minDate, maxDate, sliderStart, startDateButton, startSliderValue);
 
 		slidingGroup.layout();
 	}
 
 
-	private void startSliderUpdate(Date minDate, Date maxDate, final Slider sliderStartDate, final Button startDateButton, Integer sliderValue) {
+	private void startSliderUpdate(Date minDate, Date maxDate, final Slider sliderStart, final Button startDateButton, Integer sliderValue) {
 
 		Integer maxSlider= 100;
 		Integer minSlider= 0;
-		Integer perCentValue = sliderValue*100/(maxSlider - minSlider - sliderStartDate.getThumb());
+		Integer perCentValue = sliderValue*100/(maxSlider - minSlider - sliderStart.getThumb());
 
+		//Update sliding start date
 		Long diffDateInDays = (maxDate.getTime() - minDate.getTime())/(1000*3600*24);
 		Long nbDaySinceMin  = perCentValue * diffDateInDays /100;
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(minDate);
 		calendar.add(Calendar.DAY_OF_YEAR, nbDaySinceMin.intValue());
 		slidingStartDate = DateFactory.midnithDate(calendar.getTime());
-
+		
+		//Update slider start text
 		String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate);
 		startDateButton.setText(format);
 		startDateButton.setFont(MainGui.DEFAULTFONT);
-		
-		MainPMScmd.getMyPrefs().put("sliding.startdate", format);
-		MainPMScmd.getMyPrefs().flushy();
+
 	}
 
 
-	private void endSliderUpdateConditional(Date minDate, Date maxDate, Slider sliderEndDate,  Button endDateButton,  Slider sliderStartDate, Button startDateButton) {
+	private void endSliderUpdateConditional(Date minDate, Date maxDate, Slider sliderEnd,  Button endDateButton,  Slider sliderStart, Button startDateButton) {
 
-		synchronized (sliderEndDate) {
+		synchronized (sliderSelection) {
 			sliderSelection = true;
 		}
 
-		Integer sliderValue = sliderEndDate.getSelection();
+		Integer sliderValue = sliderEnd.getSelection();
 
-		if (sliderEndDate.getSelection() - sliderStartDate.getSelection() <= MINSLIDERVALUE) {
-			if (sliderStartDate.getSelection() >= MINSLIDERVALUE) {
+		if (sliderEnd.getSelection() - sliderStart.getSelection() <= MINSLIDERVALUE) {
+			if (sliderStart.getSelection() >= MINSLIDERVALUE) {
 				int startValue = sliderValue - MINSLIDERVALUE;
-				sliderStartDate.setSelection(startValue);
-				startSliderUpdate(minDate, maxDate, sliderStartDate, startDateButton, startValue);
+				sliderStart.setSelection(startValue);
+				startSliderUpdate(minDate, maxDate, sliderStart, startDateButton, startValue);
 			} else {
-				sliderStartDate.setSelection(0);
-				startSliderUpdate(minDate, maxDate, sliderStartDate, startDateButton, 0);
+				sliderStart.setSelection(0);
+				startSliderUpdate(minDate, maxDate, sliderStart, startDateButton, 0);
 				sliderValue = MINSLIDERVALUE;
-				sliderEndDate.setSelection(MINSLIDERVALUE);
+				sliderEnd.setSelection(MINSLIDERVALUE);
 			}
 		}
 
-		endSliderUpdate(minDate, maxDate, sliderEndDate, endDateButton, sliderValue);
+		endSliderUpdate(minDate, maxDate, sliderEnd, endDateButton, sliderValue);
 
 		slidingGroup.layout();
 	}
@@ -1044,9 +1124,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate);
 		endDateButton.setText(format);
 		endDateButton.setFont(MainGui.DEFAULTFONT);
-		
-		MainPMScmd.getMyPrefs().put("sliding.enddate", format);
-		MainPMScmd.getMyPrefs().flushy();
 
 	}
 
@@ -1055,21 +1132,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		ChartsComposite.this.shutDownDisplay();
 		mainChartComposite.dispose();
 	}
-
-
-//	private Date minimumDate() {
-//		if (firstStartDate == null) {
-//			Calendar  calendar  = Calendar.getInstance();
-//			calendar.add(Calendar.YEAR, -1);
-//			firstStartDate = DateFactory.midnithDate(calendar.getTime());
-//		}
-//		return firstStartDate;
-//	}
-//
-//	private Date maxDate() {
-//		if (lastEndDate == null) lastEndDate = DateFactory.midnithDate(DateFactory.getNowEndDate());
-//		return lastEndDate;
-//	}
 
 
 	public void setComposite(PortfolioComposite composite) {
@@ -1186,7 +1248,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			try {
 				updatedChartedEvtDefsTrends.add(EventDefinition.valueOfEventInfo(eventInfo.getEventDefinitionRef()));
 			} catch (NoSuchFieldException e) {
-				LOGGER.warn("Event info as been disabled or deleted. Removing from chart trend selection : "+eventInfo);
+				LOGGER.warn("Event info as been disabled or deleted. Removing from chart trend selection : " + eventInfo);
 			}
 		}
 		chartedEvtDefsTrends = updatedChartedEvtDefsTrends;
@@ -1204,11 +1266,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	private void sliderChangesApply() {
 		if (sliderSelection) {
-			synchronized (sliderEnd) {
+			synchronized (sliderSelection) {
 				sliderSelection = false;
-				chartedEvtDefsTrends.stream()
-						//.filter( ei -> (ei instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) ei).isDateSensitive()))
-						.forEach(dsEi -> EventModel.dirtyCacheFor(dsEi, false));
+				chartedEvtDefsTrends.stream().forEach(dsEi -> EventModel.dirtyCacheFor(dsEi, false));
 				updateCharts(true);
 				portfolioComposite.slidingDateChange();
 			}

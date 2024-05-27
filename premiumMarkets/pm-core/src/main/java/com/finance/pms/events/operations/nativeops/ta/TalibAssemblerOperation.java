@@ -37,6 +37,7 @@ import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
@@ -67,7 +68,8 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		this("talibAssembler", "Assembles several periods iterations of one indicator into one inputable array.",
 				new StringOperation("string", "assemblerGroupName", "ta- Assembler group name", new StringValue("")),
 				new OperationReferenceOperation("operationReference", "operation reference", "Operation to iterate upon", null),
-				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step] or [x, factor] or [\"abc\"] or [any]. "
+				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step[ or [x, factor] or [\"abc\"] or [any]. "
+						+ "With inclusivity [start, end[ and step must be >= 1. "
 						+ "Use [x, factor] to make this parameter a factor of an other parameter indexed at x. "
 						+ "Use [\"abc\"] for constant string parameters. [any] for any other constant parameter", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
@@ -89,7 +91,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		Operation assembledOperationClone = (Operation) ((OperationReferenceValue<?>) inputs.get(OPS_INDEX)).getValue(targetStock).clone();
 		
 		@SuppressWarnings("unchecked")
-		List<List<Value<?>>> parameters = inputs.subList(PARAMS_START_IDX, inputs.size()).stream().map(v -> ((AnyValueListValue<Value<?>>) v).getValue(targetStock)).collect(Collectors.toList());
+		List<List<StringableValue>> parameters = inputs.subList(PARAMS_START_IDX, inputs.size()).stream().map(v -> ((AnyValueListValue<StringableValue>) v).getValue(targetStock)).collect(Collectors.toList());
 
 		SortedMap<Integer, List<Double>> slices = new TreeMap<>();
 		ArrayList<Operation> assembledOpOperands = new ArrayList<>(assembledOperationClone.getOperands());
@@ -134,7 +136,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				//XXX maps passed in ListOperation have already been calculated up flow but with inaccurate time boundaries //FIXME could use OperationReferences
 				assembledOpOperands.set(parametersSlicePos, getOperands().get(parametersSlicePos + PARAMS_START_IDX).getOperands().get(0)); //XXX We reset the initial operation as it was before up flow inputs calculation
 			} else if (operand instanceof LeafOperation) { //Any other leaf operand
-				operand.setParameter(parameters.get(parametersSlicePos).get(0));
+				operand.setParameter((Value<?>) parameters.get(parametersSlicePos).get(0));
 			} else { //Not supported as parameter will be reset in the cloning process at each iteration
 				throw new NotImplementedException("FIXME: Parameter will be reset in the cloning process at each iteration: " + operand);
 			}
@@ -220,7 +222,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				String orElse = inputListToArray.get(InputToArrayReturn.TRAILINGNANS).entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
 													.reduce((a, e) -> a + " " + e)
 													.orElse("");
-				throw new Exception("FIXME (trailing nans)" + this.getReference() + ": " + this.toFormulae(targetStock) + " has trailing NaNs " + 
+				LOGGER.warn("FIXME (trailing nans) " + this.getReference() + ": " + this.toFormulae(targetStock) + " has trailing NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
 															.orElse("") + ": " +
@@ -231,7 +233,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 												.entrySet().stream().map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
 																	.reduce((a, e) -> a + " " + e)
 																	.orElse("");
-				LOGGER.warn("FIXME (other nans)" + this.getReference() + ": " + this.toFormulae(targetStock) + " has NaNs " + 
+				throw new Exception("FIXME (other nans) " + this.getReference() + ": " + this.toFormulae(targetStock) + " has NaNs " + 
 						inputListToArray.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue().size())
 															.reduce((a, e) -> a + " " + e)
 															.orElse("") + ": " +
@@ -255,10 +257,8 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		Operation operandOpsIdx = this.getOperands().get(OPS_INDEX);
-		String valueAsString = (
-									(OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(targetStock)
-									.orElse(new StringValue(operandOpsIdx.toFormulaeShort(targetStock)))
-							   ).getAsStringable().replaceAll("\\$", "");
+		String valueAsString = ((OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(targetStock).orElse(new StringValue(operandOpsIdx.toFormulaeShort(targetStock))))
+								.getAsStringable().replaceAll("\\$", "");
 		return valueAsString.substring(0, Math.min(5, valueAsString.length()));
 	}
 

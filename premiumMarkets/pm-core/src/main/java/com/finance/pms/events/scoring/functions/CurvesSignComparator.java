@@ -16,6 +16,12 @@ public class CurvesSignComparator implements CurvesComparator {
 		super();
 		actualZero = 0;
 	}
+	
+	
+	@Override
+	public String name() {
+		return "sign";
+	}
 
 	public CurvesSignComparator(int actualZero, int idealZero) {
 		super();

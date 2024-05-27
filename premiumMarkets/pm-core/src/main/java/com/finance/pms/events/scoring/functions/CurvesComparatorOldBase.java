@@ -86,6 +86,12 @@ public abstract class CurvesComparatorOldBase implements CurvesComparator {
 		QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), endCal, +1);
 		this.end = endCal.getTime();
 	}
+	
+	
+	@Override
+	public String name() {
+		return "undefined";
+	}
 
 	//CurveErr: best shift and error (double) + the error when no shift is applied + all the test shifts and their errors list.
 	public CurveErr compareShifted(SortedMap<Date, double[]> data, SortedMap<Date, double[]> refData) {

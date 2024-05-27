@@ -52,8 +52,8 @@ public class RequiredShiftWrapperOperation extends Operation {
 
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
-		String opsFormulaeShort = super.toFormulaeShort(targetStock);
-		return "w" + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		return "sW" + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	
 	

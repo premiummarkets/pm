@@ -45,7 +45,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		this("iosAssembler", "Assembles several inputs into one inputable array. Only trailing NaNs are optionnaly permitted.",
 				new StringOperation("string", "assemblerGroupName", "ios- Assembler group name", new StringValue("")),
 				new StringOperation("boolean", "isExportToFile", "If true, exports the result to a file.", new StringValue("FALSE")),
-				new StringOperation("boolean", "allowLastColumnTrailingNaN", "If NaN are allowed int the last column of the data set (usefull for targets)", new StringValue("FALSE")),
+				new StringOperation("boolean", "allowLastColumnTrailingNaN", "If NaN are allowed in the last column of the data set (usefull for targets)", new StringValue("FALSE")),
 				new DoubleMapOperation("data", "datasets", "Datasets to assemble in one", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}

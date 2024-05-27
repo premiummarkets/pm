@@ -291,7 +291,7 @@ public class EventsResources {
 		super();
 
 		String eventCacheProp = MainPMScmd.getMyPrefs().get("event.cache","true");
-		LOGGER.info("Event cache is set to "+eventCacheProp);
+		LOGGER.info("Event cache is set to " + eventCacheProp);
 
 		isEventCached = Boolean.valueOf(eventCacheProp);
 

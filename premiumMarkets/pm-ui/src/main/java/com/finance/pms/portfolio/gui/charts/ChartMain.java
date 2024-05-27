@@ -123,6 +123,7 @@ import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartIndicLineSeriesDataSetBuilder;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
+import com.finance.pms.events.scoring.chartUtils.MyTimeSeriesCollection;
 import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.tictactec.ta.lib.MInteger;
@@ -163,7 +164,6 @@ public class ChartMain extends Chart {
 
 	private Frame chartFrame;
 
-
 	
 	public ChartMain(Date startDate, JFreeChartTimePeriod jFreeTimePeriod) {
 		super();
@@ -189,7 +189,7 @@ public class ChartMain extends Chart {
 
 	private XYDataset buildLineDataSet(final StripedCloseFunction stripedCloseFunction, final List<SlidingPortfolioShare> portfolioShares, final Boolean applyColors) {
 
-		final TimeSeriesCollection combinedDataset = new TimeSeriesCollection();
+		final MyTimeSeriesCollection combinedDataset = new MyTimeSeriesCollection();
 
 		//Y axis number format
 		this.mainYAxis.setNumberFormatOverride(stripedCloseFunction.getNumberFormat());
@@ -295,7 +295,8 @@ public class ChartMain extends Chart {
 						}
 					};
 
-					renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
+					//renderer.setSeriesToolTipGenerator(k, xyToolTpGen);
+					combinedDataset.addToolTipGenerator(k, xyToolTpGen);
 					renderer.setSeriesShape(k, new Rectangle(new Dimension(100, 100)));
 
 				} catch (NoQuotationsException | NotEnoughDataException e) {
@@ -403,7 +404,7 @@ public class ChartMain extends Chart {
 					DateAxis domainAxis = (DateAxis) mainPlot.getDomainAxis();
 					domainAxis.setTimeline(segmentedTimeline);
 
-					TimeSeriesCollection barDataSets = new TimeSeriesCollection();
+					MyTimeSeriesCollection barDataSets = new MyTimeSeriesCollection();
 
 					XYBarRenderer renderer = (XYBarRenderer) mainPlot.getRenderer(1);
 					renderer.removeAnnotations();
@@ -499,6 +500,7 @@ public class ChartMain extends Chart {
 								+ "&ensp; Avg duration " + nf.format(bearStats.get("avgDuration")) + ", Std duration " + nf.format(Math.sqrt(bearStats.get("varianceDuration")))
 								+ ", Min duration " + nf.format(bearStats.get("minDuration")) + ", Max duration " + nf.format(bearStats.get("maxDuration"))
 								+ "</html>";
+							
 							annotation.setToolTipText(annotationToolTip);
 							annotation.setPaint(Color.BLUE);
 							Color transpWhite = new Color(1f, 1f, 1f, 0.5f);
@@ -549,7 +551,7 @@ public class ChartMain extends Chart {
 												double compoundReal = serieDef.getTuningRes().getForecastProfitAt(date);
 												double compoundUnReal = serieDef.getTuningRes().getForecastProfitAtUnReal(date);
 												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
-												profitTip =  period.toToolTip() + " ( cmpnd " + pf.format(compoundReal) + "(r) / " + pf.format(compoundUnReal) + "(ur) / b&h " + pf.format(priceChange) + " ) ";
+												profitTip = period.toToolTip() + " ( cmpnd " + pf.format(compoundReal) + "(r) / " + pf.format(compoundUnReal) + "(ur) / b&h " + pf.format(priceChange) + " ) ";
 												LOGGER.debug(((period.getTrend().equals(EventType.BEARISH.name()))?"Buy":"Sell") + " at " + date + " : " + profitTip);
 											}
 										} catch (Exception e) {
@@ -573,7 +575,8 @@ public class ChartMain extends Chart {
 
 							}
 						};
-						renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
+						//renderer.setSeriesToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
+						barDataSets.addToolTipGenerator(eventDefSerieIdx, xyToolTpGen);
 
 						//Labels
 						renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.OUTSIDE3, TextAnchor.CENTER, TextAnchor.CENTER, -1.57));

@@ -38,12 +38,12 @@ import java.util.SortedMap;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 
-public class CurvesExpTrenLineComparator extends CurvesComparatorOldBase {
+public class CurvesExpTrendLineComparator extends CurvesComparatorOldBase {
 
 	private double alpha;
 	private double beta;
 
-	public CurvesExpTrenLineComparator(Stock stock, Date start, Date end, int maxShift, double alpha, double beta) throws NotEnoughDataException {
+	public CurvesExpTrendLineComparator(Stock stock, Date start, Date end, int maxShift, double alpha, double beta) throws NotEnoughDataException {
 		super(stock, start, end, maxShift);
 		this.alpha = alpha;
 		this.beta = beta;

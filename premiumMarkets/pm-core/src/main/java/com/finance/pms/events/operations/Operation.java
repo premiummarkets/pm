@@ -43,6 +43,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -721,9 +722,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (orRunParameter.isPresent() && orRunParameter.get() instanceof StringableValue) {
 			return ((StringableValue) orRunParameter.get()).getAsStringable();
 		}
-
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
 		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock), (a, b) -> a + b) + ")";
+	
 	}
 	
 	public String toFormulaeDevelopped() {
@@ -731,9 +732,32 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
 			return ((StringableValue) this.getParameter()).getAsStringable();
 		}
-
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
 		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeDevelopped(), (a, b) -> a + b) + ")";
+	
+	}
+	
+	public String toFormulaeFormated(int length, Function<Operation, String> formulaeGenFunc) {
+		Integer operandsFormulaeLength = this.getOperands().stream().map(o -> formulaeGenFunc.apply(o).length()).reduce(0, (a, e) -> a + e);
+		if (operandsFormulaeLength < length) {
+			return formulaeGenFunc.apply(this);
+		} else {
+			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
+				return ((StringableValue) this.getParameter()).getAsPrettyStringable();
+			}
+			String selector = (outputSelector != null)? ":" + outputSelector : "";
+			String operandsFormated = this.getOperands().stream()
+					.reduce("", (a, o) -> {
+						if (o instanceof LeafOperation || o instanceof ListOperation) {
+							return a + o.toFormulaeFormated(length, formulaeGenFunc) + ", ";
+						} else {
+							return a + "\n" + o.toFormulaeFormated(length, formulaeGenFunc) + ", " ;
+						}
+					}, (a, b) -> a);
+			operandsFormated = operandsFormated.replaceAll("^\n", "").replaceAll(", $", "").replaceAll("\n", "\n\t");
+			String string = this.getOperationReference() + selector + "(" + "\n\t" + operandsFormated + "\n)";
+			return string;
+		}
 	}
 
 	public void setFormulae(String formula) {
@@ -1127,14 +1151,31 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}
 	}
 	
-	public List<Operation> findOperandsOfReference(String operationReference) {
+	public List<Operation> findOperandsWithGivenNativeOperationReference(String operationReference) {
 		List<Operation> mathingOperands = new ArrayList<>();
 		if (operationReference.equals(this.getOperationReference())) {
 			mathingOperands.add(this);
 		}
 		if (!operands.isEmpty()) {
 			mathingOperands.addAll(operands.stream().reduce(new ArrayList<Operation>(), (a, o) -> {
-				a.addAll(o.findOperandsOfReference(operationReference));
+				a.addAll(o.findOperandsWithGivenNativeOperationReference(operationReference));
+				return a;
+			}, (a, b) -> {
+				a.addAll(b);
+				return a;
+			}));
+		}
+		return mathingOperands;
+	}
+	
+	public List<Operation> findOperandsWithGivenUserReference(String reference) {
+		List<Operation> mathingOperands = new ArrayList<>();
+		if (reference.equals(this.getReference())) {
+			mathingOperands.add(this);
+		}
+		if (!operands.isEmpty()) {
+			mathingOperands.addAll(operands.stream().reduce(new ArrayList<Operation>(), (a, o) -> {
+				a.addAll(o.findOperandsWithGivenUserReference(reference));
 				return a;
 			}, (a, b) -> {
 				a.addAll(b);

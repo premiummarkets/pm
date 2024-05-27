@@ -1,6 +1,8 @@
 package com.finance.pms.events.operations.nativeops.data;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,6 +52,10 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 			filePath = System.getProperty("installdir") + File.separator + filePath;
 		}
 		
+		if (!Files.exists(Path.of(filePath))) {
+			throw new RuntimeException("File does not exists: " + filePath);
+		}
+		
 		int mainIndex = ((NumberValue) inputs.get(1)).getNumberValue().intValue();
 		Integer firstVariableIdx = 2;
 		List<Integer> includedIndexes = inputs.subList(firstVariableIdx, inputs.size()).stream().map(v -> ((NumberValue) v).getNumberValue().intValue()).collect(Collectors.toList());
@@ -94,8 +100,10 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 			return new DoubleArrayMapValue(subMapInclusiveResults, columnRefs, includedIndexes.indexOf(mainIndex));
 			
 		} catch (Exception e) {
-			LOGGER.error("Unreadable file for period " + startDate + " - " + targetStock.getEndDate() + ": "+ filePath, e);
+			
+			LOGGER.error("Unreadable file from " + startDate + " - " + targetStock.getEndDate() + ": " + filePath, e);
 			return new DoubleArrayMapValue(calculationResults, columnRefs, includedIndexes.indexOf(mainIndex));
+			
 		}
 
 	}

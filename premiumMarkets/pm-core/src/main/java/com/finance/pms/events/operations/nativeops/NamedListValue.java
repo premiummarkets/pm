@@ -11,6 +11,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.BooleanValue;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 @XmlRootElement
 public class NamedListValue extends Value<Object> implements MultiValue, StringableValue {
@@ -74,6 +75,16 @@ public class NamedListValue extends Value<Object> implements MultiValue, Stringa
 	public String getAsStringable() {
 		return new Gson().toJson(values, HashMap.class);
 	}
+
+	@Override
+	public String getAsPrettyStringable() {
+		Gson gson = new GsonBuilder()
+				.setPrettyPrinting()
+				.create();
+		return gson.toJson(values, HashMap.class);
+	}
+	
+	
 
 
 }

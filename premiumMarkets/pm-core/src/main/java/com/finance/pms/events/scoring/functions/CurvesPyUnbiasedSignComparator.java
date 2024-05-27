@@ -20,9 +20,14 @@ public class CurvesPyUnbiasedSignComparator implements CurvesComparator {
 		super();
 		this.threshold = threshold;
 	}
+	
+	@Override
+	public String name() {
+		return "signBiasPy";
+	}
 
 	@Override
-	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) throws CannotCompareException {
+	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
 		
 		expected = trim(actual, expected);
 		actual = trim(expected, actual);
@@ -33,7 +38,7 @@ public class CurvesPyUnbiasedSignComparator implements CurvesComparator {
 //        print(f"signal accuracy: {signal_accuracy}, bias: {bias}")
 //        return signal_accuracy - bias  # / trigger_error if trigger_error != 0 else float('inf')
 		
-		double bias = biasSign(actual, expected);
+		double bias = signBias(actual, expected);
 		double signalAcc = zeroCrossAccuracy(actual, expected);
 		//double result = 1 / (signalAcc - bias);
 		//double result = Math.max(0, 1 - (signalAcc - bias));
@@ -43,7 +48,7 @@ public class CurvesPyUnbiasedSignComparator implements CurvesComparator {
 		return result;
 	}
 	
-	private double biasSign(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
+	private double signBias(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
 	
 //	def bias_sign_func(y_true_series=[], y_pred_series=[], threshold=0):
 //	    true_bias = (len(list(filter(lambda y: y >= threshold, y_true_series))) - len(list(filter(lambda y: y <= threshold, y_true_series)))) / len(y_true_series)

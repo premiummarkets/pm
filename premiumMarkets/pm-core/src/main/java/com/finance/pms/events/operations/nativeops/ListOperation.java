@@ -3,6 +3,7 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -41,6 +42,7 @@ public class ListOperation extends Operation {
 
 	@Override
 	public AnyValueListValue<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
+		//return new AnyValueListValue<>(inputs.stream().map(i -> (StringableValue) i).collect(Collectors.toList()));
 		return new AnyValueListValue<>(inputs);
 	}
 
@@ -59,6 +61,11 @@ public class ListOperation extends Operation {
 	@Override
 	public String toFormulaeDevelopped() {
 		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeDevelopped(), (a, b) -> a + b) + "]";
+	}
+
+	@Override
+	public String toFormulaeFormated(int length, Function<Operation, String> formulaeGenFunc) {
+		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeFormated(length, formulaeGenFunc), (a, b) -> a + b) + "]";
 	}
 
 	@Override

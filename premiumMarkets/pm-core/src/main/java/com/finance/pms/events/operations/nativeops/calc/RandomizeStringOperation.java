@@ -39,7 +39,7 @@ public class RandomizeStringOperation extends StringerOperation {
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		String thisShortName = "rds";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock);
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	

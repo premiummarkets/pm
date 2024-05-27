@@ -36,7 +36,8 @@ public class NullOperation extends Operation {
 
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		return new AnyValueListValue<>(inputs);
+		//return new AnyValueListValue<>(inputs.stream().map(i -> (StringableValue) i).collect(Collectors.toList()));
+		return new NullValue();
 	}
 
 	@Override

@@ -39,6 +39,7 @@ import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.calc.ArithmeticOperation;
 import com.finance.pms.events.operations.nativeops.calc.ArithmeticUnaryOperation;
+import com.finance.pms.events.operations.nativeops.calc.ConstantOperation;
 import com.finance.pms.events.operations.nativeops.calc.LnPeriodicOperation;
 import com.finance.pms.events.operations.nativeops.calc.RecursiveOperation;
 import com.finance.pms.events.operations.nativeops.ta.PMIndicatorOperation;
@@ -49,7 +50,7 @@ import com.finance.pms.events.operations.nativeops.trans.FilterOperation;
 import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
 
 @XmlSeeAlso({
-	ArithmeticOperation.class, ArithmeticUnaryOperation.class,
+	ArithmeticOperation.class, ArithmeticUnaryOperation.class, ConstantOperation.class,
 	PMIndicatorOperation.class, TalibOperation.class,
 	StockOperation.class,
 	LnPeriodicOperation.class, FilterOperation.class, RecursiveOperation.class, RefiterOperation.class, DataTypeCheckOperation.class,

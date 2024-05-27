@@ -55,7 +55,6 @@ public class EnvOperation extends VarOperation {
 		
 		Object envObject = SystemEnvironment.getInstance().read(targetStock.getStock(), variableName).orElse(null);
 		
-		
 		if (envObject == null) {
 			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means orThrow and the value is needed -> Throw an Exception.
 					((NumberValue)defaultValue).getValue(targetStock).equals(Double.NaN)) {

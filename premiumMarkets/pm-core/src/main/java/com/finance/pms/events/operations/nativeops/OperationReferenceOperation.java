@@ -32,9 +32,11 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 		return (OperationReferenceValue<?>) inputs.get(0).getValue(targetStock);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public String toFormulae(TargetStockInfo targetStock) {
-		return ((StringableValue) getParameter()).getAsStringable();
+//		return ((StringableValue) getParameter()).getAsStringable();
+		return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getAsStringable();
 	}
 	
 	@Override
@@ -44,7 +46,14 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@Override
 	public String toFormulaeDevelopped() {
-		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeDevelopped(), ov -> ov.getAsStringable());
+//		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeDevelopped(), ov -> ov.getAsStringable());
+		return reccurentProceeds(ov -> ov.getAsStringable(), ov -> ov.getAsStringable());
+	}
+	
+	@Override
+	public String toFormulaeFormated(int length, Function<Operation, String> formulaeGenFunc) {
+//		return reccurentProceeds(ov -> ov.getValue(null).toFormulaeFormated(length, formulaeGenFunc), ov -> ov.getAsStringable());
+		return reccurentProceeds(ov -> ov.getAsStringable(), ov -> ov.getAsStringable());
 	}
 
 	private <T> T reccurentProceeds(Function<OperationReferenceValue<? extends Operation>, T> isUsedAsIsFunc, Function<OperationReferenceValue<? extends Operation>, T> isUsedAsCloneFunc) {
@@ -79,8 +88,6 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 			ov -> null);
 		}
 	}
-	
-	
 	
 	@Override
 	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {

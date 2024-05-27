@@ -29,6 +29,10 @@
  */
 package com.finance.pms.events.operations.nativeops;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -86,10 +90,16 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 	@Override
 	public String getAsStringable() {
 		//return numberValue.toString().replaceAll("\\.0", "");
-		if(numberValue == (long) numberValue.doubleValue())
+		if(numberValue == (long) numberValue.doubleValue()) {
 	        return String.format("%d", numberValue.longValue());
-	    else
-	        return String.format("%.2f", numberValue);
+		}
+	    else {
+	    	NumberFormat df = DecimalFormat.getInstance();
+	    	df.setMinimumFractionDigits(2);
+	    	df.setMaximumFractionDigits(10);
+	    	df.setRoundingMode(RoundingMode.DOWN);
+	        return df.format(numberValue);
+	    }
 	}
 
 }

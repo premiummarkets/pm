@@ -168,7 +168,7 @@ public class TargetStockInfo {
 	
 	private Map<String, Value<?>> heap = new ConcurrentHashMap<>();
 
-	private Map<OutputReference, EventsAnalyser> outputAnalysers;
+	private Map<OutputReference, List<EventsAnalyser>> outputAnalysers;
 	private Set<Date> missingKeys = new HashSet<>();
 
 
@@ -334,13 +334,21 @@ public class TargetStockInfo {
 	public SortedMap<EventKey, EventValue> analyseEvents(SortedMap<EventKey, EventValue> events, Observer... observers) {
 		SortedMap<EventKey, EventValue> analyzedEvents = events;
 		for (OutputReference key : outputAnalysers.keySet()) {
-			analyzedEvents = outputAnalysers.get(key).analyse(analyzedEvents, observers);
+			for (EventsAnalyser e : outputAnalysers.get(key)) { //Embedded calls in the order of EventsAnalyser addition
+				analyzedEvents = e.analyse(analyzedEvents, observers);
+			}
 		}
 		return analyzedEvents;
 	}
 
 	public void addEventAnalyser(Operation operation, EventsAnalyser eventAnalyser) {
-		outputAnalysers.put(new OutputReference(operation, operation.getOutputSelector()), eventAnalyser);
+		List<EventsAnalyser> list = outputAnalysers.get(new OutputReference(operation, operation.getOutputSelector()));
+		if (list == null) {
+			list = new ArrayList<>();
+			outputAnalysers.put(new OutputReference(operation, operation.getOutputSelector()), list);
+		}
+		list.add(eventAnalyser);
+		
 	}
 	
 	public void putOutputCalculationFuture(OutputReference unfinishedOutputReference) {
@@ -573,7 +581,7 @@ public class TargetStockInfo {
 		return eventInfoOpsCompoOperation.getRequiredStockData();
 	}
 
-	public Map<OutputReference, EventsAnalyser> getOutputAnalysers() {
+	public Map<OutputReference, List<EventsAnalyser>> getOutputAnalysers() {
 		return outputAnalysers;
 	}
 	/**

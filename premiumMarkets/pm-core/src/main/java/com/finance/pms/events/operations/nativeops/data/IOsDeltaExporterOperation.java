@@ -492,13 +492,18 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
 		String thisShortName = "iod";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock);
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
 	@Override
 	public boolean isDataShiftSensitive() {
 		return true;
+	}
+
+	@Override
+	public Operation getFilePathOperand() {
+		return this.getOperands().get(DELTA_FILE_IDX);
 	}
 	
 	

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -175,6 +176,62 @@ public class SystemEnvironment {
 		};
 
 		return Optional.empty();
+	}
+	
+	public Map<String, Object> findAnyWhereContainingKey(final String keyName, String keyValue) {
+		Map<String, Object> identity = new LinkedHashMap<String, Object>();
+		Map<String, Object> refMidEnvDetails = this.getAllStocks().stream()
+			.reduce(
+				identity, 
+				(ac, s) -> {
+					Stock stock = DataSource.getInstance().loadStockBySymbol(s);
+					Collection<String> analysis = this.getAnalysisFor(s);
+					Optional<String> trainedModelPathOpt = analysis.stream()
+							.reduce(Optional.empty(), (ac1, an) -> { //search latest nvps
+								Optional<String> model = this.findPath(stock, an, keyName, keyValue);
+								return ac1.isPresent()?ac1:model;
+							}, (a, b) -> (a.isPresent())?a:b);
+					if (trainedModelPathOpt.isEmpty()) { 
+						trainedModelPathOpt = analysis.stream() 
+								.reduce(Optional.empty(), (ac1, an) -> { //search old nvps for existing analysis
+									Optional<String> model = this.findPathReadOnlyOldNvp(stock, an, keyName, keyValue);
+									return ac1.isPresent()?ac1:model;
+								}, (a, b) -> (a.isPresent())?a:b);
+					}
+					if (trainedModelPathOpt.isEmpty()) {  //search old nvps for obsolete analysis
+						trainedModelPathOpt = this.getOldAnalysisFor(s).stream()
+								.reduce(Optional.empty(), (ac1, an) -> {
+									Optional<String> model = this.findPathReadOnlyOldNvp(stock, an, keyName, keyValue);
+									return ac1.isPresent()?ac1:model;
+								}, (a, b) -> (a.isPresent())?a:b);
+					}
+					
+					if (trainedModelPathOpt.isPresent()) {
+						String trainedModelPath = trainedModelPathOpt.get();
+						trainedModelPath = trainedModelPath.substring(0, trainedModelPath.lastIndexOf("." + keyName));
+						
+						Optional<Object> modelInfoJsonOpt = this.read(stock, trainedModelPath);
+						if (modelInfoJsonOpt.isEmpty()) {
+							modelInfoJsonOpt = this.readOldNvps(stock, trainedModelPath);
+						}
+						Object orElse = modelInfoJsonOpt.orElse(new LinkedHashMap<>());
+						if (orElse instanceof JsonObject) {
+							orElse = new Gson().fromJson((JsonObject)orElse, Map.class);
+						}
+						@SuppressWarnings("unchecked")
+						Map<String, Object> modelInfo = (Map<String, Object>) orElse;
+						ac.putAll(modelInfo);
+					}
+					
+					return ac;
+					
+				},
+				(a, b) -> {
+					a.putAll(b);
+					return a;
+				}
+			);
+		return refMidEnvDetails;
 	}
 	
 	public Optional<Object> readOldNvps(Stock stock, String compositeName) {

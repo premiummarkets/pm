@@ -66,7 +66,7 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 				.filter(c -> Character.isUpperCase(c))
 				.mapToObj(cu -> (char) cu)
 				.reduce("", (r, e) -> r + e, (a, b) -> a + b);
-				String opsFormulaeShort = super.toFormulaeShort(targetStock);
+				String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
 				return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 

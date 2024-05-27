@@ -187,7 +187,7 @@ public class WebDelegate {
 		} catch (UnsupportedEncodingException e) {
 			throw new ServerException(e);
 		}
-		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/binaryfile/"+encodedFileName+"?delete="+isDeleteRemote);
+		HttpGet getPredictionFile = new HttpGet("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/binaryfile/"+encodedFileName+"?is_delete="+isDeleteRemote.toString().toLowerCase());
 	    try (
 	    		CloseableHttpResponse getResponse = getHttpClient().execute(getPredictionFile);
 	    		FileOutputStream outFileStream = new FileOutputStream(new File(localFileCopyName));

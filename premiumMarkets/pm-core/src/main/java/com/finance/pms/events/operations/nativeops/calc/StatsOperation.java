@@ -74,6 +74,7 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
 import com.finance.pms.events.scoring.functions.MySimpleRegression;
 import com.finance.pms.events.scoring.functions.Normalizer;
+import com.finance.pms.events.scoring.functions.NormalizerMeanStdev;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
 @XmlRootElement
@@ -180,10 +181,10 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	public StatsOperation() {
 		this("stat", "Moving statistics",
 				new NumberOperation("number", "movingPeriod", "Moving period in data points. 'NaN' means window == data set size", new NumberValue(21.0)),
-				new StringOperation("boolean", "isLenientInit", "If true, in case a lack of heading data, the initial calculation window may start from the minimum period (<= moving period) permited by the stat operation.", new StringValue("FALSE")),
+				new StringOperation("boolean", "isLenientInit", "If true, in case a lack of heading data, the initial calculation window may be calculated from the smaller period (<= moving period) as permited by the stat operation in use.", new StringValue("FALSE")),
 				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null), //Optional
 				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm", "specificStat"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm", "mmeanostdevnorm", "specificStat"})));
 	}
 
 	public StatsOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -227,6 +228,50 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmax")) {
 				statFunction = new MyApacheStats(new Max());
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmeanostdevnorm")) { // (data-mean)/stdev
+				statFunction = new StatsFunction() {
+
+					@Override
+					public double dEvaluateMd(SortedMap<Date, Double> subMap) {
+						SortedMap<Date, Double> normalized = doEval(subMap);
+						return normalized.get(normalized.lastKey());
+					}
+
+					private SortedMap<Date, Double> doEval(SortedMap<Date, Double> subMap) {
+						NormalizerMeanStdev<Double> normalizerMeanStdev = new NormalizerMeanStdev<>();
+						return normalizerMeanStdev.normalised(subMap);
+					}
+
+					@Override
+					public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
+						SortedMap<Date, Double> normalized = doEval(subMap);
+						return normalized;
+					}
+
+					@Override
+					public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
+						SortedMap<Date, Double> normalized = doEval(subMap);
+						return  normalized.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a, b) -> a, TreeMap<Date,double[]>::new));
+					}
+
+					@Override
+					public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
+						SortedMap<Date, Double> normalized = doEval(subMap);
+						return new double[] {normalized.get(normalized.lastKey())};
+					}
+
+					@Override
+					public List<String> getOutputsRefs() {
+						return  Arrays.asList(outputSelector);
+					}
+
+					@Override
+					public int getMinPeriod() {
+						return 1;
+					}
+					
+				};
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtanhnorm")) { //Sliding bandNormalizer[-1,1,0]
 				statFunction = new StatsFunction() {
@@ -333,7 +378,8 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" +
 				((StringableValue) period.getOrRunParameter(targetStock).orElse(new StringValue(period.toFormulaeShort(targetStock)))).getAsStringable() + "_" +
 				((StringableValue) leniency.getOrRunParameter(targetStock).orElse(new StringValue(leniency.toFormulaeShort(targetStock)))).getValue(targetStock).toString().substring(0,1);
-		return "st_" + thisShort;
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands().subList(2, this.getOperands().size()));
+		return "st_" + thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
 	@Override
