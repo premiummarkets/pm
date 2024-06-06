@@ -89,15 +89,12 @@ public class NumberValue extends Value<Number> implements StringableValue, Clone
 
 	@Override
 	public String getAsStringable() {
-		//return numberValue.toString().replaceAll("\\.0", "");
-		if(numberValue == (long) numberValue.doubleValue()) {
+		if (numberValue == (long) numberValue.doubleValue()) {
 	        return String.format("%d", numberValue.longValue());
 		}
 	    else {
-	    	NumberFormat df = DecimalFormat.getInstance();
-	    	df.setMinimumFractionDigits(2);
-	    	df.setMaximumFractionDigits(10);
-	    	df.setRoundingMode(RoundingMode.DOWN);
+	    	NumberFormat df = new DecimalFormat("0.00########");
+	    	df.setRoundingMode(RoundingMode.HALF_EVEN);
 	        return df.format(numberValue);
 	    }
 	}

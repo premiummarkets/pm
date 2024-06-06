@@ -82,7 +82,6 @@ public class RecursiveOperation extends DoubleMapOperation {
 		SortedMap<Date, Double> seedingData = ((NumericableMapValue) inputs.get(1)).getValue(targetStock);
 		@SuppressWarnings("rawtypes") List<? extends Value> paramsInputs = inputs.subList(1, inputs.size()); //The seed is included as the first data parameter by default
 		
-
 		Date startDateShift = targetStock.getStartDate(thisStartShift);
 
 		//Build one inputs

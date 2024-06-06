@@ -222,7 +222,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		try {
 			//this.slidingEndDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20221003"));
-			String savedButtonEndDate = MainPMScmd.getMyPrefs().get("button.enddate", null);
+			String savedButtonEndDate = MainPMScmd.getMyPrefs().get("ui.button.enddate", null);
 			if (savedButtonEndDate != null) {
 				this.buttonEndDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedButtonEndDate);
 			} else {
@@ -230,7 +230,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			}
 			this.slidingEndDate = this.buttonEndDate;
 			//this.slidingStartDate = DateFactory.midnithDate(new SimpleDateFormat("yyyyMMdd").parse("20180903"));
-			String savedButtonStartDate = MainPMScmd.getMyPrefs().get("button.startdate", null);
+			String savedButtonStartDate = MainPMScmd.getMyPrefs().get("ui.button.startdate", null);
 			if (savedButtonStartDate != null) {
 				this.buttonStartDate = DateFormat.getDateInstance(DateFormat.MEDIUM).parse(savedButtonStartDate);
 			} else {
@@ -724,7 +724,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			                    	  buttonStartDate = DateFactory.midnithDate(calendar.getTime());
 			                    	  
 			                    	  String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
-				                  	  MainPMScmd.getMyPrefs().put("button.startdate", format);
+				                  	  MainPMScmd.getMyPrefs().put("ui.button.startdate", format);
 				                	  MainPMScmd.getMyPrefs().flushy();
 			                		
 									  sliderStart.setSelection(0);
@@ -809,7 +809,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 										buttonEndDate = DateFactory.midnithDate(calendar.getTime());
 
 										String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
-										MainPMScmd.getMyPrefs().put("button.enddate", format);
+										MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
 										MainPMScmd.getMyPrefs().flushy();
 										
 										sliderEnd.setSelection(100);
@@ -848,7 +848,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								buttonStartDate = calendar.getTime();
 
 								String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
-								MainPMScmd.getMyPrefs().put("button.startdate", format);
+								MainPMScmd.getMyPrefs().put("ui.button.startdate", format);
 								MainPMScmd.getMyPrefs().flushy();
 
 								sliderStart.setSelection(0);
@@ -889,7 +889,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									buttonStartDate = calendar.getTime();
 
 									String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
-									MainPMScmd.getMyPrefs().put("button.startdate", format);
+									MainPMScmd.getMyPrefs().put("ui.button.startdate", format);
 									MainPMScmd.getMyPrefs().flushy();
 
 									sliderStart.setSelection(0);
@@ -935,7 +935,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									buttonEndDate = calendar.getTime();
 									
 									String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
-									MainPMScmd.getMyPrefs().put("button.enddate", format);
+									MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
 									MainPMScmd.getMyPrefs().flushy();
 									
 									sliderEnd.setSelection(100);
@@ -981,7 +981,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								buttonEndDate = calendar.getTime();
 								
 								String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
-								MainPMScmd.getMyPrefs().put("button.enddate", format);
+								MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
 								MainPMScmd.getMyPrefs().flushy();
 								
 								sliderEnd.setSelection(100);

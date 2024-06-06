@@ -69,7 +69,7 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 		try {
 			Date startDate = targetStock.getStartDate(0);
 			Date endDate = targetStock.getEndDate();
-			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(targetStock.getStock(), startDate, endDate, quotations, indicatorEvents.values());
+			TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(targetStock.getStock(), startDate, endDate, quotations, new ArrayList<>(indicatorEvents.values()));
 			
 			SortedMap<Date, double[]> results = new TreeMap<>();
 			quotations.keySet().stream().forEach(k -> {

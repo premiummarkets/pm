@@ -15,6 +15,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
+import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
@@ -105,8 +106,11 @@ public class AndOperation extends FlowOperation {
 	}
 
 	private boolean isFalse(TargetStockInfo targetStock, Value<?> opiRes) {
-		return opiRes == null || 
-				(opiRes instanceof StringableValue && ((StringableValue) opiRes).getAsStringable().replaceAll("\"","").equalsIgnoreCase("FALSE")) ||
+		return opiRes == null ||
+				//StringValue which has to be a boolean (TRUE or FALSE)
+				(opiRes instanceof StringValue &&((StringValue) opiRes).getValue(targetStock).equalsIgnoreCase("FALSE")) ||
+				//Stringable returns a usable value or a NONE (this is not a boolean)
+				(opiRes instanceof StringableValue && ((StringableValue) opiRes).getAsStringable().replaceAll("\"","").equalsIgnoreCase("NONE")) ||
 				(opiRes instanceof MapValue && ((MapValue<?>) opiRes).getValue(targetStock).isEmpty());
 	}
 	

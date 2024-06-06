@@ -148,7 +148,7 @@ public class StockOperation extends DoubleMapOperation {
 	}
 	
 	@Override
-	public String toFormulae(TargetStockInfo targetStock) {
+	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 		Operation operand0 = getOperands().get(0);
 		String value = ((StringValue) operand0.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
 		if (value.equals("THIS")) {
@@ -160,7 +160,7 @@ public class StockOperation extends DoubleMapOperation {
 
 	@Override
 	public String toFormulaeDevelopped() {
-		return this.toFormulae(null);
+		return this.toFormulae(null, null);
 	}
 
 }

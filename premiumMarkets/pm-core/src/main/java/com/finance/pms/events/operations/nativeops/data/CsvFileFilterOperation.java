@@ -84,9 +84,9 @@ public class CsvFileFilterOperation extends StringerOperation {
 		String result = defaultValue;
 		if (!matchingLines.isEmpty()) {
 			result = matchingLines.get(matchingLines.size()-1); //The last match prevails
-			LOGGER.info("Results: " + result + " for " + this.toFormulae(targetStock) + " and " +filterPatternString + " in " + filePath);
+			LOGGER.info("Results: " + result + " for " + this.toFormulae(targetStock, thisCallStack) + " and " +filterPatternString + " in " + filePath);
 		} else {
-			LOGGER.info("No results (empty matches), using default: " + result + " for " + this.toFormulae(targetStock) + filterPatternString + " in " + filePath);
+			LOGGER.info("No results (empty matches), using default: " + result + " for " + this.toFormulae(targetStock, thisCallStack) + filterPatternString + " in " + filePath);
 		}
 		
 		return new StringValue(result);

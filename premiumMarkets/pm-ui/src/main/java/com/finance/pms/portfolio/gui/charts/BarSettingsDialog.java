@@ -238,8 +238,8 @@ public class BarSettingsDialog {
 				public void mouseMove(MouseEvent e) {
 					sideBySide.setToolTipText(
 							"Trends are displayed side by side. From top to bottom, each trend bar width is divided as per trendBarWidth/nbTrends and shifted by trendId*(trendBarWidth/nbTrends)\n" +
-									"The event validity days span (nominal width of a trend bar) is ideally set equal to the total number of trend indicator displayed.\n" +
-									"I.e. : " + chartTarget.getChartedEvtDefsTrends().size());
+							"The event validity days span (nominal width of a trend bar) is ideally set equal to the total number of trend indicator displayed.\n" +
+							"I.e.: " + chartTarget.getChartedEvtDefsTrends().size());
 				}
 			});
 			sideBySide.setSelection(barChartSettings.getSideBySide());

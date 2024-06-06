@@ -34,7 +34,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public String toFormulae(TargetStockInfo targetStock) {
+	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 //		return ((StringableValue) getParameter()).getAsStringable();
 		return ((OperationReferenceValue<? extends Operation>) this.getParameter()).getAsStringable();
 	}

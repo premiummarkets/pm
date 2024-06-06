@@ -100,7 +100,7 @@ public class ProfitOperation extends ArrayMapOperation {
 				//go
 				Date startDate = targetStock.getStartDate(0);
 				Date endDate = targetStock.getEndDate();
-				TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(targetStock.getStock(), startDate, endDate, qMap, buySellEventSerie.values());
+				TuningResDTO tuningRes = tuningFinalizer.buildTuningRes(targetStock.getStock(), startDate, endDate, qMap, new ArrayList<>(buySellEventSerie.values()));
 				
 				qMap.keySet().stream().forEach(qDate -> {
 					if (qDate.compareTo(startDate) >= 0) {

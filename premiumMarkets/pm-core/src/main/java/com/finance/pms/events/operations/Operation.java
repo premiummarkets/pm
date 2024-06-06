@@ -319,10 +319,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 									} catch (Exception e) {
 										myOutputReferenceUnfinished.setHasFailed(true);
 										stopCalcOnErr.set(stopOperandsCalculationsOnError(e, operand));
-										throw new StackException("Failing operand (" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(targetStock), thisCallStack, e);
+										throw new StackException("Failing operand (" + targetStock.getStock().getSymbol() + ")" + ": " + operand.toFormulae(targetStock, thisCallStack), thisCallStack, e);
 									} finally {
 										synchronized (targetStock) {
-											if (!myOutputReferenceUnfinished.getHasFailed()) targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
+											try {
+												if (!myOutputReferenceUnfinished.getHasFailed()) targetStock.removeOutputCalculationFuture(myOutputReferenceUnfinished);
+											} catch (Exception e) {
+												LOGGER.error(e, e);
+											}
 										}
 									}
 								} else {
@@ -604,10 +608,23 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	public Optional<Value<?>> getOrRunParameter(TargetStockInfo targetStock) {
+		if (parameter == null) {
+			try {
+				if (targetStock == null) throw new Exception("No parameter is set and can't be calculated as targetStock is null");
+				return getOrRunParameter(targetStock, newCallerStack(targetStock));
+			} catch (Exception e) {
+				LOGGER.warn("getOrRunParameter is returning an empty parameter for " + this.getReference() + ": " + e);
+				return Optional.empty();
+			}
+		}
+		return Optional.of(parameter);
+	}
+	
+	public Optional<Value<?>> getOrRunParameter(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 		try {
 			if (parameter == null) {
 				if (targetStock == null) throw new Exception("No parameter is set and can't be calculated as targetStock is null");
-				List<Optional<Value<?>>> outputs = runNonDataSensitives(targetStock,  newCallerStack(targetStock), Arrays.asList(this));
+				List<Optional<Value<?>>> outputs = runNonDataSensitives(targetStock, parentCallStack, Arrays.asList(this));
 				return outputs.get(0);
 			}
 		} catch (Exception e) {
@@ -716,21 +733,29 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}, (a, b) -> a + b);
 	}
 	
-	public String toFormulae(TargetStockInfo targetStock) {
+	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 
-		Optional<Value<?>> orRunParameter = this.getOrRunParameter(targetStock);
-		if (orRunParameter.isPresent() && orRunParameter.get() instanceof StringableValue) {
-			return ((StringableValue) orRunParameter.get()).getAsStringable();
+		Optional<Value<?>> orRunParameter = this.getOrRunParameter(targetStock, parentCallStack);
+		if (orRunParameter.isPresent()) {
+			if (orRunParameter.get() instanceof StringableValue) {
+				return ((StringableValue) orRunParameter.get()).getAsStringable();
+			} else {
+				throw new RuntimeException("Parameter as formulae not supported: " + this);
+			}
 		}
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
-		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock), (a, b) -> a + b) + ")";
+		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock, parentCallStack), (a, b) -> a + b) + ")";
 	
 	}
 	
 	public String toFormulaeDevelopped() {
 
-		if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
-			return ((StringableValue) this.getParameter()).getAsStringable();
+		if (this.getParameter() != null) {
+			if (this.getParameter() instanceof StringableValue) {
+				return ((StringableValue) this.getParameter()).getAsStringable();
+			} else {
+				throw new RuntimeException("Parameter as formulae not supported: " + this);
+			}
 		}
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
 		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeDevelopped(), (a, b) -> a + b) + ")";
@@ -743,7 +768,11 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			return formulaeGenFunc.apply(this);
 		} else {
 			if (this.getParameter() != null && this.getParameter() instanceof StringableValue) {
-				return ((StringableValue) this.getParameter()).getAsPrettyStringable();
+				if (this.getParameter() instanceof StringableValue) {
+					return ((StringableValue) this.getParameter()).getAsStringable();
+				} else {
+					throw new RuntimeException("Parameter as formulae not supported: " + this);
+				}
 			}
 			String selector = (outputSelector != null)? ":" + outputSelector : "";
 			String operandsFormated = this.getOperands().stream()

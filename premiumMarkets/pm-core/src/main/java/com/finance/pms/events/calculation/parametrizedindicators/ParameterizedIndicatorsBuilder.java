@@ -159,7 +159,6 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 
 	@Override
 	public void clearPreviousCalculationsUsing(Operation operation) throws InUseException {
-
 		try {
 			super.clearPreviousCalculationsUsing(operation);
 		} catch (InUseException e1) {
@@ -167,7 +166,6 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 			LOGGER.info("Operation " + operation.getReference() + " has been changed, deleting indicators calculation caches for : " + impactedIndicators.stream().map(op -> op.getReference()).reduce((r,e) -> r + ", " + e));
 			resetCachesFor(impactedIndicators);
 		}
-
 	}
 
 	private void resetCachesFor(Collection<Operation> impactedIndicators) {

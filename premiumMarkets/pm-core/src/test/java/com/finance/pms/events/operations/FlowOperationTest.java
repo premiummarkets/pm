@@ -354,7 +354,7 @@ public class FlowOperationTest {
 		
 		String evtiFormulaeDevelopped = eventInfo.toFormulaeDevelopped();
 		LOGGER.info("eventInfo formulaeDevelopped: " + evtiFormulaeDevelopped);
-		String evtiFormulae = eventInfo.toFormulae(targetStock);
+		String evtiFormulae = eventInfo.toFormulae(targetStock, eventInfo.newCallerStack(targetStock));
 		LOGGER.info("eventInfo formulae: " + evtiFormulae);
 		String evtiFormulaeShort = eventInfo.toFormulaeShort(targetStock);
 		LOGGER.info("eventInfo formulaeShort: " + evtiFormulaeShort);
@@ -362,7 +362,7 @@ public class FlowOperationTest {
 		Operation fOrOperation = parameterizedOperationBuilder.getUserCurrentOperations().get(fOrId);
 		String formulaeDevelopped = fOrOperation.toFormulaeDevelopped();
 		LOGGER.info("op formulaeDevelopped: " + formulaeDevelopped);
-		String formulae = fOrOperation.toFormulae(targetStock);
+		String formulae = fOrOperation.toFormulae(targetStock, fOrOperation.newCallerStack(targetStock));
 		LOGGER.info("op formulae: " + formulae);
 		String formulaeShort = fOrOperation.toFormulaeShort(targetStock);
 		LOGGER.info("op formulaeShort: " + formulaeShort);

@@ -20,6 +20,21 @@ public class PostInitMonitor {
             }
         }
     }
+    
+    public static void waitForOptPostInit() {
+        if (!optPostInitStarted && !optPostInitFinished) {
+            synchronized (optPostInitSyncObj) {
+                while (!optPostInitStarted) {
+                    try {
+                        optPostInitSyncObj.wait();
+                    } catch (InterruptedException e) {
+                        
+                    }
+                }
+            }
+            waitForOptPostInitEnd();
+        }
+    }
 
     public static void stopOptPostInit() {
         synchronized (optPostInitSyncObj) {

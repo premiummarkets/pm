@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.NotImplementedException;
 
@@ -45,7 +46,7 @@ import com.finance.pms.talib.indicators.TalibCoreService;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
-public class TalibLinearRegSmoother extends Smoother {
+public class TalibLinearRegSmoother extends Smoother implements SSmoother {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(TalibLinearRegSmoother.class);
 
@@ -81,7 +82,7 @@ public class TalibLinearRegSmoother extends Smoother {
 		
 		RetCode rc = TalibCoreService.getCore().linearReg(startIdx, endIdx, inReal, period, outBegIdx, outNBElement, linearRegression);
 		
-		if (LOGGER.isDebugEnabled()) LOGGER.debug("linear smothing res : retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
+		if (LOGGER.isDebugEnabled()) LOGGER.debug("linear smothing res: retcode "+rc.name()+" out begin idx "+outBegIdx.value+", out nb ele "+outNBElement.value);
 		
 		SortedMap<Date, double[]> ret = new TreeMap<Date, double[]>();
 		List<Date> dates = new ArrayList<Date>(data.keySet());
@@ -90,6 +91,14 @@ public class TalibLinearRegSmoother extends Smoother {
 		}
 		
 		return ret;
+	}
+
+
+	@Override
+	public SortedMap<Date, Double> sSmooth(SortedMap<Date, Double> data, Boolean fixLag) {
+		SortedMap<Date, double[]> doubleMap = data.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),e->  new double[] {e.getValue()}, (a, b) -> a, TreeMap::new));
+		SortedMap<Date, double[]> result = smooth(doubleMap, fixLag);
+		return result.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()[0], (a, b) -> a, TreeMap::new));
 	}
 
 }

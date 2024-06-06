@@ -2,6 +2,7 @@ package com.finance.pms.events.scoring.functions;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,7 @@ public class CurvesPyUnbiasedSignComparator implements CurvesComparator {
 	}
 
 	@Override
-	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
+	public Map<String, Double> compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
 		
 		expected = trim(actual, expected);
 		actual = trim(expected, actual);
@@ -45,7 +46,7 @@ public class CurvesPyUnbiasedSignComparator implements CurvesComparator {
 		double result =  1 - (signalAcc - bias);
 		
 		LOGGER.info(String.format("Returned cmp values:  Math.max(0, 1 - (signalAcc %f - bias %f))  = %f ", signalAcc, bias, result));
-		return result;
+		return Map.ofEntries(java.util.Map.entry("default", result));
 	}
 	
 	private double signBias(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {

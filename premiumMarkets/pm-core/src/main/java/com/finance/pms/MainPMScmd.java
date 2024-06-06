@@ -314,17 +314,25 @@ public class MainPMScmd {
 		} 
 
 		private void put(String key, Object value, PrefsSetter<? extends Object> ps) {
-			if (prefs != null) {
-				ps.put(key);
-				needsFlush = true;
-			} 
-			sessionPrefs.put(key, value);
+			if (value == null) {
+				this.remove(key);
+			} else {
+				if (prefs != null) {
+					ps.put(key);
+					needsFlush = true;
+				} 
+				sessionPrefs.put(key, value);
+			}
 		}
 
 		public void remove(String key) {
-			if (prefs != null) {
-				prefs.remove(key);
-				needsFlush = true;
+			try {
+				if (prefs != null) {
+					prefs.remove(key);
+					needsFlush = true;
+				}
+			} catch (Exception e) {
+				LOGGER.warn("Can't remove prefs", e);
 			} 
 			sessionPrefs.remove(key);
 		}

@@ -1,6 +1,7 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 
@@ -50,10 +51,10 @@ public class CurvesSignComparator implements CurvesComparator {
 		return reduced.get()/cpt.doubleValue();
 	}
 
-	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
+	public Map<String, Double> compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
 		expected = trim(actual, expected);
 		actual = trim(expected, actual);
-		return this.compareNormalised(actual, expected);
+		return  Map.ofEntries(java.util.Map.entry("default", this.compareNormalised(actual, expected)));
 	}
 
 }

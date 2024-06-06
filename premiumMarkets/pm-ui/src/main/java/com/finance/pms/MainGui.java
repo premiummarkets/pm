@@ -1023,7 +1023,15 @@ public class MainGui extends SashForm implements RefreshableView {
 				try {
 
 					((PortfolioComposite) inst.portfolioSash()).updateMoniAndPSCachedModels();
-					((PortfolioComposite) inst.portfolioSash()).tabBuildAllTabs(0, new Observer() {
+					
+					//Ui ReStore Selection
+					int preSelectedTab = 0;
+					String preSelectedTabPref = MainPMScmd.getMyPrefs().get("ui.portfolio.selection", null);
+					if (preSelectedTabPref != null && !"-1".equals(preSelectedTabPref)) {
+						preSelectedTab = Integer.valueOf(preSelectedTabPref);
+					}
+					
+					((PortfolioComposite) inst.portfolioSash()).tabBuildAllTabs(preSelectedTab, new Observer() {
 						@Override
 						public void update(Observable o, Object arg) {
 							((PortfolioComposite) inst.portfolioSash()).backGroundLoadQuotationCache();

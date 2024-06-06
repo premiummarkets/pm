@@ -140,7 +140,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 		String refa24z = "ta4j" + ta4jClass.substring(0,1) + (ta4jClass.length() -2) + ta4jClass.substring(ta4jClass.length() -1); 
 		int opsSize = getOperands().size();
 		String params = (opsSize > 2)
-					?getOperands().subList(2, opsSize).stream().reduce("", (r, e) -> r + "_" + e.toFormulae(targetStock), (a, b) -> a + b)
+					?getOperands().subList(2, opsSize).stream().reduce("", (r, e) -> r + "_" + e.toFormulaeShort(targetStock), (a, b) -> a + b)
 					:"";
 		return refa24z + params;
 	}

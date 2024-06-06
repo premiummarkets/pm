@@ -32,6 +32,7 @@ package com.finance.pms.portfolio.gui.charts;
 import java.io.File;
 import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -68,6 +69,7 @@ import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.PopupMenu;
 import com.finance.pms.RefreshableView;
 import com.finance.pms.SpringContext;
@@ -452,7 +454,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 												selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
 												ses, tuningRessCache, trendSettings);
 								chartTarget.getMainChartWraper().updateBarDataSet(
-										selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(),trendSettings.getAutoSetTimeLine(),
+										selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), trendSettings.getAutoSetTimeLine(),
 										barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());
 							} catch (Exception e) {
 								LOGGER.error("arg: " + arg + ", chartTarget.getMainChartWraper(): " + chartTarget.getMainChartWraper() + ", chartTarget.getHighligtedId(): "
@@ -613,9 +615,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			Group chartedTrendsGroup = new Group(popusGroup, SWT.NONE);
 			RowLayout chartedTrendsGroupL = new RowLayout(SWT.VERTICAL);
 			chartedTrendsGroupL.justify = true;
-			chartedTrendsGroupL.fill=true;
-			chartedTrendsGroupL.wrap=false;
-			chartedTrendsGroupL.marginHeight=0;
+			chartedTrendsGroupL.fill = true;
+			chartedTrendsGroupL.wrap = false;
+			chartedTrendsGroupL.marginHeight = 0;
 			chartedTrendsGroup.setLayout(chartedTrendsGroupL);
 			{
 				chartedTrendsButton = new Button(chartedTrendsGroup, SWT.PUSH);
@@ -675,6 +677,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 										showPopupDialog(errorMessage, "Ok", null, null);
 									}
 								}
+								
 							}
 						};
 
@@ -895,6 +898,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 						showPopupDialog(errorMessage, "Ok", null, null);
 					}
 				}
+				
+				//Store Ui Selection
+				List<EventInfo> allEventDefs = new ArrayList<>(availEventDefs);
+				String eventSelection = chartTarget.getChartedEvtDefsTrends().stream().map(se -> allEventDefs.indexOf(se) + "").reduce((a, i) -> a + "_" + i).orElse(null);
+				MainPMScmd.getMyPrefs().put("ui.eventinfo.selection", eventSelection);
+				MainPMScmd.getMyPrefs().flushy();
 
 			}
 		};
@@ -953,10 +962,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				//Remove outputs above displayable threshold
 				availableOutputs.stream().forEach(aOut -> {if (aOut.getDisplayOnChart()) displayableOutputs.add(aOut);});
 				chartTarget.getChartedEvtDefsTrends().stream()
-				.flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream())
-				.forEach(t -> {
-					if (!displayableOutputs.contains(t)) t.setDisplayOnChart(false);
-				});
+					.flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream())
+					.forEach(t -> {
+						if (!displayableOutputs.contains(t)) t.setDisplayOnChart(false);
+					});
 
 				//Truncation Indicator
 				long allOutputsSize = chartTarget.getChartedEvtDefsTrends().stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();

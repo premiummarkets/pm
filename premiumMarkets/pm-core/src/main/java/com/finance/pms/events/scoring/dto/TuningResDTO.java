@@ -97,12 +97,12 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 	
 	public Double getBNHAnnualisedProfit() {
-		double cummulativeReturn = calculationEndPrice/calculationStartPrice;
-		return annualisedProfit(cummulativeReturn);
+		double cummulativeReturn = getBuyNHoldProfit();
+		return annualisedProfit(calculationEnd, cummulativeReturn);
 	}
 
-	private Double annualisedProfit(double cummulativeReturn) {
-		double nbDays = TimeUnit.DAYS.convert(calculationEnd.getTime() - calculationStart.getTime(), TimeUnit.MILLISECONDS);
+	private Double annualisedProfit(Date date, double cummulativeReturn) {
+		double nbDays = TimeUnit.DAYS.convert(date.getTime() - calculationStart.getTime(), TimeUnit.MILLISECONDS);
 		if (nbDays == 0) return 0.0;
 		double annualReturn = Math.pow(1 + cummulativeReturn, 365d/nbDays) - 1;
 		return annualReturn;
@@ -117,8 +117,8 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 	
 	public Double getForeAnnualProfitAt(Date date) {
-		double cummulativeReturn = getForecastProfitAt(date) + 1;
-		return annualisedProfit(cummulativeReturn);
+		double cummulativeReturn = getForecastProfitAt(date);
+		return annualisedProfit(date, cummulativeReturn);
 	}
 	
 	public Double getForecastProfitUnReal() {
@@ -130,8 +130,8 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 	
 	public Double getForeAnnualProfitAtUnReal(Date date) {
-		double cummulativeReturn = getForecastProfitAtUnReal(date) + 1;
-		return annualisedProfit(cummulativeReturn);
+		double cummulativeReturn = getForecastProfitAtUnReal(date);
+		return annualisedProfit(date, cummulativeReturn);
 	}
 	
 	public Map<String, Double> getBullStats() {

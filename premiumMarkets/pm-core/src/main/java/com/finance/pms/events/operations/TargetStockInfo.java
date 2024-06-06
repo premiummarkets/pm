@@ -408,7 +408,7 @@ public class TargetStockInfo {
 				//encogPlus:ideal("RealSMATopsAndButts","continuous","continuous",0.0,0.0,84.0,gxEncogPredSmaRealDiscreteContCont84UnNormNoWeight63(),gxEncogPredSmaRealDiscreteContCont84UnNormPgr63(),gxEncogPredSmaRealDiscreteContCont84UnNormSmpl63(), close)
 				String tamperedFormula = (operation.getFormulae() != null)?
 						operation.getFormulae().replaceFirst(":[^\\(]*\\(", ":" + selector + "("): //encogPlus:xxxxx(... => encogPlus:selector(...
-						operation.toFormulae(this).replaceFirst(":[^\\(]*\\(", ":" + selector + "("); //Anonymous operation
+						operation.toFormulaeDevelopped().replaceFirst(":[^\\(]*\\(", ":" + selector + "("); //Anonymous operation
 				//constant = null as the selector output as to be a NumericableMapValue and hence can't be a constant.
 				OutputReference outputReference = new OutputReference(operation, selector, tamperedFormula);
 				if (isCachable) putCalculatedOutputsCache(new Output(outputReference, ((MultiSelectorsValue) outputValue).getValue(selector), operationRequiredStartShift));

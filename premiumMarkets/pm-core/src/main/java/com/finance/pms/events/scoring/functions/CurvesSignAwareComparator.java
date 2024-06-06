@@ -1,6 +1,7 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ public class CurvesSignAwareComparator implements CurvesComparator {
 	}
 
 	@Override
-	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
+	public Map<String, Double> compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) {
 		
 		NormalizerMeanStdev<double[]> normalizerMeanStdev = new NormalizerMeanStdev<>();
 
@@ -72,8 +73,8 @@ public class CurvesSignAwareComparator implements CurvesComparator {
 		LOGGER.info(this.name() + " result: " + sqrt + ", " + cpt.intValue() + 
 				". With actual " + fActual.size() + ", " + fActual.firstKey() + "/" + fActual.lastKey() + 
 				" and expected " + fExpected.size() + ", " + fExpected.firstKey() + "/" + fExpected.lastKey());
-		
-		return sqrt;
+		 
+		return Map.ofEntries(java.util.Map.entry("default", sqrt), java.util.Map.entry("nbSignDiscrepancy", (double) cpt.get()));
 	}
 
 

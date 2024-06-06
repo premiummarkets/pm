@@ -347,7 +347,7 @@ public class PopupMenu<T extends InfoObject> {
 		Point computeSize = selectionShell.computeSize(SWT.DEFAULT, Math.min(selectionShell.getSize().y, SWT.MAX), true);
 		selectionShell.setSize(computeSize.x, computeSize.y);
 
-		this.hasChanged=true;
+		this.hasChanged = true;
 	}
 
 	private void runCloseAction() {

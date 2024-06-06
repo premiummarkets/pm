@@ -476,14 +476,15 @@ public class ChartMain extends Chart {
 									+ " / min" + pf.format(bullStats.get("minROC")) + " / max" + pf.format(bullStats.get("maxROC"))
 									+ ")";
 							Date[] dateRange = serieDef.getDateRange();
-							LOGGER.info("Indicator stats from " + dateRange[0] + " to " + dateRange[1] + ": " + annotationTxt);
+							//LOGGER.info("Indicator stats from " + dateRange[0] + " to " + dateRange[1] + ": " + annotationTxt);
 							XYTextAnnotation annotation = new XYTextAnnotation(annotationTxt, annTP.getFirstMillisecond(), annV);
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 							String annotationToolTip = "<html>" 
 								+ serieDef.getEventDisplayeDef() + "<br>"
+								+ "Calc range: from " + df.format(dateRange[0]) + " to " + df.format(dateRange[1])  + "<br>"
 								+ "Compound: " + compoundPReal + "(r) " + compoundPUnReal + "(ur) V. Price change: " + priceChange + "<br>"
 								
-								+ "Bull Stats: Avg profit " + pf.format(bullStats.get("avgROC")) + ", Failed buy ratio " + pf.format(bullStats.get("failureRatio")) 
+								+ "Bull Pred Stats: Avg profit " + pf.format(bullStats.get("avgROC")) + ", Failed buy ratio " + pf.format(bullStats.get("failureRatio")) 
 								+ ", Failure weight " + pf.format(Math.abs(bullStats.get("failureWeigh"))) 
 								+ ", Failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(Math.abs(bullStats.get("failureWeigh"))/bullStats.get("successWeigh")))
 								+ ", Min/Max profit " + pf.format(bullStats.get("minROC")) + "/" + pf.format(bullStats.get("maxROC")) + ", Profit std " + pf.format(Math.sqrt(bullStats.get("varianceOfROC")))
@@ -492,7 +493,7 @@ public class ChartMain extends Chart {
 								+ ", Min duration " + nf.format(bullStats.get("minDuration")) + ", Max duration " + nf.format(bullStats.get("maxDuration"))
 								
 								+ "<br>"
-								+ "Bear Stats: Avg loss " + pf.format(bearStats.get("avgROC")) + ", Failed sell ratio " + pf.format(bearStats.get("failureRatio")) 
+								+ "Bear Pred stats: Avg loss " + pf.format(bearStats.get("avgROC")) + ", Failed sell ratio " + pf.format(bearStats.get("failureRatio")) 
 								+ ", Failure weight " + pf.format(bearStats.get("failureWeigh")) 
 								+ ", Failed log (=ln(failed weight/success weight)) " + pf.format(Math.log(bearStats.get("failureWeigh")/Math.abs(bearStats.get("successWeigh"))))
 								+ ", Min/Max loss " + pf.format(bearStats.get("minROC")) + "/" + pf.format(bearStats.get("maxROC")) + ", Loss std " + pf.format(Math.sqrt(bearStats.get("varianceOfROC")))

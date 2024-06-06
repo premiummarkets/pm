@@ -38,6 +38,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -176,10 +177,10 @@ public abstract class CurvesComparatorOldBase implements CurvesComparator {
 	protected abstract SortedMap<Date, double[]> normalize(Date slotStart, Date slotEnd, SortedMap<Date, double[]> data);
 	
 	@Override
-	public double compare(SortedMap<Date, double[]> refline, SortedMap<Date, double[]> challenger) {
+	public Map<String, Double> compare(SortedMap<Date, double[]> refline, SortedMap<Date, double[]> challenger) {
 		refline = trim(challenger, refline);
 		challenger = trim(refline, challenger);
-		return compareShifted(refline, challenger).realErr;
+		return Map.ofEntries(java.util.Map.entry("default", compareShifted(refline, challenger).realErr));
 	}
 
 	public class CurveErr {

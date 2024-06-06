@@ -1,6 +1,7 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -9,7 +10,7 @@ public interface CurvesComparator {
 	
 	public String name();
 
-	public double compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) throws CannotCompareException;
+	public Map<String, Double> compare(SortedMap<Date, double[]> actual, SortedMap<Date, double[]> expected) throws CannotCompareException;
 
 	public default TreeMap<Date, double[]> trim(SortedMap<Date, double[]> trimmer, SortedMap<Date, double[]> trimmed)   {
 		return trimmed.entrySet().stream()

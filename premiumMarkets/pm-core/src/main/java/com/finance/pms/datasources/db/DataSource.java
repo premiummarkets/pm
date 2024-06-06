@@ -367,7 +367,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			return null;
 		}
 		if (result.size() > 1) {
-			LOGGER.warn("WARN: multiple values in DB for share: " + symbol);
+			LOGGER.warn("WARN: multiple values in DB for share (first occurence will be used): " + symbol + ": " + result);
 		}
 		return result.get(0);
 	}

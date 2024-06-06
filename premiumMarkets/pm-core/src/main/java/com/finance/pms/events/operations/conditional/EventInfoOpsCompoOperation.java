@@ -273,7 +273,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 	
 	@Override
-	public String toFormulae(TargetStockInfo targetStock) {
+	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 		return getReference() + "()";
 	}
 

@@ -17,9 +17,10 @@ import com.finance.pms.events.operations.nativeops.data.CsvFileFilterOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsDeltaExporterOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsExporterOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsWebImporterOperation;
+import com.finance.pms.events.operations.nativeops.data.IfExistsExporterOperation;
 
 @XmlSeeAlso({
-	CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class, IOsWebImporterOperation.class,
+	CsvFileFilterOperation.class, IOsExporterOperation.class, IOsDeltaExporterOperation.class, IOsWebImporterOperation.class, IfExistsExporterOperation.class,
 	RandomizeStringOperation.class, ConcatStringOperation.class, StringEqualsOperation.class, EqualsOperation.class, NegateOperation.class
 	})
 public abstract class StringerOperation extends Operation {

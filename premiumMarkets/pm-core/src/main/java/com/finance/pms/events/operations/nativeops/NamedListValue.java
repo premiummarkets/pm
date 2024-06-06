@@ -1,5 +1,7 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,6 +14,10 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.BooleanValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
 @XmlRootElement
 public class NamedListValue extends Value<Object> implements MultiValue, StringableValue {
@@ -73,7 +79,27 @@ public class NamedListValue extends Value<Object> implements MultiValue, Stringa
 
 	@Override
 	public String getAsStringable() {
-		return new Gson().toJson(values, HashMap.class);
+		 GsonBuilder gsonBuilder = new GsonBuilder();
+		 	//Exp to fraction representation
+		    gsonBuilder.registerTypeAdapter(Double.class,  new JsonSerializer<Double>() {
+		        @Override
+		        public JsonElement serialize(final Double src, final Type typeOfSrc, final JsonSerializationContext context) {
+		            BigDecimal value = BigDecimal.valueOf(src);
+
+		            return new JsonPrimitive(value);
+		        }
+		    });
+		    //.replaceAll("true", "\"TRUE\"").replaceAll("false", "\"FALSE\"");
+		    gsonBuilder.registerTypeAdapter(Boolean.class,  new JsonSerializer<Boolean>() {
+		        @Override
+		        public JsonElement serialize(final Boolean src, final Type typeOfSrc, final JsonSerializationContext context) {
+		            String value = src.toString().toUpperCase();
+		            return new JsonPrimitive(value);
+		        }
+		    });
+
+		Gson gson = gsonBuilder.create();
+		return gson.toJson(values, HashMap.class); 
 	}
 
 	@Override
@@ -81,7 +107,7 @@ public class NamedListValue extends Value<Object> implements MultiValue, Stringa
 		Gson gson = new GsonBuilder()
 				.setPrettyPrinting()
 				.create();
-		return gson.toJson(values, HashMap.class);
+		return gson.toJson(values, HashMap.class).replaceAll("true", "\"TRUE\"").replaceAll("false", "\"FALSE\"");
 	}
 	
 	

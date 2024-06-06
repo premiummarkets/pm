@@ -197,6 +197,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	}
 	//EVENTDEF, EVENTDEFEXTENSION, ANALYSENAME => eventValue.getEventDef(), eventKey.getEventInfoExtra(), eventValue.getEventListName()
 	private static String filename(Stock stock, EventInfo ei) {
+		LOGGER.info("Deleting event chart cache UI file for " + stock + " and " + ei);
 		return stock.getSymbol() + "%%" + stock.getIsin() +  "%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName();
 	}
 	private static void putInFileCache(Stock stock, Map<EventInfo, EventDefCacheEntry> map) {

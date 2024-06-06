@@ -305,7 +305,7 @@ public abstract class ParameterizedBuilder extends Observable {
 			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
 
 			//Delete pre existing trashed
-			File formulaFile = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier+ ".txt");
+			File formulaFile = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier + ".txt");
 			formulaFile.delete();
 			//Move
 			moveToTrash(identifier);

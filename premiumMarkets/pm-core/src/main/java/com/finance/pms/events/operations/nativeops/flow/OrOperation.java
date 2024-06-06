@@ -17,6 +17,7 @@ import com.finance.pms.events.operations.nativeops.MapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
 public class OrOperation extends FlowOperation {
@@ -110,10 +111,13 @@ public class OrOperation extends FlowOperation {
 	private boolean isTrue(TargetStockInfo targetStock, Value<?> opiRes) {
 		return opiRes != null && 
 				(
-						!((opiRes instanceof BooleanValue) || (opiRes instanceof StringValue) || (opiRes instanceof MapValue)) ||
-						(opiRes instanceof BooleanValue && ((BooleanValue) opiRes).getValue(targetStock)) ||
-						(opiRes instanceof StringValue &&((StringValue) opiRes).getValue(targetStock).equalsIgnoreCase("TRUE")) ||
-						(opiRes instanceof MapValue && !((MapValue<?>) opiRes).getValue(targetStock).isEmpty())
+					!((opiRes instanceof BooleanValue) || (opiRes instanceof StringValue) || (opiRes instanceof MapValue)) ||
+					(opiRes instanceof BooleanValue && ((BooleanValue) opiRes).getValue(targetStock)) ||
+					//StringValue which has to be a boolean (TRUE or FALSE)
+					(opiRes instanceof StringValue &&((StringValue) opiRes).getValue(targetStock).equalsIgnoreCase("TRUE")) ||
+					//Stringable returns a usable value or a NONE (this is not a boolean)
+					!(opiRes instanceof StringableValue && ((StringableValue) opiRes).getAsStringable().replaceAll("\"","").equalsIgnoreCase("NONE")) ||
+					(opiRes instanceof MapValue && !((MapValue<?>) opiRes).getValue(targetStock).isEmpty())
 				);
 	}
 	
