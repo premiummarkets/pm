@@ -114,7 +114,7 @@ public class ProvidersYahooCrumb extends Providers implements QuotationProvider,
             }
         }
         if (readPage == null) throw new HttpException();
-        readPage = filterToEndDate(end, readPage);
+        readPage = filterToEndDateInclusive(end, readPage);
 
         TreeSet<ValidatableDated> queries = initValidatableSet();
         queries.addAll(readPage);

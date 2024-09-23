@@ -93,7 +93,7 @@ public class ProvidersYahoo extends Providers implements QuotationProvider, Mark
 		}
 
 		List<ValidatableDated> readPage = readPage(stock, url, start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-		readPage = filterToEndDate(end, readPage);
+		readPage = filterToEndDateInclusive(end, readPage);
 		
 		TreeSet<ValidatableDated> queries = initValidatableSet();
 		queries.addAll(readPage);

@@ -41,7 +41,6 @@ import com.finance.pms.alerts.AlertOnThreshold;
 import com.finance.pms.datasources.files.Transaction;
 import com.finance.pms.datasources.files.TransactionElement;
 import com.finance.pms.datasources.shares.Currency;
-import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.portfolio.InOutWeighted;
 import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.InvalidQuantityException;
@@ -57,23 +56,17 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	private Boolean displayOnChart;
 	private Boolean isChartTransactions;
 	private Color color;
-
-	private Boolean slidingEnd;
-	private Boolean slidingStart;
-
 	private Date start;
 	private Date end;
 
 	private Currency displayedCurrency;
 
 
-	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Boolean slidingStart, Boolean slidingEnd, Color color, Boolean isLatestOnly) {
+	public SlidingPortfolioShare(PortfolioShare portfolioShare, Date start, Date end, Color color, Boolean isLatestOnly) {
 		super(portfolioShare);
 		this.underLyingPortfolioShare = portfolioShare;
 		this.start = start;
 		this.end = end;
-		this.slidingEnd = slidingEnd;
-		this.slidingStart = slidingStart;
 		this.color = color;
 		this.displayOnChart = isOwned(end, isLatestOnly);
 		this.isChartTransactions = false;
@@ -222,27 +215,11 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 	}
 	
 	public Date calcSlidingEndDate() {
-		Date currentDate;
-		if (slidingEnd) {
-			currentDate = end;
-		} else {
-			currentDate = DateFactory.getNowEndDate();
-		}
-		return currentDate;
+		return end;
 	}
 
 	private Date calcSlidingStartDate() {
-		Date currentDate;
-		if (slidingStart) {
-			currentDate = start;
-		} else {
-			currentDate = DateFactory.dateAtZero();
-		}
-		return currentDate;
-	}
-
-	public void setSlidingEnd(Boolean sliding) {
-		this.slidingEnd = sliding;
+		return start;
 	}
 
 	public void setStart(Date start) {
@@ -251,10 +228,6 @@ public class SlidingPortfolioShare extends PortfolioShare implements InfoObject 
 
 	public void setEnd(Date end) {
 		this.end = end;
-	}
-
-	public void setSlidingStart(Boolean slidingStart) {
-		this.slidingStart = slidingStart;
 	}
 
 	public Color getColor() {

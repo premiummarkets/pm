@@ -881,36 +881,52 @@ public class Quotations {
 
 			QuotationUnit qj = allQs.get(j);
 
-			if ( validClose && qj.getCloseSplit().compareTo(BigDecimal.ZERO) == 0 ) {
+			BigDecimal close = qj.getCloseSplit();
+			if ( validClose && close.compareTo(BigDecimal.ZERO) == 0 ) {
 				continue;
 			}
-			if ( validOhlc && 
-					(
-							(qj.getHighSplit().compareTo(qj.getLowSplit()) == 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) == 0) //H==L==C i.e. no OHL
-							||
-							!(  //! (open <= high && close <= high && low <= open && low <= close)
-									qj.getHighSplit().compareTo(qj.getOpenSplit()) >= 0 && qj.getHighSplit().compareTo(qj.getCloseSplit()) >= 0
-									&& qj.getLowSplit().compareTo(qj.getOpenSplit()) <= 0 && qj.getLowSplit().compareTo(qj.getCloseSplit()) <= 0
-							) 
-							|| 
-							(  // Unrealistic variations ( > 20%)
-								( 0.8 > qj.getHighSplit().doubleValue()/qj.getOpenSplit().doubleValue() || qj.getHighSplit().doubleValue()/qj.getOpenSplit().doubleValue() > 1.2 ) ||
-								( 0.8 > qj.getLowSplit().doubleValue()/qj.getOpenSplit().doubleValue() || qj.getLowSplit().doubleValue()/qj.getOpenSplit().doubleValue() > 1.2 ) ||
-								( 0.8 > qj.getCloseSplit().doubleValue()/qj.getOpenSplit().doubleValue() || qj.getCloseSplit().doubleValue()/qj.getOpenSplit().doubleValue() > 1.2 )
-							)
-					)
-				) {
-				continue;
+			
+
+			if ( validOhlc ) {
+				
+				double realistHLFact = 0.7;
+				//double realistHLFactInv = 1 + Math.log(1/realistHLFact);
+				BigDecimal high = qj.getHighSplit();
+				BigDecimal open = qj.getOpenSplit();
+				BigDecimal low = qj.getLowSplit();
+				if (
+						(high.compareTo(low) == 0 && high.compareTo(close) == 0) //H==L==C i.e. no OHL
+						||
+						!(  //! (open <= high && close <= high && low <= open && low <= close)
+								high.compareTo(open) >= 0 && high.compareTo(close) >= 0
+								&& low.compareTo(open) <= 0 && low.compareTo(close) <= 0
+						) 
+						|| 
+						(  // Unrealistic variations ( > X%)
+							( realistHLFact > open.doubleValue()/high.doubleValue() ) ||
+							( realistHLFact > low.doubleValue()/open.doubleValue() )
+						)
+					) {
+						continue;
+					}
+				
 			}
+			
 			if ( validVolume ) {
 					
 					// 0 volume
-					if (qj.getVolumeSplit() == 0 ) continue;
+					long volume = qj.getVolumeSplit();
+					if (volume == 0 ) continue;
 					
-					//Unrealistic variations (*10)
+					//Unrealistic variations ( > *X )
+					double realistVolFact = 50d;
 					OptionalDouble lastMonthMeanOptional = allQs.subList(Math.max(0, j-21), j).stream().mapToLong(q -> q.getVolumeSplit()).average();
 					if (	lastMonthMeanOptional.isPresent() && 
-							(((double)qj.getVolumeSplit())/lastMonthMeanOptional.getAsDouble() > 10d || lastMonthMeanOptional.getAsDouble()/((double)qj.getVolumeSplit()) > 10d)) {
+							(
+								((double)volume)/lastMonthMeanOptional.getAsDouble() > realistVolFact || 
+								lastMonthMeanOptional.getAsDouble()/((double)volume) > realistVolFact
+							)
+						) {
 						continue;
 					}
 					

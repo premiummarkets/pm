@@ -29,78 +29,52 @@
  */
 package com.finance.pms.portfolio;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
+import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EmailFilterEventSource;
 import com.finance.pms.events.SymbolEvents;
 
-public class TransactionRecord {
+public class CalcSignalRecord {
+	
+	enum Status {
+		OPEN,DONE,CANCELED,ERROR;
+	}
 
-	//this.log("available cash","date", "symbol", "isin", "sharename", "movement", "quantity", "price", "eventList");
 	private String portfolioName;
-	private BigDecimal availableCash;
-	private Date date;
-	private Stock stock;
-	private String movement;
-	private BigDecimal transactionQuantity;
-	private BigDecimal transactionPrice;
+	private Date signalDate;
+	private TransactionType movement;
 	private SymbolEvents eventList;
 	private EmailFilterEventSource source;
 
-	public TransactionRecord(String tunningPortfolioName,BigDecimal availbleCash, Date date, Stock stock, String movement, BigDecimal quantity, BigDecimal price, SymbolEvents eventList, EmailFilterEventSource source) {
+	private Status status;
+
+
+	public CalcSignalRecord(String portfolioName, Date date, TransactionType movement, SymbolEvents eventList, EmailFilterEventSource source) {
 		super();
-		this.portfolioName = tunningPortfolioName;
-		this.availableCash = availbleCash;
-		this.date = date;
-		this.stock = stock;
+		this.portfolioName = portfolioName;
+		this.signalDate = date;
 		this.movement = movement;
-		this.transactionQuantity = quantity;
-		this.transactionPrice = price;
 		this.eventList = eventList;
 		this.source = source;
+		this.status = Status.OPEN;
 	}
 
 	public String getPortfolioName() {
 		return portfolioName;
 	}
-
-	public BigDecimal getAvailableCash() {
-		return availableCash;
+	public Date getSignalDate() {
+		return signalDate;
 	}
-	public void setAvailableCash(BigDecimal availbleCash) {
-		this.availableCash = availbleCash;
+	public void setSignalDate(Date date) {
+		this.signalDate = date;
 	}
-	public Date getDate() {
-		return date;
-	}
-	public void setDate(Date date) {
-		this.date = date;
-	}
-	public Stock getStock() {
-		return stock;
-	}
-	public void setStock(Stock stock) {
-		this.stock = stock;
-	}
-	public String getMovement() {
+	public TransactionType getMovement() {
 		return movement;
 	}
-	public void setMovement(String movement) {
+	public void setMovement(TransactionType movement) {
 		this.movement = movement;
-	}
-	public BigDecimal getTransactionQuantity() {
-		return transactionQuantity;
-	}
-	public void setTransactionQuantity(BigDecimal quantity) {
-		this.transactionQuantity = quantity;
-	}
-	public BigDecimal getTransactionPrice() {
-		return transactionPrice;
-	}
-	public void setTransactionPrice(BigDecimal price) {
-		this.transactionPrice = price;
 	}
 	public SymbolEvents getEventList() {
 		return eventList;
@@ -109,20 +83,27 @@ public class TransactionRecord {
 	@Override
 	public String toString() {
 		return "\n Portfolio\t: " + portfolioName 
-				+ "\n Stock\t\t: " + stock 
-				+ "\n Detection date\t: " + date 
-				+ "\n "+((eventList != null)? eventList.toAutoPortfolioLog():"Events\t\t:\n\t\tNo event")
+				+ "\n Stock\t\t: " + eventList.getStock() 
+				+ "\n Detection date\t: " + signalDate 
+				+ "\n " + ((eventList != null)? eventList.toAutoPortfolioLog():"Events\t\t:\n\t\tNo event")
 				+ "\n"
-				+ "\n Transaction Price\t: " + transactionPrice 
-				+ "\n Movement\t\t: " + movement
-				+ "\n Quantity left/bought\t: " + transactionQuantity
-				+ "\n Available Cash\t\t: " + availableCash;
+				+ "\n Movement\t\t: " + movement;
 	}
 
 	public EmailFilterEventSource getSource() {
 		return source;
 	}
 
+	public Stock getStock() {
+		return eventList.getStock();
+	}
+	
+	public Status getStatus() {
+		return status;
+	}
 
+	public void setStatus(Status status) {
+		this.status = status;
+	}
 
 }

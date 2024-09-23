@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -40,12 +41,12 @@ import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.commons.math3.exception.MathIllegalArgumentException;
-import org.apache.commons.math3.stat.descriptive.AbstractUnivariateStatistic;
-import org.apache.commons.math3.stat.descriptive.UnivariateStatistic;
+import org.apache.commons.math3.stat.descriptive.moment.Kurtosis;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.moment.Skewness;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.stat.descriptive.rank.Max;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.apache.commons.math3.stat.descriptive.summary.Sum;
 
@@ -76,9 +77,77 @@ import com.finance.pms.events.scoring.functions.MySimpleRegression;
 import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.NormalizerMeanStdev;
 import com.finance.pms.events.scoring.functions.StatsFunction;
+import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
+import com.google.common.math.Quantiles;
 
 @XmlRootElement
 public class StatsOperation extends PMWithDataOperation implements MultiValuesOutput {
+	
+	private interface DoEval<T> {
+		SortedMap<Date, T> call(SortedMap<Date, Double> subMap);
+	}
+
+	private final class DoEvalStatFunction<T> implements StatsFunction {
+		
+		private final List<String> outputsRefs;
+		private DoEval<T> callable;
+
+		private DoEvalStatFunction(DoEval<T> callable, List<String> outputsRefs) {
+			this.callable = callable;
+			this.outputsRefs = outputsRefs;
+		}
+
+		@Override
+		public double dEvaluateMd(SortedMap<Date, Double> subMap) {
+			SortedMap<Date, T> doEval = doEval(subMap);
+			T t = doEval.get(doEval.lastKey());
+			if (t instanceof Double) return (Double) t;
+			if (t instanceof double[]) return ((double[]) t)[0];
+			throw new RuntimeException();
+		}
+
+		private SortedMap<Date, T> doEval(SortedMap<Date, Double> subMap) {
+			return callable.call(subMap);
+		}
+
+		@Override
+		public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
+			SortedMap<Date, T> doEval = doEval(subMap);
+			return doEval.entrySet().stream().collect(Collectors.toMap(
+					e -> e.getKey(), 
+					e -> (e.getValue() instanceof Double) ? (Double) e.getValue() : (Double)((double[]) e.getValue())[0], 
+					(a, b) -> a, TreeMap::new));
+		}
+
+		@Override
+		public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
+			SortedMap<Date, T> doEval = doEval(subMap);
+			return doEval.entrySet().stream().collect(Collectors.toMap(
+					e -> e.getKey(), 
+					e -> (e.getValue() instanceof Double) ? new double[] {(Double)e.getValue()} :(double[]) e.getValue(), 
+					(a, b) -> a, TreeMap::new));
+		}
+
+		@Override
+		public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
+			SortedMap<Date, T> doEval = doEval(subMap);
+			T t = doEval.get(doEval.lastKey());
+			if (t instanceof Double) return new double[] {(Double)t};
+			if (t instanceof double[]) return (double[]) t;
+			throw new RuntimeException();
+		}
+
+		@Override
+		public List<String> getOutputsRefs() {
+			return outputsRefs;
+		}
+
+		@Override
+		public int getMinPeriod() {
+			return 1;
+		}
+	}
 
 	private final class SpecificStatsFunction implements StatsFunction {
 		
@@ -184,7 +253,14 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				new StringOperation("boolean", "isLenientInit", "If true, in case a lack of heading data, the initial calculation window may be calculated from the smaller period (<= moving period) as permited by the stat operation in use.", new StringValue("FALSE")),
 				new OperationReferenceOperation("operationReference", "specificStat", "Specific stat operation to be used. This is optional and only used for specificStat selector", null), //Optional
 				new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", "mtanhnorm", "mmeanostdevnorm", "specificStat"})));
+		setAvailableOutputSelectors(new ArrayList<String>(
+				Arrays.asList(new String[]{
+						"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", 
+						"mtanhnorm", "mmeanostdevnorm",
+						"mtzsctrim", "mtquatrim", "mtstdtrim", 
+						"specificStat",
+						"mzscore", "mmodzscore", "mquantile", "mskewness", "mkurtosis"
+						})));
 	}
 
 	public StatsOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -211,6 +287,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			
 			final StatsFunction statFunction;
 			
+			//Transformations
 			if (outputSelector != null && outputSelector.equalsIgnoreCase("sma")) {
 				statFunction = new MyApacheStats(new Mean());
 			} 
@@ -229,113 +306,180 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmax")) {
 				statFunction = new MyApacheStats(new Max());
 			}
+			
+			// Normalisations
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmeanostdevnorm")) { // (data-mean)/stdev
-				statFunction = new StatsFunction() {
-
-					@Override
-					public double dEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return normalized.get(normalized.lastKey());
-					}
-
-					private SortedMap<Date, Double> doEval(SortedMap<Date, Double> subMap) {
-						NormalizerMeanStdev<Double> normalizerMeanStdev = new NormalizerMeanStdev<>();
-						return normalizerMeanStdev.normalised(subMap);
-					}
-
-					@Override
-					public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return normalized;
-					}
-
-					@Override
-					public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return  normalized.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a, b) -> a, TreeMap<Date,double[]>::new));
-					}
-
-					@Override
-					public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return new double[] {normalized.get(normalized.lastKey())};
-					}
-
-					@Override
-					public List<String> getOutputsRefs() {
-						return  Arrays.asList(outputSelector);
-					}
-
-					@Override
-					public int getMinPeriod() {
-						return 1;
-					}
-					
-				};
+			
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> { 
+								NormalizerMeanStdev<Double> normalizerMeanStdev = new NormalizerMeanStdev<>();
+								return normalizerMeanStdev.normalised(subMap); 
+						}, 
+						 Arrays.asList(outputSelector));
+				
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtanhnorm")) { //Sliding bandNormalizer[-1,1,0]
-				statFunction = new StatsFunction() {
-					
-					@Override
-					public double dEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return normalized.get(normalized.lastKey());
-					}
-					
-					@Override
-					public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return new double[] {normalized.get(normalized.lastKey())};
-					}
-					
-					@Override
-					public SortedMap<Date, Double> mdEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return normalized;
-					}
-					
-					@Override
-					public SortedMap<Date, double[]> madEvaluateMd(SortedMap<Date, Double> subMap) {
-						SortedMap<Date, Double> normalized = doEval(subMap);
-						return  normalized.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new double[] {e.getValue()}, (a, b) -> a, TreeMap<Date,double[]>::new));
-					}
-					
-					private SortedMap<Date, Double> doEval(SortedMap<Date, Double> subMap) {
-						Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
-						SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
-						return normalized;
-					}
-
-					@Override
-					public List<String> getOutputsRefs() {
-						return  Arrays.asList(outputSelector);
-					}
-
-					@Override
-					public int getMinPeriod() {
-						return 1;
-					}
-				};
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> { 
+							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
+							return normalized;
+						}, 
+						Arrays.asList(outputSelector));
+				
 			}
+			
+			//Statistical Scores
+			
+			//ZScore should be -3 < zscore < 3
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mzscore")) {
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {
+							double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+							Mean meanF = new Mean();
+							Double mean = meanF.evaluate(array);
+							StandardDeviation stdevF = new StandardDeviation();
+							Double stdev = stdevF.evaluate(array);
+							SortedMap<Date, Double> zScore = subMap.entrySet().stream().collect(Collectors.toMap(
+								e -> e.getKey(),
+								e -> (e.getValue() - mean) / stdev,
+								(a, b) -> a, TreeMap::new
+							));
+							return zScore;
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
+			//modified zscore should be -3.5 < zscore < 3.5
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mmodzscore")) {
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {
+							double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+							Median medianF = new Median();
+							double median = medianF.evaluate(array);
+							medianF.setData(null);
+							double mad = medianF.evaluate(Arrays.stream(array).map(e -> Math.abs(e - median)).toArray());
+							SortedMap<Date, Double> zScore = subMap.entrySet().stream().collect(Collectors.toMap(
+								e -> e.getKey(),
+								e -> 0.6745 * (e.getValue() - median) / mad,
+								(a, b) -> a, TreeMap::new
+							));
+							return zScore;
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mquantile")) {
+				
+				statFunction = new DoEvalStatFunction<double[]>(
+						(subMap) -> {
+							Map<Integer, Double> quantiles = Quantiles.percentiles().indexes(25, 75).compute(subMap.values());
+							Double IQR = quantiles.get(75) - quantiles.get(25);
+							Double higherBound = quantiles.get(75) + 1.5 * IQR;
+							Double lowerBound = quantiles.get(25) - 1.5 * IQR;
+							SortedMap<Date, double[]> quantileUpperDiff = subMap.entrySet().stream().collect(Collectors.toMap(
+									e -> e.getKey(),
+									e -> new double[] {lowerBound, quantiles.get(25), quantiles.get(75), higherBound},
+									(a, b) -> a, TreeMap::new
+								));
+							return quantileUpperDiff;
+						}, 
+						List.of(outputSelector + "_lb", outputSelector + "_q1", outputSelector + "_q3", outputSelector + "_ub"));
+				
+			}
+			//High Positive Skewness (e.g., > 1 or 2): heavily right-skewed, large outliers 
+			//Low Negative Skewness (e.g., < -1 or -2): heavily left-skewed , small outliers
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mskewness")) {
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {
+								double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+								Skewness skewnessCalc = new Skewness();
+								Double skewness = skewnessCalc.evaluate(array);
+								SortedMap<Date, Double> skewnessData = subMap.entrySet().stream().collect(Collectors.toMap(
+										e -> e.getKey(),
+										e -> skewness,
+										(a, b) -> a, TreeMap::new
+									));
+								return skewnessData;
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
+			//Note: Apache returns the Excess Kurtosis ie Kurtosis -3. 
+			//High Kurtosis (Kurtosis > 3 (excess > 0) ): "fatter tails" ie more extreme values (outliers)
+			//Low Kurtosis (Kurtosis < 3 (excess < 0) ): "thin tails" ie fewer extreme outliers. Essentially, the probability of observing extreme values far from the mean is lower.
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mkurtosis")) {
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {
+								double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+								Kurtosis kurtosisCalc = new Kurtosis();
+								Double kurtosis = kurtosisCalc.evaluate(array);
+								SortedMap<Date, Double> kurtosisData = subMap.entrySet().stream().collect(Collectors.toMap(
+										e -> e.getKey(),
+										e -> kurtosis,
+										(a, b) -> a, TreeMap::new
+									));
+								return kurtosisData;
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
+			
+			//Trimming
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtzsctrim")) { //Sliding bandNormalizer[-1,1,0] with zscore trimming
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {
+							Trimmer<Double> trimmer = Trimmer.build(Double.class, TrimType.Zscore, Double.NaN, subMap);
+							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+							
+							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
+							return normalized;
+						},
+						Arrays.asList(outputSelector));
+				
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtquatrim")) { //Sliding bandNormalizer[-1,1,0] with quantile trimming
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {							
+							Trimmer<Double> trimmer = Trimmer.build(Double.class, TrimType.Quantile, Double.NaN, subMap);
+							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+							
+							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
+							return normalized;
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtstdtrim")) {
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> { 
+							Trimmer<Double> trimmer = Trimmer.build(Double.class, TrimType.Stdev, 1.5, subMap);
+							return trimmer.trim(subMap);
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
+			
+			//Other
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("specificStat")) {
 				Operation specificOperation = (Operation) ((OperationReferenceValue<?>) inputs.get(STAT_OP_IDX)).getValue(targetStock);
 				statFunction = new SpecificStatsFunction(specificOperation, thisCallStack, thisInputOperandsRequiredShiftFromThis, targetStock, outputSelector);
 			}
-			else { //Can I be here anymore as the operation would not comply the grammar??
-				//Default is identity
-				statFunction = new MyApacheStats(new AbstractUnivariateStatistic() {
-					@Override
-					public double evaluate(double[] values, int begin, int length) throws MathIllegalArgumentException {
-						return values[begin + length-1];
-					}
-					@Override
-					public UnivariateStatistic copy() {
-						return this;
-					}
-				});
+			else { //Can I be here anymore as the operation would not comply with the grammar??
+				throw new IllegalArgumentException("Invalid outputSelector: " + outputSelector);
 			}
 
-			if (period.isNaN()) { //XXX this may not be accurate as even with NaN (all data set), the windows end date should be sliding??
+			//XXX This is not a sliding calculation. This surely is different from a variable size sliding window always starting from startDate.
+			//XXX A variable size sliding window always starting from startDate is achieved using period = 0
+			if (period.isNaN()) { 
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
 					return new DoubleArrayMapValue(statFunction.madEvaluateMd(data.get(0).getValue(targetStock)), statFunction.getOutputsRefs(), mainInputPosition());
 				};

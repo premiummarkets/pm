@@ -18,6 +18,8 @@ import org.junit.Test;
 
 import com.finance.pms.PostInitMonitor;
 import com.finance.pms.SpringContext;
+import com.finance.pms.datasources.db.DataSource;
+import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -133,10 +135,45 @@ public class SystemEnvironmentTest {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void cleanOldNvps() {
 		SystemEnvironment sysEnv = SystemEnvironment.getInstance();
 		sysEnv.cleanOldNvps();
+	}
+	
+	@Test
+	public void cleanSelectedNvps() {
+		
+		String envJsonPath = System.getProperty("installdir") + File.separator + "env.json";
+		SystemEnvironment sysEnv = new SystemEnvironment(envJsonPath);
+		
+		Stock stock = DataSource.getInstance().getShareDAO().loadStockBy("BTC-USD", "BTC-USD");
+		List<String> excluded = List.of(
+				"e4caca77-3af9-427e-a3d7-0e651af2d2f2",
+				"1fbea643-447b-4db0-88b8-32991a0fe799",
+				"d48519cc-46ac-4515-ae71-6c31f3bf0f97",
+				"21783d89-84e5-4054-a9a3-8551bb320065",
+				"f196b946-a9e1-4371-aef0-f40604ef066d",
+				"caa65457-c4b7-4cd0-b69f-c65c6ca1150f",
+				"c86e3f4c-f0ed-4dd6-9b9e-a4cef5fd087e",
+				"4c45b53a-9017-4f74-9998-c6e158c975f6",
+				"5b65276b-cf6e-4039-9316-d237ce6db040",
+				"6c7f411b-3ea0-4610-b65f-f373e57e896e",
+				"a378446a-f8d2-4d22-8ebf-8e78bdb7bb8b",
+				"8d2e58ea-0831-4e68-a0a9-065f718f3d8e",
+				"bf994918-8717-4471-8a4e-bcd512f8690d",
+				"07af38a9-7d26-4a1a-9f10-b252d30d7f78",
+				"14a2db41-582c-4e1e-b5e4-e294855b74e5",
+				"91bb5024-72c3-4461-9a7d-93aa7ef0a058",
+				"21e284aa-0d61-4ac6-8145-3a184e5d3554",
+				"dad7c695-46f3-4dd2-a0a1-8f3edabcf7f6",
+				"3bc02bcf-c884-4149-baa4-973761738df5",
+				"7915b049-3f04-4387-a03a-f1ede072e4c7",
+				"fa530ada-8a21-46fb-acf1-3fded658fc09",
+				"99ca33aa-ba0a-4f6b-aa07-1363c7a0322a");
+		String analysisOperationPeriodDottedPath = "trainLoop.finderTrain_2dCorWClHTCnnTaLin2DenseAsym.15";
+		sysEnv.cleanOldNvpsInPath(stock, analysisOperationPeriodDottedPath, excluded);
+		
 	}
 
 	private void readWriteEnvJson(String compositeName, String filePath, String inferModelPath) {

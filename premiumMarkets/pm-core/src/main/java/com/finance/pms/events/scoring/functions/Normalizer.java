@@ -40,10 +40,13 @@ import org.apache.commons.lang.NotImplementedException;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
+import com.finance.pms.events.scoring.functions.Trimmer.Filter;
 
 public class Normalizer<T> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Normalizer.class);
+	
+	Filter filter;
 
 	private final Class<T> genType;
 
@@ -57,6 +60,16 @@ public class Normalizer<T> {
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, double actualCenter) {
 
 		this.genType = genType;
+		this.filter = new Filter() {
+			@Override
+			public Boolean above(Double value) {
+				return false;
+			}
+			@Override
+			public Boolean below(Double value) {
+				return false;
+			}
+		};
 
 		this.start = start;
 		this.end = end;
@@ -65,6 +78,22 @@ public class Normalizer<T> {
 		this.maxNorm = maxNorm;
 
 		this.actualCenter = actualCenter;
+	
+	}
+	
+	public Normalizer(Class<T> genType, Filter filter, Date start, Date end, double minNorm, double maxNorm, double actualCenter) {
+
+		this.genType = genType;
+		this.filter = filter;
+
+		this.start = start;
+		this.end = end;
+
+		this.minNorm = minNorm;
+		this.maxNorm = maxNorm;
+
+		this.actualCenter = actualCenter;
+
 	}
 
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm) {
@@ -96,9 +125,21 @@ public class Normalizer<T> {
 
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
+			
+			if (value > max) {
+				ret.put(date, tOf(maxNorm));
+				continue;
+			}
+			
+			if (value < min) {
+				ret.put(date, tOf(minNorm));
+				continue;
+			}
+			
 			//From BandRatioNormalizerOperation: (value - actualPivot) * distanceToNewCenter/distanceToActualCenter  + normedPivot
 			double destValueAti = (value - actualPivot) * delta + normedPivot;
 			ret.put(date, tOf(destValueAti));
+			
 		}
 
 		return ret;
@@ -112,32 +153,20 @@ public class Normalizer<T> {
 
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
-			if (value >= max) max = value;
-			if (value <= min) min = value;
+			if (value >= max && !filter.above(value)) max = value;
+			if (value <= min && !filter.below(value)) min = value;
 		}
 
 		//Keep centre of the data
 		//This is to keep the variation from the centre with an identical balance
 		if (!Double.isNaN(actualCenter)) {
 			double biggestAbs = Math.max(Math.abs(max - actualCenter), Math.abs(actualCenter - min));
-//			max = (max > actualCenter)? biggestAbs + actualCenter: actualCenter;
-//			min = (min < actualCenter)? actualCenter - biggestAbs : actualCenter;
 			max = biggestAbs + actualCenter;
 			min = actualCenter - biggestAbs;
 		}
 
 		return new double[] {min, max};
 	}
-
-	//	public double getNormalizedZero() {
-	//		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
-	//		return (-min/(max-min)) * (maxNorm - minNorm) + minNorm;
-	//	}
-	//	
-	//	public double getNormalizedValue(Double value) {
-	//		if (max == 0 && min == 0) throw new RuntimeException("Uninitialised normaliser", new Exception());
-	//		return (value-min/(max-min)) * (maxNorm - minNorm) + minNorm;
-	//	}
 
 	@SuppressWarnings("unchecked")
 	private T tOf(Double destValueAti) {

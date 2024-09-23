@@ -49,11 +49,13 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 import com.finance.pms.events.operations.util.ValueManipulator;
+import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
 
 public class BandRatioNormalizerOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(BandRatioNormalizerOperation.class);
-	private static final int DATAINPUTIDX = 4;
+	private static final int DATAINPUTIDX = 5;
 
 	public BandRatioNormalizerOperation() {
 		super("bandRNrmlzr", "Normalise to new center and amplitude keeping the original distance ratios to center. Distance to centre ratio.",
@@ -61,6 +63,7 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 				new NumberOperation("actualCenter","actualCenter","actual center", new NumberValue(0.0)), 
 				new NumberOperation("distanceToNewCenter","distanceToNewCenter","distance to new center", new NumberValue(1.0)),
 				new NumberOperation("distanceToActualCenter","distanceToActualCenter","distance to actual center", new NumberValue(1.0)),
+				new NumberOperation("trimFactor", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
@@ -78,23 +81,31 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 		double actualCenter = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
 		double distanceToNewCenter = ((NumberValue)inputs.get(2)).getValue(targetStock).doubleValue();
 		double distanceToActualCenter = ((NumberValue)inputs.get(3)).getValue(targetStock).doubleValue();
+		double trimFactor = ((NumberValue)inputs.get(4)).getValue(targetStock).doubleValue();
 		
 		@SuppressWarnings("unchecked")
 		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(DATAINPUTIDX, DATAINPUTIDX+1);
 		
-		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, newCenter, actualCenter, distanceToNewCenter, distanceToActualCenter, data);
+		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, newCenter, actualCenter, distanceToNewCenter, distanceToActualCenter, trimFactor, data);
 		
 		return ValueManipulator.doubleArrayExpender(this, DATAINPUTIDX, targetStock, parentRequiredStartShift, innerCalcFunc, numericableMapValue);
 		
 	}
 
-	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double newCenter, double actualCenter, double distanceToNewCenter, double distanceToActualCenter, List<NumericableMapValue> data) {
+	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double newCenter, double actualCenter, double distanceToNewCenter, double distanceToActualCenter, double trimFactor, List<NumericableMapValue> data) {
 		NumericableMapValue doubleMapValue = new DoubleMapValue();
 		try {
-			SortedMap<Date, Double> value = data.get(0).getValue(targetStock);
+			
+			SortedMap<Date, Double> values = data.get(0).getValue(targetStock);
+			
+			if (!Double.isNaN(trimFactor)) {
+				Trimmer<Double> trimmer =  Trimmer.build(Double.class, TrimType.Quantile, Double.NaN, values);
+				values = trimmer.trim(values);
+			}
+			
 			//FIXME: distanceToActualCenter == 0
 			TreeMap<Date, Double> normalized = 
-					value.entrySet().stream()
+					values.entrySet().stream()
 					.collect(Collectors.toMap(
 							e -> e.getKey(), 
 							e -> {

@@ -14,6 +14,8 @@ import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
+import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
 public class RequiredShiftWrapperOperation extends Operation {
@@ -52,8 +54,11 @@ public class RequiredShiftWrapperOperation extends Operation {
 
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock) {
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
-		return "sW" + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+		Operation operand0 = getOperands().get(0);
+		String requiredStartShift = ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
+		List<Operation> ops = getOperands().subList(1, getOperands().size());
+		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
+		return "sW" + "_" + requiredStartShift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	
 	

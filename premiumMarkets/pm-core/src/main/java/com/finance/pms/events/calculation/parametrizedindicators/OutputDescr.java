@@ -120,8 +120,9 @@ public class OutputDescr implements InfoObject, Comparable<OutputDescr>, Seriali
 
 	@Override
 	public String toolTip() {
-		return ((outputReference.getFormula() != null)?(outputReference.getFormula()).replaceAll("(.{100,200}),", "$1,\n"):fullQualifiedName()) + "\n" +
-				"\nGroup: " + getContainer().groupUniqueId().toString() + "\n" +
+		return //((outputReference.getFormula() != null)?(outputReference.getFormula()).replaceAll("(.{100,200}),", "$1,\n"):fullQualifiedName()) + "\n" +
+				outputReference.getReference() + ":" + (isMain()?outputReference.getFormula():outputReference.getOutputSelector()) + "\n" +
+				"Group: " + getContainer().groupUniqueId().toString() + "\n" +
 				((isMain())?"\nStatus:\n" + getContainer().getGroupStatus() + "\n":"");
 	}
 

@@ -57,7 +57,7 @@ public interface QuotationProvider {
 	public List<Validatable> readPage(Stock stock, MyUrl url, Date startDate) throws HttpException;
 
 
-	public default List<ValidatableDated> filterToEndDate(Date endDate, Collection<? extends ValidatableDated> dailyQuotations) {
+	public default List<ValidatableDated> filterToEndDateInclusive(Date endDate, Collection<? extends ValidatableDated> dailyQuotations) {
 		List<ValidatableDated> ohlcvValids = dailyQuotations.stream().filter(ohlcv -> !ohlcv.getDate().after(endDate)).collect(Collectors.toList());
 		return ohlcvValids;
 	}

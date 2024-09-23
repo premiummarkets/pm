@@ -143,7 +143,7 @@ public class ChartGenerator {
 		eventsLinesSeries.keySet().stream()
 				.forEach(e -> e.getEventDefDescriptor().allOutputDescr().stream().forEach(d -> d.setDisplayOnChart(!(d.getType().equals(Type.MAIN) || d.getType().equals(Type.MULTI)))));
 		
-		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, fullDateSet, eventsLinesSeries);
+		ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(plot, false, false, fullDateSet, eventsLinesSeries);
 		dataSetBuilder.build();
 		
 		int linesGroupsCount = plot.getDatasetCount(); //one DataSet and one Renderer per group

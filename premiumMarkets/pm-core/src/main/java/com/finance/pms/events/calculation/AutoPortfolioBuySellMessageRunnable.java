@@ -41,6 +41,7 @@ import org.springframework.jms.core.MessageCreator;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.datasources.files.TransactionType;
 import com.finance.pms.events.AnalysisClient;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
@@ -49,11 +50,9 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.ParameterizedEventKey;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.portfolio.AutoPortfolioWays;
-import com.finance.pms.portfolio.TransactionHistory;
-import com.finance.pms.portfolio.TransactionRecord;
+import com.finance.pms.portfolio.CalcSignalRecord;
+import com.finance.pms.portfolio.SignalHistory;
 import com.finance.pms.queue.AbstractAnalysisClientRunnableMessage;
 import com.finance.pms.queue.SingleEventMessage;
 import com.finance.pms.threads.ConfigThreadLocal;
@@ -69,22 +68,13 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 	private EventInfo eventInfo;
 	private List<SymbolEvents> reducedEvents;
 
-	private PonderationRule buyPonderationRule;
-	private PonderationRule sellPonderationRule;
-	private BuyStrategy buyStrategy;
-
-
 	public AutoPortfolioBuySellMessageRunnable(
-			AutoPortfolioWays portfolio, Date spanEnd, EventInfo eventInfo, 
-			BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, 
+			AutoPortfolioWays portfolio, Date spanEnd, EventInfo eventInfo,
 			List<SymbolEvents> reducedEvents) {
 		super(5000, SpringContext.getSingleton(), portfolio.getName());
 		this.portfolio = portfolio;
 		this.spanEnd = spanEnd;
 		this.eventInfo = eventInfo;
-		this.buyStrategy = buyStrategy;
-		this.buyPonderationRule = buyPonderationRule;
-		this.sellPonderationRule = sellPonderationRule;
 		this.reducedEvents = reducedEvents;
 	}
 
@@ -112,8 +102,8 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 				ConfigThreadLocal.set(configName, getPassedThroughConfigs().get(configName));
 			}
 
-			TransactionHistory calculationTransactions = portfolio.calculate(reducedEvents, spanEnd, buyStrategy, buyPonderationRule, sellPonderationRule);
-			sendTransactionHistory(calculationTransactions);
+			SignalHistory calculationSignals = portfolio.calculate(reducedEvents, spanEnd);
+			sendSignalsHistory(calculationSignals);
 
 			LOGGER.info("Processing message completed: " + getAnalysisName() + " with " + reducedEvents.size() + " events set(s).");
 
@@ -129,9 +119,9 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 	}
 
-	private void sendTransactionHistory(TransactionHistory transactionHistory) {
+	private void sendSignalsHistory(SignalHistory transactionHistory) {
 
-		for (final TransactionRecord record : transactionHistory) {
+		for (final CalcSignalRecord record : transactionHistory) {
 
 			if (AnalysisClient.getEmailMsgQeueingFilter().contains(record.getSource())) {
 				jmsTemplate.send(eventQueue, new MessageCreator() {
@@ -140,12 +130,12 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 						EventType eventType = EventType.INFO;
 						EventInfo eventDef = EventDefinition.UNKNOWN99;
-						if (record.getMovement().equals("buy")) {
+						if (record.getMovement().equals(TransactionType.AIN)) {
 							eventType = EventType.BULLISH;
 							Optional<EventInfo> buyEventDef = record.getEventList().getBuyTriggeringEvents().stream().findFirst();
 							eventDef = buyEventDef.orElse(EventDefinition.UNKNOWN99);
 						} 
-						else if (record.getMovement().equals("sell")) {
+						else if (record.getMovement().equals(TransactionType.AOUT)) {
 							eventType = EventType.BEARISH;
 							Optional<EventInfo> sellEventDef = record.getEventList().getSellTriggeringEvents().stream().findFirst();
 							eventDef = sellEventDef.orElse(EventDefinition.UNKNOWN99);
@@ -155,7 +145,8 @@ public class AutoPortfolioBuySellMessageRunnable extends AbstractAnalysisClientR
 
 						EventKey eventKey = new ParameterizedEventKey(record.getEventList().getLastDate(), eventDef, eventType);
 						EventValue eventValue = new EventValue(record.getEventList().getLastDate(), eventDef, eventType, message, record.getPortfolioName());
-						SingleEventMessage infoMessage = new SingleEventMessage(record.getPortfolioName(), record.getPortfolioName(), record.getStock(), record.getDate(), eventKey, eventValue, ConfigThreadLocal.getAll());
+						SingleEventMessage infoMessage = 
+								new SingleEventMessage(record.getPortfolioName(), record.getPortfolioName(), record.getEventList().getStock(), record.getSignalDate(), eventKey, eventValue, ConfigThreadLocal.getAll());
 						infoMessage.setObjectProperty(MessageProperties.ANALYSE_SOURCE.getKey(), record.getSource()); //Source (event calculator)
 						infoMessage.setObjectProperty(MessageProperties.TREND.getKey(), eventValue.getEventType().name()); //Bearish Bullish Other Info
 						infoMessage.setObjectProperty(MessageProperties.SEND_EMAIL.getKey(), Boolean.TRUE);

@@ -101,7 +101,7 @@ public class ProvidersInvesting extends Providers implements QuotationProvider {
 					while ((line = content.readLine()) != null) {
 						//System.out.println(line);
 						List<ValidatableDated> readPage =  dayQuoteInvestingFormater.formatLine(line).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-						queries.addAll(filterToEndDate(end, readPage));
+						queries.addAll(filterToEndDateInclusive(end, readPage));
 					};
 				}
 				

@@ -76,24 +76,24 @@ public class PMAroonOperation extends PMDataFreeOperation {
         try {
 
             //HouseAroon aroon = new HouseAroon(targetStock.getStock(), targetStock.getStartDate(), targetStock.getEndDate(), null, period);
-            HouseAroon arron = new HouseAroon(period);
+            HouseAroon aroon = new HouseAroon(period);
             Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(
                     targetStock.getStock(), targetStock.getStartDate(thisStartShift), targetStock.getEndDate(),
                     true, targetStock.getStock().getMarketValuation().getCurrency(), 
-                    arron.getStartShift(), arron.quotationValidity());
-            arron.calculateIndicator(quotations);
+                    aroon.getStartShift(), aroon.quotationValidity());
+            aroon.calculateIndicator(quotations);
 
             if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("down")) {
-                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonDown());
+                return doubleArrayMapToDoubleMap(quotations, targetStock, aroon, aroon.getOutAroonDown());
             }
             else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("up")) {
-                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonUp());
+                return doubleArrayMapToDoubleMap(quotations, targetStock, aroon, aroon.getOutAroonUp());
             }
             else if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("oscillator")) {
-                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutAroonOsc());
+                return doubleArrayMapToDoubleMap(quotations, targetStock, aroon, aroon.getOutAroonOsc());
             } else {
                 //error
-                return doubleArrayMapToDoubleMap(quotations, targetStock, arron, arron.getOutputData());
+                return doubleArrayMapToDoubleMap(quotations, targetStock, aroon, aroon.getOutputData());
             }
 
         } catch (NoQuotationsException e) {

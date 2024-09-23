@@ -113,7 +113,7 @@ public class SeriesPrinter {
 				lastCalculatedCal.setTime(lastCalculatedDate);
 				lastCalculatedCal.add(Calendar.DAY_OF_YEAR, 1);
 				
-				series.entrySet().stream().forEach(s -> LOGGER.info("Received serie: " + s.getKey() + " from " + s.getValue().firstKey() + " to " + s.getValue().lastKey()));
+				series.entrySet().stream().forEach(s -> LOGGER.info("Received series: " + s.getKey() + " from " + s.getValue().firstKey() + " to " + s.getValue().lastKey()));
 				LOGGER.info("Tailing from: " + lastCalculatedCal.getTime());
 				
 				LinkedHashMap<String, SortedMap<Date, double[]>> tailSeries = series.entrySet().stream()

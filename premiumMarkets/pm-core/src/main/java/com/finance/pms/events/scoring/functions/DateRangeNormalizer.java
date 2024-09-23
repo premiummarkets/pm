@@ -3,12 +3,12 @@ package com.finance.pms.events.scoring.functions;
 import java.util.Date;
 import java.util.SortedMap;
 
-public class RangeNormalizer<T> extends Normalizer<T> {
+public class DateRangeNormalizer<T> extends Normalizer<T> {
     
     private Date lowerRange;
     private Date upperRange;
 
-    public RangeNormalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, Date lowerRange, Date upperRange) {
+    public DateRangeNormalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, Date lowerRange, Date upperRange) {
         super(genType, start, end, minNorm, maxNorm, Double.NaN);
         this.lowerRange = lowerRange;
         this.upperRange = upperRange;

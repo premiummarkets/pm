@@ -133,83 +133,88 @@ public class OperationBuilderComposite extends Composite {
 	
 	public static void main(String... args) {
 
-		SpringContext springContext = new SpringContext(args[0]);
-		springContext.loadBeans("/connexions.xml", "/swtclients.xml", "/talibanalysisservices.xml");
-		springContext.refresh();
+		try (SpringContext springContext = new SpringContext(args[0])) {
+			springContext.loadBeans("/connexions.xml", "/swtclients.xml", "/talibanalysisservices.xml");
+			springContext.refresh();
 
-		ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
-		ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
-		ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
-		springContext.optionalPostInit();
+			ShareListMgr shareListMgr = (ShareListMgr) SpringContext.getSingleton().getBean("shareListMgr");
+			ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, shareListMgr.initPkgDependentConfig());
+			ConfigThreadLocal.set("indicatorParams", new IndicatorsConfig());
+			springContext.optionalPostInit();
 
-		ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
+			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME, new EventSignalConfig());
 
-		final Shell shell = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM | SWT.RESIZE);
-		shell.setText("Customise and Create indicators ...");
-		shell.setLayout(new GridLayout());
+			final Shell shell = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM | SWT.RESIZE);
+			shell.setText("Customise and Create indicators ...");
+			shell.setLayout(new GridLayout());
 
-		//IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());
-		OperationBuilderComposite builderComposite = new OperationBuilderComposite(shell, null);
+			//IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null, new ComboUpdateMonitor());
+			OperationBuilderComposite builderComposite = new OperationBuilderComposite(shell, null);
 
-		builderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		builderComposite.parameterizedBuilder.updateEditableOperationLists();
-		builderComposite.mainGuiParent = new RefreshableView() {
+			builderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			builderComposite.parameterizedBuilder.updateEditableOperationLists();
+			builderComposite.mainGuiParent = new RefreshableView() {
 
-			@Override
-			public void refreshView(List<Exception> exceptions) {
-				// TODO Auto-generated method stub
+				@Override
+				public void refreshView(List<Exception> exceptions) {
+					// TODO Auto-generated method stub
+				}
+
+				@Override
+				public void initRefreshAction() {
+					// TODO Auto-generated method stub
+				}
+
+				@Override
+				public Date getAnalysisStartDate() {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public Date getAnalysisEndDate() {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public void endRefreshAction(List<Exception> exceptions) {
+					// TODO Auto-generated method stub
+				}
+
+				@Override
+				public void setCursor(Cursor cursor) {
+					// TODO Auto-generated method stub
+				}
+			};
+
+			shell.addShellListener(new ShellAdapter() {
+				@Override
+				public void shellClosed(ShellEvent evt) {
+					shell.dispose();
+				}
+			});
+			
+			MainGui.setupAppDefaultFont(shell.getDisplay(), shell);
+			MainGui.setupAppDefaultColors(shell.getDisplay());
+
+			shell.layout();
+			shell.open();
+			Display display = shell.getDisplay();
+			while (!shell.isDisposed()) {
+				try {
+					if (!display.readAndDispatch())
+						display.sleep();
+				} catch (RuntimeException e) {
+					e.printStackTrace();
+				} catch (Error e) {
+					e.printStackTrace();
+				}
 			}
 
-			@Override
-			public void initRefreshAction() {
-				// TODO Auto-generated method stub
-			}
-
-			@Override
-			public Date getAnalysisStartDate() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public Date getAnalysisEndDate() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public void endRefreshAction(List<Exception> exceptions) {
-				// TODO Auto-generated method stub
-			}
-
-			@Override
-			public void setCursor(Cursor cursor) {
-				// TODO Auto-generated method stub
-			}
-		};
-
-		shell.addShellListener(new ShellAdapter() {
-			@Override
-			public void shellClosed(ShellEvent evt) {
-				shell.dispose();
-			}
-		});
-
-		shell.layout();
-		shell.open();
-		Display display = shell.getDisplay();
-		while (!shell.isDisposed()) {
-			try {
-				if (!display.readAndDispatch())
-					display.sleep();
-			} catch (RuntimeException e) {
-				e.printStackTrace();
-			} catch (Error e) {
-				e.printStackTrace();
-			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		springContext.close();
 
 	}
 	
@@ -860,10 +865,20 @@ public class OperationBuilderComposite extends Composite {
 
 				private void handle() {
 					String identifier = editorHolder.getFormatedReferenceTxt();
-					handleSave(getToolTipText()); //We need to save make sure the operation is up to date first
-					Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
-					String formulaeFormated = existingOp.toFormulaeFormated(80, o -> o.toFormulaeDevelopped());
-					setEditorText(formulaeFormated);
+					try {
+						//handleSave(getToolTipText()); //We need to save make sure the operation is up to date first
+						//Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+						Operation existingOp = parameterizedBuilder.buildOneTimeOperation(identifier + "_formated", editorHolder.getEditor().getText());
+						if (existingOp == null) throw new Exception("Invalid syntax.");
+						
+						String formulaeFormated = existingOp.toFormulaeFormated(80, o -> o.toFormulaeDevelopped());
+						setEditorText(formulaeFormated);
+						
+						existingOp.semanticValidation();
+						
+					} catch (Exception e) {
+						openDialog(true, identifier + " operation is not valid.\nPlease fix.", e);
+					}
 				}
 
 				@Override
@@ -1014,7 +1029,12 @@ public class OperationBuilderComposite extends Composite {
 						updateOperationList(true, identifier, false);
 						LOGGER.info("Updated and saved " + identifier + ".");
 					}
+					Optional<Operation> defaultIndicator = parameterizedBuilder.createDefaultIndicator(identifier);
+					if (defaultIndicator.isPresent()) {
+						openDialog(true, "Default indicator: " + defaultIndicator.get().getReference(), null);
+					}
 				}
+				
 			};
 			Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
 			if (existingOp != null && checkOverWrite) {//Already exist?
@@ -1025,9 +1045,7 @@ public class OperationBuilderComposite extends Composite {
 					Boolean isExistingOpAnIndicator = existingOp instanceof EventInfo;
 					Boolean isThisFormulaAnIndicator = this instanceof IndicatorBuilderComposite;
 					if (isExistingOpAnIndicator == isThisFormulaAnIndicator) {
-						openActionDialog(true, 
-								"Updating formula", "Do you want to update " + existingOp.getReference() + "?", 
-								null, "OK, update.", action, false);
+						openActionDialog(true, "Updating formula", "Do you want to update " + existingOp.getReference() + "?", null, "OK, update.", action, false);
 					} else {
 						openDialog(true, existingOp.getReference() + " operation name alreday used.\nPlease change.", null);
 					}

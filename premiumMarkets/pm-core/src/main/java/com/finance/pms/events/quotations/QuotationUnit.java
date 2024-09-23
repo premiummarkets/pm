@@ -76,7 +76,6 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	private BigDecimal close;
 	private Long volume;
 	
-	
 	private ORIGIN origin;
 	
 	//The split is used on the fly when grabbing the value

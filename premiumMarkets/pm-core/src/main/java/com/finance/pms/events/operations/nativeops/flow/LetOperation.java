@@ -47,7 +47,7 @@ public class LetOperation extends VarOperation {
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> variableValue = inputs.get(1);
-		Value<?> variableReturned = targetStock.letHeapVar(variableName, variableValue);
+		Value<?> variableReturned = targetStock.getHeap().letHeapVar(variableName, variableValue);
 		LOGGER.info(this.getReference() + ": " + variableName + ", storing: " + variableValue + ", returning: " + variableReturned);
 		return variableReturned;
 	}

@@ -29,44 +29,15 @@
  */
 package com.finance.pms.portfolio;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import com.finance.pms.events.EmailFilterEventSource;
-import com.finance.pms.events.SymbolEvents;
-
 public class UserPortfolioDelegate extends AutoPortfolioDelegate {
-
+	
 	public UserPortfolioDelegate(AutoPortfolioWays userPortfolio) {
-		super(userPortfolio, false);
+		super(userPortfolio);
 	}
 
 	@Override
-	protected TransactionRecord sell(SymbolEvents symbolEvents, Date currentDate, BigDecimal unitAmount, PortfolioShare portfolioShare) {
-		TransactionRecord transactionRecord = 
-				new TransactionRecord(thisPortfolio.getName(), BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "sell", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
-		getTransactionHistory().add(transactionRecord);
-		return transactionRecord;
+	public void recordSchedule(CalcSignalRecord recordSignal) {
+		//Nothing
 	}
-
-	@Override
-	protected TransactionRecord buy(BuyStrategy buyStrategy, SymbolEvents symbolEvents, Date currentDate) {
-		if (thisPortfolio.getListShares().containsKey(symbolEvents.getStock())) {
-			TransactionRecord transactionRecord = 
-					new TransactionRecord(thisPortfolio.getName(),BigDecimal.ZERO, currentDate, symbolEvents.getStock(), "buy", BigDecimal.ZERO, BigDecimal.ZERO, symbolEvents, EmailFilterEventSource.PMUserBuySell);
-			getTransactionHistory().add(transactionRecord);
-			return transactionRecord;
-		}
-		return null;
-	}
-
-	@Override
-	protected void isValidDateForLine(Date latestEventDateAndNewBuyDate, PortfolioShare alreadyBoughtShare) {
-	}
-
-	@Override
-	protected BigDecimal canBuy(BuyStrategy buyStrategy) {
-		return BigDecimal.ONE;
-	}
-
+	
 }

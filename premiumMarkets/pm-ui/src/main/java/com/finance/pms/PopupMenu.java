@@ -279,7 +279,7 @@ public class PopupMenu<T extends InfoObject> {
 
 				private void handleButtonSelection(T buttonInfo, final Button button, SelectionEvent e) {
 
-					hasChanged=true;
+					hasChanged = true;
 
 					if (button.getSelection()) {
 						selectionSet.add(buttonInfo);

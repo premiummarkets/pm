@@ -125,7 +125,7 @@ public class ProvidersHousePrices extends Providers implements QuotationProvider
 			TreeSet<ValidatableDated> queries = initValidatableSet();
 			LineFormater dsf = new DayQuoteHousePricesFormater(url, stock, start);
 			List<ValidatableDated> readPage = this.httpSource.readURL(dsf).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-			readPage = filterToEndDate(end, readPage);
+			readPage = filterToEndDateInclusive(end, readPage);
 			
 			if (!readPage.isEmpty()) {
 			

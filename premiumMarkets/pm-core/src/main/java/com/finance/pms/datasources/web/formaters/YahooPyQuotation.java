@@ -12,7 +12,6 @@ public class YahooPyQuotation extends DailyQuotation {
 		super(dailyQuotation.mainQuery, dailyQuotation.stock, dailyQuotation.currency);
 	}
 	
-	
 //case 1: //Open
 //case 2: //High
 //case 3: //Low
@@ -36,7 +35,7 @@ public class YahooPyQuotation extends DailyQuotation {
 		if (split != 0d) {
 			for (int j = 1; j < 5; j++) { //ohlc
 				BigDecimal splitBigD = new BigDecimal(split).setScale(10, RoundingMode.HALF_EVEN);
-				mainQuery.set(j, ((BigDecimal) mainQuery.get(j)).multiply(splitBigD).setScale(10, RoundingMode.HALF_EVEN)); 
+				mainQuery.set(j, ((BigDecimal) mainQuery.get(j)).multiply(splitBigD).setScale(10, RoundingMode.HALF_EVEN));
 			}
 			Long volume = (Long) mainQuery.get(5);
 			mainQuery.set(5, Long.valueOf((long) ( volume / split))); //volume

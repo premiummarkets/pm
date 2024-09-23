@@ -164,6 +164,17 @@ public class ValueManipulator {
 		
 		//Return
 		LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
+//		//DEBUG
+//		try {
+//			Date parse = new SimpleDateFormat("yyyy-MM-dd").parse("2019-07-30");
+//			if (factorisedInput.firstKey().after(parse)) {
+//				LOGGER.error("First output is after " + parse + " for " + targetStock + ": " + factorisedInput.get(parse));
+//			}
+//		} catch (ParseException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		//DEBUG
 		result.put(InputToArrayReturn.RESULTS, factorisedInput);
 		return result;
 	}
@@ -215,7 +226,7 @@ public class ValueManipulator {
 
 		//Combine
 		List<List<NumericableMapValue>> combinationsAcc = allInputs.get(0).values().stream().map(e -> Lists.newArrayList(e)).collect(Collectors.toList());//init first comb
-		List<String> hCombinationsAcc = allInputs.get(0).keySet().stream().map(e -> e).collect(Collectors.toList());//init first hcomb
+		List<String> hCombinationsAcc = allInputs.get(0).keySet().stream().map(e -> e).collect(Collectors.toList()); //init first hcomb
 		for (int i = 1; i < allInputs.size(); i++) {
 			List<List<NumericableMapValue>> combinationsAccPrim = new ArrayList<List<NumericableMapValue>>();
 			List<String> hCombinationsAccPrim = new ArrayList<String>();

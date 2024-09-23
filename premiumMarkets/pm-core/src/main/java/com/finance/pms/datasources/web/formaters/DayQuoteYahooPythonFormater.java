@@ -23,6 +23,8 @@ public class DayQuoteYahooPythonFormater extends DayQuoteFormater {
 		StringTokenizer strt = new StringTokenizer(line, ",");
 		SimpleDateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
 		assert strt.countTokens() >= 7;
+		
+		if (line.contains("No data") || line.isEmpty()) { throw new RuntimeException(line); }
 
 		LinkedList<Comparable<?>> tokenisedLine = new LinkedList<Comparable<?>>();
 		for (int columnNum = 0; strt.hasMoreTokens() && columnNum < 9; columnNum++) {
@@ -31,11 +33,10 @@ public class DayQuoteYahooPythonFormater extends DayQuoteFormater {
 			switch (columnNum) {
 			case 0: //Date
 				if (field.equals("Date")) {	throw new RuntimeException(line); }
-				if (line.contains("No data")) { throw new RuntimeException(line); }
 				try {
 					tokenisedLine.add(df1.parse(field));
 				} catch (Exception e) {
-					throw new StopParseErrorException("Date Format error while parsing yahoo quotations : " + params.get(0) + ", for line: " + line, e.getMessage());
+					throw new StopParseErrorException("Date Format error while parsing yahoo quotations: " + params.get(0) + ", for line: " + line, e.getMessage());
 				}
 				break;
 			case 1: //Open

@@ -49,19 +49,18 @@ import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
 
 public class BandNormalizerOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(BandNormalizerOperation.class);
 	private static final int DATAINPUTIDX = 4;
-	
-	private int trimmerSlidingPeriod = 251;
 
 	public BandNormalizerOperation() {
 		super("bandNormalizer", "Normalise the data between and to the lower and the upper threshold",
 				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
 				new NumberOperation("actual center","actualCenter","Keep distance ratio of min and max to the data relative specified center (NaN accepted).", new NumberValue(Double.NaN)),
-				new NumberOperation("integer", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
+				new NumberOperation("trim factor", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
 	}
 
@@ -94,29 +93,28 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 	private NumericableMapValue innerCalc(TargetStockInfo targetStock, double lowerThreshold, double upperThreshold, double actualCenter, Double trimFactor, List<NumericableMapValue> data) {
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
-			trimmerSlidingPeriod=251;
-			SortedMap<Date, Double> trimmed = data.get(0).getValue(targetStock);
-			if (!Double.isNaN(trimFactor)) {
-				Trimmer trimmer = new Trimmer(targetStock.getStock(), getRequiredStockData(), trimmerSlidingPeriod, trimFactor.intValue(), trimmed.firstKey(), trimmed.lastKey());
-				trimmed = trimmer.sTrimmed(trimmed);
+			
+			SortedMap<Date, Double> values = data.get(0).getValue(targetStock);
+			
+			if (!Double.isNaN(trimFactor)) {		
+				Trimmer<Double> trimmer =  Trimmer.build(Double.class, TrimType.Quantile, Double.NaN, values);
+				values = trimmer.trim(values);
 			}
 			
-			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmed.firstKey(), trimmed.lastKey(), lowerThreshold, upperThreshold, actualCenter);
-			SortedMap<Date, Double> normalized = normalizer.normalised(trimmed);
+			Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, values.firstKey(), values.lastKey(), lowerThreshold, upperThreshold, actualCenter);
+			SortedMap<Date, Double> normalized = normalizer.normalised(values);
 			
 			ret.getValue(targetStock).putAll(normalized);
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + " : " + e, e);
+			LOGGER.error(targetStock.getStock().getFriendlyName() + ": " + e, e);
 		}
 		return ret;
 	}
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		double trimFactor = ((NumberValue) getOperands().get(DATAINPUTIDX-1).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
-		if (Double.isNaN(trimFactor)) return 0;
-		return trimmerSlidingPeriod;
+		return 0;
 	}
 	
 	@Override

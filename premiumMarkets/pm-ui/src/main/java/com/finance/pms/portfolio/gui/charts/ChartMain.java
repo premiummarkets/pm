@@ -147,6 +147,9 @@ public class ChartMain extends Chart {
 
 	private Boolean disableSplitFix = false;
 	private Boolean useCalculatedSplitFixOnly = false;
+	
+	private Boolean useOneRange = false;
+	private Boolean useNoGroupRanges = false;
 
 	private JFreeChartTimePeriod jFreeTimePeriod;
 	private JFreeChart jFreeChart;
@@ -163,6 +166,8 @@ public class ChartMain extends Chart {
 	private ValueMarker axisMarker;
 
 	private Frame chartFrame;
+
+
 
 	
 	public ChartMain(Date startDate, JFreeChartTimePeriod jFreeTimePeriod) {
@@ -678,9 +683,17 @@ public class ChartMain extends Chart {
 							ps.getTransactions(false).stream()
 							.forEach(t -> {
 								Paint lineColor = (t.getQuantity().compareTo(BigDecimal.ZERO) > 0)?Color.cyan:Color.blue;
+								String text = 
+										t.toChart()
+										+ " / reinv. g. " + PERCENTAGE_FORMAT.format(ps.getGainReinvestedPercent(null, t.getDate(), ps.getTransactionCurrency(), false));
+										//TODO create a transaction gain a like annualisedGain?
+										//TODO how to compare with b&h (annualised b&h OR transaction span b&h)??
+										//+ " / tr gain " + PERCENTAGE_FORMAT.format(t.get...)
+										//+ " / gain " + PERCENTAGE_FORMAT.format(ps.getGainTotalPercent(null, t.getDate(), ps.getTransactionCurrency(), false));
 								addVTrans(
-										t.getDate().getTime(), t.toChart() + " / gain " + 
-										PERCENTAGE_FORMAT.format(ps.getGainTotalPercent(null, t.getDate(), ps.getTransactionCurrency(), false)), lineColor);
+										t.getDate().getTime(), 
+											text,
+										lineColor);
 							});
 						}
 				});
@@ -727,7 +740,7 @@ public class ChartMain extends Chart {
 					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
 						fullDateSet.addAll(output.keySet());
 					}
-					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, fullDateSet, eventsSeries);
+					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, useOneRange, useNoGroupRanges,fullDateSet, eventsSeries);
 					dataSetBuilder.build();
 
 					//Combine group
@@ -1303,6 +1316,14 @@ public class ChartMain extends Chart {
 
 	public void setUseCalculatedSplitFixOnly(Boolean useCalculatedSplitFixOnly) {
 		this.useCalculatedSplitFixOnly = useCalculatedSplitFixOnly;
+	}
+	
+	public void setUseOneRange(Boolean useOneRange) {
+		this.useOneRange = useOneRange;
+	}
+	
+	public void setUseNoGroupRanges(Boolean useNoGroupRanges) {
+		this.useNoGroupRanges = useNoGroupRanges;
 	}
 	
 	public void setFrame(Frame chartFrame) {

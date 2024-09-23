@@ -45,7 +45,7 @@ public class DateFactoryTest {
 		
 		Date endDateFix = DateFactory.endDateFix(actualDateTime, stock.getMarket().getUTCTimeLag(), stock.getTradingMode());
 		
-		System.out.println("End date US Localfixed:" + endDateFix);
+		System.out.println("End date US Localfixed: " + endDateFix);
 		
 	}
 	
@@ -56,7 +56,7 @@ public class DateFactoryTest {
 		
 		Date endDateFix = DateFactory.endDateFix(actualDateTime, stock.getMarket().getUTCTimeLag(), stock.getTradingMode());
 		
-		System.out.println("End date US Localfixed:" + endDateFix);
+		System.out.println("End date US Localfixed: " + endDateFix);
 		
 	}
 	
@@ -76,6 +76,7 @@ public class DateFactoryTest {
 		rollingHourCal.set(Calendar.MINUTE, 0);
 		rollingHourCal.set(Calendar.SECOND, 0);
 		rollingHourCal.set(Calendar.MILLISECOND, 0);//Monday the 19th at 00:00
+		System.out.println("rolling, Monday the 19th at 00:00 " + rollingHourCal.getTime());
 		
 		Calendar expectedCal = Calendar.getInstance();
 		
@@ -86,10 +87,11 @@ public class DateFactoryTest {
 		expectedCal.set(Calendar.MINUTE, 0);
 		expectedCal.set(Calendar.SECOND, 0);
 		expectedCal.set(Calendar.MILLISECOND, 0);
+		System.out.println("expected, Friday the 16th at 00:00 " + expectedCal.getTime());
 		
-		for (int i = 0; i < 7; i++) {
-			for (int j = 0; j < 24; j++ ) {
-				if (i < 5 && j == 17 - aapl.getMarket().getUTCTimeLag()) {
+		for (int day = 0; day < 7; day++) {
+			for (int hour = 0; hour < 24; hour++ ) {
+				if (day < 5 && hour == 17 - aapl.getMarket().getUTCTimeLag()) {
 					expectedCal.add(Calendar.DAY_OF_YEAR, 1);
 					expectedCal.setTime(QuotationsFactories.getFactory().getValidQuotingDateAfterOrAt(expectedCal.getTime()));
 				} else {
@@ -97,6 +99,7 @@ public class DateFactoryTest {
 				}
 				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
 				Date applDate = DateFactory.endDateFix(rollingHourCal.getTime(), aapl.getMarket().getUTCTimeLag(), aapl.getTradingMode());
+				System.out.println(String.format("AAPL On the " + rollingHourCal.getTime() + ": expected %s, real %s ", expectedCal.getTime(), applDate));
 				assertEquals("AAPL On the " + rollingHourCal.getTime(), expectedCal.getTime(), applDate);
 			}
 		}
@@ -125,6 +128,7 @@ public class DateFactoryTest {
 				}
 				rollingHourCal.add(Calendar.HOUR_OF_DAY, 1);
 				Date fchiDate = DateFactory.endDateFix(rollingHourCal.getTime(), fchi.getMarket().getUTCTimeLag(), fchi.getTradingMode());
+				System.out.println(String.format("FCHI On the " + rollingHourCal.getTime() + ": expected %s, real %s ", expectedCal.getTime(), fchiDate));
 				assertEquals("FCHI On the " + rollingHourCal.getTime(), expectedCal.getTime(), fchiDate);
 			}
 		}
@@ -197,12 +201,28 @@ public class DateFactoryTest {
 		Stock btc = DataSource.getInstance().loadStockBySymbol("BTC-USD");
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd:hhmmss");
+		
+		//After close
 		Date date = dateFormat.parse("2022/09/27:061000"); 
-		
 		Date expceted = dateFormat.parse("2022/09/26:000000"); 
-		
 		Date endDateFix = DateFactory.endDateFix(date, btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
+		assertEquals(expceted, endDateFix);
 		
+		//Before close
+		date = dateFormat.parse("2022/09/27:000100"); 
+		expceted = dateFormat.parse("2022/09/25:000000"); 
+		endDateFix = DateFactory.endDateFix(date, btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
+		assertEquals(expceted, endDateFix);
+		
+		date = dateFormat.parse("2022/09/26:115900"); 
+		expceted = dateFormat.parse("2022/09/25:000000"); 
+		endDateFix = DateFactory.endDateFix(date, btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
+		assertEquals(expceted, endDateFix);
+		
+		//At close
+		date = dateFormat.parse("2022/09/27:000000"); 
+		expceted = dateFormat.parse("2022/09/25:000000"); 
+		endDateFix = DateFactory.endDateFix(date, btc.getMarket().getUTCTimeLag(), btc.getTradingMode());
 		assertEquals(expceted, endDateFix);
 		
 	}

@@ -204,5 +204,18 @@ public class ParameterizedOperationBuilder extends ParameterizedBuilder {
 			});
 		}
 	}
+	
+	@Override
+	public Optional<Operation> createDefaultIndicator(String identifier) {
+			this.setChanged();
+			String indicatorId = identifier + "_Ind";
+			Operation operation = getCurrentOperations().get(identifier);
+			try {
+				this.notifyObservers(new ObsMsg(ObsMsgType.CREATE_INDICATOR, operation, Optional.of(indicatorId)));
+			} catch (InUseException e) {
+				return e.getInUse().stream().findFirst();
+			}
+			return Optional.empty();
+	}
 
 }

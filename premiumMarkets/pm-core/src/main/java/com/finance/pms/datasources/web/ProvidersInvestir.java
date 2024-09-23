@@ -72,7 +72,7 @@ public class ProvidersInvestir extends Providers implements QuotationProvider {
 		
 		for (int i = 1; i <= url.getNbPages(); i++) {
 			List<ValidatableDated> readPage = readPage(stock, url.getUrlForPage(i), start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-			readPage = filterToEndDate(end, readPage);
+			readPage = filterToEndDateInclusive(end, readPage);
 			if (readPage.size() == 0) { 
 				LOGGER.guiInfo("Getting last quotes on 'Investir' web site : out of pages loop with : "+stock.getSymbol()+" :"+queries.size());
 				break; 

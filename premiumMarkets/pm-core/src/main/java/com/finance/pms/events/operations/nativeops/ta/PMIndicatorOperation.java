@@ -52,13 +52,14 @@ import com.finance.pms.events.operations.nativeops.trans.BandRatioNormalizerOper
 import com.finance.pms.events.operations.nativeops.trans.FlipOperation;
 import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
 import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
+import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.indicators.TalibIndicator;
 
 @XmlSeeAlso({
     PMAroonOperation.class, PMMACDOperation.class, PMLogRocOperation.class, PMMightyChaikinOperation.class, PMBollingerOperation.class,
-    LeftShifterOperation.class, BandNormalizerOperation.class, BandRatioNormalizerOperation.class, ZeroLagEMAOperation.class,
+    LeftShifterOperation.class, BandNormalizerOperation.class, BandRatioNormalizerOperation.class, ZeroLagEMAOperation.class, TrimOperation.class,
     StatsOperation.class, MathOperation.class, TriggerPointJoiner.class,
     FlipOperation.class, InverseOperation.class,
     VolatilityOperation.class, VolatilityOtherOperation.class,

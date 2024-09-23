@@ -102,7 +102,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	}
 
 	@Override
-	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
+	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 
 		try {
 
@@ -549,7 +549,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 	}
 
 	@Override
-	public void resetChart(Boolean resetDisplayedList) {
+	public void resetChart(Boolean resetDisplayedList, PopupType ...popupTypes) {
 
 		if (resetDisplayedList) {
 			for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {

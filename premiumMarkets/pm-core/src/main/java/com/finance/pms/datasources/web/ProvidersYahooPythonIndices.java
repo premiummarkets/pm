@@ -161,6 +161,7 @@ public class ProvidersYahooPythonIndices extends ProvidersList {
 				
 			try {
 				String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
+				LOGGER.info(String.format("Running Yahoo py: %s %s %s", pythonExec, python_py.toString(), URLEncoder.encode(indiceStr, StandardCharsets.UTF_8.toString())));
 				ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString(), URLEncoder.encode(indiceStr, StandardCharsets.UTF_8.toString()));
 				Process p = pb.start();
 				

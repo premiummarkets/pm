@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -43,8 +42,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.HttpException;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.db.DataSource;
 import com.finance.pms.datasources.db.TableLocker;
@@ -58,6 +59,8 @@ import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooPythonFormater;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
 import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
+import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.portfolio.PortfolioMgr;
 import com.finance.pms.portfolio.SharesList;
 
@@ -77,29 +80,36 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
     public void getQuotes(Stock stock, Date start, Date end) throws HttpException, SQLException {
 
         if (stock.getSymbol() == null) throw new RuntimeException("Error: no Symbol for " + stock.toString());
+        
+        //Adding on day as it yfinance is [start,end[
+        Date tomorrow = DateUtils.addDays(end, +1);
        
         List<ValidatableDated> readPage = null;
-        try {
-        	
-        	//Adding on day as it is [start,end[
-        	Calendar calendar = Calendar.getInstance();
-        	calendar.setTime(end);
-        	calendar.add(Calendar.DAY_OF_YEAR, 1);
-        	
-        	readPage = readPythonPage(stock, start, calendar.getTime()).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
-        } catch (IOException e1) {
-        	LOGGER.warn(e1);
-            return;
-        }
-        if (readPage == null) throw new HttpException();
+        Integer maxAttempts = Integer.valueOf(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.maxattempts", "1"));
+		int cpt = maxAttempts;
+        while (readPage == null && cpt > 0) {
+			try {
+				cpt--;
+				readPage = readPythonPage(stock, start, tomorrow).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
+			} catch (IOException e1) {
+				LOGGER.warn(e1);
+				try {
+					Thread.sleep((maxAttempts-cpt) * 1000);
+				} catch (InterruptedException e) {
+					LOGGER.warn(e, e);
+				}
+			} 
+		}
         
-		readPage = filterToEndDate(end, readPage);
+		if (readPage == null) throw new HttpException();
+        
+		readPage = filterToEndDateInclusive(end, readPage); //[start,end] considering end is today
+		
 		TreeSet<ValidatableDated> queries = initValidatableSet();
         queries.addAll(readPage);
 
         LOGGER.guiInfo("Getting last quotes: Number of new quotations for " + stock.getSymbol() + ": " + queries.size());
         LOGGER.info(queries);
-
         try {
             ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>();
             tablet2lock.add(new TableLocker(DataSource.QUOTATIONS.TABLE_NAME, TableLocker.LockMode.NOLOCK));
@@ -108,18 +118,39 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
             LOGGER.error("Yahoo quotations SQL error trying: " + stock + " between " + start + " and " + end, e);
             throw e;
         }
+		
+		QuotationUnit latestInference = null;
+		Date marketClose = DateFactory.endDateFix(DateFactory.getNowEndDate(), stock.getMarket().getUTCTimeLag(), stock.getTradingMode());
+		if (end.compareTo(marketClose) > 0) { //Considering end is today: Looking for latest daily
+			//Need to check if end is present
+			 if (readPage.size() == 0 || readPage.get(readPage.size() - 1).getDate().compareTo(end) < 0) { //end is missing
+				 Date tomorrowPlusOne = DateUtils.addDays(tomorrow, +1);
+				 try {
+					latestInference = readPythonIntradayPage(stock, end, tomorrowPlusOne);
+				} catch (IOException e) {
+					LOGGER.error("Yahoo intraday error trying: " + stock + " between " + end + " and " + tomorrowPlusOne, e);
+					throw new HttpException(e.toString(), e);
+				}
+			}
+		}
+        
+		if (latestInference != null) {
+			DataSource.getInstance().getShareDAO().saveOrUpdateQuotationUnit(latestInference);
+		}
 
     }
 
-    private List<Validatable> readPythonPage(Stock stock, Date start, Date end) throws IOException {
+    protected abstract QuotationUnit readPythonIntradayPage(Stock stock, Date quotationDate, Date tomorrowPlusOne) throws IOException;
+
+	private List<Validatable> readPythonPage(Stock stock, Date start, Date end) throws IOException {
     	
     	DayQuoteYahooPythonFormater dsf = new DayQuoteYahooPythonFormater(null, stock, stock.getMarketValuation().getCurrency().name());
     	
 		String symbol = stock.getSymbol();
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^" + symbol;
 		
-    	InputStream processInputStream = readInput(symbol, start, end);
-		
+    	InputStream processInputStream = readInput(symbol, start, end, false, false);
+
 		List<Validatable> validatables = new ArrayList<Validatable>();
 		
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(processInputStream));) {
@@ -132,7 +163,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 					if (lineValidatables.size() > 1) throw new Exception("Invalid DailyQuotation line: " + line);
 					
 					YahooPyQuotation yq;
-					if (lineValidatables.size() > 0 && (yq = (YahooPyQuotation)lineValidatables.get(0)).getSplit() != 1d) {
+					if (lineValidatables.size() > 0 && (yq = (YahooPyQuotation) lineValidatables.get(0)).getSplit() != 1d) {
 						validatables = validatables.stream()
 								.map(v -> ((YahooPyQuotation) v).reverseSplit(yq.getSplit()))
 								.collect(Collectors.toList());
@@ -141,22 +172,26 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 					validatables.addAll(lineValidatables);
 				} catch (StopParseErrorException e) {
 					LOGGER.warn(e);
-					throw new IOException(
-							"Stop parsing response from python for " + symbol + " : " + ((StopParseErrorException) e).getMessage() + "\n" +
-									"Reason : " + ((StopParseErrorException) e).getReason());
+					while ((line = in.readLine()) != null) {
+						LOGGER.warn(line);
+					}
+//					throw new IOException(
+//							"Stop parsing response from python for " + symbol + " between " + start + " and " + end + ": " + 
+//							((StopParseErrorException) e).getMessage() + ". " +
+//							"Reason: " + ((StopParseErrorException) e).getReason());
 	
 				} catch (AssertionError| Exception e) {
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line :" + line);
+					if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line: " + line);
 				}
 			}
 		}
 		
-		LOGGER.info("validatable: " + validatables.stream().map(v -> v.toDataBase()));
+		LOGGER.info("validatable: " + validatables.stream().map(v -> v.toDataBase().toString()).reduce((a, e) -> a + " / " + e));
 		return validatables;
 		
 	}
 
-	protected abstract InputStream readInput(String symbol, Date start, Date end) throws IOException;
+	protected abstract InputStream readInput(String symbol, Date start, Date end, Boolean isPeriod, Boolean isIntraday) throws IOException;
 	
 
     public List<Validatable> readPage(Stock stock, MyUrl url, Date  start) throws HttpException {
@@ -169,7 +204,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 
         //No check available for Yahoo
         if (!stock.isFieldSet("isin") || !stock.isFieldSet("symbol") || !stock.isFieldSet("name")) {
-            LOGGER.warn("No completion check on symbol, isin, name is available for the Yahoo provider. Please provide the full info (symbol, isin, name) for each stock : "+stock);
+            LOGGER.warn("No completion check on symbol, isin, name is available for the Yahoo provider. Please provide the full info (symbol, isin, name) for each stock: "+stock);
 
         } else {
             List<Validatable> listReq = new ArrayList<Validatable>();
@@ -178,7 +213,7 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 
                 //check for last former quotation
                 Date pastLastQuotationDate = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, false);
-                LOGGER.info("New ticker : " + stock.toString() + " and will be added with last quote : " + pastLastQuotationDate);
+                LOGGER.info("New ticker: " + stock.toString() + " and will be added with last quote: " + pastLastQuotationDate);
 
                 listReq.add(stock);
                 stockList.add(stock);

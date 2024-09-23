@@ -52,10 +52,10 @@ public enum Market implements Serializable {
 
 	NASDAQ ("NASDAQ", "Nasdaq", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NASDAQ, "NASDAQ", "WMORN", true, new String[]{"NDX", "IXIC"}, "america", -4),
 	NYSE ("NYSE", "NYSE", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "NSE", "WMORN", true, new String[]{"NYA"}.clone(), "america", -4),
-	AMEX  ("AMEX", "AMEX", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
-	DJI  ("DJI", "DJI", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{"DJA", "DJI"}, "america", -4),
-	DJ  ("DJ", "DowJones", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
-	SP  ("SP", "S&P", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
+	AMEX ("AMEX", "AMEX", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.AMEX, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
+	DJI ("DJI", "DJI", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{"DJA", "DJI"}, "america", -4),
+	DJ ("DJ", "DowJones", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
+	SP ("SP", "S&P", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NYSE, "UNKNOWN", "WMORN", true, new String[]{}, "america", -4),
 
 	NZSX ("NZSX", "NZSX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{"NZ50"}, "newzealand", +12),
 	NZAX ("NZAX", "NZAX", Currency.NZD, BigDecimal.ONE, YahooMarketExtentions.NZ, "UNKNOWN", "UNKNOWN", true, new String[]{}, "newzealand", +12),
@@ -100,11 +100,11 @@ public enum Market implements Serializable {
 	HKSE ("HKSE", "HKSE", Currency.HKD, BigDecimal.ONE, YahooMarketExtentions.HK, "UNKNOWN", "UNKNOWN", true, new String[]{"HSI"}, "hongkong", +8),
 	NSENAIROBI ("NSENAIROBI", "NSENAIROBI", Currency.KES, BigDecimal.ONE, YahooMarketExtentions.KE, "UNKNOWN", "UNKNOWN", false, new String[]{}, "nairobi", +3),
 	
-	CRYPTOS ("CRYPTOS", "CRYPTOS", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4), //US time zone
+	CRYPTOS ("CRYPTOS", "CRYPTOS", Currency.USD, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", 0), //UTC
 
-	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4), //US time zone
+	UNKNOWN ("UNKNOWN", "Unknown", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "UNKNOWN", "UNKNOWN", false, new String[]{}, "world", -4), //US NY time zone
 	
-	MISCELLANEOUS ("MISCELLANEOUS", "Miscellaneous", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "MISCELLANEOUS", "MISCELLANEOUS", false, new String[]{}, "world", -4); //US time zone
+	MISCELLANEOUS ("MISCELLANEOUS", "Miscellaneous", Currency.NAN, BigDecimal.ONE, YahooMarketExtentions.NN, "MISCELLANEOUS", "MISCELLANEOUS", false, new String[]{}, "world", -4); //US NY time zone
 
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Market.class);

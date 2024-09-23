@@ -41,12 +41,12 @@ public class GetOperation extends VarOperation {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> defaultValue = inputs.get(1);
 		
-		Value<?> variableValue = targetStock.getHeapVar(variableName);
+		Value<?> variableValue = targetStock.getHeap().getHeapVar(variableName);
 		if (variableValue == null) {
 			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means the value is needed we return empty()
 					((NumberValue) defaultValue).getValue(targetStock).equals(Double.NaN)) {
 				LOGGER.warn(this.getReference() + ": Value required is null for " + variableName + ", " + variableValue + ". With default set to: " + defaultValue);
-				//throw new RuntimeException("Value needed and not provided for " + variableName);  //Can't do this at it will mark this operation as failed
+				//throw new RuntimeException("Value needed and not provided for " + variableName);  //Can't do this as it will mark this operation as failed
 				return this.emptyValue();
 			} else {
 				LOGGER.warn(this.getReference() + ": Value is null for " + variableName + ", " + variableValue  + ". Using default: " + defaultValue);

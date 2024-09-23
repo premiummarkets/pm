@@ -45,6 +45,8 @@ import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
 public abstract class ChartDisplayStrategy {
+	
+	protected enum PopupType {EVTCHARTING, EVTTREND};
 
 	class TransfoInfo implements InfoObject {
 		String info;
@@ -97,7 +99,7 @@ public abstract class ChartDisplayStrategy {
 	private StripedCloseFunction stripedCloseFunction;
 	private ActionDialog popupDialog;
 
-	public abstract void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted);
+	public abstract void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes);
 
 	public abstract void initRefreshAction();
 
@@ -121,7 +123,7 @@ public abstract class ChartDisplayStrategy {
 		return false;
 	}
 
-	public abstract void resetChart(Boolean resetDisplayedList);
+	public abstract void resetChart(Boolean resetDisplayedList, PopupType ...popupTypes);
 
 	public abstract Boolean getIsApplyColor();
 

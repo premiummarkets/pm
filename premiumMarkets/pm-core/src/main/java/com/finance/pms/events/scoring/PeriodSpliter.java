@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.scoring;
 
-import java.security.InvalidParameterException;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -38,6 +37,7 @@ import java.util.Stack;
 import com.finance.pms.datasources.events.OnTheFlyRevesreCalcPeriod;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.InvalidParameterException;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.QuotationsFactories;
@@ -116,7 +116,7 @@ public class PeriodSpliter {
 				} else if (calendarTimeUnit == Calendar.DAY_OF_YEAR)  {
 					QuotationsFactories.getFactory().incrementDate(stock, dataTypes,slidingDateDebCal, periodLength);
 				} else {
-					throw new InvalidParameterException("calendarTimeUnit : "+calendarTimeUnit);
+					throw new InvalidParameterException("calendarTimeUnit : " + calendarTimeUnit);
 				}
 				Date pEndDate = slidingDateDebCal.getTime();
 				

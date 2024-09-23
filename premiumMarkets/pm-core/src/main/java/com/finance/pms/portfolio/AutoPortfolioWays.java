@@ -41,14 +41,13 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ObserverMsg;
 
 public interface AutoPortfolioWays {
 	
 	
 	//The concurrency thing
-	TransactionHistory calculate(List<SymbolEvents> events, Date enDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule);
+	SignalHistory calculate(List<SymbolEvents> events, Date enDate);
 	Boolean isAutoCalculationIdempotent();
 
 	//The buy and sell thing
@@ -58,16 +57,20 @@ public interface AutoPortfolioWays {
 	Currency inferPortfolioCurrency();
 	void updateShare(PortfolioShare portfolioShare, BigDecimal quantity, Date currentDate, BigDecimal trPrice, TransactionType trType) throws InvalidQuantityException;
 	PortfolioShare addOrUpdateShare(Stock stock, BigDecimal quantity, Date date, BigDecimal avgBuyPrice, MonitorLevel mLevel, Currency trCurrency, TransactionType trType) throws InvalidQuantityException;
+	
+	PonderationRule getBuyPonderationRule();
+	PonderationRule getSellPonderationRule();
+	AutoPortfolioTransactionScheduler getTransactionScheduler();
 
 	//The transactions thing
-	TransactionHistory getTransactionHistory();
-	void log(TransactionRecord transactionRecord);
+	SignalHistory getTransactionHistory();
 	String extractPortfolioTransactionLog(Date startDate, Date endDate, Boolean isLatestTransactionOnly) throws Throwable;
 	SortedSet<TransactionElement> getTransactions();
 	
 	//Perfs
 	public BigDecimal getGainAnnualisedPercent(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
 	public BigDecimal getGainRealisedPercent(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public BigDecimal getGainReinvestedPercent(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
 	public SortedSet<TransactionElement> transactionsSortedByDate(Date startDate, Date endDate, Boolean isLatestTransactionOnly);
 	
 	//Other things

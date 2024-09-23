@@ -36,13 +36,20 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(ChartIndicLineSeriesDataSetBuilder.class);
 	private XYPlot indicPlot;
+	private Boolean useOneRange;
+	private Boolean useNoGroupRanges;
 
 	private SortedSet<Date> fullDateSet;
 	private Map<EventInfo, SortedMap<Date, double[]>> eventsSeries;
 
-	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, SortedSet<Date> fullDateSet, Map<EventInfo, SortedMap<Date, double[]>> eventsSeries) {
+
+
+	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, Boolean useOneRange, Boolean useNoGroupRanges, SortedSet<Date> fullDateSet, Map<EventInfo, SortedMap<Date, double[]>> eventsSeries) {
 		super();
 		this.indicPlot = indicPlot;
+		this.useOneRange = useOneRange;
+		this.useNoGroupRanges = useNoGroupRanges;
+		
 		this.fullDateSet = fullDateSet;
 		this.eventsSeries = eventsSeries;
 	}
@@ -65,15 +72,6 @@ public class ChartIndicLineSeriesDataSetBuilder {
 
 			int eventDefFirstRendererIdx = 0;
 			
-//			double groupMaxY = -Double.MAX_VALUE;
-//			double groupMinY = Double.MAX_VALUE;
-//			Integer[] thresholdsIdxs = eventsSeries.keySet().stream().map(ced ->
-//				IntStream.range(0, ced.getEventDefDescriptor().getGroupsCount())
-//					.mapToObj(idx -> ced.getEventDefDescriptor().getThresholdsIdx(idx))
-//					.flatMap(thresholds -> Arrays.stream(thresholds))
-//					.toArray(Integer[]::new)
-//				).flatMap(thresholds -> Arrays.stream(thresholds)).toArray(Integer[]::new);
-			
 			for (EventInfo chartedEvtDef: eventsSeries.keySet()) {//Iterate EventDef
 
 				final EventDefDescriptor eventDefDescriptor = chartedEvtDef.getEventDefDescriptor();
@@ -83,7 +81,6 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				for (int groupIdx = 0; groupIdx < eventDefDescriptor.getGroupsCount(); groupIdx++) {//Iterate groups
 
 					try {
-						if (LOGGER.isDebugEnabled()) LOGGER.debug("Group description: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
 						LOGGER.info("Group description: " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
 						Boolean groupIsDisplayed = false;
 
@@ -101,11 +98,22 @@ public class ChartIndicLineSeriesDataSetBuilder {
 						//Build data set adding data series and tool tips for each output of the group
 						MyTimeSeriesCollection dataSet = new MyTimeSeriesCollection();
 						Integer[] outputIndexes = eventDefDescriptor.getOutputIndexesForGroup(groupIdx);
-						int seriesIdx = 0;
+						int seriesInGrpIdx = 0;
 						for (int k = 0; k < outputIndexes.length; k++) {//Iterate outputs series
 
 							int outputIdx = outputIndexes[k];
 							if (eventDefDescriptor.isDisplayed(groupIdx, outputIdx)) {
+								
+								if (useNoGroupRanges) { //No group means one renderer per output
+									dataSet = new MyTimeSeriesCollection();
+									renderer = indicPlot.getRenderer(rendererIdx + seriesInGrpIdx);
+									if (renderer == null) {
+										renderer = new XYLineAndShapeRenderer(true, false);
+										indicPlot.setRenderer(rendererIdx, renderer);
+									}
+									groupMaxY = -Double.MAX_VALUE;
+									groupMinY = Double.MAX_VALUE;
+								}
 
 								//Build the timeSeries for the output
 								final String domain = eventDefDescriptor.getFullNameFor(groupIdx, outputIdx);
@@ -145,9 +153,12 @@ public class ChartIndicLineSeriesDataSetBuilder {
 								}
 
 								dataSet.addSeries(timeSeries);
-
-								renderer.setSeriesPaint(seriesIdx, eventDefDescriptor.getColor(rendererIdx, groupIdx, outputIdx));
-								renderer.setSeriesShape(seriesIdx, new Rectangle(new Dimension(100, 100)));
+								
+								int seriesInRenderIdx = (useNoGroupRanges)?0:seriesInGrpIdx;
+								//TODO color: int nonce = (useNoGroupRanges)?(int)(Math.random() * ((Max) + 1)):0;
+								
+								renderer.setSeriesPaint(seriesInRenderIdx, eventDefDescriptor.getColor(rendererIdx, groupIdx, outputIdx));
+								renderer.setSeriesShape(seriesInRenderIdx, new Rectangle(new Dimension(100, 100)));
 
 								XYToolTipGenerator xyToolTpGen = new XYToolTipGenerator() {
 
@@ -182,53 +193,29 @@ public class ChartIndicLineSeriesDataSetBuilder {
 									}
 								};
 								//renderer.setSeriesToolTipGenerator(seriesIdx, xyToolTpGen);
-								dataSet.addToolTipGenerator(seriesIdx, xyToolTpGen);
+								dataSet.addToolTipGenerator(seriesInRenderIdx, xyToolTpGen);
 								
-								seriesIdx++;
+								if (useNoGroupRanges) {
+									eventDefNbOfRenderesCreatedIdx = finiliseRangeAxis(
+											chartedEvtDef, eventDefDescriptor, rendererIdx + outputIdx, eventDefNbOfRenderesCreatedIdx, 
+											groupIdx, groupIsDisplayed, groupMaxY, groupMinY,
+											dataSet);
+								}
+								
+								seriesInGrpIdx++;
 
 							}
 
 						} //Outputs series loop
-
-						//Y Axe for group. Finalising the Group.
-						boolean hasData = (groupMinY != Double.MAX_VALUE && groupMaxY != -Double.MAX_VALUE);
-						if (groupIsDisplayed && hasData) {
-
-							ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
-							if (rangeAxis == null) {
-								double[] thresholdCenterNMinNMax = groupCenter(groupMinY, groupMaxY, eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
-								rangeAxis = initYAxis(thresholdCenterNMinNMax[0], thresholdCenterNMinNMax[1], thresholdCenterNMinNMax[2]);
-								if (eventDefNbOfRenderesCreatedIdx == 0) {
-									indicPlot.addRangeMarker(rendererIdx, new ValueMarker(0), Layer.FOREGROUND, false);
-									indicPlot.setRangeGridlinesVisible(true);
-									AxisLocation location = AxisLocation.TOP_OR_LEFT;
-									indicPlot.setRangeAxisLocation(rendererIdx, location);
-									rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-								} else if (eventDefNbOfRenderesCreatedIdx <= 2) {
-									AxisLocation location = AxisLocation.TOP_OR_RIGHT;
-									indicPlot.setRangeAxisLocation(rendererIdx, location);
-									rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
-								} else {
-									rangeAxis.setVisible(false);
-								}
-								eventDefNbOfRenderesCreatedIdx++;
-								indicPlot.setRangeAxis(rendererIdx, rangeAxis, true);
-
-							}
-
-							//Set group dateSet
-							indicPlot.setDataset(rendererIdx, dataSet);
-							//if ( rendererIdx != 0 ) 
-							indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
-
-							if (LOGGER.isDebugEnabled()) LOGGER.debug("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
-
-						} else {
-							if (groupIsDisplayed && !hasData) {
-								LOGGER.warn("Group has no data (not displayed): \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
-							}
+						
+						if (!useNoGroupRanges) {
+							//Y Axe for group. Finalising the Group.
+							eventDefNbOfRenderesCreatedIdx = finiliseRangeAxis(
+									chartedEvtDef, eventDefDescriptor, rendererIdx, eventDefNbOfRenderesCreatedIdx, 
+									groupIdx, groupIsDisplayed, groupMaxY, groupMinY,
+									dataSet);
 						}
-
+						
 					} catch (Exception e) {
 						LOGGER.error("Can't display group: " + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx), e);
 					}
@@ -240,6 +227,21 @@ public class ChartIndicLineSeriesDataSetBuilder {
 				eventDefFirstRendererIdx = eventDefFirstRendererIdx + eventDefNbOfRenderesCreatedIdx;
 
 			} //EventDefs loop
+			
+			
+			if (useOneRange) { //Reseting YAxis Range for all groups if use one range
+				double maxUpper = -Double.MAX_VALUE;
+				double minLower = Double.MAX_VALUE;
+				for (int i = 0; i < indicPlot.getRangeAxisCount(); i++) {
+					double upperBound = indicPlot.getRangeAxis(i).getRange().getUpperBound();
+					double lowerBound = indicPlot.getRangeAxis(i).getRange().getLowerBound();
+					maxUpper = Math.max(maxUpper, upperBound);
+					minLower = Math.min(minLower, lowerBound);
+				}
+				for (int i = 0; i < indicPlot.getRangeAxisCount(); i++) {
+					indicPlot.getRangeAxis(i).setRange(minLower, maxUpper);
+				}
+			}
 
 		} catch (NoSuchElementException e) {
 			LOGGER.warn("Can't refresh indicator chart: "+ e);
@@ -247,6 +249,49 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			LOGGER.warn("Can't refresh indicator chart: "+ e, e);
 		}
 
+	}
+
+	private int finiliseRangeAxis(
+			EventInfo chartedEvtDef, final EventDefDescriptor eventDefDescriptor, int rendererIdx, int eventDefNbOfRenderesCreatedIdx, 
+			int groupIdx, Boolean groupIsDisplayed, double groupMaxY, double groupMinY, 
+			MyTimeSeriesCollection dataSet) {
+		boolean hasData = (groupMinY != Double.MAX_VALUE && groupMaxY != -Double.MAX_VALUE);
+		if (groupIsDisplayed && hasData) {
+
+			ValueAxis rangeAxis = indicPlot.getRangeAxis(rendererIdx);
+			if (rangeAxis == null) {
+				double[] thresholdCenterNMinNMax = groupCenter(groupMinY, groupMaxY, eventsSeries.get(chartedEvtDef), eventDefDescriptor, groupIdx);
+				rangeAxis = initYAxis(thresholdCenterNMinNMax[0], thresholdCenterNMinNMax[1], thresholdCenterNMinNMax[2]);
+				if (eventDefNbOfRenderesCreatedIdx == 0) {
+					indicPlot.addRangeMarker(rendererIdx, new ValueMarker(0), Layer.FOREGROUND, false);
+					indicPlot.setRangeGridlinesVisible(true);
+					AxisLocation location = AxisLocation.TOP_OR_LEFT;
+					indicPlot.setRangeAxisLocation(rendererIdx, location);
+					rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
+				} else if (eventDefNbOfRenderesCreatedIdx <= 2) {
+					AxisLocation location = AxisLocation.TOP_OR_RIGHT;
+					indicPlot.setRangeAxisLocation(rendererIdx, location);
+					rangeAxis.setLabel(chartedEvtDef.getEventReadableDef() + " : " + eventDefDescriptor.getMainLabelForGroup(groupIdx));
+				} else {
+					rangeAxis.setVisible(false);
+				}
+				eventDefNbOfRenderesCreatedIdx++;
+				indicPlot.setRangeAxis(rendererIdx, rangeAxis, true);
+			}
+
+			//Set group dateSet
+			indicPlot.setDataset(rendererIdx, dataSet);
+			//if ( rendererIdx != 0 ) 
+			indicPlot.mapDatasetToRangeAxis(rendererIdx, rendererIdx);
+
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Group displayed: \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+
+		} else {
+			if (groupIsDisplayed && !hasData) {
+				LOGGER.warn("Group has no data (not displayed): \n" + eventDefDescriptor.getGroupFullDescriptionFor(groupIdx));
+			}
+		}
+		return eventDefNbOfRenderesCreatedIdx;
 	}
 
 	private double[] groupCenter(double groupYMin, double groupYMax, SortedMap<Date, double[]> serie, EventDefDescriptor eventDefDescriptor, int groupIdx) {

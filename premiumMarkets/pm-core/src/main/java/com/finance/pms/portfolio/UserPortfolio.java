@@ -42,8 +42,6 @@ import org.apache.commons.lang.NotImplementedException;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.SymbolEvents;
-import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ObserverMsg;
 
 /**
@@ -79,13 +77,13 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Override
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
-		return getUserPortfolioDelegate().calculate(listEvents, currentDate, buyStrategy, buyPonderationRule, sellPonderationRule);
+	public SignalHistory calculate(List<SymbolEvents> listEvents, Date currentDate) {
+		return getUserPortfolioDelegate().calculate(listEvents, currentDate);
 	}
 
 	@Transient
-	public TransactionHistory getTransactionHistory() {
-		return getUserPortfolioDelegate().getTransactionHistory();
+	public SignalHistory getTransactionHistory() {
+		return getUserPortfolioDelegate().getSignalHistory();
 	}
 
 
@@ -113,8 +111,8 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 
-	public void log(TransactionRecord transactionRecord) {
-		this.getUserPortfolioDelegate().log(transactionRecord);
+	public void log(CalcSignalRecord transactionRecord) {
+		//Nothing
 	}
 
 
@@ -130,6 +128,12 @@ public class UserPortfolio extends Portfolio implements AutoPortfolioWays {
 	@Transient
 	public Boolean isAutoCalculationIdempotent() {
 		return true;
+	}
+
+	@Override
+	@Transient
+	public AutoPortfolioTransactionScheduler getTransactionScheduler() {
+		return null;
 	}
 
 }

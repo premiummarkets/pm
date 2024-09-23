@@ -55,6 +55,8 @@ import javax.xml.bind.annotation.XmlType;
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.AnalysisClient;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
 import com.finance.pms.events.operations.conditional.Condition;
@@ -410,18 +412,24 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				
 				//Log
 				
-////				//DEBUG
+//				//DEBUG
 //				if (operationOutput != null && operationOutput instanceof NumericableMapValue) {
-//					Date parse = new SimpleDateFormat("yyyy-MM-dd").parse("2023-01-26");
+//					java.util.Date parse = new java.text.SimpleDateFormat("yyyy-MM-dd").parse("2024-08-30");
 //					SortedMap<Date, Double> value = ((NumericableMapValue) operationOutput).getValue(targetStock);
 //					//if (!value.containsKey(parse) || value.get(parse) == null || Double.isNaN(value.get(parse))) {
-//					if (value.containsKey(parse)) {
-//						//throw new RuntimeException("Missing key or value at " + parse + " for " + this + ": " + value.get(parse));
-//						//LOGGER.error("Missing key or value at " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae() + ": " + value.get(parse));
-//						LOGGER.error("Added NaN key at " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae() + ": " + value.get(parse));
+//					//if (value.containsKey(parse)) {
+////					if (value.firstKey().after(parse)) {
+////					//if (this instanceof StatsOperation) {
+////						//throw new RuntimeException("Missing key or value at " + parse + " for " + this + ": " + value.get(parse));
+////						//LOGGER.error("Missing key or value at " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae() + ": " + value.get(parse));
+////						//LOGGER.error("Added NaN key at " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae(targetStock, thisCallStack) + ": " + value.get(parse));
+////						LOGGER.error("First output is after " + parse + " for " + this + " and " + targetStock + " with " + this.toFormulae(targetStock, thisCallStack) + ": " + value.get(parse));
+////					}
+//					if (value.lastKey().before(parse)) {
+//						LOGGER.error("Missing last key " + parse + " for " + this + " and " + targetStock + " with " + this.shortOutputReference(thisCallStack) + ": " + value.get(parse));
 //					}
 //				}
-////				//DEBUG
+//				//DEBUG
 				
 				if (isUserOpCall) {
 						//&& (operationOutput instanceof NumericableMapValue || operationOutput instanceof MultiMapValue || this instanceof CachableOperation)) {
@@ -787,6 +795,38 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			String string = this.getOperationReference() + selector + "(" + "\n\t" + operandsFormated + "\n)";
 			return string;
 		}
+	}
+	
+	public void semanticValidation() throws Exception {
+		
+		EventInfoOpsCompoOperation testEventInfo = new EventInfoOpsCompoOperation("semanticValidation", "semanticValidation");
+		TargetStockInfo testTargetStock = new TargetStockInfo("semanticValidation", testEventInfo, AnalysisClient.ANY_STOCK, DateFactory.dateAtZero(), DateFactory.getNowEndDate());
+		
+		List<Operation> useOfLets = this.findOperandsWithGivenNativeOperationReference("let");
+		useOfLets.stream().forEach(lo -> {
+			lo.run(testTargetStock, newCallerStack(testTargetStock), 0);
+		});
+		
+		List<Operation> useOfGets = this.findOperandsWithGivenNativeOperationReference("get");
+		String exceptions = useOfGets.stream()
+				.map(go -> {
+					try {
+						Value<?> value = go.run(testTargetStock, newCallerStack(testTargetStock), 0);
+						Object valueOfValue = value.getValue(testTargetStock);
+						if (go.emptyValue().getValue(testTargetStock).equals(valueOfValue)) 
+							throw new Exception("" + ((StringableValue) go.getOperands().get(0).getParameter()).getAsStringable() + " is not set!");
+						if (go.getOperands().get(1).getParameter().getValue(testTargetStock).equals(valueOfValue))
+							throw new Exception("" + ((StringableValue) go.getOperands().get(0).getParameter()).getAsStringable() + " is set to default!");
+					} catch (Exception e) {
+						return Optional.of(e.getMessage());
+					}
+					return Optional.empty();
+				})
+				.distinct()
+				.reduce( "", (a, og) -> (!og.isEmpty())?a + "\n" + og.get(): a, (a, og) -> a + og);
+		
+		if (!exceptions.isEmpty()) throw new Exception(exceptions);
+		
 	}
 
 	public void setFormulae(String formula) {

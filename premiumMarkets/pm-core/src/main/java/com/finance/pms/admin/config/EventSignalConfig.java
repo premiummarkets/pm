@@ -60,7 +60,8 @@ import com.finance.pms.events.pounderationrules.LatestEventsIndicatorOnlyPondera
 import com.finance.pms.events.pounderationrules.LatestEventsPonderationRule;
 import com.finance.pms.events.pounderationrules.PonderationRule;
 import com.finance.pms.events.pounderationrules.SilentPonderationRule;
-import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
+import com.finance.pms.portfolio.AutoPortfolioDelegate.InvestmentStrategy;
+import com.finance.pms.portfolio.AutoPortfolioTransactionScheduler.BnSStrategy;
 
 public class EventSignalConfig extends Config implements Cloneable {
 
@@ -110,7 +111,8 @@ public class EventSignalConfig extends Config implements Cloneable {
 	private String buyPonderationRule = MainPMScmd.getMyPrefs().get("event.buyponderationrule", LatestEventsIndicatorOnlyPonderationRule.class.getSimpleName());
 	private String sellPonderationRule = MainPMScmd.getMyPrefs().get("event.sellponderationrule", LatestEventsPonderationRule.class.getSimpleName());
 	
-	private BuyStrategy buyStrategy;
+	private InvestmentStrategy invStrategy;
+	private BnSStrategy bNsStrategy;
 	private String bNsCalcStartDuration = MainPMScmd.getMyPrefs().get("event.bnscalcstartduration", "15d"); //15 days ago
 	
 	private String portfolioSuffix;
@@ -781,11 +783,18 @@ public class EventSignalConfig extends Config implements Cloneable {
 		this.evtCalcStartDuration = evtCalcStartDuration;
 	}
 
-	public BuyStrategy getBuyStrategy() {
-		return buyStrategy;
+	public InvestmentStrategy getInvStrategy() {
+		return invStrategy;
 	}
-	public void setBuyStrategy(BuyStrategy buyStrategy) {
-		this.buyStrategy = buyStrategy;
+	public void setInvStrategy(InvestmentStrategy buyStrategy) {
+		this.invStrategy = buyStrategy;
+	}
+	
+	public BnSStrategy getBnSStrategy() {
+		return bNsStrategy;
+	}
+	public void setBnSStrategy(BnSStrategy bNsStrategy) {
+		this.bNsStrategy = bNsStrategy;
 	}
 
 	public String getbNsCalcStartDuration() {

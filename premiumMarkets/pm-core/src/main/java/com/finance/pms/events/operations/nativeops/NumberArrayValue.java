@@ -12,11 +12,11 @@ import java.util.stream.IntStream;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 
+
 /**
  * @deprecated use NamedListValue instead
  * @see NamedListValue
  */
-
 @Deprecated
 public class NumberArrayValue extends NumberValue implements MultiValue {
 

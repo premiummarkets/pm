@@ -85,6 +85,7 @@ public class MapUtils {
 		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
 	}
 	
+	// period==0 means a variable window always starting at origin
 	public static SortedMap<Date, double[]> madMovingStat(SortedMap<Date, Double> map, Date startDate, int period, StatsFunction apacheStats, boolean lenientInit) {
 
 //		TreeMap<Date, Double> noNaNMap = map.keySet()
@@ -94,7 +95,7 @@ public class MapUtils {
 		
 		ArrayList<Date> keySet = new ArrayList<Date>(map.tailMap(startDate).keySet());
 		int startIdx = period;
-		if (lenientInit) {
+		if (lenientInit || period == 0) {
 			startIdx = apacheStats.getMinPeriod();
 		}
 
@@ -104,7 +105,7 @@ public class MapUtils {
 				.collect(Collectors.toMap(
 						endWindow -> keySet.get(endWindow),
 						endWindow -> {
-							Integer startWindow = endWindow - Math.min(endWindow, period);
+							Integer startWindow = (period == 0)? apacheStats.getMinPeriod() : endWindow - Math.min(endWindow, period);
 							SortedMap<Date,Double> values =
 									MapUtils.subMapInclusive(map, keySet.get(startWindow), keySet.get(endWindow)).keySet()
 									.stream()

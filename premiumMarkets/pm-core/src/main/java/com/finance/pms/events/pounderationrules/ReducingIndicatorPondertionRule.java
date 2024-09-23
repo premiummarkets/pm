@@ -26,6 +26,13 @@ public class ReducingIndicatorPondertionRule extends PonderationRule {
 		this.thenCount = 1; //2;
 	}
 
+	public ReducingIndicatorPondertionRule(int buySellTriggerSpan, int ifCount, int thenCount) {
+		this.buySellTriggerSpan = buySellTriggerSpan;
+		if (this.buySellTriggerSpan < 2) throw new RuntimeException("Invalid parameter: buySellTriggerSpan must be >= 2");
+		this.ifCount = ifCount;
+		this.thenCount = thenCount;
+	}
+
 	@Override
 	public Float finalWeight(SymbolEvents symbolEvents) {
 		

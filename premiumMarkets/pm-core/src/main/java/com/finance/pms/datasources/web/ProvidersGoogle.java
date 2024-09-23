@@ -99,7 +99,7 @@ public class ProvidersGoogle extends Providers implements MarketListProvider, Qu
 		List<ValidatableDated> readPage = readPage(stock, url, start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
 		
 		TreeSet<ValidatableDated> queries = initValidatableSet();
-		queries.addAll(filterToEndDate(end, readPage));
+		queries.addAll(filterToEndDateInclusive(end, readPage));
 
 		LOGGER.guiInfo("Getting last quotes : Number of new quotations for " + stock.getSymbol() + " :" + queries.size());
 		ArrayList<TableLocker> tablet2lock = new ArrayList<TableLocker>() ;

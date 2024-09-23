@@ -85,7 +85,7 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			{
 				progressBar = new ProgressBar(this, SWT.SMOOTH);
 				GridData logDisplayGD = new GridData(SWT.FILL,SWT.FILL,true,true);
-				logDisplayGD.horizontalSpan=4;
+				logDisplayGD.horizontalSpan = 4;
 				progressBar.setLayoutData(logDisplayGD);
 
 				progressBar.setFont(MainGui.DEFAULTFONT);

@@ -114,7 +114,7 @@ public class TransactionElement implements Comparable<TransactionElement>, Seria
 	}
 	
 	public String toChart() {
-		return  date + " / inv. " + quantity.multiply(price).setScale(2, RoundingMode.HALF_EVEN);
+		return  date + " / amt " + quantity.multiply(price).setScale(2, RoundingMode.HALF_EVEN);
 	}
 
 	public int compareTo(TransactionElement o) {

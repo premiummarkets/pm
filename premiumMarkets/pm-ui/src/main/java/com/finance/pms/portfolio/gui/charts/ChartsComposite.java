@@ -42,7 +42,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.security.InvalidParameterException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -107,9 +106,12 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.calculation.InvalidParameterException;
+import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.scoring.chartUtils.MyTimeSeriesCollection;
 import com.finance.pms.portfolio.gui.PortfolioComposite;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
+import com.finance.pms.portfolio.gui.charts.ChartDisplayStrategy.PopupType;
 
 /**
  * The Class ChartsComposite.
@@ -117,7 +119,7 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
  * @author Guillaume Thoreton
  */
 public class ChartsComposite extends SashForm implements RefreshableView {
-	
+
 	private final class MyChartPanel extends ChartPanel {
 		private static final long serialVersionUID = 1L;
 
@@ -160,7 +162,9 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 
-	private static final int MINSLIDERVALUE = 1;
+	private static final int MIN_SLIDER_SELECTION = 0;
+	private static final int MAX_SLIDER_SELECTION = 100;
+	private static final int THUMB_SLIDER_SIZE = 1;
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(ChartsComposite.class);
 
@@ -297,7 +301,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
 	}
 
-	void updateCharts(Boolean grantEventsUpdate) {
+	void updateCharts(Boolean grantEventsUpdate, PopupType... popupTypes) {
 
 		chartDisplayStrategy.getStripedCloseFunction().updateStartDate(slidingStartDate);
 		chartDisplayStrategy.getStripedCloseFunction().updateEndDate(slidingEndDate);
@@ -310,12 +314,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 			getHightlitedEventModel().resetOtherViewParams();
 			setHighligtedId(null);
 		}
-		chartDisplayStrategy.resetChart(false);
+		chartDisplayStrategy.resetChart(false, popupTypes);
 
 		Stock viewStateParams = hightlitedEventModel.getViewParamRoot();
 		if (viewStateParams != null) {
 			LOGGER.info("Calling highLight from updateCharts.");
-			chartDisplayStrategy.highLight(getHighligtedId(), viewStateParams, grantEventsUpdate);
+			chartDisplayStrategy.highLight(getHighligtedId(), viewStateParams, grantEventsUpdate, popupTypes);
 		}
 
 	}
@@ -657,7 +661,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				GridData portfolioInfosGroupData = new GridData(GridData.FILL_HORIZONTAL);
 				chartBoutonsGroup.setLayoutData(portfolioInfosGroupData);
 
-				chartBoutonsGroup.setText("Portfolio charting: " + MainPMScmd.getMyPrefs().get("event.analysisName", null));
+				chartBoutonsGroup.setText("Portfolio charting: " + SelectedIndicatorsCalculationService.getAnalysisName());
 				chartBoutonsGroup.setFont(MainGui.DEFAULTFONT);
 				chartBoutonsGroup.setBackground(innerBgColor);
 
@@ -727,7 +731,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				                  	  MainPMScmd.getMyPrefs().put("ui.button.startdate", format);
 				                	  MainPMScmd.getMyPrefs().flushy();
 			                		
-									  sliderStart.setSelection(0);
+									  sliderStart.setSelection(MIN_SLIDER_SELECTION);
 			                    	  startSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
 			                    	  
 			                    	  buttonStart.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingStartDate));
@@ -756,8 +760,10 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					slidingSliderGroup.setLayout(slidingSliderGroupL);
 					{
 						sliderStart = new Slider(slidingSliderGroup, SWT.HORIZONTAL);
-						sliderStart.setThumb(1);
-						sliderStart.setMaximum(100);
+						sliderStart.setThumb(THUMB_SLIDER_SIZE);
+						sliderStart.setMinimum(MIN_SLIDER_SELECTION);
+						sliderStart.setMaximum(MAX_SLIDER_SELECTION);
+						sliderStart.setSelection(MIN_SLIDER_SELECTION);
 						sliderStart.addListener(SWT.MouseExit, new Listener() {
 
 							public void handleEvent(Event arg0) {
@@ -768,9 +774,10 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 					}	
 					{
 						sliderEnd = new Slider(slidingSliderGroup, SWT.HORIZONTAL);
-						sliderEnd.setThumb(1);
-						sliderEnd.setMinimum(0);
-						sliderEnd.setSelection(100);
+						sliderEnd.setThumb(THUMB_SLIDER_SIZE);
+						sliderEnd.setMinimum(MIN_SLIDER_SELECTION + THUMB_SLIDER_SIZE);
+						sliderEnd.setMaximum(MAX_SLIDER_SELECTION + THUMB_SLIDER_SIZE);
+						sliderEnd.setSelection(MAX_SLIDER_SELECTION);
 						sliderEnd.addListener(SWT.MouseExit, new Listener() {
 
 							public void handleEvent(Event arg0) {
@@ -812,7 +819,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 										MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
 										MainPMScmd.getMyPrefs().flushy();
 										
-										sliderEnd.setSelection(100);
+										sliderEnd.setSelection(MAX_SLIDER_SELECTION);
 										endSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
 										buttonEnd.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
 										buttonEnd.setFont(MainGui.DEFAULTFONT);
@@ -851,7 +858,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								MainPMScmd.getMyPrefs().put("ui.button.startdate", format);
 								MainPMScmd.getMyPrefs().flushy();
 
-								sliderStart.setSelection(0);
+								sliderStart.setSelection(MIN_SLIDER_SELECTION);
 								startSliderUpdateConditional(buttonStartDate, slidingEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
 							}
 
@@ -892,7 +899,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									MainPMScmd.getMyPrefs().put("ui.button.startdate", format);
 									MainPMScmd.getMyPrefs().flushy();
 
-									sliderStart.setSelection(0);
+									sliderStart.setSelection(MIN_SLIDER_SELECTION);
 									startSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
 								} else {
 									chartDisplayStrategy.showPopupDialog("To move the start date further forward, you will need to move the end date first.", "Ok", null, null);
@@ -938,7 +945,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 									MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
 									MainPMScmd.getMyPrefs().flushy();
 									
-									sliderEnd.setSelection(100);
+									sliderEnd.setSelection(MAX_SLIDER_SELECTION);
 									endSliderUpdateConditional(buttonEndDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
 								} else {
 									chartDisplayStrategy.showPopupDialog("To move the end date further backward, you will need to move the start date first.", "Ok", null, null);
@@ -984,7 +991,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 								MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
 								MainPMScmd.getMyPrefs().flushy();
 								
-								sliderEnd.setSelection(100);
+								sliderEnd.setSelection(MAX_SLIDER_SELECTION);
 								endSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
 							}
 
@@ -1039,16 +1046,16 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		Integer startSliderValue = sliderStart.getSelection();
 		
 		//If the end slider date is reach we push the end slider
-		if (sliderEnd.getSelection() - sliderStart.getSelection() <= MINSLIDERVALUE) {
-			if (sliderEnd.getSelection() <= 100 - MINSLIDERVALUE) {
-				int endValue = startSliderValue + MINSLIDERVALUE;
+		if (sliderEnd.getSelection() - sliderStart.getSelection() <= THUMB_SLIDER_SIZE) {
+			if (sliderEnd.getSelection() <= MAX_SLIDER_SELECTION - THUMB_SLIDER_SIZE) {
+				int endValue = startSliderValue + THUMB_SLIDER_SIZE;
 				sliderEnd.setSelection(endValue);
 				endSliderUpdate(minDate, maxDate, sliderEnd, endDateButton, endValue);
 			} else {
 				sliderEnd.setSelection(99);
 				endSliderUpdate(minDate, maxDate, sliderEnd, endDateButton, 99);
-				startSliderValue = 100 - MINSLIDERVALUE;
-				sliderStart.setSelection(100 - MINSLIDERVALUE);
+				startSliderValue = MAX_SLIDER_SELECTION - THUMB_SLIDER_SIZE;
+				sliderStart.setSelection(startSliderValue);
 			}
 
 		}
@@ -1061,9 +1068,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	private void startSliderUpdate(Date minDate, Date maxDate, final Slider sliderStart, final Button startDateButton, Integer sliderValue) {
 
-		Integer maxSlider= 100;
-		Integer minSlider= 0;
-		Integer perCentValue = sliderValue*100/(maxSlider - minSlider - sliderStart.getThumb());
+		Integer perCentValue = sliderValue*100 / (MAX_SLIDER_SELECTION - MIN_SLIDER_SELECTION); //int [0,100]
 
 		//Update sliding start date
 		Long diffDateInDays = (maxDate.getTime() - minDate.getTime())/(1000*3600*24);
@@ -1089,16 +1094,16 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		Integer sliderValue = sliderEnd.getSelection();
 
-		if (sliderEnd.getSelection() - sliderStart.getSelection() <= MINSLIDERVALUE) {
-			if (sliderStart.getSelection() >= MINSLIDERVALUE) {
-				int startValue = sliderValue - MINSLIDERVALUE;
+		if (sliderEnd.getSelection() - sliderStart.getSelection() <= THUMB_SLIDER_SIZE) {
+			if (sliderStart.getSelection() >= THUMB_SLIDER_SIZE) {
+				int startValue = sliderValue - THUMB_SLIDER_SIZE;
 				sliderStart.setSelection(startValue);
 				startSliderUpdate(minDate, maxDate, sliderStart, startDateButton, startValue);
 			} else {
-				sliderStart.setSelection(0);
-				startSliderUpdate(minDate, maxDate, sliderStart, startDateButton, 0);
-				sliderValue = MINSLIDERVALUE;
-				sliderEnd.setSelection(MINSLIDERVALUE);
+				sliderStart.setSelection(MIN_SLIDER_SELECTION);
+				startSliderUpdate(minDate, maxDate, sliderStart, startDateButton, MIN_SLIDER_SELECTION);
+				sliderValue = THUMB_SLIDER_SIZE;
+				sliderEnd.setSelection(THUMB_SLIDER_SIZE);
 			}
 		}
 
@@ -1110,9 +1115,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 	private void endSliderUpdate(Date minDate, Date maxDate, Slider sliderEndDate, Button endDateButton, Integer sliderValue) {
 
-		Integer maxSlider= 100;
-		Integer minSlider= 0;
-		Integer perCentValue = sliderValue*100/ (maxSlider - minSlider - sliderEndDate.getThumb());
+		Integer perCentValue = sliderValue*100 / (MAX_SLIDER_SELECTION - MIN_SLIDER_SELECTION); //int [0-100]
 
 		Long diffDate = (maxDate.getTime() - minDate.getTime())/(1000*3600*24);
 		Long nbDaySinceMin  = perCentValue * diffDate /100;

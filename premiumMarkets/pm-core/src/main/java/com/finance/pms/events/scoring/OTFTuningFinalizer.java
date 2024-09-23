@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Observer;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -67,6 +69,7 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
+import com.finance.pms.events.scoring.functions.DoubleSummaryStatisticsEnhanced;
 
 @Service("tuningFinalizer")
 public class OTFTuningFinalizer {
@@ -249,7 +252,8 @@ public class OTFTuningFinalizer {
 		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
 		Date firstEventDate = (eventListForEvtDef.isEmpty())?startDate:eventListForEvtDef.get(0).getDate();
 		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, firstEventDate, endDate);
-		if (LOGGER.isDebugEnabled()) LOGGER.info(export(buildResOnValidPeriods));
+		//if (LOGGER.isDebugEnabled()) 
+			LOGGER.info(export(buildResOnValidPeriods));
 
 		return buildResOnValidPeriods;
 	}
@@ -259,7 +263,8 @@ public class OTFTuningFinalizer {
 		List<PeriodRatingDTO> periods = buildResOnValidPeriods.getPeriods();
 		if (!periods.isEmpty()) {
 			print = "\n\nFollow:\n";
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+			print = print + "from" + "," + "priceAtFrom" + "," + "to" + "," + "priceAtTo" + "," + "getPriceRateOfChange()" + "," + "trend" + "\n";
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			for (PeriodRatingDTO period : periods) {
 				print = print + period.toCSV() + "," + period + "\n";
 			}
@@ -539,6 +544,21 @@ public class OTFTuningFinalizer {
 		finalRating.applyFlog(statsBetween);
 
 		return finalRating;
+	}
+	
+	//Stats regarding the duration of each period
+	public DoubleSummaryStatisticsEnhanced getPeriodsSwingStats(TuningResDTO tuningRes) {
+		List<PeriodRatingDTO> periods = tuningRes.getPeriods();
+		DoubleSummaryStatisticsEnhanced stats = periods.stream().collect(Collectors.mapping(
+                p -> p.getPeriodLenght().doubleValue(),
+                Collector.of(
+                    DoubleSummaryStatisticsEnhanced::new,
+                    DoubleSummaryStatisticsEnhanced::accept,
+                    DoubleSummaryStatisticsEnhanced::combine,
+                    d -> d
+                )
+            ));
+		return stats;
 	}
 
 

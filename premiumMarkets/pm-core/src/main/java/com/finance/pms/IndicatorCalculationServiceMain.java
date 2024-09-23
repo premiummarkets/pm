@@ -194,7 +194,8 @@ public class IndicatorCalculationServiceMain {
 					AutoPortfolio autoPortfolio = PortfolioMgr.getInstance().getOrCreateAutoPortfolio(
 							SelectedIndicatorsCalculationService.getAnalysisName(),
 							new LatestEventsScreennerBuyAlertOnlyPonderationRule(SelectedIndicatorsCalculationService.getAnalysisName()),
-							new LatestEventsPonderationRule(sellEventTriggerThreshold,buyEventTriggerThreshold),
+							new LatestEventsPonderationRule(sellEventTriggerThreshold, buyEventTriggerThreshold),
+							null,
 							null);
 					
 					try {

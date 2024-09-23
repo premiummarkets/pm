@@ -1179,7 +1179,7 @@ public class MainGui extends SashForm implements RefreshableView {
 		frame.dispose();
 	}
 
-	protected void setupAppDefaultColors(Display display) {
+	public static void setupAppDefaultColors(Display display) {
 
 		eVENTS_LIGHT = new Color(display, 229,205,177);
 		eVENTS_DARKER =  new Color(display, 0, 0, 0);
@@ -1197,7 +1197,7 @@ public class MainGui extends SashForm implements RefreshableView {
 
 	}
 
-	protected void setupAppDefaultFont(Display display, Shell shell) {
+	public static void setupAppDefaultFont(Display display, Shell shell) {
 
 		if (LOGGER.isTraceEnabled()) {
 			System.out.println("Available fonts :");

@@ -188,7 +188,7 @@ public class DateFactory {
 	}
 	
 	/**
-	 * actualDateTime will always be after the last market close time returned
+	 * actualDateTime will always be after the last market close time returned and end date has to be inclusive in terms of quotations.
 	 * @param actualDateTime
 	 * @return
 	 */
@@ -210,7 +210,7 @@ public class DateFactory {
 		Date endDate;
 		if (actualDateTime.compareTo(dayMarketClosureCal.getTime()) < 0) { //Before closure
 			dayMarketClosureCal.add(Calendar.HOUR_OF_DAY, + utcTimeLag); //Fixing the potential added/removed day to get the Locale day.
-			if (tradingMode.equals(TradingMode.NON_STOP)) {
+			if (tradingMode.equals(TradingMode.NON_STOP)) { //Should never be here??
 				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -2);
 			} else {
 				dayMarketClosureCal.add(Calendar.DAY_OF_YEAR, -1);

@@ -64,7 +64,6 @@ import com.finance.pms.events.operations.conditional.OnThresholdCondition;
 import com.finance.pms.events.operations.conditional.UnaryCondition;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
-import com.finance.pms.events.operations.nativeops.MultiValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StockOperation;
@@ -166,7 +165,7 @@ public class TargetStockInfo {
 	private List<Output> gatheredChartableOutputs;
 	private List<ChartedOutputGroup> chartedOutputGroups;
 	
-	private Map<String, Value<?>> heap = new ConcurrentHashMap<>();
+	private TargetStockHeap heap = new TargetStockHeap();
 
 	private Map<OutputReference, List<EventsAnalyser>> outputAnalysers;
 	private Set<Date> missingKeys = new HashSet<>();
@@ -193,7 +192,9 @@ public class TargetStockInfo {
 //		}
 		this.endDate = endDate;
 
-		if (stock.getLastQuote().before(startDate)) throw new RuntimeException("No enough quotations to calculate: " + stock.toString());
+		if (stock.getLastQuote().before(startDate)) throw new RuntimeException(
+				"No enough quotations to calculate: " + stock.toString() + 
+				", with last quote " +  stock.getLastQuote() + " and start date " + startDate);
 		this.startDate = startDate;
 
 		this.calculatedOutputsCache = new ConcurrentHashMap<>();
@@ -204,6 +205,7 @@ public class TargetStockInfo {
 		
 	}
 	
+	//Copy and existing targetStock and its status. This acts as a view and is not a clone.
 	public TargetStockInfo(TargetStockInfo targetStock, EventInfoOpsCompoOperation eventInfoOpsCompoOperation, Date startDate, Date endDate) {
 		
 		this.analysisName = targetStock.getAnalysisName();
@@ -218,7 +220,7 @@ public class TargetStockInfo {
 		this.gatheredChartableOutputs = targetStock.gatheredChartableOutputs;
 		this.chartedOutputGroups = targetStock.chartedOutputGroups;
 		
-		this.heap = targetStock.heap;
+		this.heap = targetStock.getHeap();
 		
 		this.outputAnalysers = targetStock.outputAnalysers;
 		this.missingKeys = targetStock.missingKeys;
@@ -239,60 +241,12 @@ public class TargetStockInfo {
 	}
 	
 	
-	public void resetHeap(Map<String, Value<?>> newHeap) {
+	public void replaceHeap(TargetStockHeap newHeap) {
 		this.heap = newHeap;
 	}
 	
-	public Map<String, Value<?>> getHeap() {
+	public TargetStockHeap getHeap() {
 		return this.heap;
-	}
-	
-	//Supports Stringable Value and Map like Multivalue objects
-	public Value<?> letHeapVar(String variableName, Value<?> variableValue) {
-		
-		synchronized (heap) {
-			String[] nameSplit = variableName.split("\\.");
-			if (nameSplit.length > 1) { //Composite name
-				if (variableValue instanceof MultiValue) {
-					this.heap.put(nameSplit[0], variableValue);
-					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
-					if (value == null) {
-						throw new RuntimeException("letHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
-					}
-					return value;
-				} 
-//				else {
-//					LOGGER.warn("letHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
-//				}
-			}
-			
-			this.heap.put(variableName, variableValue);
-			return variableValue;
-		}
-		
-	}
-	
-	public Value<?> getHeapVar(String variableName) {
-		
-		synchronized (heap) {
-			String[] nameSplit = variableName.split("\\.");
-			if (nameSplit.length > 1) { //Composite name
-				Value<?> variableValue = this.heap.get(nameSplit[0]);
-				if (variableValue instanceof MultiValue) {
-					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
-					if (value == null) {
-						throw new RuntimeException("getHeapVar Name " + nameSplit[1] + " not found in variable " + variableName + ": " + variableValue);
-					}
-					return value;
-				}
-//				else {
-//					LOGGER.warn("getHeapVar Variable " + variableName + ": " + variableValue + " is not a mutli value.");
-//				}
-			}
-			
-			return this.heap.get(variableName);
-		}
-		
 	}
 	
 	private Output getCalculatedOutputsCacheFor(OutputReference outputReference) {

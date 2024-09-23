@@ -240,6 +240,7 @@ public class SharesListId  {
 					}
 				}
 				String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
+				LOGGER.info(String.format("Running Yahoo py: %s %s", pythonExec, python_py.toString()));
 				ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString());
 				Process p = pb.start();
 				
@@ -250,7 +251,7 @@ public class SharesListId  {
 					}
 				}
 				
-				try {
+				try { //Delete only if no error
 					Files.delete(python_py);
 				} catch (IOException e) {
 					LOGGER.error("Error deleting StockSymbolApi market list init py: " + e, e);

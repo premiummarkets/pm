@@ -31,7 +31,6 @@ package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,10 +44,12 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.EventModel;
 import com.finance.pms.events.EventDefinition;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.calculation.InvalidParameterException;
 import com.finance.pms.events.calculation.antlr.ANTLRIndicatorsParserHelper;
 import com.finance.pms.events.calculation.antlr.ParameterizedBuilder;
 import com.finance.pms.events.calculation.antlr.ParsingQueueProvider;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 
 //@Service("parameterizedIndicatorsBuilder")
@@ -113,7 +114,8 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 						clearPreviousCalculationsUsing(operation);
 						if (msg.getOldIdentifier().isPresent()) {
 							try {
-								saveUserOperation(operation.getReference(), operation.getFormulae());
+								String reference = operation.getReference();
+								saveUserOperation(reference, operation.getFormulae());
 							} catch (IOException e1) {
 								LOGGER.error(e1, e1);
 							}
@@ -121,18 +123,38 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 					}
 					break;
 				}
-				case CREATE_INDICTOR :					//Create a default indicator
-					if (operation == null || getCurrentOperations().containsKey(operation.getReference())) return;
-					String formula = "is bullish when " + operation.getReference() + " equals trend bullish;\nis bearish when " + operation.getReference() + " equals trend bearish;";
-					try {
-						addFormula(operation.getReference(), formula);
-					} catch (IOException e) {
-						LOGGER.error("Could not create default indicator for " + operation.getReference() + " with formula " + formula);
+				case CREATE_INDICATOR :					//Create a default indicator
+					if (operation == null || !getCurrentOperations().containsKey(operation.getReference())) return;
+					String reference = operation.getReference();
+					String indicatorFormula =  String.format("is bullish when %s is above threshold 0; is bearish when %s is below threshold 0;", reference, reference);
+					//Check existing references
+					List<Operation> usingIndicators = checkInUse(operation);
+					Optional<Operation> alreadyExisting = usingIndicators.stream()
+							.filter(op -> (op instanceof EventInfoOpsCompoOperation))
+							.filter(op -> (op.getFormulae() != null) && !op.getDisabled() && op.getFormulae().replaceAll("[\\n\\s]", "").contains(indicatorFormula.replaceAll("[\\n\\s]", "")))
+							.findAny();
+					//Proceed
+					List<Operation> usingOps = new ArrayList<>();
+					if (alreadyExisting.isEmpty()) {
+						try {
+							String indicatorId = msg.getOldIdentifier().orElseThrow();
+							if (getCurrentOperations().get(indicatorId) != null) {
+								//Name already used.
+								throw new RuntimeException("Name already used: " + indicatorId);
+							}
+							addFormula(indicatorId, indicatorFormula);
+							usingOps.add(getCurrentOperations().get(indicatorId));
+						} catch (IOException e) {
+							throw new RuntimeException("Could not create default indicator for " + reference + " with formula " + indicatorFormula);
+						}
+					} else {
+						usingOps.add(alreadyExisting.get());
 					}
-					break;
+					throw new InUseException(usingOps);
+					//break;
 				case UPDATE_OPS_INMEM_INSTANCES :		//This is just updating the ops lists after an ops crud so no need to delete events.
 					if (operation != null) {
-						String oldIdentifier = msg.getOldIdentifier().orElseThrow();
+						String oldIdentifier = msg.getOldIdentifier().orElseThrow();;
 						actualReplaceInUse(getCurrentOperations().values(), operation, oldIdentifier);
 					}
 					break;
@@ -279,5 +301,9 @@ public class ParameterizedIndicatorsBuilder extends ParameterizedBuilder {
 		}
 	}
 
+	@Override
+	public Optional<Operation> createDefaultIndicator(String identifier) {
+		return Optional.empty();
+	}
 
 }

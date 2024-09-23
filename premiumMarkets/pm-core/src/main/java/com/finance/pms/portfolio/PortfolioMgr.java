@@ -93,13 +93,13 @@ public class PortfolioMgr implements ApplicationContextAware {
 		PortfolioMgr.singleton.portfolios   = new ArrayList<Portfolio>();
 	}
 
-	public AutoPortfolio getOrCreateAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
+	public AutoPortfolio getOrCreateAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, AutoPortfolioTransactionScheduler scheduler, Currency currency) {
 
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 
 		List<Portfolio> existing = this.portfolios.stream().filter(p -> p.getName().equals(portfolioName)).collect(Collectors.toList());
 		if (existing.size() == 0) {	
-			AutoPortfolio autoPortfolio =  new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
+			AutoPortfolio autoPortfolio =  new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, scheduler, currency, eventSignalConfig);
 			this.portfolios.add(autoPortfolio);
 			portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
 			return autoPortfolio;
@@ -108,6 +108,7 @@ public class PortfolioMgr implements ApplicationContextAware {
 			AutoPortfolio existingAutoPortfolio = (AutoPortfolio) existing.get(0);
 			existingAutoPortfolio.setSellPonderationRule(sellPonderationRule);
 			existingAutoPortfolio.setBuyPonderationRule(buyPonderationRule);
+			existingAutoPortfolio.setTransactionScheduler(scheduler);
 			existingAutoPortfolio.setEventSignalConfig(eventSignalConfig);
 			portfolioDAO.saveOrUpdatePortfolio(existingAutoPortfolio);
 			return existingAutoPortfolio;
@@ -115,13 +116,13 @@ public class PortfolioMgr implements ApplicationContextAware {
 	}
 
 	
-	public AutoPortfolio createOverwriteAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency) {
+	public AutoPortfolio createOverwriteAutoPortfolio(String portfolioName, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, AutoPortfolioTransactionScheduler scheduler, Currency currency) {
 
 		EventSignalConfig eventSignalConfig = (EventSignalConfig) ConfigThreadLocal.get(EventSignalConfig.EVENT_SIGNAL_NAME);
 		
 		removePortfolio(portfolioName);
 
-		AutoPortfolio autoPortfolio = new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, currency, eventSignalConfig);
+		AutoPortfolio autoPortfolio = new AutoPortfolio(portfolioName, buyPonderationRule, sellPonderationRule, scheduler, currency, eventSignalConfig);
 		this.portfolios.add(autoPortfolio);
 		portfolioDAO.saveOrUpdatePortfolio(autoPortfolio);
 		return autoPortfolio;

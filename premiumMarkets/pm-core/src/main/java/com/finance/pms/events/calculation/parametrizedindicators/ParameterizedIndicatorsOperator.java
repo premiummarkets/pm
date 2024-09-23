@@ -42,6 +42,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
@@ -130,6 +131,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			long startTime = new Date().getTime();
 			LOGGER.info("STARTING: " + eventInfoOpsCompoOperationHolder.getReference() + " for " + targetStock + " starting at " + startTime + ". "
 						+ "Formulae: " + eventInfoOpsCompoOperationHolder.toFormulaeDevelopped());
+			
 			EventMapValue eventMapValue = (EventMapValue) ((EventInfoOpsCompoOperation) eventInfoOpsCompoOperationHolder).run(targetStock, new ArrayList<>(), 0); //Should have been cloned by the caller.
 											
 			long finishTime = new Date().getTime();
@@ -160,17 +162,19 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			
 			//Extra analysers/augmenter
 			returnedEvents = targetStock.analyseEvents(returnedEvents, observers);
+			
 			//Extra analysers/augmenter: Retrieve exportBaseFileName of the main operation XXX
-			List<EventsAnalyser> eventsAnalyser = targetStock.getOutputAnalysers().get(targetStock.getChartedOutputGroups().get(0).getThisGroupMainOutputReference());
-			if (eventsAnalyser != null) {
-				Optional<EventsAnalyser> findFirst = eventsAnalyser.stream()
-					.filter(ea -> ea.getEgFileBaseName() != null)
-					.findFirst();
-				Optional<String> of = Optional.empty();
-				if (findFirst.isPresent()) {
-					of = Optional.of(findFirst.get().getEgFileBaseName());
-				};
-				((EventDefDescriptorDynamic) this.eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setExportBaseFileName(of);
+			if (Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.display", "true")) && !targetStock.getChartedOutputGroups().isEmpty()) {
+				List<EventsAnalyser> eventsAnalyser = targetStock.getOutputAnalysers().get(targetStock.getChartedOutputGroups().get(0).getThisGroupMainOutputReference());
+				if (eventsAnalyser != null) {
+					Optional<EventsAnalyser> findFirst = eventsAnalyser.stream().filter(ea -> ea.getEgFileBaseName() != null).findFirst();
+					Optional<String> of = Optional.empty();
+					if (findFirst.isPresent()) {
+						of = Optional.of(findFirst.get().getEgFileBaseName());
+					}
+					;
+					((EventDefDescriptorDynamic) this.eventInfoOpsCompoOperationHolder.getEventDefDescriptor()).setExportBaseFileName(of);
+				} 
 			}
 			
 			eData.putAll(returnedEvents);

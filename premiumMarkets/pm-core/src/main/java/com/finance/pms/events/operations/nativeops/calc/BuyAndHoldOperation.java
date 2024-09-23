@@ -35,9 +35,7 @@ public class BuyAndHoldOperation extends PMWithDataOperation {
 		
 		Date startDate = targetStock.getStartDate(0);
 		
-		SortedMap<Date, Double> collect = keySetRefference.keySet().stream()
-									.collect(Collectors.toMap(d -> d, d -> (d.compareTo(startDate) <= 0)?-1.0:+1.0, (a, b) -> a, TreeMap::new));
-								
+		SortedMap<Date, Double> collect = keySetRefference.keySet().stream().collect(Collectors.toMap(d -> d, d -> (d.compareTo(startDate) <= 0)?-1.0:+1.0, (a, b) -> a, TreeMap::new));
 		DoubleMapValue result = new DoubleMapValue(collect);
 		return result;
 	}

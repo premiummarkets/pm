@@ -224,6 +224,10 @@ public abstract class AbstractSharesList extends Observable {
 	public abstract BigDecimal getPriceAvgSellFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly,  Boolean isRealisedOnly);
 	public abstract InOutWeighted getInflatWeightedInvestedFor(PortfolioShare portfolioShare, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly);
 	public abstract BigDecimal getPriceUnitCostFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestTransactionOnly);
+	public abstract BigDecimal getGainAnnualisedPercentFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	public abstract BigDecimal getGainReinvestedPercentFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+	protected abstract BigDecimal getGainBuyNHoldPercentFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly);
+
 
 }
 

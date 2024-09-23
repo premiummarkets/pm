@@ -55,7 +55,7 @@ public class Provider1818 extends Providers implements QuotationProvider {
 		List<ValidatableDated> readPage = readPage(stock, url, start).stream().map(v -> (ValidatableDated) v).collect(Collectors.toList());
 		
 		TreeSet<ValidatableDated> queries = initValidatableSet();
-		queries.addAll(filterToEndDate(end, readPage));
+		queries.addAll(filterToEndDateInclusive(end, readPage));
 
 		//https://protect.wealthmanagement.natixis.com/phoenix/infosMarcheValeur/detache?page=cours&valeur=LU1829221024,25,814
 		LOGGER.guiInfo("Last quotes  for " + stock.getSymbol() + ". Number of new quotations:" + queries.size() + ", request: " + url);

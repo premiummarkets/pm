@@ -30,13 +30,14 @@
 package com.finance.pms.screening;
 
 import java.math.BigDecimal;
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
+
+import com.finance.pms.events.calculation.InvalidParameterException;
 
 public class BestSectorCalculator implements ScreenerCalculator<NavigableSet<Sector>> {
 	

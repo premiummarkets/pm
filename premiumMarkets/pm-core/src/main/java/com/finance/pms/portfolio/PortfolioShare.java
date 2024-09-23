@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.TimeUnit;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -177,6 +176,11 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		return getPortfolio().getTransactionsFor(this, null, DateFactory.getNowEndDate(), isLatestOnly);
 	}
 	
+	@Transient
+	public SortedSet<TransactionElement> getTransactions(Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
+		return getPortfolio().getTransactionsFor(this, currentStartDate, currentEndDate, isLatestOnly);
+	}
+	
 	public BigDecimal getCashin(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly, Boolean isRealisedOnly) {
 		return getPortfolio().getCashInFor(this, currentStartDate, currentEndDate, currency, isLatestOnly, isRealisedOnly);
 	}
@@ -288,12 +292,17 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 	 */
 	@Transient
 	public BigDecimal getGainAnnualisedPercent(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
-		double cummulativeReturn = getGainTotalPercent(currentStartDate, currentEndDate, currency, isLatestOnly).doubleValue();
-		double nbDays = TimeUnit.DAYS.convert(currentEndDate.getTime() - currentStartDate.getTime(), TimeUnit.MILLISECONDS);
-		LOGGER.info("getGainAnnualised, nb days since first transaction: " + nbDays + " for " + this);
-		if (nbDays == 0) return BigDecimal.ZERO;
-		double annualReturn = Math.pow(1 + cummulativeReturn, 365d/nbDays) - 1;
-		return BigDecimal.valueOf(annualReturn);
+		return getPortfolio().getGainAnnualisedPercentFor(this, currentStartDate, currentEndDate, isLatestOnly);
+	}
+	
+	@Transient
+	public BigDecimal getGainReinvestedPercent(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return getPortfolio().getGainReinvestedPercentFor(this, currentStartDate, currentEndDate, isLatestOnly);
+	}
+	
+	@Transient
+	public BigDecimal getGainBuyNHoldPercentFor(Date currentStartDate, Date currentEndDate, Currency currency, Boolean isLatestOnly) {
+		return getPortfolio().getGainBuyNHoldPercentFor(this, currentStartDate, currentEndDate, isLatestOnly);
 	}
 
 	/**

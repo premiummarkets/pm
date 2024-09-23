@@ -731,7 +731,15 @@
                 <availableOutputSelector>mmax</availableOutputSelector>
                 <availableOutputSelector>mtanhnorm</availableOutputSelector>
                 <availableOutputSelector>mmeanostdevnorm</availableOutputSelector>
+                <availableOutputSelector>mtzsctrim</availableOutputSelector>
+                <availableOutputSelector>mtquatrim</availableOutputSelector>
+                <availableOutputSelector>mtstdtrim</availableOutputSelector>
                 <availableOutputSelector>specificStat</availableOutputSelector>
+                <availableOutputSelector>mzscore</availableOutputSelector>
+                <availableOutputSelector>mmodzscore</availableOutputSelector>
+                <availableOutputSelector>mquantile</availableOutputSelector>
+                <availableOutputSelector>mskewness</availableOutputSelector>
+                <availableOutputSelector>mkurtosis</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -843,6 +851,17 @@
                     <description>distance to actual center</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>trimFactor</reference>
+                    <referenceAsOperand>trimFactor</referenceAsOperand>
+                    <description>Stdev trim factor. Will only work for oscillators (NaN accepted).</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -1286,6 +1305,43 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="trimOperation">
+            <reference>trim</reference>
+            <description>Trim data according to the score function and the factor threshold over the full data set. May only work for oscillators.</description>
+            <operands>
+                <operand xsi:type="stringOperation">
+                    <reference>type</reference>
+                    <referenceAsOperand>trimType</referenceAsOperand>
+                    <description>The type of trim among [Lcom.finance.pms.events.scoring.functions.Trimmer$TrimType;@14ec4505</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>ModZscore</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>integer</reference>
+                    <referenceAsOperand>trimFactor</referenceAsOperand>
+                    <description>Stdev trim factor.</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>NaN</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Data to normalise</reference>
+                    <description>Data to normalise</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsDeltaExporterOperation">
             <reference>iosDeltaExporter</reference>
             <description>Exports all datasets delta to the given file path and returns a file path, copy of the requested delta.</description>
@@ -1538,7 +1594,7 @@
                     <isVarArgs>false</isVarArgs>
                 </operand>
                 <operand xsi:type="numberOperation">
-                    <reference>integer</reference>
+                    <reference>trim factor</reference>
                     <referenceAsOperand>trimFactor</referenceAsOperand>
                     <description>Stdev trim factor. Will only work for oscillators (NaN accepted).</description>
                     <defaultValue xsi:type="numberValue">

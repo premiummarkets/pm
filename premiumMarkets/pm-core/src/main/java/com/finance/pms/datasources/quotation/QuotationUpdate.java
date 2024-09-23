@@ -240,13 +240,13 @@ public class QuotationUpdate {
 			observer.update(null, new ObserverMsg(null, ObserverMsg.ObsKey.INITMSG, stockList.size()));
 		}
 
-		ExecutorService executor = Executors.newFixedThreadPool((Integer.valueOf(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.nbthread", "5"))));
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(MainPMScmd.getMyPrefs().get("quotationretrieval.semaphore.nbthread", "1")));
 		List<Future<GetQuotationResult>> getQuoteRess = new ArrayList<Future<GetQuotationResult>>();
 		while (stockListIterator.hasNext()) {
 
 			Stock stock = stockListIterator.next();
 
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Fetching quotations for Ticker: " + stock);
+			LOGGER.info("Fetching quotations for Ticker: " + stock);
 			GetQuotation command = new GetQuotation(DateFactory.getNowEndTime(), stock, forceReset, forceUpdate);
 			for (Observer observer : observers) {
 				command.addObserver(observer);

@@ -188,14 +188,14 @@ public class OpsParserErrorReporter  extends MyErrorReporter {
 				UnfinishedParameterException upe = (UnfinishedParameterException) e;
 
 				//Log
-				msg = msg + "Param "+upe.getParamString()+", param type "+upe.getParamType();
+				msg = msg + "Param " + upe.getParamString() + ", param type " + upe.getParamType();
 
 			} 
 
 			//Unmatched
 			else {
 				//Log
-				msg = msg + " (unmatched exception) "+ e.getMessage();
+				msg = msg + " (unmatched exception) " + e.getMessage();
 			}
 
 		} finally {

@@ -106,6 +106,7 @@ import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
 import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
 import com.finance.pms.events.operations.nativeops.trans.RequiredShiftWrapperOperation;
+import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
 
 
@@ -260,6 +261,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(negateOperation);
 		IfExistsExporterOperation existsExporterOperation = new IfExistsExporterOperation();
 		nativeOperations.addOperation(existsExporterOperation);
+		TrimOperation stdTrimOperation = new TrimOperation();
+		nativeOperations.addOperation(stdTrimOperation);
 
 		//Other
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();

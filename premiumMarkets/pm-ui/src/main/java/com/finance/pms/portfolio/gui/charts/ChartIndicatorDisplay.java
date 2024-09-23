@@ -30,7 +30,6 @@
 package com.finance.pms.portfolio.gui.charts;
 
 import java.io.File;
-import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,6 +86,7 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.InvalidParameterException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.calculation.util.MapUtils;
@@ -101,8 +101,6 @@ import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.finance.pms.threads.ConfigThreadLocal;
 
 public class ChartIndicatorDisplay extends ChartDisplayStrategy {
-
-	private enum PopupType {EVTCHARTING, EVTTREND};
 
 	private final class EventsDataLoader extends Observable  implements Runnable {
 
@@ -182,11 +180,12 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 	@Override
-	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
-		highLight(idx, selectedShare, recalculationGranted, PopupType.values());
+	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
+		if (popupTypes.length == 0) popupTypes = PopupType.values();
+		highLightInds(idx, selectedShare, recalculationGranted, popupTypes);
 	}
 
-	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
+	private void highLightInds(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 
 		LOGGER.info("highLight(Integer " + idx + ", Stock " + selectedShare + ", Boolean " + recalculationGranted + ", PopupType... " + Arrays.toString(popupTypes));
 		
@@ -514,11 +513,15 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			SortedMap<Date, double[]> subMap = new TreeMap<Date, double[]>();
 			if (outputCache != null && !outputCache.isEmpty()) {
 
-				Date end = chartTarget.getSlidingEndDate();
-				if (end.compareTo(outputCache.lastKey()) >= 0) {
-					subMap = outputCache.tailMap(this.chartTarget.getSlidingStartDate());
+				Date endSlide = chartTarget.getSlidingEndDate();
+				Date startSlide = chartTarget.getSlidingStartDate();
+				if (endSlide.compareTo(outputCache.lastKey()) >= 0) {
+					subMap = outputCache.tailMap(startSlide);
+				} else 
+				if (endSlide.compareTo(outputCache.firstKey()) >= 0){
+					subMap = MapUtils.subMapInclusive(outputCache, startSlide, endSlide);
 				} else {
-					subMap = MapUtils.subMapInclusive(outputCache, this.chartTarget.getSlidingStartDate(), end);
+					subMap = new TreeMap<>();
 				}
 				eventsSeries.put(eventInfo, subMap);
 
@@ -578,10 +581,83 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			Group chartedCalculatorGroup = new Group(popusGroup, SWT.NONE);
 			RowLayout chartedCalculatorGroupL = new RowLayout(SWT.VERTICAL);
 			chartedCalculatorGroupL.justify = true;
-			chartedCalculatorGroupL.fill=true;
-			chartedCalculatorGroupL.wrap=false;
-			chartedCalculatorGroupL.marginHeight=0;
+			chartedCalculatorGroupL.fill = true;
+			chartedCalculatorGroupL.wrap = false;
+			chartedCalculatorGroupL.marginHeight = 0;
 			chartedCalculatorGroup.setLayout(chartedCalculatorGroupL);
+			{
+				final Button rangeBut =  new Button(chartedCalculatorGroup, SWT.RADIO | SWT.LEAD);
+				rangeBut.setFont(MainGui.DEFAULTFONT);
+				rangeBut.setText("Group Range");
+				rangeBut.setToolTipText("Use one Range Axis for each output group.");
+				rangeBut.setSelection(true);
+				rangeBut.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						useOneRange();
+					}
+
+					private void useOneRange() {
+						chartTarget.getMainChartWraper().setUseOneRange(false);
+						chartTarget.getMainChartWraper().setUseNoGroupRanges(false);
+						chartTarget.updateCharts(false, PopupType.EVTCHARTING);
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						useOneRange();
+					}
+				});
+			}
+			{
+				final Button rangeBut =  new Button(chartedCalculatorGroup, SWT.RADIO | SWT.LEAD);
+				rangeBut.setFont(MainGui.DEFAULTFONT);
+				rangeBut.setText("Range for all");
+				rangeBut.setToolTipText("Use one Range Axis for all indicators and groups.");
+				rangeBut.setSelection(false);
+				rangeBut.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						useOneRange();
+					}
+
+					private void useOneRange() {
+						chartTarget.getMainChartWraper().setUseOneRange(rangeBut.getSelection());
+						chartTarget.updateCharts(false, PopupType.EVTCHARTING);
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						useOneRange();
+					}
+				});
+			}
+			{
+				final Button rangeBut =  new Button(chartedCalculatorGroup, SWT.RADIO | SWT.LEAD);
+				rangeBut.setFont(MainGui.DEFAULTFONT);
+				rangeBut.setText("Range for each");
+				rangeBut.setToolTipText("Use one Range Axis for each output.");
+				rangeBut.setSelection(false);
+				rangeBut.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						useOneRange();
+					}
+
+					private void useOneRange() {
+						chartTarget.getMainChartWraper().setUseNoGroupRanges(rangeBut.getSelection());
+						chartTarget.updateCharts(false, PopupType.EVTCHARTING);
+					}
+
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						useOneRange();
+					}
+				});
+			}
 			{
 				calculatorSettingsButton = new Button(chartedCalculatorGroup, SWT.NONE);
 				calculatorSettingsButton.setFont(MainGui.DEFAULTFONT);
@@ -670,7 +746,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 								Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 								if (viewStateParams != null) {
-									highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND);
+									highLightInds(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND);
 								} else {
 									if  (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
 										String errorMessage = "You must select a share in the portfolio to display its analysis.";
@@ -781,7 +857,9 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	}
 
 	@Override
-	public void resetChart(Boolean resetDisplayedList) {
+	public void resetChart(Boolean resetDisplayedList, PopupType ...popupTypes) {
+		
+		if (popupTypes.length == 0) popupTypes = PopupType.values();
 
 		for (SlidingPortfolioShare sShare : chartTarget.getCurrentTabShareList()) {
 			Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
@@ -792,9 +870,13 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 		}
 
-		chartTarget.getMainChartWraper().resetLineChart();
-		chartTarget.getMainChartWraper().resetBarChart();
-		chartTarget.getMainChartWraper().resetIndicChart();
+		if (Arrays.asList(popupTypes).contains(PopupType.EVTTREND)) {
+			chartTarget.getMainChartWraper().resetLineChart();
+			chartTarget.getMainChartWraper().resetBarChart();
+		}
+		if (Arrays.asList(popupTypes).contains(PopupType.EVTCHARTING)) {
+			chartTarget.getMainChartWraper().resetIndicChart();
+		}
 
 	}
 
@@ -891,7 +973,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 				if (viewStateParams != null ) {
 					LOGGER.info("Calling highLight from initEvtDefTrendPopup (Dialog Action).");
-					highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND, PopupType.EVTCHARTING);
+					highLightInds(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTTREND, PopupType.EVTCHARTING);
 				} else {
 					if (chartTarget.getChartedEvtDefsTrends() != null && !chartTarget.getChartedEvtDefsTrends().isEmpty()) {
 						String errorMessage = "You must select a share in the portfolio to display its analysis.";
@@ -909,20 +991,16 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		};
 
 		if (chartedTrendsPopupMenu == null || chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
-
 			chartedTrendsPopupMenu = new PopupMenu<EventInfo>(chartTarget, chartedTrendsButton, availEventDefs, chartTarget.getChartedEvtDefsTrends(), false, true, SWT.CHECK, null, disactivateAction, true);
 			Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-			chartedTrendsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height/2), true);
-
+			chartedTrendsPopupMenu.open(new Point(parentBounds.x + parentBounds.width + (int)(parentBounds.width * 0.05), parentBounds.y + (int)(parentBounds.y * 0.05)), false);
 		} else {
-
 			chartedTrendsPopupMenu.updateAction(availEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
 			if (activate) {
 				chartedTrendsPopupMenu.getSelectionShell().setVisible(true);
 				chartedTrendsPopupMenu.getSelectionShell().setActive();
 				chartedTrendsPopupMenu.getSelectionShell().setFocus();
 			}
-
 		}
 
 	}
@@ -992,7 +1070,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 					}
 					Stock viewStateParams = chartTarget.getHightlitedEventModel().getViewParamRoot();
 					LOGGER.info("Calling highLight from initChartSettingsPopup (Dialog Action).");
-					highLight(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
+					highLightInds(chartTarget.getHighligtedId(), viewStateParams, true, PopupType.EVTCHARTING);
 				}
 
 			};

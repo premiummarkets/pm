@@ -69,7 +69,6 @@ public class ProvidersSlickStockPythonIndices extends ProvidersList {
 	private static MyLogger LOGGER = MyLogger.getLogger(ProvidersSlickStockPythonIndices.class);
 
 	private SortedSet<Indice> indices;
-
 	private Path python_py;
 
 	protected ProvidersSlickStockPythonIndices() {
@@ -162,6 +161,7 @@ public class ProvidersSlickStockPythonIndices extends ProvidersList {
 				
 			try {
 				String pythonExec = MainPMScmd.getMyPrefs().get("quotes.pythonPath", "python3");
+				LOGGER.info(String.format("Running Yahoo py: %s %s %s", pythonExec, python_py.toString(), URLEncoder.encode(indiceStr, StandardCharsets.UTF_8.toString())));
 				ProcessBuilder pb = new ProcessBuilder(pythonExec, python_py.toString(), URLEncoder.encode(indiceStr, StandardCharsets.UTF_8.toString()));
 				Process p = pb.start();
 			

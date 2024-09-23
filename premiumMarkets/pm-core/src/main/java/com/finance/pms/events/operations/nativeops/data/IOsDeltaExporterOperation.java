@@ -107,7 +107,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		}
 		
 		try {
-				
+
 			//Check and transform
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());

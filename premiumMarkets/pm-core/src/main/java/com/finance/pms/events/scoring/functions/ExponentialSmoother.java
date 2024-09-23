@@ -32,7 +32,6 @@
 
 package com.finance.pms.events.scoring.functions;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,6 +40,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.NotImplementedException;
+
+import com.finance.pms.events.calculation.InvalidParameterException;
 
 public class ExponentialSmoother extends Smoother {
 		

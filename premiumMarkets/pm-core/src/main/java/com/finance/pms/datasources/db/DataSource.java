@@ -280,7 +280,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			pst.setMaxRows(1);
 			ResultSet rs = pst.executeQuery();
 
-			Date date = (rs.next()) ? rs.getDate(1) : null;
+			boolean next = rs.next();
+			Date date = next ? rs.getDate(QUOTATIONS.DATE_FIELD) : null;
+			//ORIGIN origin = next ? ORIGIN.values()[rs.getInt(QUOTATIONS.ORIGIN_FIELD)] : null;
+			//LOGGER.info("Last quotation for " + stock + " date: " + date + " Origin: " + origin);
 
 			if (date != null) {
 				retour = date;
@@ -292,7 +295,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			rs.close();
 			pst.close();
 		} catch (SQLException e) {
-			LOGGER.error("Query: " + sqlQuery + "Param: " + stock,e);
+			LOGGER.error("Query: " + sqlQuery + "Param: " + stock, e);
 			retour = null;
 		} finally {
 			DataSource.realesePoolConnection(scnx);
@@ -1215,8 +1218,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 					@Override
 					public Query toDataBase() {
-						
-						
 
 						//set
 						Query qupdate = new Query();
@@ -1344,7 +1345,8 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			return "UPDATE " + QUOTATIONS.TABLE_NAME + 
 					" set " + 
 					QUOTATIONS.DAY_OPEN_FIELD + "= ? , " + QUOTATIONS.DAY_HIGH_FIELD + " =? , " + QUOTATIONS.DAY_LOW_FIELD + "=? , " + QUOTATIONS.DAY_CLOSE_FIELD + "=? , " +
-					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.SPLIT_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? " +
+					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.SPLIT_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? , " +
+					QUOTATIONS.ORIGIN_FIELD + " = 0 " +
 					" where " + QUOTATIONS.SYMBOL_FIELD + "= ? and " + QUOTATIONS.ISIN_FIELD + "= ? and "+ QUOTATIONS.DATE_FIELD + "= ? ";
 		}
 

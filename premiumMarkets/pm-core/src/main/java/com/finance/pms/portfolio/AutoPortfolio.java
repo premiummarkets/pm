@@ -44,7 +44,6 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.pounderationrules.PonderationRule;
-import com.finance.pms.portfolio.AutoPortfolioDelegate.BuyStrategy;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 
@@ -59,23 +58,16 @@ import com.finance.pms.threads.ObserverMsg;
 @DiscriminatorValue("AutoPortfolio")
 public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 
-	@Override
-	public Currency inferPortfolioCurrency() {
-		return getPortfolioCurrency();
-	}
-
 	protected static MyLogger LOGGER = MyLogger.getLogger(AutoPortfolio.class);
 
-	public static final String NAME  = "AutoPortfolio";
+	public static final String NAME = "AutoPortfolio";
 
 	private AutoPortfolioDelegate autoPortfolioDelegate;
-
-
 	private EventSignalConfig eventSignalConfig;
-	
-	//Not used??
-	private String[] additionalPortfolioEventListNames = new String[0];
+	private String[] additionalPortfolioEventListNames = new String[0]; //Not used??
 
+	//FIXME Strategies should be link to the AutoPorfolio and initialised from DB through the constructor/hib setters (like ponderations?? if they still work this way ..)
+	private AutoPortfolioTransactionScheduler transactionScheduler;
 
 	@SuppressWarnings("unused")
 	private AutoPortfolio() {
@@ -86,11 +78,13 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		super(portfolio, newName);
 		eventSignalConfig = portfolio.eventSignalConfig;
 		additionalPortfolioEventListNames = portfolio.additionalPortfolioEventListNames;
+		transactionScheduler = portfolio.transactionScheduler;
 	}
 
-	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, Currency currency, EventSignalConfig eventSignalConfig) {
+	public AutoPortfolio(String name, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule, AutoPortfolioTransactionScheduler autoPortfolioTransactionScheduler, Currency currency, EventSignalConfig eventSignalConfig) {
 		super(name, buyPonderationRule, sellPonderationRule, currency);
 		this.eventSignalConfig = eventSignalConfig;
+		this.transactionScheduler = autoPortfolioTransactionScheduler;
 	}
 
 	public synchronized BigDecimal withdrawCash(Date currentDate, BigDecimal amount, Currency transactionCurrency) throws NoCashAvailableException {
@@ -110,6 +104,11 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	public void notifyObservers(ObserverMsg string) {
 		super.notifyObservers(string);
 	}
+	
+	@Override
+	public Currency inferPortfolioCurrency() {
+		return getPortfolioCurrency();
+	}
 
 	@Override
 	public void setChanged() {
@@ -117,11 +116,11 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Override
-	public TransactionHistory calculate(List<SymbolEvents> listEvents, Date currentDate, BuyStrategy buyStrategy, PonderationRule buyPonderationRule, PonderationRule sellPonderationRule) {
+	public SignalHistory calculate(List<SymbolEvents> listEvents, Date currentDate) {
 
 		synchronized (this) { //We need to synch as we don't want concurrent buy and sell actions on this portfolio
 			ConfigThreadLocal.set(EventSignalConfig.EVENT_SIGNAL_NAME, this.eventSignalConfig);
-			return getAutoPortfolioDelegate().calculate(listEvents, currentDate, buyStrategy, buyPonderationRule, sellPonderationRule);
+			return getAutoPortfolioDelegate().calculate(listEvents, currentDate);
 		}
 
 	}
@@ -137,8 +136,8 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 	}
 
 	@Transient
-	public TransactionHistory getTransactionHistory() {
-		return getAutoPortfolioDelegate().getTransactionHistory();
+	public SignalHistory getTransactionHistory() {
+		return getAutoPortfolioDelegate().getSignalHistory();
 	}
 
 	public void setAdditionalPortfolioEventListNames(String[] additionalEventListNames) {
@@ -149,22 +148,42 @@ public class AutoPortfolio extends Portfolio implements AutoPortfolioWays {
 		this.eventSignalConfig = eventSignalConfig;
 	}
 
-	public void log(TransactionRecord transactionRecord) {
-		this.getAutoPortfolioDelegate().log(transactionRecord);
-	}
-
 	@Transient
 	private AutoPortfolioDelegate getAutoPortfolioDelegate() {
 		if (autoPortfolioDelegate == null) {
-			autoPortfolioDelegate = new AutoPortfolioDelegate(this, true);
+			autoPortfolioDelegate = new AutoPortfolioDelegate(this);
 		}
 		return autoPortfolioDelegate;
+	}
+
+	@Transient
+	public BigDecimal getNominalTransactionAmount() {
+		return getAutoPortfolioDelegate().getNominalTransactionAmount();
+	}
+
+	@Transient
+	public BigDecimal getMinimumTransactionAmount() {
+		return getAutoPortfolioDelegate().getMinimumTransactionAmount();
+	}
+
+	@Transient
+	public int getMaximumNumberOfLines() {
+		return getAutoPortfolioDelegate().getMaximumNumberOfLines();
 	}
 
 	@Override
 	@Transient
 	public Boolean isAutoCalculationIdempotent() {
 		return false;
+	}
+	
+	@Transient
+	public AutoPortfolioTransactionScheduler getTransactionScheduler() {
+		return transactionScheduler;
+	}
+
+	public void setTransactionScheduler(AutoPortfolioTransactionScheduler autoPortfolioTransactionScheduler) {
+		this.transactionScheduler = autoPortfolioTransactionScheduler;
 	}
 
 }

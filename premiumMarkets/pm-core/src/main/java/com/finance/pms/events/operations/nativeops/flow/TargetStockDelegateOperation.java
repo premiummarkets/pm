@@ -62,7 +62,7 @@ public class TargetStockDelegateOperation extends Operation {
 		TargetStockInfo tStockDelegate = new TargetStockInfo(
 				targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(),
 				stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
-		tStockDelegate.resetHeap(targetStock.getHeap());
+		tStockDelegate.replaceHeap(targetStock.getHeap());
 		
 		Value<?> output = operationClone.run(tStockDelegate, thisCallStack, thisStartShift + 0);
 		

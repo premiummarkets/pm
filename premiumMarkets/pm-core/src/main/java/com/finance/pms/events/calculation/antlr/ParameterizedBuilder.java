@@ -62,7 +62,7 @@ import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
 public abstract class ParameterizedBuilder extends Observable {
 
 	public static final String userParameterizedPath = System.getProperty("installdir") + File.separator + "userParameterized";
-	public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, OPERATION_cRud_IgnoreDisabled, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES, CREATE_INDICTOR};
+	public enum ObsMsgType {OPERATION_CrUD, OPERATION_cRud, OPERATION_cRud_IgnoreDisabled, UPDATE_OPS_INMEM_INSTANCES, RESET_OPS_INMEM_INSTANCES, CREATE_INDICATOR};
 
 	protected class ObsMsg {
 		private ObsMsgType type;
@@ -347,30 +347,6 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	}
 
-	public Operation duplicateOperation(Operation operation, Map<String, Operation> duplOperands) throws IOException {
-
-		List<Operation> operands = operation.getOperands();
-
-		for (Operation operand : operands) {
-			if (!duplOperands.containsKey(operand.getReference())) {
-				Operation duplicatedOperation = subjacentDuplicator().duplicateOperation(operand, duplOperands);
-				if (duplicatedOperation != null) {
-					duplOperands.put(operand.getReference(), duplicatedOperation);
-				}
-			}
-		}
-
-		if (operation.getFormulae() != null) {
-			String duplReference = infereNextDuplIdx(operation.getReference());
-			String duplFormula = infererNewFormula(duplOperands, operation.getFormulae());
-			addFormula(duplReference, duplFormula);
-			return getCurrentOperations().get(duplReference);
-		} else {
-			return null;
-		}
-
-	}
-
 	protected abstract String infererNewFormula(Map<String, Operation> duplOperands, String formula);
 	protected abstract ParameterizedBuilder subjacentDuplicator();
 
@@ -587,7 +563,6 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	protected void runParsing(FormulaParser formulaParser) {
 		formulaParser.resume();
-
 		while ( formulaParser.isThreadRunning() ) {
 			try {
 				Thread.sleep(10);
@@ -664,6 +639,8 @@ public abstract class ParameterizedBuilder extends Observable {
 	private void invalidateOperations(List<Operation> impactedOps) {
 		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty(), Optional.empty()));
 	}
+
+	public abstract Optional<Operation> createDefaultIndicator(String identifier) ;
 
 
 }

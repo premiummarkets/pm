@@ -168,7 +168,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 					if (calculatorEvents != null) {//There are results or empty results
 						
-						LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events for " + returnedSymbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+						LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events from " + calculatorEvents.firstKey() + " to " + calculatorEvents.lastKey() + " for " + returnedSymbolEvents.getSymbol() + 
+								" using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef() + " and calculation from " + adjustedStart + " to " + adjustedEnd);
 						
 						//FIXME the storage should be delegated to the eventInfo or calculator
 						//FIXME And the control of the calculation state in db, here, should be done through tunedConf only.
@@ -196,7 +197,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 						}
 						
 						//FIXME the storage should be delegated to the eventInfo or calculator and coupled with TunedConf update
-						LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + " events for " + returnedSymbolEvents.getSymbol() + " using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+						LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + " events from " + storedEvents.firstKey() + " to " + storedEvents.lastKey() + " for " + returnedSymbolEvents.getSymbol() + 
+								" using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef() + " and calcultation from " + adjustedStart + " to " + adjustedEnd);
 						SymbolEvents storedSymbolEvents = new SymbolEvents(stock);
 						storedSymbolEvents.addEventResultElement(storedEvents, eventInfoCln);
 						EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName, eventInfoCln);
@@ -206,7 +208,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 					} else {//No results
 						
-						LOGGER.warn("Failed (null returned) calculation for " + returnedSymbolEvents.getSymbol() + " using analysis " + eventListName + " and " + eventInfoCln.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
+						LOGGER.warn("Failed (null returned) calculation for " + returnedSymbolEvents.getSymbol() + 
+								" using analysis " + eventListName + " and " + eventInfoCln.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
 						emptyReturn(returnedSymbolEvents);
 						throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: nothing returned.");
 						
@@ -228,7 +231,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			//Error(s) as occurred. This should invalidate tuned conf and its potentially generated events.
 			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) { //This code exceptions
 				// Unrecoverable
-				String message = "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
+				String message = "Failed (Empty Unrecoverable) calculation for " + stock + 
+						" using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
 				LOGGER.error(message, e);
 				
 				if (calcBounds != null) {
@@ -241,7 +245,8 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 				
 			} catch (Throwable e) {//Deeper call stack exceptions
 				
-				String message = "Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
+				String message = "Failed (Empty Recoverable??) calculation for " + stock + 
+						" using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
 
 				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
 				Throwable rootCause = e;

@@ -52,7 +52,7 @@ public class ProfitOperation extends ArrayMapOperation {
 
 	public ProfitOperation() {
 		this("profit", "Calculate the profits (the my way) of series of Events from Indicators",
-		new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null)); 
+		new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 

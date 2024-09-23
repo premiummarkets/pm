@@ -73,7 +73,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 		String[] symbolIsinSplit = currencyStock.getSymbol().split("Per");
 		Currency referee = Currency.valueOf(symbolIsinSplit[1]);
 		Currency target = Currency.valueOf(symbolIsinSplit[0]);
-		List<ValidatableDated> rates = filterToEndDate(end, PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end));
+		List<ValidatableDated> rates = filterToEndDateInclusive(end, PortfolioMgr.getInstance().getCurrencyConverter().fetchRateHistoryUpTo(referee, target, end));
 		
 		//Store in quotations
 		TreeSet<ValidatableDated> queries = new TreeSet<ValidatableDated>();

@@ -84,4 +84,19 @@ public class IndepShareList extends AbstractSharesList {
 	public BigDecimal getCashOutFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Currency targetCurrency, Boolean isLatestOnly, Boolean isRealisedOnly) {
 		return BigDecimal.ZERO;
 	}
+
+	@Override
+	public BigDecimal getGainAnnualisedPercentFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
+		return BigDecimal.ZERO;
+	}
+
+	@Override
+	public BigDecimal getGainReinvestedPercentFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
+		return BigDecimal.ZERO;
+	}
+
+	@Override
+	protected BigDecimal getGainBuyNHoldPercentFor(PortfolioShare portfolioShare, Date currentStartDate, Date currentEndDate, Boolean isLatestOnly) {
+		return BigDecimal.ZERO;
+	}
 }
