@@ -595,10 +595,10 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						useOneRange();
+						groupRanges();
 					}
 
-					private void useOneRange() {
+					private void groupRanges() {
 						chartTarget.getMainChartWraper().setUseOneRange(false);
 						chartTarget.getMainChartWraper().setUseNoGroupRanges(false);
 						chartTarget.updateCharts(false, PopupType.EVTCHARTING);
@@ -606,7 +606,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					@Override
 					public void widgetDefaultSelected(SelectionEvent e) {
-						useOneRange();
+						groupRanges();
 					}
 				});
 			}
@@ -620,17 +620,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						useOneRange();
+						oneRangeForAll();
 					}
 
-					private void useOneRange() {
+					private void oneRangeForAll() {
 						chartTarget.getMainChartWraper().setUseOneRange(rangeBut.getSelection());
+						chartTarget.getMainChartWraper().setUseNoGroupRanges(!rangeBut.getSelection());
 						chartTarget.updateCharts(false, PopupType.EVTCHARTING);
 					}
 
 					@Override
 					public void widgetDefaultSelected(SelectionEvent e) {
-						useOneRange();
+						oneRangeForAll();
 					}
 				});
 			}
@@ -644,17 +645,18 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						useOneRange();
+						oneRangeForEach();
 					}
 
-					private void useOneRange() {
+					private void oneRangeForEach() {
 						chartTarget.getMainChartWraper().setUseNoGroupRanges(rangeBut.getSelection());
+						chartTarget.getMainChartWraper().setUseOneRange(!rangeBut.getSelection());
 						chartTarget.updateCharts(false, PopupType.EVTCHARTING);
 					}
 
 					@Override
 					public void widgetDefaultSelected(SelectionEvent e) {
-						useOneRange();
+						oneRangeForEach();
 					}
 				});
 			}

@@ -81,7 +81,7 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			Set<Date> knownMissingKeys = targetStock.missingData();
-			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, inputsOperandsRefs.size() -1);
+			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true);
 			SortedMap<Date, double[]> factorisedInput = inputListToArray.get(InputToArrayReturn.RESULTS);
 			
 			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {

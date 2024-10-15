@@ -51,16 +51,18 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.FilterType;
 import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
 
 public class TrimOperation extends PMWithDataOperation {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(TrimOperation.class);
-	private static final int DATAINPUTIDX = 2;
+	private static final int DATAINPUTIDX = 3;
 
 	public TrimOperation() {
 		super("trim", "Trim data according to the score function and the factor threshold over the full data set. May only work for oscillators.",
-				new StringOperation("type", "trimType","The type of trim among " + Arrays.toString(TrimType.values()), new StringValue(TrimType.ModZscore.name())),
+				new StringOperation("filtertype", "filterType","The type of filter among " + Arrays.toString(FilterType.values()), new StringValue(FilterType.Quantile.name())),
+				new StringOperation("trimtype", "trimType","The type of trim among " + Arrays.toString(TrimType.values()), new StringValue(TrimType.MinMax.name())),
 				new NumberOperation("integer", "trimFactor", "Stdev trim factor.", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
 	}
@@ -75,24 +77,25 @@ public class TrimOperation extends PMWithDataOperation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
 		//Param check
-		TrimType trimType = TrimType.valueOf(((StringValue)inputs.get(0)).getValue(targetStock));
-		Double trimFactor = ((NumberValue)inputs.get(1)).getValue(targetStock).doubleValue();
+		FilterType filterType = FilterType.valueOf(((StringValue)inputs.get(0)).getValue(targetStock));
+		TrimType trimType = TrimType.valueOf(((StringValue)inputs.get(1)).getValue(targetStock));
+		Double trimFactor = ((NumberValue)inputs.get(2)).getValue(targetStock).doubleValue();
 
 		//Calc
 		@SuppressWarnings("unchecked")
 		List<NumericableMapValue> numericableMapValue = (List<NumericableMapValue>) inputs.subList(DATAINPUTIDX, DATAINPUTIDX+1);
 		
-		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, trimType, trimFactor, data);
+		ValueManipulator.InnerCalcFunc innerCalcFunc = data -> innerCalc(targetStock, filterType, trimType, trimFactor, data);
 		
 		return ValueManipulator.doubleArrayExpender(this, DATAINPUTIDX, targetStock, parentRequiredStartShift, innerCalcFunc, numericableMapValue);
 	}
 
-	private NumericableMapValue innerCalc(TargetStockInfo targetStock, TrimType trimType, Double trimFactor, List<NumericableMapValue> data) {
+	private NumericableMapValue innerCalc(TargetStockInfo targetStock, FilterType filterType, TrimType trimType, Double trimFactor, List<NumericableMapValue> data) {
 		NumericableMapValue ret = new DoubleMapValue();
 		try {
 			
 			SortedMap<Date, Double> values = data.get(0).getValue(targetStock);
-			Trimmer<Double> trimmer =  Trimmer.build(Double.class, trimType, trimFactor, values);
+			Trimmer<Double> trimmer =  Trimmer.build(Double.class, filterType, trimType, trimFactor, values);
 			values = trimmer.trim(values);
 			
 			ret.getValue(targetStock).putAll(values);

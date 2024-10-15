@@ -70,7 +70,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				new OperationReferenceOperation("operationReference", "operation reference", "Operation to iterate upon", null),
 				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step[ or [x, factor] or [\"abc\"] or [any]. "
 						+ "With inclusivity [start, end[ and step must be >= 1. "
-						+ "Use [x, factor] to make this parameter a factor of an other parameter indexed at x. "
+						+ "Use [idx, factor] to make this parameter a factor of an other parameter indexed at idx."
 						+ "Use [\"abc\"] for constant string parameters. [any] for any other constant parameter", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
@@ -128,7 +128,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					typedOperand = new MATypeOperation();
 				}
 				else { //Not supported as parameter will be reset in the cloning process at each iteration
-					throw new NotImplementedException("FIXME: Parameter doeas not match a leaf operation: " + parameterValue);
+					throw new NotImplementedException("FIXME: Parameter does not match a leaf operation: " + parameterValue);
 				}
 				typedOperand.setParameter((Value<?>) parameterValue);
 				assembledOpOperands.set(parametersSlicePos, typedOperand);
@@ -164,7 +164,9 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 					itParameter = new NumberValue(slices.get(operandPos).get(0) + i*slices.get(operandPos).get(2));
 				} else if (slices.get(operandPos).size() == 2) { //factor
 					int otherOperandParamPos = slices.get(operandPos).get(0).intValue();
-					if (!slices.containsKey(otherOperandParamPos)) throw new RuntimeException("Invalid parameter index for this operation: " + iterationOperationClone.getReference());
+					if (!slices.containsKey(otherOperandParamPos)) {
+						throw new RuntimeException("Invalid parameter index " + otherOperandParamPos + " in " + slices + ", for this operation: " + iterationOperationClone.getReference());
+					}
 					Double otherOperandParamValue = slices.get(otherOperandParamPos).get(0) + i*slices.get(otherOperandParamPos).get(2);
 					Double factor = slices.get(operandPos).get(1);
 					itParameter = new NumberValue(otherOperandParamValue * factor);

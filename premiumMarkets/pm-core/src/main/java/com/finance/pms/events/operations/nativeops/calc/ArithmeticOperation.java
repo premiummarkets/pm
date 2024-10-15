@@ -106,5 +106,12 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	public void interrupt() throws Exception {
 		CalculateThreadExecutor.getRandomInfiniteExecutorInstance().shutdownNow();
 	}
+	
+	@Override
+	public String toFormulaeShort(TargetStockInfo targetStock) {
+		String thisShort = getOperationReference().substring(0,3);
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
+	}
 
 }

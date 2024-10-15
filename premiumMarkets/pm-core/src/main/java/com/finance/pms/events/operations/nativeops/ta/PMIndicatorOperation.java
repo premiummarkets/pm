@@ -52,8 +52,8 @@ import com.finance.pms.events.operations.nativeops.trans.BandRatioNormalizerOper
 import com.finance.pms.events.operations.nativeops.trans.FlipOperation;
 import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
 import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
-import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
+import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.talib.indicators.TalibIndicator;
 

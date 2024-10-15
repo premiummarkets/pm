@@ -49,6 +49,7 @@ import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.FilterType;
 import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
 
 public class BandNormalizerOperation extends PMWithDataOperation {
@@ -58,7 +59,8 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 
 	public BandNormalizerOperation() {
 		super("bandNormalizer", "Normalise the data between and to the lower and the upper threshold",
-				new NumberOperation("lower threshold"), new NumberOperation("upper threshold"),
+				new NumberOperation("lower threshold"),
+				new NumberOperation("upper threshold"),
 				new NumberOperation("actual center","actualCenter","Keep distance ratio of min and max to the data relative specified center (NaN accepted).", new NumberValue(Double.NaN)),
 				new NumberOperation("trim factor", "trimFactor", "Stdev trim factor. Will only work for oscillators (NaN accepted).", new NumberValue(Double.NaN)),
 				new DoubleMapOperation("Data to normalise"));
@@ -97,7 +99,7 @@ public class BandNormalizerOperation extends PMWithDataOperation {
 			SortedMap<Date, Double> values = data.get(0).getValue(targetStock);
 			
 			if (!Double.isNaN(trimFactor)) {		
-				Trimmer<Double> trimmer =  Trimmer.build(Double.class, TrimType.Quantile, Double.NaN, values);
+				Trimmer<Double> trimmer =  Trimmer.build(Double.class, FilterType.Quantile, TrimType.MinMax, Double.NaN, values);
 				values = trimmer.trim(values);
 			}
 			

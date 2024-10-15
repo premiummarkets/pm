@@ -28,9 +28,9 @@ public class TriggerPointJoiner extends PMWithDataOperation {
 	private static final int FIRST_INPUT = 2;
 
 	public TriggerPointJoiner() {
-		super("triggerPointJoiner", "Return the time points maps and values of a set of Series where the reference Series crosses a threshold",
+		super("triggerPointJoiner", "Returns the dates and values submaps from a set of Series where the reference Series crosses a threshold.",
 				new DoubleMapOperation("data", "reference series", "Reference series triggering data collection on thershold cross.", null),
-				new NumberOperation("number","mean","Mean of the Period lengths", new NumberValue(0.0)),
+				new NumberOperation("number","threshold","Threshold. /Mean of the Period lengths?/", new NumberValue(0.0)),
 				new DoubleMapOperation("data", "datasets", "Data sets to collect joint points from.", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}

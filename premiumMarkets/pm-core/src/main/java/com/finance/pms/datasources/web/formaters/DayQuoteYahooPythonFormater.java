@@ -36,7 +36,7 @@ public class DayQuoteYahooPythonFormater extends DayQuoteFormater {
 				try {
 					tokenisedLine.add(df1.parse(field));
 				} catch (Exception e) {
-					throw new StopParseErrorException("Date Format error while parsing yahoo quotations: " + params.get(0) + ", for line: " + line, e.getMessage());
+					throw new StopParseErrorException("DayQuoteYahooPythonFormater: Date Format Error for " + params.get(0) + ", with line: " + line, e.getMessage());
 				}
 				break;
 			case 1: //Open

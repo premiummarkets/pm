@@ -75,7 +75,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 	}
 
 	public IOsDeltaExporterOperation() {
-		this("iosDeltaExporter", "Exports all datasets delta to the given file path and returns a file path, copy of the requested delta.",
+		this("iosDeltaExporter", "Exports all datasets delta to the given file path and returns a file path, copy of the requested delta. Only accept NaN for the last rows of the last column.",
 				new NumberOperation("number", "rouding", "Rouding precision", new NumberValue(Double.NaN)),
 				new StringOperation("string", "filePath", "Export delta file path full name with extension.", new StringValue("")),
 				new StringOperation("string", "headerPrefixe", "Prefix of the column headers. This must be constant between runs.", new StringValue("")),
@@ -132,7 +132,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 			LinkedHashMap<String, List<String>> headersPrefixes = new LinkedHashMap<>();
 			headersPrefixes.put(headersPrefix, inputsOperandsRefs);
 			
-			//Error check
+			//NaNs Error check
 			if (inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).keySet().stream().anyMatch(k -> !knownMissingKeys.contains(k))) {
 				String nansLines = inputListToArray.get(InputToArrayReturn.OTHERUNEXPECTEDNANS).entrySet().stream()
 																			.map(e -> e.getKey() + ": " + Arrays.asList(Arrays.toString(e.getValue())).toString())
@@ -177,9 +177,11 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 				}
 			}
 			
+			//Quotation match check
 			InputFileChecker.checkInputAgainstQuotations(
 					deltaFile, targetStock.getStock(), ValidityFilter.getFilterFor(this.getRequiredStockData()), 
 					0, this.getLagAmount(targetStock, getOperands()), knownMissingKeys);
+			
 			
 			return new StringValue(deltaFile);
 

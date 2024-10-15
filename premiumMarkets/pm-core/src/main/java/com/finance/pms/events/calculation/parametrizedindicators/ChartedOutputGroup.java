@@ -52,9 +52,9 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>, Seria
 
 	private UUID uuid;
 
-	public ChartedOutputGroup(Operation mainOperation, Optional<String> outputSelector, int outputIndex, Optional<String> groupStatus, Boolean displayByDefault) {
+	public ChartedOutputGroup(Operation mainOperation, String userOperationReference, Optional<String> outputSelector, int outputIndex, Optional<String> groupStatus, Boolean displayByDefault) {
 		uuid = UUID.randomUUID();
-		OutputReference outputReference = new OutputReference(mainOperation, outputSelector.orElse(mainOperation.getOutputSelector()));
+		OutputReference outputReference = new OutputReference(mainOperation, userOperationReference, outputSelector.orElse(mainOperation.getOutputSelector()));
 		thisGroupMainOutputDescription = new OutputDescr(outputReference, this, Type.MAIN, outputIndex, null, displayByDefault);
 		thisGroupMainOutputReference = outputReference;
 		components = new HashMap<>();
@@ -63,21 +63,21 @@ public class ChartedOutputGroup implements Comparable<ChartedOutputGroup>, Seria
 		
 	}
 
-	public OutputDescr addSignal(Operation operation, int outputIndex, Boolean displayByDefault) {
-		OutputReference outputReference = new OutputReference(operation, operation.getOutputSelector());
+	public OutputDescr addSignal(Operation operation, String userOperationReference, int outputIndex, Boolean displayByDefault) {
+		OutputReference outputReference = new OutputReference(operation, userOperationReference, operation.getOutputSelector());
 		OutputDescr outputDescr = new OutputDescr(outputReference, this, Type.SIGNAL, outputIndex, null, displayByDefault);
 		this.components.put(outputReference, outputDescr);
 		return outputDescr;
 	}
 
-	public void addConstant(String parentReference, Operation operation, NumberValue doubleValue, Boolean displayByDefault) {
+	public void addConstant(String parentReference, Operation operation, String userOperationReference, NumberValue doubleValue, Boolean displayByDefault) {
 		String referenceAsOperandOverride = parentReference + " " + operation.getReferenceAsOperand();
-		OutputReference outputReference = new OutputReference(operation, referenceAsOperandOverride, doubleValue);
+		OutputReference outputReference = new OutputReference(operation, userOperationReference, referenceAsOperandOverride, doubleValue);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, Type.CONSTANT, null, doubleValue, displayByDefault));
 	}
 
-	public void addAdditionalOutput(String outputKey, Operation operation, int outputIndex, Type type) {
-		OutputReference outputReference = new OutputReference(operation, outputKey);
+	public void addAdditionalOutput(String outputKey, Operation operation, String userOperationReference, int outputIndex, Type type) {
+		OutputReference outputReference = new OutputReference(operation, userOperationReference, outputKey);
 		this.components.put(outputReference, new OutputDescr(outputReference, this, type, outputIndex, null, false));
 	}
 

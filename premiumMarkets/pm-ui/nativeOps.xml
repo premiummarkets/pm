@@ -625,7 +625,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="triggerPointJoiner">
             <reference>triggerPointJoiner</reference>
-            <description>Return the time points maps and values of a set of Series where the reference Series crosses a threshold</description>
+            <description>Returns the dates and values submaps from a set of Series where the reference Series crosses a threshold.</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
                     <reference>data</reference>
@@ -637,8 +637,8 @@
                 </operand>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
-                    <referenceAsOperand>mean</referenceAsOperand>
-                    <description>Mean of the Period lengths</description>
+                    <referenceAsOperand>threshold</referenceAsOperand>
+                    <description>Threshold. /Mean of the Period lengths?/</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>0.0</numberValue>
                     </defaultValue>
@@ -726,6 +726,7 @@
                 <availableOutputSelector>sma</availableOutputSelector>
                 <availableOutputSelector>mstdev</availableOutputSelector>
                 <availableOutputSelector>msimplereg</availableOutputSelector>
+                <availableOutputSelector>mpolyreg</availableOutputSelector>
                 <availableOutputSelector>msum</availableOutputSelector>
                 <availableOutputSelector>mmin</availableOutputSelector>
                 <availableOutputSelector>mmax</availableOutputSelector>
@@ -734,12 +735,14 @@
                 <availableOutputSelector>mtzsctrim</availableOutputSelector>
                 <availableOutputSelector>mtquatrim</availableOutputSelector>
                 <availableOutputSelector>mtstdtrim</availableOutputSelector>
+                <availableOutputSelector>mtquarm</availableOutputSelector>
                 <availableOutputSelector>specificStat</availableOutputSelector>
                 <availableOutputSelector>mzscore</availableOutputSelector>
                 <availableOutputSelector>mmodzscore</availableOutputSelector>
                 <availableOutputSelector>mquantile</availableOutputSelector>
                 <availableOutputSelector>mskewness</availableOutputSelector>
                 <availableOutputSelector>mkurtosis</availableOutputSelector>
+                <availableOutputSelector>mkolmogorvSmirnov</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>sma</outputSelector>
             <isVarArgs>false</isVarArgs>
@@ -1310,11 +1313,22 @@
             <description>Trim data according to the score function and the factor threshold over the full data set. May only work for oscillators.</description>
             <operands>
                 <operand xsi:type="stringOperation">
-                    <reference>type</reference>
-                    <referenceAsOperand>trimType</referenceAsOperand>
-                    <description>The type of trim among [Lcom.finance.pms.events.scoring.functions.Trimmer$TrimType;@14ec4505</description>
+                    <reference>filtertype</reference>
+                    <referenceAsOperand>filterType</referenceAsOperand>
+                    <description>The type of filter among [Stdev, ModZscore, Zscore, Quantile]</description>
                     <defaultValue xsi:type="stringValue">
-                        <stringValue>ModZscore</stringValue>
+                        <stringValue>Quantile</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>trimtype</reference>
+                    <referenceAsOperand>trimType</referenceAsOperand>
+                    <description>The type of trim among [MinMax, Remove, Interpolate, Smooth]</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>MinMax</stringValue>
                     </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
@@ -1344,7 +1358,7 @@
         </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsDeltaExporterOperation">
             <reference>iosDeltaExporter</reference>
-            <description>Exports all datasets delta to the given file path and returns a file path, copy of the requested delta.</description>
+            <description>Exports all datasets delta to the given file path and returns a file path, copy of the requested delta. Only accept NaN for the last rows of the last column.</description>
             <operands>
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
@@ -1922,7 +1936,7 @@
                 <operand xsi:type="listOperation">
                     <reference>parameters</reference>
                     <referenceAsOperand>parameters and parameters slices</referenceAsOperand>
-                    <description>[start, end, step[ or [x, factor] or ["abc"] or [any]. With inclusivity [start, end[ and step must be &gt;= 1. Use [x, factor] to make this parameter a factor of an other parameter indexed at x. Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
+                    <description>[start, end, step[ or [x, factor] or ["abc"] or [any]. With inclusivity [start, end[ and step must be &gt;= 1. Use [idx, factor] to make this parameter a factor of an other parameter indexed at idx.Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

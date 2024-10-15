@@ -214,7 +214,8 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		//int alpha = (int) (255 - 255*( ((double)groupIdx / COLORS.length))/getGroupsCount());
 		//int alpha = Math.max(100, (int) (255 - 255*((double)groupIdx)/getGroupsCount()));
 		int alpha = (int) (255 - 128*((double) groupIdx)/getGroupsCount());
-		Color[] grpColors = COLORS[ ((rendererIdx*getGroupsCount() + groupIdx)) % COLORS.length];
+		int colorIdx = (rendererIdx*getGroupsCount() + groupIdx) % COLORS.length;
+		Color[] grpColors = COLORS[ colorIdx ];
 
 		switch (getOutputDescr(groupIdx, outputIdx).getType()) {
 		case CONSTANT :

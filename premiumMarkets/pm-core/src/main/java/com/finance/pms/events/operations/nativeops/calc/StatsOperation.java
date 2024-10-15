@@ -41,6 +41,7 @@ import java.util.stream.IntStream;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.moment.Kurtosis;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.Skewness;
@@ -49,6 +50,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.apache.commons.math3.stat.descriptive.summary.Sum;
+import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.NotEnoughDataException;
@@ -73,11 +75,13 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.MyApacheStats;
+import com.finance.pms.events.scoring.functions.MyPolynomialRegression;
 import com.finance.pms.events.scoring.functions.MySimpleRegression;
 import com.finance.pms.events.scoring.functions.Normalizer;
 import com.finance.pms.events.scoring.functions.NormalizerMeanStdev;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.FilterType;
 import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
 import com.google.common.math.Quantiles;
 
@@ -255,11 +259,13 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				new DoubleMapOperation());
 		setAvailableOutputSelectors(new ArrayList<String>(
 				Arrays.asList(new String[]{
-						"sma", "mstdev", "msimplereg", "msum", "mmin", "mmax", 
+						"sma", "mstdev", "msimplereg", "mpolyreg", "msum", "mmin", "mmax", 
 						"mtanhnorm", "mmeanostdevnorm",
 						"mtzsctrim", "mtquatrim", "mtstdtrim", 
+									 "mtquarm",
 						"specificStat",
-						"mzscore", "mmodzscore", "mquantile", "mskewness", "mkurtosis"
+						"mzscore", "mmodzscore", "mquantile", "mskewness", "mkurtosis",
+						"mkolmogorvSmirnov"
 						})));
 	}
 
@@ -296,6 +302,9 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msimplereg")) {
 				statFunction = new MySimpleRegression();
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mpolyreg")) {
+				statFunction = new MyPolynomialRegression();
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("msum")) {
 				statFunction = new MyApacheStats(new Sum());
@@ -337,7 +346,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> {
-							double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+							double[] array = subMap.values().stream().filter(e -> !Double.isNaN(e)).mapToDouble(e -> e).toArray();
 							Mean meanF = new Mean();
 							Double mean = meanF.evaluate(array);
 							StandardDeviation stdevF = new StandardDeviation();
@@ -357,7 +366,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> {
-							double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+							double[] array = subMap.values().stream().filter(e -> !Double.isNaN(e)).mapToDouble(e -> e).toArray();
 							Median medianF = new Median();
 							double median = medianF.evaluate(array);
 							medianF.setData(null);
@@ -376,7 +385,8 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				
 				statFunction = new DoEvalStatFunction<double[]>(
 						(subMap) -> {
-							Map<Integer, Double> quantiles = Quantiles.percentiles().indexes(25, 75).compute(subMap.values());
+							List<Double> collect = subMap.values().stream().filter(e -> !Double.isNaN(e)).collect(Collectors.toList());
+							Map<Integer, Double> quantiles = Quantiles.percentiles().indexes(25, 75).compute(collect);
 							Double IQR = quantiles.get(75) - quantiles.get(25);
 							Double higherBound = quantiles.get(75) + 1.5 * IQR;
 							Double lowerBound = quantiles.get(25) - 1.5 * IQR;
@@ -396,7 +406,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> {
-								double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+								double[] array = subMap.values().stream().filter(e -> !Double.isNaN(e)).mapToDouble(e -> e).toArray();
 								Skewness skewnessCalc = new Skewness();
 								Double skewness = skewnessCalc.evaluate(array);
 								SortedMap<Date, Double> skewnessData = subMap.entrySet().stream().collect(Collectors.toMap(
@@ -416,7 +426,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> {
-								double[] array = subMap.values().stream().mapToDouble(e -> e).toArray();
+								double[] array = subMap.values().stream().filter(e -> !Double.isNaN(e)).mapToDouble(e -> e).toArray();
 								Kurtosis kurtosisCalc = new Kurtosis();
 								Double kurtosis = kurtosisCalc.evaluate(array);
 								SortedMap<Date, Double> kurtosisData = subMap.entrySet().stream().collect(Collectors.toMap(
@@ -429,14 +439,51 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 						Arrays.asList(outputSelector));
 				
 			}
+			//If the p-value is small (e.g., < 0.05), reject the null hypothesis (data is not normally distributed)
+			//			p-value: The K-S test returns a p-value, which indicates how likely the observed data matches the normal distribution:
+			//			    If the p-value is small (e.g., < 0.05), you can reject the null hypothesis that the data is normally distributed.
+			//			    If the p-value is large, the data may be considered normally distributed.
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mkolmogorvSmirnov")) {
+				
+				statFunction = new DoEvalStatFunction<Double>(
+						(subMap) -> {
+								// Perform the K-S test: test if the dataset matches the normal distribution
+								double pValue = Double.NaN;
+								try {
+									double[] array = subMap.values().stream().filter(e -> !Double.isNaN(e)).mapToDouble(e -> e).toArray();
+									// Create a Kolmogorov-Smirnov test instance
+									KolmogorovSmirnovTest ksTest = new KolmogorovSmirnovTest();
+									// Assume that the data should follow a normal distribution
+									// Create a normal distribution with estimated mean and std dev (use your dataset's values)
+									Mean meanF = new Mean();
+									Double mean = meanF.evaluate(array);
+									StandardDeviation stdevF = new StandardDeviation();
+									Double stddev = stdevF.evaluate(array);
+									NormalDistribution normalDist = new NormalDistribution(mean, stddev);
+									pValue = ksTest.kolmogorovSmirnovTest(normalDist, array);
+								} catch (Exception e) {
+									LOGGER.warn("Kolmogorov-Smirnov test failed" + e.getMessage());
+								}
+						        
+								double fPValue = pValue;
+								SortedMap<Date, Double> ksData = subMap.entrySet().stream().collect(Collectors.toMap(
+										e -> e.getKey(),
+										e -> fPValue,
+										(a, b) -> a, TreeMap::new
+									));
+								return ksData;
+						}, 
+						Arrays.asList(outputSelector));
+				
+			}
 			
 			//Trimming
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtzsctrim")) { //Sliding bandNormalizer[-1,1,0] with zscore trimming
 				
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> {
-							Trimmer<Double> trimmer = Trimmer.build(Double.class, TrimType.Zscore, Double.NaN, subMap);
-							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+							Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Zscore, TrimType.MinMax, 3.0, subMap);
+							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), trimmer.getTrimmerage(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
 							
 							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
 							return normalized;
@@ -444,24 +491,42 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 						Arrays.asList(outputSelector));
 				
 			}
-			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtquatrim")) { //Sliding bandNormalizer[-1,1,0] with quantile trimming
+			else if (outputSelector != null && outputSelector.toLowerCase().contains("mtqua")) {
 				
+				if (outputSelector != null && outputSelector.equalsIgnoreCase("mtquatrim")) { //Sliding bandNormalizer[-1,1,0] with quantile trimming
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> {							
-							Trimmer<Double> trimmer = Trimmer.build(Double.class, TrimType.Quantile, Double.NaN, subMap);
-							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+							Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Quantile, TrimType.MinMax, Double.NaN, subMap);
+							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), trimmer.getTrimmerage(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
 							
 							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
 							return normalized;
 						}, 
 						Arrays.asList(outputSelector));
+				}
+				else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtquarm")) { //Sliding bandNormalizer[-1,1,0] with quantile removing
+					statFunction = new DoEvalStatFunction<Double>(
+							(subMap) -> {							
+								Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Quantile, TrimType.Remove, Double.NaN, subMap);
+								Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), trimmer.getTrimmerage(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
+								SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
+								
+								targetStock.addMissingData(normalizer.getRemovedKeys());
+								
+								return normalized;
+							}, 
+							Arrays.asList(outputSelector));
+				}
+				else {
+					throw new IllegalArgumentException("Invalid outputSelector: " + outputSelector);
+				}
 				
 			}
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("mtstdtrim")) {
 				
 				statFunction = new DoEvalStatFunction<Double>(
 						(subMap) -> { 
-							Trimmer<Double> trimmer = Trimmer.build(Double.class, TrimType.Stdev, 1.5, subMap);
+							Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Stdev, TrimType.MinMax, 1.5, subMap);
 							return trimmer.trim(subMap);
 						}, 
 						Arrays.asList(outputSelector));
@@ -519,7 +584,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		Operation period = getOperands().get(0);
 		Operation leniency = getOperands().get(1);
 		String thisShort = 
-				getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 4)) + "_" +
+				getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 6)) + "_" +
 				((StringableValue) period.getOrRunParameter(targetStock).orElse(new StringValue(period.toFormulaeShort(targetStock)))).getAsStringable() + "_" +
 				((StringableValue) leniency.getOrRunParameter(targetStock).orElse(new StringValue(leniency.toFormulaeShort(targetStock)))).getValue(targetStock).toString().substring(0,1);
 		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands().subList(2, this.getOperands().size()));

@@ -43,7 +43,6 @@ public class HttpSourceYahooIndices extends HttpSourceMarket {
 	
 	private static MyLogger LOGGER = MyLogger.getLogger(HttpSourceYahooIndices.class);
 	
-	
 	private final String PARIS="1rP";
 	private final String LONDON="1u";
 	

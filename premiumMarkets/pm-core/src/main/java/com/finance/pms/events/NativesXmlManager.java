@@ -106,8 +106,8 @@ import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
 import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
 import com.finance.pms.events.operations.nativeops.trans.RequiredShiftWrapperOperation;
-import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
+import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 
 
 public class NativesXmlManager {

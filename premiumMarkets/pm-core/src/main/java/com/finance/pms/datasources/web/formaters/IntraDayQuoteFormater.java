@@ -33,11 +33,11 @@ public class IntraDayQuoteFormater {
 
 			switch (columnNum) {
 			case 0: //Date
-				if (field.equals("Datetime")) {	throw new RuntimeException(line); }
+				if (field.equals("Datetime") || field.equals("Date")) {	throw new RuntimeException(line); }
 				try {
 					time = df1.parse(field);
 				} catch (Exception e) {
-					throw new StopParseErrorException("Date Format error while parsing yahoo quotations: " + stock + ", for line: " + line, e.getMessage());
+					throw new StopParseErrorException("IntraDayQuoteFormater Date Format Error: for " + stock + ", with line: " + line, e.getMessage());
 				}
 				break;
 			case 1: //Quote

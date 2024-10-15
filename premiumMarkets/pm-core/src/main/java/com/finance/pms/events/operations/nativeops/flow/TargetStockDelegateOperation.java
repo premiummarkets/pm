@@ -73,7 +73,7 @@ public class TargetStockDelegateOperation extends Operation {
 				Stock stock = targetStock.getStock();
 				Quotations quotations = QuotationsFactories.getFactory()
 						.getSplitFreeQuotationsInstance(stock, targetStock.getStartDate(thisStartShift), targetStock.getEndDate(), true, stock.getMarketValuation().getCurrency(), 0, filterFor);
-				Quotations quotationsDelegate  = QuotationsFactories.getFactory()
+				Quotations quotationsDelegate = QuotationsFactories.getFactory()
 						.getSplitFreeQuotationsInstance(stockDelegate, tStockDelegate.getStartDate(thisStartShift), tStockDelegate.getEndDate(), true, stockDelegate.getMarketValuation().getCurrency(), 0, filterFor);
 				List<Date> qDelegateDates = Arrays.asList(quotationsDelegate.getDates());
 				List<Date> missingKeys = Arrays.stream(quotations.getDates()).filter(qd -> !qDelegateDates.contains(qd)).collect(Collectors.toList());

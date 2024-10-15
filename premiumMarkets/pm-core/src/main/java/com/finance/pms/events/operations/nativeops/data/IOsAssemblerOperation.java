@@ -121,7 +121,8 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 					throw new RuntimeException("No result yield: " + inputsOperandsRefs);
 				}
 			});
-			return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, inputsOperandsRefs.size()-1).get(InputToArrayReturn.RESULTS);
+			Integer[] trailNansColsToKeep = allowLastColumnTrailingNaN ? new Integer[] {inputsOperandsRefs.size()-1} : new Integer[0];
+			return ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, trailNansColsToKeep).get(InputToArrayReturn.RESULTS);
 		} catch (Exception e) {
 			throw new NotEnoughDataException(targetStock.getStock(), targetStock.getStartDate(0), targetStock.getEndDate(), e.toString(), e);
 		}

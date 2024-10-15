@@ -1,14 +1,18 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 public class TargetStockInfoOperation extends StringerOperation {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfoOperation.class);
 	
 	public TargetStockInfoOperation(String reference, String description, Operation ... operands) {
 		super(reference, description,  new ArrayList<Operation>(Arrays.asList(operands)));
@@ -25,26 +29,41 @@ public class TargetStockInfoOperation extends StringerOperation {
 	@Override
 	public StringValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		String selector = ((StringValue) inputs.get(0)).getValue(targetStock);
+		try {
+			String selector = ((StringValue) inputs.get(0)).getValue(targetStock);
+			
+			//if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("symbol")) {
+			if (selector.equals("sym")) {
+			    return new StringValue(targetStock.getStock().getSymbol());
+			}
+			
+			if (selector.equals("ana")) {
+			    return new StringValue(targetStock.getAnalysisName());
+			}
+			
+			if (selector.equals("ind")) {
+			    return new StringValue(targetStock.getEventInfoOpsCompoOperation().getReference());
+			}
+			
+			if (selector.equals("uop")) {
+			    return new StringValue(getUserOperationReference(thisCallStack));
+			}
+			
+			if (selector.equals("str")) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			    return new StringValue(sdf.format(targetStock.getStartDate(thisStartShift)));
+			}
+			
+			if (selector.equals("end")) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			    return new StringValue(sdf.format(targetStock.getEndDate()));
+			}
+			
+		} catch (Exception e) {
+			LOGGER.error(e,e);
+		}
 		
-		//if (getOutputSelector() != null && getOutputSelector().equalsIgnoreCase("symbol")) {
-		if (selector.equals("sym")) {
-            return new StringValue(targetStock.getStock().getSymbol());
-        }
-		
-		if (selector.equals("ana")) {
-            return new StringValue(targetStock.getAnalysisName());
-        }
-		
-		if (selector.equals("ind")) {
-            return new StringValue(targetStock.getEventInfoOpsCompoOperation().getReference());
-        }
-		
-		if (selector.equals("uop")) {
-            return new StringValue(getUserOperationReference(thisCallStack));
-        }
-		
-		return new StringValue(targetStock.getStock().getSymbol());
+		return new StringValue("NONE");
 	}
 
 	@Override

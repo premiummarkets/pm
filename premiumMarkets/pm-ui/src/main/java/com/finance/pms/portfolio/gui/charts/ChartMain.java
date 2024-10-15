@@ -740,7 +740,7 @@ public class ChartMain extends Chart {
 					for (SortedMap<Date, double[]> output : eventsSeries.values()) {
 						fullDateSet.addAll(output.keySet());
 					}
-					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, useOneRange, useNoGroupRanges,fullDateSet, eventsSeries);
+					ChartIndicLineSeriesDataSetBuilder dataSetBuilder = new ChartIndicLineSeriesDataSetBuilder(indicPlot, useOneRange, useNoGroupRanges, fullDateSet, eventsSeries);
 					dataSetBuilder.build();
 
 					//Combine group

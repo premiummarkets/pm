@@ -33,6 +33,8 @@
 package com.finance.pms.events.scoring.functions;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -41,12 +43,14 @@ import org.apache.commons.lang.NotImplementedException;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.scoring.functions.Trimmer.Filter;
+import com.finance.pms.events.scoring.functions.Trimmer.Trimmerage;
 
 public class Normalizer<T> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Normalizer.class);
 	
 	Filter filter;
+	Trimmerage trimmerage;
 
 	private final Class<T> genType;
 
@@ -55,6 +59,8 @@ public class Normalizer<T> {
 	private final double maxNorm;
 	private final double minNorm;
 	private final double actualCenter;
+
+	private Set<Date> removedKeys = new HashSet<Date>();
 
 
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm, double actualCenter) {
@@ -70,6 +76,14 @@ public class Normalizer<T> {
 				return false;
 			}
 		};
+		this.trimmerage = new Trimmerage() {
+
+			@Override
+			public Double trimmed(Double value, Double lowerThreshold, Double upperThreshold) {
+				return value;
+			}
+			
+		};
 
 		this.start = start;
 		this.end = end;
@@ -81,10 +95,11 @@ public class Normalizer<T> {
 	
 	}
 	
-	public Normalizer(Class<T> genType, Filter filter, Date start, Date end, double minNorm, double maxNorm, double actualCenter) {
+	public Normalizer(Class<T> genType, Filter filter, Trimmerage trimmerage, Date start, Date end, double minNorm, double maxNorm, double actualCenter) {
 
 		this.genType = genType;
 		this.filter = filter;
+		this.trimmerage = trimmerage;
 
 		this.start = start;
 		this.end = end;
@@ -98,6 +113,7 @@ public class Normalizer<T> {
 
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm) {
 		this(genType, start, end, minNorm, maxNorm, Double.NaN);
+		LOGGER.warn("Normalizer: No actual center set: Changing the mean will result in the alteration of the Probability Density of the data.");
 	}
 
 
@@ -126,19 +142,18 @@ public class Normalizer<T> {
 		for (Date date : subD.keySet()) {
 			double value = valueOf(subD.get(date));
 			
-			if (value > max) {
-				ret.put(date, tOf(maxNorm));
-				continue;
-			}
+			Double trimmed = trimmerage.trimmed(value, min, max);
 			
-			if (value < min) {
-				ret.put(date, tOf(minNorm));
-				continue;
+			if (Double.isNaN(trimmed)) {
+				ret.put(date, tOf(trimmed));
+				if (!Double.isNaN(value)) {
+					getRemovedKeys().add(date);
+				}
+			} else {
+				//From BandRatioNormalizerOperation: (value - actualPivot) * distanceToNewCenter/distanceToActualCenter  + normedPivot
+				double destValueAti = (trimmed - actualPivot) * delta + normedPivot;
+				ret.put(date, tOf(destValueAti));
 			}
-			
-			//From BandRatioNormalizerOperation: (value - actualPivot) * distanceToNewCenter/distanceToActualCenter  + normedPivot
-			double destValueAti = (value - actualPivot) * delta + normedPivot;
-			ret.put(date, tOf(destValueAti));
 			
 		}
 
@@ -190,6 +205,10 @@ public class Normalizer<T> {
 			return ((double[]) t)[0];
 		} else throw new NotImplementedException();
 
+	}
+
+	public Set<Date> getRemovedKeys() {
+		return removedKeys;
 	}
 
 }

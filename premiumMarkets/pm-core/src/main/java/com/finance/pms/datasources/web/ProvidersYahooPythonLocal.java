@@ -156,15 +156,16 @@ public class ProvidersYahooPythonLocal extends ProvidersYahooPython {
 					intraDayQuotations.add(lineValidatables);
 				} catch (StopParseErrorException e) {
 					LOGGER.warn(e);
+					LOGGER.warn("Py output: " + line);
 					while ((line = in.readLine()) != null) {
-						LOGGER.warn(line);
+						LOGGER.warn("Py output: " + line);
 					}
 					throw new IOException(
 							"Stop parsing response from python for " + symbol + " between " + quotationDate + " and " + tomorrowPlusOne + ": " + 
 							((StopParseErrorException) e).getMessage() + ". " +
 							"Reason: " + ((StopParseErrorException) e).getReason());
 	
-				} catch (AssertionError| Exception e) {
+				} catch (AssertionError | Exception e) {
 					if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line: " + line);
 				}
 			}

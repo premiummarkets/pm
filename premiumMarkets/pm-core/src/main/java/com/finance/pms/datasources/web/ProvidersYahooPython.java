@@ -172,16 +172,13 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 					validatables.addAll(lineValidatables);
 				} catch (StopParseErrorException e) {
 					LOGGER.warn(e);
+					LOGGER.warn("Py output: " + line);
 					while ((line = in.readLine()) != null) {
-						LOGGER.warn(line);
+						LOGGER.warn("Py output: " + line);
 					}
-//					throw new IOException(
-//							"Stop parsing response from python for " + symbol + " between " + start + " and " + end + ": " + 
-//							((StopParseErrorException) e).getMessage() + ". " +
-//							"Reason: " + ((StopParseErrorException) e).getReason());
 	
 				} catch (AssertionError| Exception e) {
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Ignoring line: " + line);
+					LOGGER.warn("Ignoring line: " + line);
 				}
 			}
 		}

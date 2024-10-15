@@ -50,6 +50,7 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.scoring.functions.Trimmer;
+import com.finance.pms.events.scoring.functions.Trimmer.FilterType;
 import com.finance.pms.events.scoring.functions.Trimmer.TrimType;
 
 public class BandRatioNormalizerOperation extends PMWithDataOperation {
@@ -99,7 +100,7 @@ public class BandRatioNormalizerOperation extends PMWithDataOperation {
 			SortedMap<Date, Double> values = data.get(0).getValue(targetStock);
 			
 			if (!Double.isNaN(trimFactor)) {
-				Trimmer<Double> trimmer =  Trimmer.build(Double.class, TrimType.Quantile, Double.NaN, values);
+				Trimmer<Double> trimmer =  Trimmer.build(Double.class, FilterType.Quantile, TrimType.MinMax, Double.NaN, values);
 				values = trimmer.trim(values);
 			}
 			

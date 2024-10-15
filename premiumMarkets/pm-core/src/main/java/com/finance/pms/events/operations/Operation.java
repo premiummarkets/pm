@@ -236,7 +236,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			
 			//if (needsReset) targetStock.removeCalculated(this, this.getOutputSelector());
 			Value<?> alreadyCalculated = null;
-			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
+			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, getUserOperationReference(thisCallStack), this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
 				
 				return alreadyCalculated;
 				
@@ -273,7 +273,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				final Boolean literalsOnly = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis).compareTo(targetStock.getEndDate()) > 0;
 				
 				List<Future<Value<?>>> futures = new ArrayList<>(Collections.nCopies(nbOperands, (Future<Value<?>>) null));
-				ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance(); //Executors.newFixedThreadPool(2); //Test
+				ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance();
+				//ExecutorService executor = Executors.newFixedThreadPool(1); //Test
 				
 				if (CalculateThreadExecutor.needsThrottling(executor)) {
 					LOGGER.warn("Run in sequence throttle activated for " + this);
@@ -292,7 +293,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								MyLogger.threadLocal.set(targetStock.getStock().getSymbol());
 								
 								if ((literalsOnly && !operand.isDataShiftSensitive()) || !literalsOnly) {
-									OutputReference myOutputReferenceUnfinished = new OutputReference(operand, operand.getOutputSelector());
+									OutputReference myOutputReferenceUnfinished = 
+											new OutputReference(operand, getUserOperandReference(operand, thisCallStack), operand.getOutputSelector());
 									try {
 										OutputReference theirFutureIsDone = null;
 										while (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
@@ -307,7 +309,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 										};
 										if (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
 											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
-											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart);
+											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart, getUserOperandReference(operand, thisCallStack));
 											if (!isForbidThisParameterValue()) operand.setParameter(output);
 											stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, operand, output));
 											return output;
@@ -507,11 +509,26 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return branchCallStack;
 	}
 	
+	public String getUserOperationReference(List<StackElement> stack) {
+		Optional<StackElement> lastUserOp = stack.stream()
+			.filter(se -> se.isUserOp())
+			.reduce((a,s) -> s);
+		return lastUserOp.map(luo -> luo.getOpReference()).orElse("UnknownUserOperation");
+	}
+	
+	protected Boolean isUserOp() {
+		return !reference.equals(operationReference);
+	}
+	
+	protected String getUserOperandReference(final Operation operand, List<StackElement> thisCallStack) {
+		return operand.isUserOp() ? operand.getReference() : getUserOperationReference(thisCallStack);
+	}
+	
 	public  List<StackElement> newCallerStack(TargetStockInfo targetStock) {
 		return this.addThisToStack(new ArrayList<>(), 0, targetStock);
 	}
 
-	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart) {
+	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart, String userReference) {
 		
 		Integer storedStartShift = operandRequiredstartShift;
 		if (operand instanceof CachableOperation) {
@@ -520,21 +537,21 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		//We gather only outputs for Numericable outputs or if explicitly Cachable
 		if (output instanceof NumericableMapValue || operand instanceof CachableOperation) {
-			targetStock.gatherOneOutput(operand, output, Optional.empty(), storedStartShift, isInChart);
+			targetStock.gatherOneOutput(operand, userReference, output, Optional.empty(), storedStartShift, isInChart);
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
-			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, storedStartShift, isInChart);
+			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, storedStartShift, isInChart, userReference);
 		}
 
 	}
 
-	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput, int startShift, boolean isInChart) {
+	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput, int startShift, boolean isInChart, String userReference) {
 
 		//add to gathered
 		Map<String, NumericableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
-			targetStock.gatherOneOutput(operand, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShift, isInChart);
+			targetStock.gatherOneOutput(operand, userReference, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShift, isInChart);
 		}
 
 	}
@@ -1015,13 +1032,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 	public void setRunInSequence(Boolean runInSequence) {
 		this.runInSequence = runInSequence;
-	}
-	
-	public String getUserOperationReference(List<StackElement> stack) {
-		Optional<StackElement> lastUserOp = stack.stream()
-			.filter(se -> se.isUserOp())
-			.reduce((a,s) -> s);
-		return lastUserOp.map(luo -> luo.getOpReference()).orElse("UnknownUserOpeartion");
 	}
 
 	@Override

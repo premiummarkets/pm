@@ -32,10 +32,12 @@ package com.finance.pms;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.UUID;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -48,6 +50,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.threads.ObserverMsg;
+import com.google.common.io.Files;
 
 public class LogComposite extends Composite implements Observer, Comparable<Observer> {
 
@@ -209,7 +212,34 @@ public class LogComposite extends Composite implements Observer, Comparable<Obse
 			List<String> files = (List<String>) observerMsg.getNameValuePairs().get(0).value;
 			files.stream().forEach(f -> {
 				try {
-					Desktop.getDesktop().open(new File(f));
+					File file = new File(f);
+					if (f.contains("keras_runs_metrics.csv")) {
+						
+						String tmpFileName = UUID.randomUUID().toString();
+						File fileCopy = new File(System.getProperty("installdir") + File.separator + "tmp" + File.separator + tmpFileName + ".csv");
+						try {
+							Files.copy(file, fileCopy);
+							
+							List<String> command = new ArrayList<String>();
+							command.add("/bin/bash");
+							command.add("-c");
+							command.add("/home/guil/Developpement/git/forecast/pm-forecast/shell/keras_runs_ui_gestures.sh " + fileCopy.getParent() + " " + fileCopy.getName());
+							ProcessBuilder builder = new  ProcessBuilder(command);
+							builder.start();
+							
+						} finally {
+							try {
+								Thread.sleep(15000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							fileCopy.delete();
+						}
+						
+					} else {
+						Desktop.getDesktop().open(file);
+					}
+					
 				} catch (IOException e) {
 					LOGGER.error(e);
 				}
