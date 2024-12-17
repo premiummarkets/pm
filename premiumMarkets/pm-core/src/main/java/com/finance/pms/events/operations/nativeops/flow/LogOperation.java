@@ -8,12 +8,13 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
-public class LogOperation extends PassThroughOperation {
+public class LogOperation extends PassThroughOperation implements MultiValuesOutput {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(LogOperation.class);
 	
@@ -44,8 +45,13 @@ public class LogOperation extends PassThroughOperation {
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String message = ((StringValue) inputs.get(0)).getValue(targetStock);
-		LOGGER.info(getReference() + ": " + message.replaceAll("_", " ") + " in " + this.getOperands().get(UPSTREAM_OPERATION_IDX).toFormulaeShort(targetStock));
+		LOGGER.info(getReference() + ": " + message.replaceAll("_", " ") + " in " + this.getOperands().get(UPSTREAM_OPERATION_IDX).toFormulaeShort(targetStock, thisCallStack));
 		return inputs.get(UPSTREAM_OPERATION_IDX);
+	}
+	
+	@Override
+	public int mainInputPosition() {
+		return 0;
 	}
 	
 }

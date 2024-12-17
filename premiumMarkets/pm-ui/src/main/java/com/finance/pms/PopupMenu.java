@@ -182,7 +182,7 @@ public class PopupMenu<T extends InfoObject> {
 			Rectangle parentShellBounds = rootParent.getShell().getBounds();
 			Rectangle parentBounds = controlParent.getParent().getBounds();
 			Rectangle pparentBounds = controlParent.getParent().getParent().getBounds();
-			int x =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, parentShellBounds.x + pparentBounds.x + parentBounds.x + controlParent.getBounds().x));
+			int x = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, parentShellBounds.x + pparentBounds.x + parentBounds.x + controlParent.getBounds().x));
 			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, parentShellBounds.y + pparentBounds.y + parentBounds.y + controlParent.getBounds().y));
 			//selectionShell.setBounds(x, y, selectionShell.getBounds().width, selectionShell.getBounds().height);
 			selectionShell.setLocation(x, y);
@@ -193,7 +193,7 @@ public class PopupMenu<T extends InfoObject> {
 				location.x = location.x + selectionShell.getSize().x;
 			}
 			int x = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().width-selectionShell.getSize().x, location.x));
-			int y =  Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, location.y));
+			int y = Math.max(0, Math.min(selectionShell.getDisplay().getBounds().height-selectionShell.getSize().y, location.y));
 			selectionShell.setLocation(x, y);
 
 		}

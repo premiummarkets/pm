@@ -39,7 +39,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DateFormat;
@@ -212,10 +211,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	private Date buttonEndDate;
 	private Boolean sliderSelection;
 
-	private Boolean closeRequested = false;
-
-	private Boolean chartPanelFocusGain;
-
 	private Point panelClickPosition;
 	private Boolean isInPanelChartSlider;
 
@@ -299,6 +294,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	public void rowSelectioHighLight(Integer idx, Stock selectedShare, Boolean recalculationGranted) {
 		chartDisplayStrategy.cleanPreviousStockSelection();
 		chartDisplayStrategy.highLight(idx, selectedShare, recalculationGranted);
+		
 	}
 
 	void updateCharts(Boolean grantEventsUpdate, PopupType... popupTypes) {
@@ -480,18 +476,7 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				});
 
 				//Slider
-				chartPanelFocusGain = false;
 				mainChartPanel.addMouseListener(new MouseAdapter() {
-
-					@Override
-					public void mouseEntered(MouseEvent e) {
-						chartPanelFocusGain = true;
-					}
-
-					@Override
-					public void mouseExited(MouseEvent e) {
-						chartPanelFocusGain = false;
-					}
 
 					@Override
 					public void mousePressed(final MouseEvent e) {
@@ -530,79 +515,79 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				});
 
 
-				//focus bizz (useful?)
-				mainChartPanel.addMouseMotionListener(new MouseMotionListener() {
-
-					@Override
-					public void mouseMoved(final MouseEvent e) {
-
-						//Sliding
-						if (!closeRequested) {
-							Display.getDefault().asyncExec(new Runnable() {
-
-								@Override
-								public void run() {
-
-									if (!closeRequested) {
-										try {
-											Cursor cursor = ChartsComposite.this.getCursor();
-											if (cursor == null || (!cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) && !cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {	
-												Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, e.getPoint().y);
-												if (isSlidingArea) {
-													ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_SIZENS));
-												} else {
-													ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-												}
-
-											}
-
-										} catch (Throwable e) {
-											try {
-												ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
-											} catch (Throwable e1) {
-												LOGGER.warn(e1,e1);
-											}
-											LOGGER.warn(e,e);
-										}
-									}
-
-								}
-							});
-						}
-
-
-						//Gain focus mgnt
-						if (!closeRequested) {
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
-									try {
-										if (!closeRequested) {
-											if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
-												int cpt = 0;
-												while (chartPanelFocusGain && cpt < 200) {
-													Thread.sleep(10);
-													cpt++;
-												}
-												if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
-													mainChartComposite.forceFocus();
-												}
-											}
-										}
-									} catch (Throwable e) {
-										LOGGER.warn(e,e);
-									}
-								}
-							});
-						}
-
-					}
-
-					@Override
-					public void mouseDragged(MouseEvent e) {
-						//Nothing
-					}
-
-				});
+//				//focus bizz (useful?)
+//				mainChartPanel.addMouseMotionListener(new MouseMotionListener() {
+//
+//					@Override
+//					public void mouseMoved(final MouseEvent e) {
+//
+//						//Sliding
+//						if (!closeRequested) {
+//							Display.getDefault().asyncExec(new Runnable() {
+//
+//								@Override
+//								public void run() {
+//
+//									if (!closeRequested) {
+//										try {
+//											Cursor cursor = ChartsComposite.this.getCursor();
+//											if (cursor == null || (!cursor.equals(CursorFactory.getCursor(SWT.CURSOR_WAIT)) && !cursor.equals(CursorFactory.getCursor(SWT.CURSOR_APPSTARTING)))) {	
+//												Boolean isSlidingArea = getMainChartWraper().isSlidingArea(mainChartComposite.getSize().y, e.getPoint().y);
+//												if (isSlidingArea) {
+//													ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_SIZENS));
+//												} else {
+//													ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+//												}
+//
+//											}
+//
+//										} catch (Throwable e) {
+//											try {
+//												ChartsComposite.this.setCursor(CursorFactory.getCursor(SWT.CURSOR_ARROW));
+//											} catch (Throwable e1) {
+//												LOGGER.warn(e1,e1);
+//											}
+//											LOGGER.warn(e,e);
+//										}
+//									}
+//
+//								}
+//							});
+//						}
+//
+//
+//						//Gain focus mgnt
+//						if (!closeRequested) {
+//							Display.getDefault().asyncExec(new Runnable() {
+//								public void run() {
+//									try {
+//										if (!closeRequested) {
+//											if (!mainChartComposite.isDisposed() && !mainChartComposite.isFocusControl()) {
+//												int cpt = 0;
+//												while (chartPanelFocusGain && cpt < 200) {
+//													Thread.sleep(10);
+//													cpt++;
+//												}
+//												if (chartPanelFocusGain && !mainChartComposite.isDisposed()) {
+//													mainChartComposite.forceFocus();
+//												}
+//											}
+//										}
+//									} catch (Throwable e) {
+//										LOGGER.warn(e,e);
+//									}
+//								}
+//							});
+//						}
+//
+//					}
+//
+//					@Override
+//					public void mouseDragged(MouseEvent e) {
+//						//Nothing
+//					}
+//
+//				});
 
 				mainChartComposite.addKeyListener(new org.eclipse.swt.events.KeyListener() {
 
@@ -1131,7 +1116,6 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 	}
 
 	protected void rootShellClosed(DisposeEvent evt) {
-		closeRequested = true;
 		ChartsComposite.this.shutDownDisplay();
 		mainChartComposite.dispose();
 	}

@@ -97,7 +97,7 @@ public class NamedListOperation extends Operation {
 
 	@Override
 	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
-		Optional<Value<?>> orRunParameter = this.getOrRunParameter(targetStock);
+		Optional<Value<?>> orRunParameter = this.getOrRunParameter(targetStock, parentCallStack);
 		if (orRunParameter.isPresent()) {
 			return ((StringableValue) orRunParameter.get()).getAsStringable();
 		}
@@ -135,7 +135,7 @@ public class NamedListOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 

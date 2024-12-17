@@ -469,15 +469,16 @@ public class ChartMain extends Chart {
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
 							String compoundPReal = pf.format(serieDef.getForecastProfit());
 							String compoundPUnReal = pf.format(serieDef.getForecastProfitUnReal());
+							//String reinvest = pf.format(serieDef.getForecastReinvest());
 							String priceChange = pf.format(serieDef.getStockPriceChange());
 							//avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
 							Map<String, Double> bullStats = serieDef.getBullStats();
 							Map<String, Double> bearStats = serieDef.getBearStats();
 							String annotationTxt = serieDef.getEventDisplayeDef() + 
 									" ("
-									+ "r" + compoundPReal + " / ur" + compoundPUnReal + " / b&h" + priceChange
+									+ "r" + compoundPReal + " / ur" + compoundPUnReal + " V. b&h" + priceChange //+ " / ri"  + reinvest + " V. b&h" + priceChange
 									+ " / avg" + pf.format(bullStats.get("avgROC"))
-									+ " / flog" + pf.format(Math.log(Math.abs(bullStats.get("failureWeigh"))/bullStats.get("successWeigh")))
+									+ " / flg" + pf.format(Math.log(Math.abs(bullStats.get("failureWeigh"))/bullStats.get("successWeigh")))
 									+ " / min" + pf.format(bullStats.get("minROC")) + " / max" + pf.format(bullStats.get("maxROC"))
 									+ ")";
 							Date[] dateRange = serieDef.getDateRange();
@@ -487,7 +488,7 @@ public class ChartMain extends Chart {
 							String annotationToolTip = "<html>" 
 								+ serieDef.getEventDisplayeDef() + "<br>"
 								+ "Calc range: from " + df.format(dateRange[0]) + " to " + df.format(dateRange[1])  + "<br>"
-								+ "Compound: " + compoundPReal + "(r) " + compoundPUnReal + "(ur) V. Price change: " + priceChange + "<br>"
+								+ "Compound: " + "r" + compoundPReal + " / ur" + compoundPUnReal + " V. b&h" + priceChange + "<br>" // + reinvest + "(ri) " + " V. " + priceChange + "(b&h)<br>"
 								
 								+ "Bull Pred Stats: Avg profit " + pf.format(bullStats.get("avgROC")) + ", Failed buy ratio " + pf.format(bullStats.get("failureRatio")) 
 								+ ", Failure weight " + pf.format(Math.abs(bullStats.get("failureWeigh"))) 
@@ -557,7 +558,10 @@ public class ChartMain extends Chart {
 												double compoundReal = serieDef.getTuningRes().getForecastProfitAt(date);
 												double compoundUnReal = serieDef.getTuningRes().getForecastProfitAtUnReal(date);
 												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
-												profitTip = period.toToolTip() + " ( cmpnd " + pf.format(compoundReal) + "(r) / " + pf.format(compoundUnReal) + "(ur) / b&h " + pf.format(priceChange) + " ) ";
+												profitTip = period.toToolTip() + " (cmpnd " + 
+														"r" + pf.format(compoundReal) + " / ur" + pf.format(compoundUnReal)  + 
+														" V. b&h" + pf.format(priceChange) 	+ " " + 
+														") ";
 												LOGGER.debug(((period.getTrend().equals(EventType.BEARISH.name()))?"Buy":"Sell") + " at " + date + " : " + profitTip);
 											}
 										} catch (Exception e) {

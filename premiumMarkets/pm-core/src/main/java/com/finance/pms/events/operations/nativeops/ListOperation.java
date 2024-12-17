@@ -54,7 +54,7 @@ public class ListOperation extends Operation {
 	
 
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		return "lO" + this.getOperands().size();
 	}
 
@@ -69,7 +69,7 @@ public class ListOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 

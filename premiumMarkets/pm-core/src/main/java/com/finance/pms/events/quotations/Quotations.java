@@ -123,7 +123,28 @@ public class Quotations {
 		}
 	}
 	
+
+	public static class FirstNLastDate {
+		Date firstDate;
+		Date lastDate;
+		
+		public Date getFirstDate() {
+			return firstDate;
+		}
+		public void setFirstDate(Date firstDate) {
+			this.firstDate = firstDate;
+		}
+		public Date getLastDate() {
+			return lastDate;
+		}
+		public void setLastDate(Date lastDate) {
+			this.lastDate = lastDate;
+		}
+
+	}
+	
 	private static List<Stock> CACHE_KEYS_REF = new ArrayList<>();
+	private static ConcurrentHashMap<Stock,FirstNLastDate> FIRST_N_LAST_DATE_CACHE = new ConcurrentHashMap<Stock,FirstNLastDate>();
 	private static ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>> QUOTATIONS_CACHE = new ConcurrentHashMap<Stock, SoftReference<Map<String, QuotationData>>>(100,0.90f);
 	private static final LastUpdateStampChecker LAST_UPDATE_STAMP_CHECKER = new LastUpdateStampChecker();
 	
@@ -132,7 +153,6 @@ public class Quotations {
 
 	private final Boolean keepCache;
 	private final QuotationData thisCacheQuotationData;
-	private Date firstQuotationDateFromDB;
 	
 	private final SplitOption splitOption;
 	private final ValidityFilter[] validityFilters;
@@ -154,8 +174,6 @@ public class Quotations {
 		this.lastDateRequested = quotations.lastDateRequested;
 		this.stock = quotations.stock;
 		this.thisCacheQuotationData = quotations.thisCacheQuotationData;
-		
-		this.firstQuotationDateFromDB = quotations.firstQuotationDateFromDB;
 
 	}
 
@@ -197,7 +215,7 @@ public class Quotations {
 			}
 			
 		} catch (NoQuotationsException e) {
-			Date firstQuotationFromDB = getFirstQuotationFromDB(stock);
+			Date firstQuotationFromDB = DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);
 			if (!firstQuotationFromDB.after(lastDate)) {
 				LOGGER.warn("Failed init quotations: " + e + " with firstQuotationFromDB=" + firstQuotationFromDB + " and lastDateRequested=" + lastDate + " for " + this); //Could be an issue but depends on the filter ..
 			}; 
@@ -395,7 +413,7 @@ public class Quotations {
 				&& !maxRangeCachedQuotationData.isEmpty()
 				&& //start is out of range or start cache - indexShift <= firstDate
 				(
-						getFirstQuotationFromDB(stock).compareTo(maxRangeCachedQuotationData.get(0).getDate()) == 0 ||
+						DataSource.getInstance().getFirstQuotationDateFromQuotations(stock).compareTo(maxRangeCachedQuotationData.get(0).getDate()) == 0 ||
 						(
 							maxRangeCachedQuotationData.get(0).getDate().compareTo(firstDate) <= 0
 							&& (
@@ -420,11 +438,6 @@ public class Quotations {
 			return null;
 		}
 
-	}
-
-	private Date getFirstQuotationFromDB(Stock stock) {
-		if (firstQuotationDateFromDB == null) firstQuotationDateFromDB = DataSource.getInstance().getFirstQuotationDateFromQuotations(stock);
-		return firstQuotationDateFromDB;
 	}
 
 	protected QuotationData retreiveQuotationsData(Date firstDate, Integer indexShiftBefore) {
@@ -976,6 +989,7 @@ public class Quotations {
 				Quotations.QUOTATIONS_CACHE.remove(stock);
 				Quotations.QUOTATIONS_CACHE.put(stock, softReference);
 			}
+			Quotations.FIRST_N_LAST_DATE_CACHE.remove(stock);
 		}
 
 	}
@@ -993,6 +1007,7 @@ public class Quotations {
 				softReference.clear();
 				Quotations.QUOTATIONS_CACHE.remove(stock);
 			}
+			Quotations.FIRST_N_LAST_DATE_CACHE.remove(stock);
 		}
 		
 	}
@@ -1016,7 +1031,7 @@ public class Quotations {
 			if (oldValue != null) {
 				oldValue.clear();
 			}
-			
+			Quotations.FIRST_N_LAST_DATE_CACHE.remove(stock);
 			return quotationData;
 		}
 		
@@ -1035,6 +1050,29 @@ public class Quotations {
 			}
 		//}
 		
+	}
+	
+	public static void setLastDate(Stock stock, Date lastDate) {
+		FirstNLastDate firstNLastDate = Quotations.FIRST_N_LAST_DATE_CACHE.get(stock);
+		if (firstNLastDate == null) {
+			firstNLastDate = new FirstNLastDate();
+			Quotations.FIRST_N_LAST_DATE_CACHE.put(stock, firstNLastDate);
+		}
+		firstNLastDate.setLastDate(lastDate);
+	}
+	
+	
+	public static void setFirstDate(Stock stock, Date firstDate) {
+		FirstNLastDate firstNLastDate = Quotations.FIRST_N_LAST_DATE_CACHE.get(stock);
+		if (firstNLastDate == null) {
+			firstNLastDate = new FirstNLastDate();
+			Quotations.FIRST_N_LAST_DATE_CACHE.put(stock, firstNLastDate);
+		}
+		firstNLastDate.setFirstDate(firstDate);
+	}
+	
+	public static FirstNLastDate getFirstNLastDate(Stock stock) {
+		return Quotations.FIRST_N_LAST_DATE_CACHE.get(stock);
 	}
 
 	public static LastUpdateStampChecker checkLastQuotationUpdateFor() {

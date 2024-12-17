@@ -116,9 +116,9 @@ public class AndOperation extends FlowOperation {
 	
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "fAnd";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	

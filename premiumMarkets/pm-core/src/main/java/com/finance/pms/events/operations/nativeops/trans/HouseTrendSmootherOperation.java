@@ -62,8 +62,8 @@ public class HouseTrendSmootherOperation extends PMWithDataOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return ((NumberValue)getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
+		return ((NumberValue)getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(new NumberValue(0.0))).getValue(targetStock).intValue();
 	}
 
 

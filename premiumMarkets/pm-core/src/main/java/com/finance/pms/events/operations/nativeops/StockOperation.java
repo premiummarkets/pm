@@ -138,19 +138,19 @@ public class StockOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 1;
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		return getOutputSelector().substring(0,1);
 	}
 	
 	@Override
 	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 		Operation operand0 = getOperands().get(0);
-		String value = ((StringValue) operand0.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock);
+		String value = ((StringValue) operand0.getOrRunParameter(targetStock, parentCallStack).orElseThrow()).getValue(targetStock);
 		if (value.equals("THIS")) {
 			return getOutputSelector();
 		} else {

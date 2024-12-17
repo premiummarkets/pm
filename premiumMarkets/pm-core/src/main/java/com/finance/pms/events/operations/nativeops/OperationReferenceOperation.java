@@ -40,8 +40,8 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo stockInfo) {
-		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeShort(stockInfo), ov -> ov.getAsStringable());
+	public String toFormulaeShort(TargetStockInfo stockInfo, List<StackElement> thisCallStack) {
+		return reccurentProceeds((ov) -> ov.getValue(null).toFormulaeShort(stockInfo, thisCallStack), ov -> ov.getAsStringable());
 	}
 	
 	@Override
@@ -68,8 +68,8 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return reccurentProceeds((ov) -> ov.getValue(targetStock).operandsRequiredStartShift(targetStock, thisParentStartShift), ov -> 0);
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
+		return reccurentProceeds((ov) -> ov.getValue(targetStock).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift), ov -> 0);
 	}
 
 	@Override
@@ -169,8 +169,9 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 //	}
 
 	@Override
-	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		Function<OperationReferenceValue<? extends Operation>, Integer> func = (ov) -> ov.getValue(null).operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift);
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOperationStartShift) {
+		Function<OperationReferenceValue<? extends Operation>, Integer> func = (ov) -> ov.getValue(null)
+				.operandsRequiredStartShiftRecursive(targetStock, thisCallStack, thisOperationStartShift);
 		return reccurentProceeds(func, func);
 	}
 

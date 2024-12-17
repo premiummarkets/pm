@@ -587,10 +587,9 @@ public class OperationBuilderComposite extends Composite {
 	protected void deleteAllUnused() {
 		Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 		for (String opId : allOps.keySet()) {
-			try {
-				parameterizedBuilder.removeFormula(opId);
-			} catch (IOException e) {
-				LOGGER.info(opId + " is used and won't be disabled");
+			List<Operation> usingOps = parameterizedBuilder.removeFormula(opId);
+			if (!usingOps.isEmpty()) {
+				LOGGER.error(opId + " is in use, and can't be deleted, by " + usingOps.stream().map(o -> o.getReference()).reduce((a,o) -> a + ", " + o));
 			}
 		}
 	}
@@ -930,16 +929,33 @@ public class OperationBuilderComposite extends Composite {
 		if (isNativeOp(identifier, existingOp)) return;
 
 		try {
-			parameterizedBuilder.removeFormula(identifier);
-		} catch (IOException e) {
-			openDialog(true, "Formula can't be deleted.", e);
-			return;
+			List<Operation> usingOps = parameterizedBuilder.removeFormula(identifier);
+			if (!usingOps.isEmpty()) {
+				String reduce = usingOps.stream().map(o -> o.getReference()).reduce((a,o) -> a + ", " + o).get();
+				ActionDialogAction action = new ActionDialogAction() {
+						@Override
+						public void action() {
+							for (Operation op : usingOps) {
+								deleteFormula(op.getReference());
+							}
+							updateOperationList(true, null, false);
+							List<Operation> remains = parameterizedBuilder.removeFormula(identifier);
+							if (!remains.isEmpty()) {
+								throw new RuntimeException("Can't delete " + identifier + " because it is used by " + remains.stream().map(o -> o.getReference()).reduce((a,o) -> a + ", " + o).get());
+							}
+							clearPreviousCalculationsUsing(identifier);
+							refreshViews();
+						}
+					};
+				ActionDialog delDialog = new ActionDialog(getShell(), "Operation is used", editorHolder.getFormatedReferenceTxt() + " is used by " + reduce, null, "Delete them too?", action);
+				delDialog.open();
+			} else {
+				clearPreviousCalculationsUsing(identifier);
+				refreshViews();
+			}
 		} catch (Exception e) {
 			openDialog(true, "Found invalid formulas while storing data.", e);
 		}
-
-		clearPreviousCalculationsUsing(identifier);
-		refreshViews();
 
 	}
 
@@ -958,12 +974,12 @@ public class OperationBuilderComposite extends Composite {
 		}
 	}
 	
-	private void openActionDialog(Boolean forceOpening, String title, String errorMsg, Object e, String actionTxt, ActionDialogAction action, Boolean async) {
-		String addMessage = (e == null)?null:e.toString();
+	private void openActionDialog(Boolean forceOpening, String title, String errorMsg, Object msgObjectException, String actionTxt, ActionDialogAction action, Boolean async) {
+		String addMessage = (msgObjectException == null)?null:msgObjectException.toString();
 		boolean firstDialog = (actionDialog == null);
 		boolean differentDialog = (actionDialog != null) && !actionDialog.sameDialog(errorMsg, addMessage);
 		if (firstDialog || differentDialog || forceOpening) {
-			if (e instanceof Exception) LOGGER.warn(e, (Exception) e);
+			if (msgObjectException instanceof Exception) LOGGER.warn(msgObjectException, (Exception) msgObjectException);
 			title = MainGui.APP_NAME + " - " + ((title == null)?"Warning":title);
 			if (firstDialog || actionDialog.getParent().isDisposed()) {
 				actionDialog = new ActionDialog(getShell(), title, errorMsg, addMessage, actionTxt, action, async);

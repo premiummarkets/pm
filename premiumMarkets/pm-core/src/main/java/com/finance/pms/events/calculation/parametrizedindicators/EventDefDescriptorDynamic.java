@@ -53,7 +53,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGr
 /**
  * Describe an event info. Its content as to be linked to the event info as defined by the formulae and should not contain calculated information.
  */
-public class EventDefDescriptorDynamic implements EventDefDescriptor {
+public class EventDefDescriptorDynamic implements EventDefDescriptor, Cloneable {
 
 	private static final long serialVersionUID = -1012511586844509781L;
 
@@ -217,15 +217,16 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		int colorIdx = (rendererIdx*getGroupsCount() + groupIdx) % COLORS.length;
 		Color[] grpColors = COLORS[ colorIdx ];
 
+		int maxMod = 190; //Higher RGB are too light //256;
 		switch (getOutputDescr(groupIdx, outputIdx).getType()) {
 		case CONSTANT :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/2);
 		case SIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha);
 		case BOTH :
-			return new Color((grpColors[2].getRed() + (int)(128*randoms[outputIdx%NB_RAND])) % 256, (grpColors[2].getGreen() + (int)(128*randoms[(outputIdx+1)%NB_RAND])) % 256, (grpColors[2].getBlue() + (int)(128*randoms[(outputIdx+2)%NB_RAND])) % 256, alpha);
+			return new Color((grpColors[2].getRed() + (int)(128*randoms[outputIdx%NB_RAND])) % maxMod, (grpColors[2].getGreen() + (int)(128*randoms[(outputIdx+1)%NB_RAND])) % maxMod, (grpColors[2].getBlue() + (int)(128*randoms[(outputIdx+2)%NB_RAND])) % maxMod, alpha);
 		case MULTI :
-			return new Color((grpColors[3].getRed() + (int)(128*randoms[outputIdx%NB_RAND])) % 256, (grpColors[3].getGreen() + (int)(128*randoms[(outputIdx+1)%NB_RAND])) % 256, (grpColors[3].getBlue() + (int)(128*randoms[(outputIdx+2)%NB_RAND])) % 256, alpha);
+			return new Color((grpColors[3].getRed() + (int)(128*randoms[outputIdx%NB_RAND])) % maxMod, (grpColors[3].getGreen() + (int)(128*randoms[(outputIdx+1)%NB_RAND])) % maxMod, (grpColors[3].getBlue() + (int)(128*randoms[(outputIdx+2)%NB_RAND])) % maxMod, alpha);
 			//return new Color(((int)(256*randoms[outputIdx%NB_RAND])), ((int)(256*randoms[outputIdx%NB_RAND])), ((int)(256*randoms[outputIdx%NB_RAND])), alpha);
 		case MULTISIGNAL :
 			return new Color(grpColors[1].getRed(), grpColors[1].getGreen(), grpColors[1].getBlue(), alpha/4);
@@ -234,7 +235,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 		}
 
 	}
-
+	
 	public void setDescriptorReference(String reference) {
 		this.descriptorReference = reference;
 	}
@@ -271,7 +272,7 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 	}
 
 	private Integer[] getOutputIndexesForGroupSans(int groupIndex, Type... filter) {
-		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??) : " + descriptorReference);
+		if (chartedOutputGroups == null) throw new java.util.NoSuchElementException("Can't refresh indicator chart for (clear in progress??): " + descriptorReference);
 
 		ChartedOutputGroup chartedOutputGroup = chartedOutputGroups.get(groupIndex);
 		List<Integer> outputIdxs = new ArrayList<>();
@@ -387,5 +388,30 @@ public class EventDefDescriptorDynamic implements EventDefDescriptor {
 			return "NoDescriptionFound";
 		}
 	}
+
+	@Override
+	public Object clone() {
+		try {
+			EventDefDescriptorDynamic clone = (EventDefDescriptorDynamic) super.clone();
+			clone.randoms = this.randoms;
+
+			clone.descriptorReference = descriptorReference;
+			clone.bullishDescription = bullishDescription;
+			clone.bearishDescription = bearishDescription;
+			clone.alsoDisplayDescription = alsoDisplayDescription;
+			
+			clone.exportBaseFileName = "";
+			
+			clone.chartedOutputGroups = null;
+			clone.outputDescrFlatList = null;
+			
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			LOGGER.error(e, e);
+		}
+		return null;
+	}
+	
+	
 
 }

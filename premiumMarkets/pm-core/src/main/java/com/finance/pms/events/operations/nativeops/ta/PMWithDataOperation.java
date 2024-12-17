@@ -31,8 +31,10 @@ package com.finance.pms.events.operations.nativeops.ta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 public abstract class PMWithDataOperation extends PMIndicatorOperation {
@@ -50,12 +52,12 @@ public abstract class PMWithDataOperation extends PMIndicatorOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShort = getOperationReference().substring(0,1) + getOperationReference().chars()
 						.filter(c -> Character.isUpperCase(c))
 						.mapToObj(cu -> (char) cu)
 						.reduce("", (r, e) -> r + e, (a, b) -> a + b);
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	

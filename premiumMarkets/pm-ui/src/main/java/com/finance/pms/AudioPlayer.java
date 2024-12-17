@@ -44,175 +44,175 @@ import javax.sound.sampled.SourceDataLine;
 
 class AudioData
 {
-    public AudioInputStream audioInputStream = null;
-    public DataLine dataLine = null;
-    public PlayThread thread = null;
+	public AudioInputStream audioInputStream = null;
+	public DataLine dataLine = null;
+	public PlayThread thread = null;
 }
 
 abstract class PlayThread extends Thread
 {
-    public abstract void setLooping(boolean loop);
-    public abstract void playSound();
-    public abstract void stopSound();
+	public abstract void setLooping(boolean loop);
+	public abstract void playSound();
+	public abstract void stopSound();
 }
 
 class PlayClipThread extends PlayThread
 {
-    private Clip clip = null;
-    private boolean loop = false;
+	private Clip clip = null;
+	private boolean loop = false;
 
-    public PlayClipThread(Clip clip)
-    {
-        this.clip = clip;
-    }
+	public PlayClipThread(Clip clip)
+	{
+		this.clip = clip;
+	}
 
-    public void run()
-    {
-        if (clip != null)
-        {
-            stopSound();
+	public void run()
+	{
+		if (clip != null)
+		{
+			stopSound();
 
-            // give the thread that is playing the clip a chance to
-            // stop the clip before we restart it
-            try
-            {
-                Thread.sleep(1);
-            }
-            catch(InterruptedException e)
-            {
-                // don't do anything if the thread was interrupted
-            }
+			// give the thread that is playing the clip a chance to
+			// stop the clip before we restart it
+			try
+			{
+				Thread.sleep(1);
+			}
+			catch(InterruptedException e)
+			{
+				// don't do anything if the thread was interrupted
+			}
 
-            playSound();
-        }
-    }
+			playSound();
+		}
+	}
 
-    public void setLooping(boolean loop)
-    {
-        this.loop = loop;
-    }
+	public void setLooping(boolean loop)
+	{
+		this.loop = loop;
+	}
 
-    public void stopSound()
-    {
-        clip.stop();
-    }
+	public void stopSound()
+	{
+		clip.stop();
+	}
 
-    public void playSound()
-    {
-        clip.setFramePosition(0);
-        if (loop)
-        {
-            clip.loop(Clip.LOOP_CONTINUOUSLY);
-        }
-        else
-        {
-            clip.start();
-        }
-    }
+	public void playSound()
+	{
+		clip.setFramePosition(0);
+		if (loop)
+		{
+			clip.loop(Clip.LOOP_CONTINUOUSLY);
+		}
+		else
+		{
+			clip.start();
+		}
+	}
 }
-    
+
 class PlayStreamThread extends PlayThread
 {
-    private byte tempBuffer[] = new byte[10000];
-    
-    private AudioInputStream audioInputStream;
-    private SourceDataLine sourceDataLine;
-    
-    private boolean loop;
-    private boolean playing;
+	private byte tempBuffer[] = new byte[10000];
 
-    public PlayStreamThread(AudioInputStream audioInputStream, SourceDataLine sourceDataLine)
-    {
-        this.audioInputStream = audioInputStream;
-        this.sourceDataLine = sourceDataLine;
-        playing = false;
-    }
+	private AudioInputStream audioInputStream;
+	private SourceDataLine sourceDataLine;
 
-    public void setLooping(boolean loop)
-    {
-        this.loop = loop;
-    }
+	private boolean loop;
+	private boolean playing;
 
-    public void start()
-    {
-        playSound();
-        super.start();
-    }
+	public PlayStreamThread(AudioInputStream audioInputStream, SourceDataLine sourceDataLine)
+	{
+		this.audioInputStream = audioInputStream;
+		this.sourceDataLine = sourceDataLine;
+		playing = false;
+	}
 
-    public void playSound()
-    {
-        if (playing)
-        {
-            return;
-        }
+	public void setLooping(boolean loop)
+	{
+		this.loop = loop;
+	}
 
-        try
-        {
-            audioInputStream.reset();
-            sourceDataLine.start();
-            playing = true;
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+	public void start()
+	{
+		playSound();
+		super.start();
+	}
 
-    public void stopSound()
-    {
-        try
-        {
-            sourceDataLine.flush();
-            sourceDataLine.stop();
-            playing = false;
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+	public void playSound()
+	{
+		if (playing)
+		{
+			return;
+		}
 
-    public void run()
-    {
-        try
-        {
-            int cnt;
-            while (true)
-            {
-                int avail = sourceDataLine.available();
-                while (playing && (cnt = audioInputStream.read(tempBuffer, 0, tempBuffer.length)) != -1)
-                {
-                    if(cnt > 0)
-                    {
-                        sourceDataLine.write(tempBuffer, 0, cnt);
-                    }
-                    Thread.sleep(1);
-                }
-                
-                // using this loop instead of sourceDataLine.drain() in case
-                // the stopSound() method is called -- drain() is a blocking method
-                while (playing && (sourceDataLine.available() < avail))
-                {
-//                     System.out.println(sourceDataLine.available());
-                }
+		try
+		{
+			audioInputStream.reset();
+			sourceDataLine.start();
+			playing = true;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 
-                if (loop && playing)
-                {
-                    playing = false;
-                    playSound();
-                }
-                else
-                {
-                    stopSound();
-                    break;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+	public void stopSound()
+	{
+		try
+		{
+			sourceDataLine.flush();
+			sourceDataLine.stop();
+			playing = false;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void run()
+	{
+		try
+		{
+			int cnt;
+			while (true)
+			{
+				int avail = sourceDataLine.available();
+				while (playing && (cnt = audioInputStream.read(tempBuffer, 0, tempBuffer.length)) != -1)
+				{
+					if(cnt > 0)
+					{
+						sourceDataLine.write(tempBuffer, 0, cnt);
+					}
+					Thread.sleep(1);
+				}
+
+				// using this loop instead of sourceDataLine.drain() in case
+				// the stopSound() method is called -- drain() is a blocking method
+				while (playing && (sourceDataLine.available() < avail))
+				{
+					//                     System.out.println(sourceDataLine.available());
+				}
+
+				if (loop && playing)
+				{
+					playing = false;
+					playSound();
+				}
+				else
+				{
+					stopSound();
+					break;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 }
 
 /**
@@ -259,310 +259,293 @@ class PlayStreamThread extends PlayThread
  */
 public class AudioPlayer
 {
-    private static HashMap<String, AudioData> soundMap = new HashMap<String, AudioData>();
+	private static HashMap<String, AudioData> soundMap = new HashMap<String, AudioData>();
 
-    /**
-     * Loads a sound clip from a file and gives it the specified name.
-     * This name can be used when calling the <code>{@link #play play}</code>
-     * and <code>{@link #stop stop}</code> methods.
-     * The sound clip is completely loaded into memory, so it is recommended that
-     * this method be used for loading small or short sounds. For longer sounds,
-     * consider using the <code>{@link #loadStream(String, String) loadStream}</code> method.
-     *
-     * @param    soundName    the name to give this audio stream
-     * @param    filename     the name of the file to load the audio stream from
-     *
-     * @return   <code>true</code> if the clip loaded successfully,
-     *           <code>false</code> otherwise
-     */
-    public static boolean loadClip(String soundName, String filename)
-    {
-        try
-        {
-            return loadClip(soundName, AudioSystem.getAudioInputStream(new File(filename)));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return false;
-        }
-    }
+	/**
+	 * Loads a sound clip from a file and gives it the specified name.
+	 * This name can be used when calling the <code>{@link #play play}</code>
+	 * and <code>{@link #stop stop}</code> methods.
+	 * The sound clip is completely loaded into memory, so it is recommended that
+	 * this method be used for loading small or short sounds. For longer sounds,
+	 * consider using the <code>{@link #loadStream(String, String) loadStream}</code> method.
+	 *
+	 * @param    soundName    the name to give this audio stream
+	 * @param    filename     the name of the file to load the audio stream from
+	 *
+	 * @return   <code>true</code> if the clip loaded successfully,
+	 *           <code>false</code> otherwise
+	 */
+	public static boolean loadClip(String soundName, String filename)
+	{
+		try
+		{
+			return loadClip(soundName, AudioSystem.getAudioInputStream(new File(filename)));
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
 
-    /**
-     * Loads a sound clip from a <code>{@link java.net.URL}</code>
-     * and gives it the specified name. This name can be used when calling
-     * the <code>{@link #play play}</code> and <code>{@link #stop stop}</code> methods.
-     * The sound clip is completely loaded into memory, so it is recommended that
-     * this method be used for loading small or short sounds. For longer sounds,
-     * consider using the <code>{@link #loadStream(String, URL) loadStream}</code> method.
-     *
-     * @param    soundName    the name to give this audio stream
-     * @param    url          the name of the file to load the audio stream from
-     *
-     * @return   <code>true</code> if the clip loaded successfully,
-     *           <code>false</code> otherwise
-     */
-    public static boolean loadClip(String soundName, URL url)
-    {
-        try
-        {
-            return loadClip(soundName, AudioSystem.getAudioInputStream(url));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return false;
-        }        
-    }
+	/**
+	 * Loads a sound clip from a <code>{@link java.net.URL}</code>
+	 * and gives it the specified name. This name can be used when calling
+	 * the <code>{@link #play play}</code> and <code>{@link #stop stop}</code> methods.
+	 * The sound clip is completely loaded into memory, so it is recommended that
+	 * this method be used for loading small or short sounds. For longer sounds,
+	 * consider using the <code>{@link #loadStream(String, URL) loadStream}</code> method.
+	 *
+	 * @param    soundName    the name to give this audio stream
+	 * @param    url          the name of the file to load the audio stream from
+	 *
+	 * @return   <code>true</code> if the clip loaded successfully,
+	 *           <code>false</code> otherwise
+	 */
+	public static boolean loadClip(String soundName, URL url)
+	{
+		try
+		{
+			return loadClip(soundName, AudioSystem.getAudioInputStream(url));
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}        
+	}
 
-    private static boolean loadClip(String soundName, AudioInputStream audioInputStream)
-    {
-        boolean retVal = true;
+	private static boolean loadClip(String soundName, AudioInputStream audioInputStream)
+	{
+		boolean retVal = true;
 
-        try
-        {
-            // convert the AudioInputStream to PCM format -- needed for loading
-            // mp3 files and files in other formats
-            audioInputStream = convertToPCM(audioInputStream);
+		try
+		{
+			// convert the AudioInputStream to PCM format -- needed for loading
+			// mp3 files and files in other formats
+			audioInputStream = convertToPCM(audioInputStream);
 
-            // get a line for the Clip and load the audio from the input stream
-            DataLine.Info info = new DataLine.Info(Clip.class, audioInputStream.getFormat());
-            Clip clip = (Clip) AudioSystem.getLine(info);
-            clip.open(audioInputStream);
+			// get a line for the Clip and load the audio from the input stream
+			DataLine.Info info = new DataLine.Info(Clip.class, audioInputStream.getFormat());
+			Clip clip = (Clip) AudioSystem.getLine(info);
+			clip.open(audioInputStream);
 
-            AudioData ad = new AudioData();
-            ad.audioInputStream = audioInputStream;
-            ad.dataLine = clip;
+			AudioData ad = new AudioData();
+			ad.audioInputStream = audioInputStream;
+			ad.dataLine = clip;
 
-            soundMap.put(soundName, ad);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            retVal = false;
-        }
-        finally
-        {
-            try
-            {
-                audioInputStream.close();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-                retVal = false;
-            }
-        }
+			soundMap.put(soundName, ad);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			retVal = false;
+		}
+		finally
+		{
+			try
+			{
+				audioInputStream.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+				retVal = false;
+			}
+		}
 
-        return retVal;
-    }
+		return retVal;
+	}
 
-    /**
-     * Converts an AudioInputStream to PCM_SIGNED format if it is not already
-     * either PCM_SIGNED or PCM_UNSIGNED.
-     */
-    private static AudioInputStream convertToPCM(AudioInputStream audioInputStream)
-    {
-        AudioFormat format = audioInputStream.getFormat();
+	/**
+	 * Converts an AudioInputStream to PCM_SIGNED format if it is not already
+	 * either PCM_SIGNED or PCM_UNSIGNED.
+	 */
+	private static AudioInputStream convertToPCM(AudioInputStream audioInputStream)
+	{
+		AudioFormat format = audioInputStream.getFormat();
 
-        if ((format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) &&
-            (format.getEncoding() != AudioFormat.Encoding.PCM_UNSIGNED))
-        {
-            AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
-                format.getSampleRate(), 16,
-                format.getChannels(), format.getChannels() * 2,
-                format.getSampleRate(), format.isBigEndian());
-            audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
-        }
+		if ((format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) &&
+				(format.getEncoding() != AudioFormat.Encoding.PCM_UNSIGNED))
+		{
+			AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+					format.getSampleRate(), 16,
+					format.getChannels(), format.getChannels() * 2,
+					format.getSampleRate(), format.isBigEndian());
+			audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
+		}
 
-        return audioInputStream;
-    }
+		return audioInputStream;
+	}
 
-    /**
-     * Loads an audio stream from a file and gives it the specified name.
-     * This name can be used when calling the <code>{@link #play play}</code>
-     * and <code>{@link #stop stop}</code> methods.
-     *
-     * @param    soundName    the name to give this audio stream
-     * @param    filename     the name of the file to load the audio stream from
-     *
-     * @return   <code>true</code> if the audio stream loaded successfully,
-     *           <code>false</code> otherwise
-     */
-    public static boolean loadStream(String soundName, String filename)
-    {
-        try
-        {
-            if (soundMap.containsKey(soundName)) return true;
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(filename));
-            return loadStream(soundName, audioInputStream);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return false;
-        }
-    }
+	/**
+	 * Loads an audio stream from a file and gives it the specified name.
+	 * This name can be used when calling the <code>{@link #play play}</code>
+	 * and <code>{@link #stop stop}</code> methods.
+	 *
+	 * @param    soundName    the name to give this audio stream
+	 * @param    filename     the name of the file to load the audio stream from
+	 *
+	 * @return   <code>true</code> if the audio stream loaded successfully,
+	 *           <code>false</code> otherwise
+	 */
+	public static boolean loadStream(String soundName, String filename)
+	{
 
-    /**
-     * Loads an audio stream from a <code>{@link java.net.URL}</code>
-     * and gives it the specified name. This name can be used when calling
-     * the <code>{@link #play play}</code> and <code>{@link #stop stop}</code> methods.
-     *
-     * @param    soundName    the name to give this audio stream
-     * @param    url          the name of the file to load the audio stream from
-     *
-     * @return   <code>true</code> if the audio stream loaded successfully,
-     *           <code>false</code> otherwise
-     */
-    public static boolean loadStream(String soundName, URL url)
-    {
-        try
-        {
-            if (soundMap.containsKey(soundName)) return true;
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);
-            return loadStream(soundName, audioInputStream);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return false;
-        }
-    }
+		if (soundMap.containsKey(soundName)) return true;
+		try (AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(filename));)
+		{
+			return loadStream(soundName, audioInputStream);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
 
-    private static boolean loadStream(String soundName, AudioInputStream audioInputStream)
-    {
-        boolean retVal = true;
-        
-        try
-        {
-            // convert the audio input stream to a buffered input stream that supports
-            // mark() and reset()
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(audioInputStream);
-            audioInputStream = new AudioInputStream(bufferedInputStream, audioInputStream.getFormat(), audioInputStream.getFrameLength());
+	/**
+	 * Loads an audio stream from a <code>{@link java.net.URL}</code>
+	 * and gives it the specified name. This name can be used when calling
+	 * the <code>{@link #play play}</code> and <code>{@link #stop stop}</code> methods.
+	 *
+	 * @param    soundName    the name to give this audio stream
+	 * @param    url          the name of the file to load the audio stream from
+	 *
+	 * @return   <code>true</code> if the audio stream loaded successfully,
+	 *           <code>false</code> otherwise
+	 */
+	public static boolean loadStream(String soundName, URL url)
+	{
+		if (soundMap.containsKey(soundName)) return true;
+		try (AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);)
+		{
+			return loadStream(soundName, audioInputStream);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
 
-            try
-            {
-                // convert the AudioInputStream to PCM format -- needed for loading
-                // mp3 files and files in other formats
-                audioInputStream = convertToPCM(audioInputStream);
+	private static boolean loadStream(String soundName, AudioInputStream audioInputStream) throws Exception
+	{
+		boolean retVal = true;
 
-                DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioInputStream.getFormat());
-                SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
+		// convert the audio input stream to a buffered input stream that supports
+		// mark() and reset()
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(audioInputStream);
+		
+		audioInputStream = new AudioInputStream(bufferedInputStream, audioInputStream.getFormat(), audioInputStream.getFrameLength());
 
-                AudioData ad = new AudioData();
-                ad.audioInputStream = audioInputStream;
-                ad.dataLine = sourceDataLine;
 
-                soundMap.put(soundName, ad);
-                audioInputStream.mark(2000000000);
-                sourceDataLine.open(audioInputStream.getFormat());
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-                retVal = false;
-            }
-            finally
-            {
-//                 ain.close();
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            retVal = false;
-        }
+		// convert the AudioInputStream to PCM format -- needed for loading
+		// mp3 files and files in other formats
+		audioInputStream = convertToPCM(audioInputStream);
 
-        return retVal;
-    }
+		DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioInputStream.getFormat());
+		SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(info);
 
-    /**
-     * Plays a sound that has already been loaded by one of the
-     * sound loading methods. The sound can be played once or
-     * looped forever. If the specified sound name does not exist,
-     * this method does nothing.
-     *
-     * @param    soundName    the name of the sound to play
-     * @param    loop         <code>true</code> if the sound should loop forever,
-     *                        <code>false</code> if the sound should play once
-     */
-    public static void play(String soundName, boolean loop)
-    {
-        AudioData ad = soundMap.get(soundName);
-        if (ad != null)
-        {
-            if ((ad.thread == null) || (!ad.thread.isAlive()))
-            {
-                if (ad.dataLine instanceof SourceDataLine)
-                {
-                    PlayStreamThread pt = new PlayStreamThread(ad.audioInputStream, (SourceDataLine) ad.dataLine);
-                    ad.thread = pt;
-                }
-                else if (ad.dataLine instanceof Clip)
-                {
-                    PlayClipThread pt = new PlayClipThread((Clip) ad.dataLine);
-                    ad.thread = pt;
-                }
-                else
-                {
-                    return;
-                }
+		AudioData ad = new AudioData();
+		ad.audioInputStream = audioInputStream;
+		ad.dataLine = sourceDataLine;
 
-                ad.thread.setLooping(loop);
-                ad.thread.start();
-            }
-            else
-            {
-                ad.thread.stopSound();
-                ad.thread.setLooping(loop);
-                ad.thread.playSound();
-            }
-        }
-    }
+		soundMap.put(soundName, ad);
+		audioInputStream.mark(2000000000);
+		sourceDataLine.open(audioInputStream.getFormat());
 
-    /**
-     * Stops playing the specified sound.
-     *
-     * @param    soundName    the name of the sound to stop
-     */
-    public static void stop(String soundName)
-    {
-        AudioData ad = soundMap.get(soundName);
-        if (ad != null)
-        {
-            if (ad.thread != null)
-            {
-                ad.thread.stopSound();
-            }
-        }
-    }
 
-    /**
-     * Stops all playing sounds and closes all lines and audio input streams.
-     * Any previously loaded sounds will have to be re-loaded to be played again.
-     */
-    public static void shutdown()
-    {
-        for (AudioData ad : soundMap.values())
-        {
-            if (ad != null)
-            {
-                if (ad.thread != null)
-                {
-                    ad.thread.stopSound();
-                    ad.dataLine.close();
-                    try
-                    {
-                        ad.audioInputStream.close();
-                    }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        soundMap.clear();
-    }
+
+		return retVal;
+	}
+
+	/**
+	 * Plays a sound that has already been loaded by one of the
+	 * sound loading methods. The sound can be played once or
+	 * looped forever. If the specified sound name does not exist,
+	 * this method does nothing.
+	 *
+	 * @param    soundName    the name of the sound to play
+	 * @param    loop         <code>true</code> if the sound should loop forever,
+	 *                        <code>false</code> if the sound should play once
+	 */
+	public static void play(String soundName, boolean loop)
+	{
+		AudioData ad = soundMap.get(soundName);
+		if (ad != null)
+		{
+			if ((ad.thread == null) || (!ad.thread.isAlive()))
+			{
+				if (ad.dataLine instanceof SourceDataLine)
+				{
+					PlayStreamThread pt = new PlayStreamThread(ad.audioInputStream, (SourceDataLine) ad.dataLine);
+					ad.thread = pt;
+				}
+				else if (ad.dataLine instanceof Clip)
+				{
+					PlayClipThread pt = new PlayClipThread((Clip) ad.dataLine);
+					ad.thread = pt;
+				}
+				else
+				{
+					return;
+				}
+
+				ad.thread.setLooping(loop);
+				ad.thread.start();
+			}
+			else
+			{
+				ad.thread.stopSound();
+				ad.thread.setLooping(loop);
+				ad.thread.playSound();
+			}
+		}
+	}
+
+	/**
+	 * Stops playing the specified sound.
+	 *
+	 * @param    soundName    the name of the sound to stop
+	 */
+	public static void stop(String soundName)
+	{
+		AudioData ad = soundMap.get(soundName);
+		if (ad != null)
+		{
+			if (ad.thread != null)
+			{
+				ad.thread.stopSound();
+			}
+		}
+	}
+
+	/**
+	 * Stops all playing sounds and closes all lines and audio input streams.
+	 * Any previously loaded sounds will have to be re-loaded to be played again.
+	 */
+	public static void shutdown()
+	{
+		for (AudioData ad : soundMap.values())
+		{
+			if (ad != null)
+			{
+				if (ad.thread != null)
+				{
+					ad.thread.stopSound();
+					ad.dataLine.close();
+					try
+					{
+						ad.audioInputStream.close();
+					}
+					catch (Exception e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		soundMap.clear();
+	}
 }

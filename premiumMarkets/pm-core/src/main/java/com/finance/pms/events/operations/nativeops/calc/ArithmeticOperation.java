@@ -108,9 +108,9 @@ public abstract class ArithmeticOperation extends DoubleMapOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShort = getOperationReference().substring(0,3);
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 

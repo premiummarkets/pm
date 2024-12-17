@@ -92,8 +92,8 @@ public class EnvOperation extends VarOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
-		Optional<Value<?>> thisParameter = this.getOrRunParameter(targetStock);
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
+		Optional<Value<?>> thisParameter = this.getOrRunParameter(targetStock, thisCallStack);
 		String valueAsString = ((StringableValue) thisParameter.orElse(new StringValue(""))).getAsStringable().replaceAll("\"","");
 		if (valueAsString.isEmpty()) return "";
 		String[] split = valueAsString.split("\\.");

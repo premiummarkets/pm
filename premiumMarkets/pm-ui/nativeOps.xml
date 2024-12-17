@@ -570,7 +570,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>indicatiorParameter</referenceAsOperand>
-                    <description>Periods and other parameters for the indicator</description>
+                    <description>Periods and other parameters for the indicator. -1 means no period parameters.</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>14.0</numberValue>
                     </defaultValue>

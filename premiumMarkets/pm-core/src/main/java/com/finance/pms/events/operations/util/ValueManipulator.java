@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
@@ -47,11 +48,11 @@ public class ValueManipulator {
 		return inputsOperandsRefs;
 	}
 	
-	public static List<String> extractOperandFormulaeShort(TargetStockInfo targetStock, List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
+	public static List<String> extractOperandFormulaeShort(TargetStockInfo targetStock,  List<StackElement> thisCallStack, List<Operation> operands, List<? extends NumericableMapValue> developpedInputs) {
 		List<String> inputsOperandsRefs = new ArrayList<String>();
 		IntStream.range(0, operands.size())
 				.forEach(i -> {
-					String fShort = operands.get(i).toFormulaeShort(targetStock);
+					String fShort = operands.get(i).toFormulaeShort(targetStock, thisCallStack);
 					if (developpedInputs.get(i) instanceof DoubleArrayMapValue) { //ArrayMap multi output refs
 						((DoubleArrayMapValue) developpedInputs.get(i)).getColumnsReferences().stream()
 							.forEach(cRef -> inputsOperandsRefs.add(fShort + "_" + cRef + ((inputsOperandsRefs.contains(cRef))? "_N" + Integer.toString(i):"")));

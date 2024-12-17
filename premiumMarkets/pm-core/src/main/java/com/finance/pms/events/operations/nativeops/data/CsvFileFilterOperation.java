@@ -49,22 +49,23 @@ public class CsvFileFilterOperation extends StringerOperation {
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))) {
 
 			String line;
-			int prevLength = 0;
+			//int prevLength = 0;
 
 			while ((line = bufferedReader.readLine()) != null) {
 				if (line.isEmpty() || line.startsWith("#")) continue;
 				String[] rowSplit = line.split(",");
 				
-				// file check
-				if (prevLength > 0 && prevLength != rowSplit.length)
-					throw new RuntimeException("Invalid file");
+//				// file check
+//				if (prevLength > 0 && prevLength != rowSplit.length)
+//					throw new RuntimeException("Invalid file");
 				
 				//Compute
 				try {
-					prevLength = rowSplit.length;
-					boolean anyMatchPattern = Arrays.stream(rowSplit).anyMatch(c -> c.matches(filterPatternString));
+//					prevLength = rowSplit.length;
+					boolean lineMatches = line.matches(filterPatternString) || line.contains(filterPatternString);
+					//boolean anyMatchPattern = Arrays.stream(rowSplit).anyMatch(c -> c.matches(filterPatternString));
 					//boolean anyMatchContains = Arrays.stream(rowSplit).anyMatch(c -> c.contains(filterPatternString));
-					if (anyMatchPattern) { // || anyMatchContains) {
+					if (lineMatches) { // || anyMatchContains) {
 						matchingLines.add(rowSplit[retrievedColumnIndex]);
 					}
 				} catch (Exception e) {
@@ -84,9 +85,9 @@ public class CsvFileFilterOperation extends StringerOperation {
 		String result = defaultValue;
 		if (!matchingLines.isEmpty()) {
 			result = matchingLines.get(matchingLines.size()-1); //The last match prevails
-			LOGGER.info("Results: " + result + " for " + this.toFormulae(targetStock, thisCallStack) + " and " +filterPatternString + " in " + filePath);
+			LOGGER.info("Results: " + result + " for " + filterPatternString + " in " + filePath);
 		} else {
-			LOGGER.info("No results (empty matches), using default: " + result + " for " + this.toFormulae(targetStock, thisCallStack) + filterPatternString + " in " + filePath);
+			LOGGER.info("No results (empty matches), using default: " + result + " for " + filterPatternString + " in " + filePath);
 		}
 		
 		return new StringValue(result);
@@ -99,7 +100,7 @@ public class CsvFileFilterOperation extends StringerOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 

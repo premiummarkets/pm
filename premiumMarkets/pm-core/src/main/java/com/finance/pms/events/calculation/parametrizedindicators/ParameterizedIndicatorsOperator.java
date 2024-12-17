@@ -258,13 +258,15 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 			for (Object normOutput : normOutputs) {
 
 				if (normOutput instanceof SortedMap) {
-
 					@SuppressWarnings("unchecked")
 					Double ds2 = ((SortedMap<Date, Double>)normOutput).get(date);
 					retOutput[outputPosition] = translateOutputForCharting(ds2);
 				}
 				else if (normOutput instanceof Double) {
 					retOutput[outputPosition] = (Double)normOutput;
+				} else {
+					LOGGER.warn("Unknown output type: " + normOutput.getClass());
+					retOutput[outputPosition] = Double.NaN;
 				}
 				outputPosition++;
 			}

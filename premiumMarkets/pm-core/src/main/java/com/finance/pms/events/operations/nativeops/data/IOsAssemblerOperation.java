@@ -65,18 +65,19 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		Boolean allowLastColumnTrailingNaN = Boolean.valueOf(((StringValue) inputs.get(2)).getValue(targetStock));
 
-		return innerCalculation(targetStock, inputs, assemblerGroupName, isExport, allowLastColumnTrailingNaN);
+		return innerCalculation(targetStock, thisCallStack, inputs, assemblerGroupName, isExport, allowLastColumnTrailingNaN);
 	}
 
 	protected DoubleArrayMapValue innerCalculation(
-			TargetStockInfo targetStock, @SuppressWarnings("rawtypes") List<? extends Value> inputs, 
+			TargetStockInfo targetStock, List<StackElement> thisCallStack, 
+			@SuppressWarnings("rawtypes") List<? extends Value> inputs, 
 			String assemblerGroupName, Boolean isExport, Boolean allowLastColumnTrailingNaN) {
 		
 		try {
 			
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(firstInputIdx(), inputs.size());
-			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, getOperands().subList(firstInputIdx(), getOperands().size()), developpedInputs);
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, thisCallStack, getOperands().subList(firstInputIdx(), getOperands().size()), developpedInputs);
 			
 			SortedMap<Date, double[]> factorisedInput = factoriseInput(targetStock, inputsOperandsRefs, developpedInputs, allowLastColumnTrailingNaN);
 			
@@ -129,7 +130,7 @@ public class IOsAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 

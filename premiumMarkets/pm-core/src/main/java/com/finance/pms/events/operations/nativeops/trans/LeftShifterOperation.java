@@ -92,24 +92,24 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		return ((NumberValue)getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).intValue() + 1; // + one to avoid all NaNs in the shifted result.
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
+		return ((NumberValue)getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(new NumberValue(0.0))).getValue(targetStock).intValue() + 1; // + one to avoid all NaNs in the shifted result.
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "ls";
 		Operation operand0 = getOperands().get(0);
-		String shift = ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
+		String shift = ((StringableValue) operand0.getOrRunParameter(targetStock, thisCallStack).orElse(new StringValue(operand0.toFormulaeShort(targetStock, thisCallStack)))).getAsStringable();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
-		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
+		String opsFormulaeShort = toFormulaeShort(targetStock, thisCallStack, ops);
 		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
 	@Override
-	public int rightLagAmount(TargetStockInfo targetStock) {
+	public int rightLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		Operation leftShiftNumberOperation = getOperands().get(LEFT_SHIFT_AMOUNT_IDX);
-		return ((NumberValue) leftShiftNumberOperation.getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock).intValue();
+		return ((NumberValue) leftShiftNumberOperation.getOrRunParameter(targetStock, thisCallStack).orElseThrow()).getValue(targetStock).intValue();
 	}
 
 }

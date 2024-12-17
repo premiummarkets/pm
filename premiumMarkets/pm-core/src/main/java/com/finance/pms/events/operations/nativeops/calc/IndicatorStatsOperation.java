@@ -156,8 +156,8 @@ public class IndicatorStatsOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		Double shift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
+		Double shift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
 		return Double.isNaN(shift) ? 0 : shift.intValue();
 	}
 

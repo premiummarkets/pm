@@ -41,7 +41,7 @@ public class GetOperation extends VarOperation {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> defaultValue = inputs.get(1);
 		
-		Value<?> variableValue = targetStock.getHeap().getHeapVar(variableName);
+		Value<?> variableValue = targetStock.getHeap().getHeapVar(getUserOperationReference(thisCallStack), variableName);
 		if (variableValue == null) {
 			if (defaultValue instanceof NumberValue &&  //if default is NaN than this means the value is needed we return empty()
 					((NumberValue) defaultValue).getValue(targetStock).equals(Double.NaN)) {

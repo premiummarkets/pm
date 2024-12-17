@@ -75,18 +75,19 @@ public class MetaOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		
 		List<Operation> subList = getOperands().subList(1, getOperands().size()-1);
 		String parameters = "";
 		for (int i = 0; i < subList.size(); i++) {
 			Operation operandI = subList.get(i);
-			Value<?> parameterValue = operandI.getOrRunParameter(targetStock).orElse(new StringValue(operandI.toFormulaeShort(targetStock)));
+			Value<?> parameterValue = operandI.getOrRunParameter(targetStock, thisCallStack)
+										.orElse(new StringValue(operandI.toFormulaeShort(targetStock, thisCallStack)));
 			String ele = ((StringableValue) parameterValue).getValue(targetStock).toString();
 			if (parameterValue instanceof NumberValue) {
 				ele = Long.valueOf(Math.round(((NumberValue) parameterValue).getNumberValue().doubleValue())).toString();

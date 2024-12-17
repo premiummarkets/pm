@@ -47,7 +47,7 @@ public class LetOperation extends VarOperation {
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> variableValue = inputs.get(1);
-		Value<?> variableReturned = targetStock.getHeap().letHeapVar(variableName, variableValue);
+		Value<?> variableReturned = targetStock.getHeap().letHeapVar(getUserOperationReference(thisCallStack), variableName, variableValue);
 		LOGGER.info(this.getReference() + ": " + variableName + ", storing: " + variableValue + ", returning: " + variableReturned);
 		return variableReturned;
 	}
@@ -59,10 +59,10 @@ public class LetOperation extends VarOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		Operation operand1 = getOperands().get(1);
-		Optional<Value<?>> optParameter1 = operand1.getOrRunParameter(targetStock);
-		String valueAsString = ((StringableValue) optParameter1.orElse(new StringValue(operand1.toFormulaeShort(targetStock)))).getAsStringable().replaceAll("\"","");
+		Optional<Value<?>> optParameter1 = operand1.getOrRunParameter(targetStock, thisCallStack);
+		String valueAsString = ((StringableValue) optParameter1.orElse(new StringValue(operand1.toFormulaeShort(targetStock, thisCallStack)))).getAsStringable().replaceAll("\"","");
 		return valueAsString;
 	}
 

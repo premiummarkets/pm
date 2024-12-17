@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -148,6 +149,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private Button recalculationButton;
 	private PopupMenu<EventInfo> recalculationPopupMenu;
 
+	private CCombo popupIndsFilter;
+
 
 	public ChartIndicatorDisplay(ChartsComposite chartTarget, LogComposite logComposite) {
 		super();
@@ -183,6 +186,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	public void highLight(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
 		if (popupTypes.length == 0) popupTypes = PopupType.values();
 		highLightInds(idx, selectedShare, recalculationGranted, popupTypes);
+		refreshCalculatorSettingsPopup(false);
 	}
 
 	private void highLightInds(Integer idx, Stock selectedShare, Boolean recalculationGranted, PopupType... popupTypes) {
@@ -509,21 +513,24 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		Map<EventInfo, SortedMap<Date, double[]>> eventsSeries = new HashMap<>();
 		for (EventInfo eventInfo: chartTarget.getChartedEvtDefsTrends()) {
 
-			SortedMap<Date, double[]> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, eventInfo);
-			SortedMap<Date, double[]> subMap = new TreeMap<Date, double[]>();
+			Map<EventInfo, SortedMap<Date, double[]>> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, eventInfo);
 			if (outputCache != null && !outputCache.isEmpty()) {
-
+				
+				SortedMap<Date, double[]> outputCacheValue = outputCache.get(eventInfo);
+				SortedMap<Date, double[]> outputCacheValueRange = new TreeMap<Date, double[]>();
+				
 				Date endSlide = chartTarget.getSlidingEndDate();
 				Date startSlide = chartTarget.getSlidingStartDate();
-				if (endSlide.compareTo(outputCache.lastKey()) >= 0) {
-					subMap = outputCache.tailMap(startSlide);
+				if (!outputCacheValue.isEmpty() && endSlide.compareTo(outputCacheValue.lastKey()) >= 0) {
+					outputCacheValueRange = outputCacheValue.tailMap(startSlide);
 				} else 
-				if (endSlide.compareTo(outputCache.firstKey()) >= 0){
-					subMap = MapUtils.subMapInclusive(outputCache, startSlide, endSlide);
+				if (!outputCacheValue.isEmpty() && endSlide.compareTo(outputCacheValue.firstKey()) >= 0){
+					outputCacheValueRange = MapUtils.subMapInclusive(outputCacheValue, startSlide, endSlide);
 				} else {
-					subMap = new TreeMap<>();
+					outputCacheValueRange = new TreeMap<>();
 				}
-				eventsSeries.put(eventInfo, subMap);
+				EventInfo outpuCacheKey = outputCache.keySet().stream().filter(e -> e.equals(eventInfo)).findFirst().orElseThrow();
+				eventsSeries.put(outpuCacheKey, outputCacheValueRange);
 
 			}
 		}
@@ -548,15 +555,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			}
 
 		} else { //Thats all, some date is good to display
-
-			if (LOGGER.isDebugEnabled()) try {if (LOGGER.isDebugEnabled()) LOGGER.debug("Before updating the display: " + chartTarget.getChartedEvtDefsTrends().stream().map(t -> {
-				Set<OutputDescr> allOutputDescr = t.getEventDefDescriptor().allOutputDescr();
-				return allOutputDescr.stream().map( od -> od.toString()).reduce((r,e) -> r + "\n\t\t" + e).orElse("None");
-			}).reduce((r,e) -> r + " " + e));} catch (Exception e) {LOGGER.warn("Cannot debug this", e);};
 			
 			chartTarget.getMainChartWraper().updateIndicDataSet(
 					selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), trendSettings.getAutoSetTimeLine(),
 					eventsSeries, chartTarget.getPlotChartDimensions());
+			
 		}
 		
 
@@ -698,30 +701,77 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			chartedTrendsGroupL.marginHeight = 0;
 			chartedTrendsGroup.setLayout(chartedTrendsGroupL);
 			{
-				chartedTrendsButton = new Button(chartedTrendsGroup, SWT.PUSH);
-				chartedTrendsButton.setFont(MainGui.DEFAULTFONT);
-				chartedTrendsButton.setText(TRENDBUTTXT);
-				chartedTrendsButton.setToolTipText("This is to setup the display of gathered calculators trends.\nYou must select a share in the portfolio to display its analysis.");
-
-				chartedTrendsButton.addSelectionListener(new SelectionListener() {
-
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						handleChartedTrendsSelection();
+				Group chartedTrendsButGroup = new Group(chartedTrendsGroup, SWT.NONE);
+				RowLayout chartedTrendsButGroupL = new RowLayout(SWT.HORIZONTAL);
+				//chartedTrendsButGroupL.justify = true;
+				//chartedTrendsButGroupL.fill = true;
+				chartedTrendsButGroupL.wrap = false;
+				chartedTrendsButGroupL.marginHeight = 0;
+				chartedTrendsButGroupL.marginWidth = 0;
+				//chartedTrendsButGroupL.pack = true;
+				chartedTrendsButGroup.setLayout(chartedTrendsButGroupL);
+				
+				{	
+					popupIndsFilter = new CCombo(chartedTrendsButGroup, SWT.SEARCH);
+					//popupIndsFilter.setMessage("Type a Trends filter");
+					popupIndsFilter.setFont(MainGui.DEFAULTFONT);
+					try {
+						String filters = MainPMScmd.getMyPrefs().get("ui.eventinfo.filter", null);
+						//popupIndsFilter.setText(filter);
+						List<String> filtersList = Arrays.asList(filters.split("___"));
+						filtersList.stream().limit(10).forEach(f -> popupIndsFilter.add(f));
+						popupIndsFilter.select(0);
+					} catch (Exception e) {
+						LOGGER.warn("Could not restore Trends filter: " + e);
 					}
-
-
-					@Override
-					public void widgetDefaultSelected(SelectionEvent e) {
-						handleChartedTrendsSelection();
-					}
-
-					private void handleChartedTrendsSelection() {
-						refreshChartedTrendsPopup(true);
-					}
-
-				});
-
+					popupIndsFilter.addSelectionListener(new SelectionListener() {
+	
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							handle();
+						}
+	
+						private void handle() {
+							//popupIndsFilter.remove(popupIndsFilter.getText());
+							List<String> filters = Arrays.asList(popupIndsFilter.getItems());
+							if (filters.contains(popupIndsFilter.getText())) {
+								popupIndsFilter.remove(filters.indexOf(popupIndsFilter.getText()));
+							}
+							popupIndsFilter.add(popupIndsFilter.getText(), 0);
+							refreshChartedTrendsPopup(true);
+						}
+	
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							handle();
+						}
+					});
+				}
+				{
+					chartedTrendsButton = new Button(chartedTrendsButGroup, SWT.PUSH);
+					chartedTrendsButton.setText(TRENDBUTTXT);
+					chartedTrendsButton.setFont(MainGui.DEFAULTFONT);
+					chartedTrendsButton.setToolTipText("This is to set up the display of gathered calculators trends.\nYou must select a share in the portfolio to display its analysis.");
+					chartedTrendsButton.addSelectionListener(new SelectionListener() {
+	
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							handleChartedTrendsSelection();
+						}
+	
+	
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							handleChartedTrendsSelection();
+						}
+	
+						private void handleChartedTrendsSelection() {
+							refreshChartedTrendsPopup(true);
+						}
+	
+					});
+	
+				}
 			}
 			{
 				Button trendSettingsButton = new Button(chartedTrendsGroup, SWT.NONE);
@@ -959,7 +1009,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		if (chartedTrendsPopupMenu!= null && !chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
 			refreshChartedTrendsPopup(false);
 		}
-		if (calculatorSettingsPopupMenu!= null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
+		if (calculatorSettingsPopupMenu != null && !calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
 			refreshCalculatorSettingsPopup(false);
 		}
 	}
@@ -967,6 +1017,20 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 	private void refreshChartedTrendsPopup(Boolean activate) {
 
 		Set<EventInfo> availEventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
+		//(?:.*aroon.*|.*stoch.*|.*rsi.*|.*mfi.*|.*macd.*|.*ouse.*|.*input.*corrs.*|.*std.*|.*corFile.*)
+		String indsFilter = popupIndsFilter.getText();
+		List<String> filters = Arrays.asList(popupIndsFilter.getItems());
+		MainPMScmd.getMyPrefs().put("ui.eventinfo.filter", filters.stream().reduce((a, i) -> a + "___" + i).orElse(""));
+		MainPMScmd.getMyPrefs().flushy();
+		
+		final Set<EventInfo> filteredEventDefs;
+		if (popupIndsFilter.getText() != null && !popupIndsFilter.getText().isEmpty()) {
+			filteredEventDefs = availEventDefs.stream().filter(e -> e.getEventDefinitionRef().matches(indsFilter)).collect(Collectors.toSet());
+			filteredEventDefs.addAll(chartTarget.getChartedEvtDefsTrends());
+		} else {
+			filteredEventDefs = availEventDefs;
+		}
+		
 		ActionDialogAction disactivateAction = new ActionDialogAction() {
 
 			@Override
@@ -984,8 +1048,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				}
 				
 				//Store Ui Selection
-				List<EventInfo> allEventDefs = new ArrayList<>(availEventDefs);
-				String eventSelection = chartTarget.getChartedEvtDefsTrends().stream().map(se -> allEventDefs.indexOf(se) + "").reduce((a, i) -> a + "_" + i).orElse(null);
+				List<EventInfo> storedEventDefsList = new ArrayList<>(availEventDefs);
+				String eventSelection = chartTarget.getChartedEvtDefsTrends().stream().map(se -> storedEventDefsList.indexOf(se) + "").reduce((a, i) -> a + "_" + i).orElse(null);
 				MainPMScmd.getMyPrefs().put("ui.eventinfo.selection", eventSelection);
 				MainPMScmd.getMyPrefs().flushy();
 
@@ -993,11 +1057,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 		};
 
 		if (chartedTrendsPopupMenu == null || chartedTrendsPopupMenu.getSelectionShell().isDisposed()) {
-			chartedTrendsPopupMenu = new PopupMenu<EventInfo>(chartTarget, chartedTrendsButton, availEventDefs, chartTarget.getChartedEvtDefsTrends(), false, true, SWT.CHECK, null, disactivateAction, true);
+			chartedTrendsPopupMenu = new PopupMenu<EventInfo>(chartTarget, chartedTrendsButton, filteredEventDefs, chartTarget.getChartedEvtDefsTrends(), false, true, SWT.CHECK, null, disactivateAction, true);
 			Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
 			chartedTrendsPopupMenu.open(new Point(parentBounds.x + parentBounds.width + (int)(parentBounds.width * 0.05), parentBounds.y + (int)(parentBounds.y * 0.05)), false);
 		} else {
-			chartedTrendsPopupMenu.updateAction(availEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
+			chartedTrendsPopupMenu.updateAction(filteredEventDefs, chartTarget.getChartedEvtDefsTrends(), null, disactivateAction, true);
 			if (activate) {
 				chartedTrendsPopupMenu.getSelectionShell().setVisible(true);
 				chartedTrendsPopupMenu.getSelectionShell().setActive();
@@ -1014,9 +1078,19 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			final Set<OutputDescr> displayableOutputs = new TreeSet<>(); //subset of availableOutputs
 
 			try {
-
+				
+				//Cached event infos (descriptors)
+				Set<EventInfo> chartedEvtDefsTrends = chartTarget.getChartedEvtDefsTrends();
+				Stock selectedShare = chartTarget.getHightlitedEventModel().getViewParamRoot();
+				chartedEvtDefsTrends = chartedEvtDefsTrends.stream()
+					.map(ei -> {
+						Map<EventInfo, SortedMap<Date, double[]>> outputCache = chartTarget.getHightlitedEventModel().getOutputCache(selectedShare, ei);
+						return (outputCache == null || outputCache.isEmpty()) ? new HashSet<EventInfo>() : outputCache.keySet();
+					})
+					.reduce(new HashSet<>(), (a, e) -> {a.addAll(e); return a;});
+				
 				//Non Multi
-				chartTarget.getChartedEvtDefsTrends().stream().forEach(t -> {
+				chartedEvtDefsTrends.stream().forEach(t -> {
 					try {
 						Set<OutputDescr> nonMultiOutputDescr = t.getEventDefDescriptor().nonMULTIOutputDescr();
 						availableOutputs.addAll(nonMultiOutputDescr);
@@ -1026,7 +1100,7 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				});
 
 				//Multi
-				Set<OutputDescr> multiOutputDescrLimited = chartTarget.getChartedEvtDefsTrends().stream()
+				Set<OutputDescr> multiOutputDescrLimited = chartedEvtDefsTrends.stream()
 						.flatMap(t -> {
 							try {
 								return t.getEventDefDescriptor().mULTIOutputDescr().stream();
@@ -1041,14 +1115,14 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 
 				//Remove outputs above displayable threshold
 				availableOutputs.stream().forEach(aOut -> {if (aOut.getDisplayOnChart()) displayableOutputs.add(aOut);});
-				chartTarget.getChartedEvtDefsTrends().stream()
+				chartedEvtDefsTrends.stream()
 					.flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream())
 					.forEach(t -> {
 						if (!displayableOutputs.contains(t)) t.setDisplayOnChart(false);
 					});
 
 				//Truncation Indicator
-				long allOutputsSize = chartTarget.getChartedEvtDefsTrends().stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();
+				long allOutputsSize = chartedEvtDefsTrends.stream().flatMap(t -> t.getEventDefDescriptor().allOutputDescr().stream()).count();
 				if (allOutputsSize > availableOutputs.size()) {
 					calculatorSettingsButton.setText(CALCULATOR_SETTINGS_TITLE + " TOP only.");
 				} else {
@@ -1078,9 +1152,11 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 			};
 
 			if (calculatorSettingsPopupMenu == null || calculatorSettingsPopupMenu.getSelectionShell().isDisposed()) {
-				calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayableOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
-				Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
-				calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
+				if (activatePopup) {
+					calculatorSettingsPopupMenu = new PopupMenu<OutputDescr>(chartTarget, calculatorSettingsButton, availableOutputs, displayableOutputs, false, true, SWT.CHECK, null, deactivateAction, true);
+					Rectangle parentBounds = chartTarget.getDisplay().map(chartTarget, null, chartTarget.getBounds());
+					calculatorSettingsPopupMenu.open(new Point(parentBounds.x + parentBounds.width, parentBounds.y), false);
+				}
 			}
 			else {
 				calculatorSettingsPopupMenu.updateAction(availableOutputs, displayableOutputs, null, deactivateAction, true);

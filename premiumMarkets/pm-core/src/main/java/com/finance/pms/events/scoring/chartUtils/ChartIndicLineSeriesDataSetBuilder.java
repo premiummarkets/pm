@@ -43,7 +43,6 @@ public class ChartIndicLineSeriesDataSetBuilder {
 	private Map<EventInfo, SortedMap<Date, double[]>> eventsSeries;
 
 
-
 	public ChartIndicLineSeriesDataSetBuilder(XYPlot indicPlot, Boolean oneRangeForAll, Boolean oneRangeForEach, SortedSet<Date> fullDateSet, Map<EventInfo, SortedMap<Date, double[]>> eventsSeries) {
 		super();
 		this.indicPlot = indicPlot;
@@ -247,9 +246,9 @@ public class ChartIndicLineSeriesDataSetBuilder {
 			}
 
 		} catch (NoSuchElementException e) {
-			LOGGER.warn("Can't refresh indicator chart: "+ e);
+			LOGGER.warn("Can't refresh indicator chart: " + e);
 		} catch (Exception e) {
-			LOGGER.warn("Can't refresh indicator chart: "+ e, e);
+			LOGGER.warn("Can't refresh indicator chart: " + e, e);
 		}
 
 	}

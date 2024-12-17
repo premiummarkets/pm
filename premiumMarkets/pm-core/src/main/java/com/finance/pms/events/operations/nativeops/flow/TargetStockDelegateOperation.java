@@ -81,6 +81,9 @@ public class TargetStockDelegateOperation extends Operation {
 			} catch (NoQuotationsException e) {
 				LOGGER.warn(e);
 			}
+			
+			targetStock.getOutputAnalysers().putAll(tStockDelegate.getOutputAnalysers());
+			
 		}
 		
 		return output;
@@ -88,7 +91,7 @@ public class TargetStockDelegateOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 

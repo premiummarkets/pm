@@ -59,7 +59,7 @@ public class IOsLooseAssemblerOperation extends IOsAssemblerOperation {
 		
 		Boolean isExport = Boolean.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		
-		return innerCalculation(targetStock, inputs, assemblerGroupName, isExport, true);
+		return innerCalculation(targetStock, thisCallStack, inputs, assemblerGroupName, isExport, true);
 	}
 
 	@Override

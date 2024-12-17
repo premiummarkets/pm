@@ -165,6 +165,11 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		return tuningRes.getForecastProfitUnReal();
 	}
 	
+	public Double getForecastReinvest() {
+		if (tuningRes == null) return Double.NaN;
+		return tuningRes.getForeReinvested();
+	}
+	
 	/**
 	 * {@link com.finance.pms.events.scoring.dto.TuningResDTO#getBullStats()}
 	 */

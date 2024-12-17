@@ -11,7 +11,7 @@ import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 public class TargetStockInfoOperation extends StringerOperation {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(TargetStockInfoOperation.class);
 	
 	public TargetStockInfoOperation(String reference, String description, Operation ... operands) {
@@ -67,8 +67,13 @@ public class TargetStockInfoOperation extends StringerOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
+	
+//	@Override
+//	public boolean isForbidThisParameterValue() {
+//		return true;
+//	}
 
 }

@@ -99,6 +99,8 @@ public abstract class ParameterizedBuilder extends Observable {
 	//Pre parameterised xml native ops.
 	protected ConcurrentHashMap<String, Operation> nativeOperations;
 
+	private String opsFilterExpr;
+
 	public static String readableCamelCase(String desrc) {
 
 		if (desrc.length() > 1) {
@@ -295,14 +297,16 @@ public abstract class ParameterizedBuilder extends Observable {
 		
 	}
 
-	public void removeFormula(String identifier) throws IOException {
-
-		try {
+	public List<Operation> removeFormula(String identifier) {
 
 			Operation operation = getCurrentOperations().get(identifier);
 
 			List<Operation> checkInUse = checkInUse(operation);
-			if (!checkInUse.isEmpty()) throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
+			if (!checkInUse.isEmpty()) {
+				//throw new RuntimeException("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
+				LOGGER.warn("'" + identifier + "' is used by " + operationListAsString(", ", checkInUse) + ". Please delete these first.");
+				return checkInUse;
+			}
 
 			//Delete pre existing trashed
 			File formulaFile = new File(trashUserOperationsDir.getAbsolutePath() + File.separator + identifier + ".txt");
@@ -313,11 +317,8 @@ public abstract class ParameterizedBuilder extends Observable {
 			getCurrentOperations().remove(identifier);
 
 			updateCaches(operation, Optional.empty()); //Optional.empty() (ie no previous id) because the dependency check has been made up front so no dependencies should exist any more (ie the deleted operation is guaranteed unused at this point. As if it was new!)
-
-		} catch (Exception e) {
-			throw new IOException(e);
-		}
-
+			
+			return new ArrayList<>();
 	}
 	
 	public void destroyFormula(String identifier) throws IOException {

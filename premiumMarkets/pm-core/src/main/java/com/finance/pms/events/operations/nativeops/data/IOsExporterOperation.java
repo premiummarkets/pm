@@ -40,6 +40,7 @@ import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayRetur
 public class IOsExporterOperation extends FileExporter implements CachableOperation {
 
 	private static final int FILE_PATH_IDX = 1;
+	private static final int HEADER_PREFIX_IDX = 2;
 	private static final int FIRST_INPUT = 3;
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsExporterOperation.class);
 	
@@ -70,7 +71,7 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
 		String exportFilePrefix = ((StringValue) inputs.get(FILE_PATH_IDX)).getValue(targetStock);
-		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
+		String headersPrefix = ((StringValue) inputs.get(HEADER_PREFIX_IDX)).getValue(targetStock);
 		
 		String fileSuffix = UUID.randomUUID().toString() + ".csv"; //targetStock.getStock().getSymbol() + "_k_training_" + UUID.randomUUID();
 		String filePath = extractedFileRootPath(exportFilePrefix + "_" + fileSuffix);
@@ -78,7 +79,7 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 		try {
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, thisCallStack, getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			Set<Date> knownMissingKeys = targetStock.missingData();
 			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, true, true);
@@ -124,7 +125,7 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 	
@@ -159,15 +160,20 @@ public class IOsExporterOperation extends FileExporter implements CachableOperat
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "ioe";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	
 	@Override
 	public Operation getFilePathOperand() {
 		return this.getOperands().get(FILE_PATH_IDX);
+	}
+	
+	@Override
+	public Operation getHeaderPrefixOperand() {
+		return this.getOperands().get(HEADER_PREFIX_IDX);
 	}
 
 }

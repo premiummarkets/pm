@@ -49,7 +49,7 @@ public abstract class ArrayMapOperation extends MapOperation implements MultiVal
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShort = getOperationReference().substring(0,1) + getOperationReference().chars()
 						.filter(c -> Character.isUpperCase(c))
 						.mapToObj(cu -> (char) cu)

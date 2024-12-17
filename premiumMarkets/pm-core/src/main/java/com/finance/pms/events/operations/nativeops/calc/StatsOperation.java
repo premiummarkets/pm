@@ -153,6 +153,10 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		}
 	}
 
+	/**
+	 * The SpecificStatsFunction will be calculated on each sliding window against its own parameters.
+	 * The last parameter of the stat:specificStat, new DoubleMapOperation(), is not used as input in this case but just to define the input range key set.
+	 */
 	private final class SpecificStatsFunction implements StatsFunction {
 		
 		private final Operation specificOperation;
@@ -170,7 +174,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			this.thisInputOperandsRequiredShiftFromThis = thisInputOperandsRequiredShiftFromThis;
 			this.targetStock = targetStock;
 			this.outputSelector = outputSelector;
-			this.minPeriod = specificOperation.operandsRequiredStartShift(targetStock, thisInputOperandsRequiredShiftFromThis);
+			this.minPeriod = specificOperation.operandsRequiredStartShift(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
 		}
 
 		@Override
@@ -226,9 +230,16 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 
 		private NumberValue doEval(TargetStockInfo targetStock, List<StackElement> parentCallStack, int parentRequiredStartShift, Operation specificOperation, SortedMap<Date, Double> subMap) throws NotEnoughDataException {
 			TargetStockInfo evaluateTargetStock = new TargetStockInfo(targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), targetStock.getStock(), subMap.firstKey(), subMap.lastKey());
-			NumberValue run = (NumberValue) specificOperation.run(evaluateTargetStock, parentCallStack, parentRequiredStartShift);
+			Value<?> run = specificOperation.run(evaluateTargetStock, parentCallStack, parentRequiredStartShift);
 			doEvalColRefs = (run instanceof NumberArrayValue)?((NumberArrayValue)run).getColumnsReferences():Arrays.asList(outputSelector);
-			return run;
+			if (run instanceof NumberValue) {
+				return (NumberValue) run;
+			} else if (run instanceof NumericableMapValue) {
+				SortedMap<Date, Double> value = ((NumericableMapValue) run).getValue(evaluateTargetStock);
+				return new NumberValue(value.get(value.lastKey()));
+			} else {
+				throw new RuntimeException("Unexpected value type: " + run.getClass().getName());
+			}
 		}
 
 		@Override
@@ -542,7 +553,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				throw new IllegalArgumentException("Invalid outputSelector: " + outputSelector);
 			}
 
-			//XXX This is not a sliding calculation. This surely is different from a variable size sliding window always starting from startDate.
+			//XXX period.isNaN() is not a sliding calculation. This surely is different from a variable size sliding window always starting from startDate.
 			//XXX A variable size sliding window always starting from startDate is achieved using period = 0
 			if (period.isNaN()) { 
 				ValueManipulator.InnerCalcFunc innerCalcFunc = data -> {
@@ -567,27 +578,29 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return IntStream.range(0, 1)
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
-					return numberOperand.getOrRunParameter(targetStock)
+					return numberOperand.getOrRunParameter(targetStock, thisCallStack)
 							.filter(v -> v instanceof NumberValue)
 							.map(v -> ((NumberValue) v).getValue(targetStock).intValue())
-							.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift));
+							.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift));
 				})
 				.reduce(0, (r, e) -> r + e);
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		Operation period = getOperands().get(0);
 		Operation leniency = getOperands().get(1);
 		String thisShort = 
 				getOutputSelector().substring(1,Math.min(getOutputSelector().length(), 6)) + "_" +
-				((StringableValue) period.getOrRunParameter(targetStock).orElse(new StringValue(period.toFormulaeShort(targetStock)))).getAsStringable() + "_" +
-				((StringableValue) leniency.getOrRunParameter(targetStock).orElse(new StringValue(leniency.toFormulaeShort(targetStock)))).getValue(targetStock).toString().substring(0,1);
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands().subList(2, this.getOperands().size()));
+				((StringableValue) period.getOrRunParameter(targetStock, thisCallStack)
+									.orElse(new StringValue(period.toFormulaeShort(targetStock, thisCallStack)))).getAsStringable() + "_" +
+				((StringableValue) leniency.getOrRunParameter(targetStock, thisCallStack)
+									.orElse(new StringValue(leniency.toFormulaeShort(targetStock, thisCallStack)))).getValue(targetStock).toString().substring(0,1);
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands().subList(2, this.getOperands().size()));
 		return "st_" + thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 

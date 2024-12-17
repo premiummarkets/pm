@@ -31,8 +31,10 @@ package com.finance.pms.events.operations.nativeops.ta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 public abstract class PMDataFreeOperation extends PMIndicatorOperation {
@@ -51,7 +53,7 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
 
 
     @Override
-    public final int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {//Always 0 as the shift must be done ad'hoc and internally in the operation implementer
+    public final int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {//Always 0 as the shift must be done ad'hoc and internally in the operation implementer
         return 0;
     }
 
@@ -61,12 +63,12 @@ public abstract class PMDataFreeOperation extends PMIndicatorOperation {
     }
     
     @Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
     	String thisShort = getOperationReference().substring(0,1) + getOperationReference().chars()
 				.filter(c -> Character.isUpperCase(c))
 				.mapToObj(cu -> (char) cu)
 				.reduce("", (r, e) -> r + e, (a, b) -> a + b);
-				String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+				String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 				return thisShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 

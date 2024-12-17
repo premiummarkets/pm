@@ -82,6 +82,8 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationUnit;
 import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.FirstNLastDate;
 import com.finance.pms.mas.RestartServerException;
 import com.finance.pms.portfolio.PortfolioDAO;
 import com.finance.pms.portfolio.SharesList;
@@ -196,7 +198,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		return null;
 	}
 
-	public static void realesePoolConnection(SourceClient conn) {
+	public static void releasePoolConnection(SourceClient conn) {
 
 		try {
 
@@ -224,10 +226,15 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 	public Date getLastQuotationDateFromShares(Stock stock) {
 //		String query = "SELECT " + SHARES.LASTQUOTE + " FROM " + SHARES.TABLE_NAME + " WHERE " + SHARES.SYMBOL_FIELD + " = ? AND " + SHARES.ISIN_FIELD + " = ? ";
 //		return this.getLastFormerQuote(stock, false, query);
-		throw new NotImplementedException("SHARES.LASTQUOTE");
+		throw new NotImplementedException("SHARES.LASTQUOTE usage column is obsolete.");
 	}
 
 	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
+		
+		FirstNLastDate firstNLastDate = Quotations.getFirstNLastDate(stock);
+		if (!ignoreUserEntries && firstNLastDate != null && firstNLastDate.getLastDate() != null) { //No cache check if ignoreUserEntries
+			return firstNLastDate.getLastDate();
+		}
 
 		String originConstraint = (ignoreUserEntries)? "AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 		
@@ -238,7 +245,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 				" where " + QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + originConstraint + endConstraint +
 				" order by " + QUOTATIONS.DATE_FIELD + " desc ";
 
-		return this.getLastFormerQuote(stock, ignoreUserEntries, hasEndDateContraint, q);
+		Date lastFormerQuote = this.getLastFormerQuote(stock, ignoreUserEntries, hasEndDateContraint, q);
+		
+		Quotations.setLastDate(stock, lastFormerQuote);
+		return lastFormerQuote;
 	}
 
 	private String testQuotationsEndConstraint() {
@@ -253,15 +263,22 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public Date getFirstQuotationDateFromQuotations(Stock stock) {
 		
+		FirstNLastDate firstNLastDate = Quotations.getFirstNLastDate(stock);
+		if (firstNLastDate != null && firstNLastDate.getFirstDate() != null) {
+			return firstNLastDate.getFirstDate();
+		}
+		
 		Boolean hasEndDateContraint = DateFactory.isEndDateSet();
 		String endConstraint = hasEndDateContraint? testQuotationsEndConstraint() : "";
 		
-		String q = 
-				"select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
-						+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + endConstraint
-						+ "order by " + QUOTATIONS.DATE_FIELD + " asc ";
+		String q = "select " + QUOTATIONS.DATE_FIELD + " from " + QUOTATIONS.TABLE_NAME + " where "
+					+ QUOTATIONS.SYMBOL_FIELD + " = ? AND " + QUOTATIONS.ISIN_FIELD + " = ? " + endConstraint
+					+ "order by " + QUOTATIONS.DATE_FIELD + " asc ";
 
-		return this.getLastFormerQuote(stock, false, hasEndDateContraint, q);
+		Date lastFormerQuote = this.getLastFormerQuote(stock, false, hasEndDateContraint, q);
+		
+		Quotations.setFirstDate(stock, lastFormerQuote);
+		return lastFormerQuote;
 	}
 
 	private Date getLastFormerQuote(Stock stock, Boolean ignoreUserEntries, Boolean hasEndDateConstraint, String sqlQuery) {
@@ -298,7 +315,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Query: " + sqlQuery + "Param: " + stock, e);
 			retour = null;
 		} finally {
-			DataSource.realesePoolConnection(scnx);
+			DataSource.releasePoolConnection(scnx);
 		}
 		return retour;
 	}
@@ -352,7 +369,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Query: " + sqlQuery,e);
 			retour = null;
 		} finally {
-			DataSource.realesePoolConnection(scnx);
+			DataSource.releasePoolConnection(scnx);
 		}
 		return retour;
 	}
@@ -792,7 +809,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Date formating ERROR while reading data base:" + e,e);
 			retour = null;
 		} finally {
-			DataSource.realesePoolConnection(scnx);
+			DataSource.releasePoolConnection(scnx);
 		}
 		return retour;
 	}
@@ -830,7 +847,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Date formating ERROR while reading data base:" + e,e);
 			retour = null;
 		} finally {
-			DataSource.realesePoolConnection(scnx);
+			DataSource.releasePoolConnection(scnx);
 		}
 		return retour;
 	}
@@ -942,7 +959,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Query: " + sqlQueryString, e);
 			if (LOGGER.isDebugEnabled()) LOGGER.debug(e, e);
 		} finally {
-			DataSource.realesePoolConnection(scnx);
+			DataSource.releasePoolConnection(scnx);
 		}
 
 		LOGGER.trace("Execution time (s): " + (System.currentTimeMillis()-t0)/1000);
@@ -980,7 +997,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Error in query:"+sqlQueryString, e);
 			throw e;
 		} finally {
-			DataSource.realesePoolConnection(scnx);
+			DataSource.releasePoolConnection(scnx);
 		}
 
 		LOGGER.trace("Execution time (s): "+(System.currentTimeMillis()-t0)/1000);
@@ -1092,7 +1109,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			LOGGER.error("Error while doing insert: " + debug, e);
 			throw e;
 		} finally {
-			DataSource.realesePoolConnection(sdbcnx);
+			DataSource.releasePoolConnection(sdbcnx);
 		}
 		return resReq;
 	}
@@ -1159,7 +1176,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			//				LOGGER.error(e,e);
 			//			}
 			sdbcnx.getConn().setTransactionIsolation(initialTransactionIsolation);
-			DataSource.realesePoolConnection(sdbcnx);
+			DataSource.releasePoolConnection(sdbcnx);
 		}
 		return resReq;
 	}
@@ -1287,7 +1304,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 			} catch (Exception e) {
 				LOGGER.error(e,e);
 			}
-			DataSource.realesePoolConnection(sdbcnx);
+			DataSource.releasePoolConnection(sdbcnx);
 		}
 	}
 

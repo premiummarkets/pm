@@ -205,7 +205,7 @@ public class TargetStockInfo {
 		
 	}
 	
-	//Copy and existing targetStock and its status. This acts as a view and is not a clone.
+	//Copy and existing targetStock and its status. This acts as a modifiable view and is not a clone.
 	public TargetStockInfo(TargetStockInfo targetStock, EventInfoOpsCompoOperation eventInfoOpsCompoOperation, Date startDate, Date endDate) {
 		
 		this.analysisName = targetStock.getAnalysisName();

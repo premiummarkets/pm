@@ -203,7 +203,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 				}
 			});
 			futures.add(iterationFuture);
-			inputsOperandsRefs.add(assemblerGroupName + String.format("%0" + paddingSize + "d", (int)i) + "_" + iterationOperationClone.toFormulaeShort(targetStock));
+			inputsOperandsRefs.add(assemblerGroupName + String.format("%0" + paddingSize + "d", (int)i) + "_" + iterationOperationClone.toFormulaeShort(targetStock, thisCallStack));
 		}
 		
 		List<NumericableMapValue> runsOutputs = futures.stream().map(f -> {
@@ -252,14 +252,15 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		Operation operandOpsIdx = this.getOperands().get(OPS_INDEX);
-		String valueAsString = ((OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(targetStock).orElse(new StringValue(operandOpsIdx.toFormulaeShort(targetStock))))
+		String valueAsString = ((OperationReferenceValue<?>) operandOpsIdx.getOrRunParameter(targetStock, thisCallStack)
+									.orElse(new StringValue(operandOpsIdx.toFormulaeShort(targetStock, thisCallStack))))
 								.getAsStringable().replaceAll("\\$", "");
 		return valueAsString.substring(0, Math.min(5, valueAsString.length()));
 	}

@@ -22,5 +22,7 @@ public abstract class FileExporter extends StringerOperation {
 	
 	
 	public abstract Operation getFilePathOperand();
+	
+	public abstract Operation getHeaderPrefixOperand();
 
 }

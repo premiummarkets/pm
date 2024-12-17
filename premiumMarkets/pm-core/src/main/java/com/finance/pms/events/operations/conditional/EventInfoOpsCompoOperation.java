@@ -125,7 +125,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		fullKeySet.addAll(bullishMap.keySet());
 		fullKeySet.addAll(bearishMap.keySet());
 
-		String resultHint = this.resultHint(targetStock, newCallerStack(targetStock));
+		String resultHint = this.resultHint(targetStock, thisCallStack);
 		for (Date date : fullKeySet) {
 
 			EventType dateEventType = EventType.NONE;
@@ -222,7 +222,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		 
 		Boolean isIdempotent = isIdemPotent(targetStock);
 		Boolean forbidEventsOverride = isNoOverrideDeltaOnly(targetStock);
@@ -260,12 +260,12 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public Object clone() {
 		EventInfoOpsCompoOperation clone = (EventInfoOpsCompoOperation) super.clone();
-		clone.eventDefDescriptor = this.eventDefDescriptor;
+		clone.eventDefDescriptor = (EventDefDescriptorDynamic) this.eventDefDescriptor.clone();
 		return clone;
 	}
 
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		return getReference().substring(0,1) + getReference().chars()
 				.filter(c -> Character.isUpperCase(c))
 				.mapToObj(cu -> (char) cu)

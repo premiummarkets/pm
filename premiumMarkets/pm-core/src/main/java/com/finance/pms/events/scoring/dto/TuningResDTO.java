@@ -129,6 +129,10 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return getForeAnnualProfitAtUnReal(calculationEnd);
 	}
 	
+	public Double getForeReinvested() {
+		return getForecastReinvestAt(calculationEnd);
+	}
+	
 	public Double getForeAnnualProfitAtUnReal(Date date) {
 		double cummulativeReturn = getForecastProfitAtUnReal(date);
 		return annualisedProfit(date, cummulativeReturn);
@@ -332,9 +336,16 @@ public class TuningResDTO implements Serializable, IsSerializable {
 				trendProfit = trendProfit * (1 + priceRateOfChange);
 			}
 		}
-		if (unReal && currentPeriod != null && currentPeriod.getTo().compareTo(date) <= 0) { //Adding last unrealised if bullish
-			if (!currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {
-				Double priceRateOfChange = currentPeriod.getPriceRateOfChange();
+		//!iterator.hasNext() this is the last period or currentPeriod.getTo().compareTo(date) > 0
+		if (unReal && currentPeriod != null) { //Adding last unrealised if bullish
+			if ("BULLISH".equals(currentPeriod.getTrend())) {
+				Double endPrice = 0.0;
+				if (currentPeriod.isRealised() && currentPeriod.getTo().compareTo(date) <= 0) {
+					endPrice = currentPeriod.getPriceAtTo();
+				} else {
+					endPrice = calculationEndPrice;
+				}
+				Double priceRateOfChange = endPrice/currentPeriod.getPriceAtFrom() -1;
 				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
 				trendProfit = trendProfit * (1 + priceRateOfChange);
 			}
@@ -348,6 +359,39 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	
 	public Double getForecastProfitAtUnReal(Date date) {
 		return getForecastProfitAt(date, true);
+	}
+	
+	public Double getForecastReinvestAt(Date date) {
+		Double capital = 0.0;
+		Iterator<PeriodRatingDTO> iterator = periods.iterator();
+		PeriodRatingDTO currentPeriod = null;
+		Double initialCapital = 0.0;
+		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(date) <= 0) {
+			if (currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {	//End of bullish (exclusive).
+				if (initialCapital == 0.0) {
+					initialCapital = currentPeriod.getPriceAtFrom();
+					capital = initialCapital;
+				}
+				Double priceRateOfChange = currentPeriod.getPriceRateOfChange();
+				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
+				capital = capital * (1 + priceRateOfChange);
+			}
+		}
+		//!iterator.hasNext() this is the last period or currentPeriod.getTo().compareTo(date) > 0
+		if (currentPeriod != null) {
+			if ("BULLISH".equals(currentPeriod.getTrend())) {
+				Double endPrice = 0.0;
+				if (currentPeriod.isRealised() && currentPeriod.getTo().compareTo(date) <= 0) {
+					endPrice = currentPeriod.getPriceAtTo();
+				} else {
+					endPrice = calculationEndPrice;
+				}
+				Double priceRateOfChange = endPrice/currentPeriod.getPriceAtFrom() -1;
+				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
+				capital = capital * (1 + priceRateOfChange);
+			}
+		}
+		return capital/initialCapital - 1;
 	}
 	
 	/**
@@ -368,9 +412,15 @@ public class TuningResDTO implements Serializable, IsSerializable {
 				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
 			}
 		}
-		if (unReal && currentPeriod.getFrom().compareTo(from) >= 0 && currentPeriod.getTo().compareTo(to) <= 0) { //Adding last unrealised if bullish
-			if (!currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {
-				Double followPriceRateOfChange = currentPeriod.getPriceRateOfChange();
+		if (unReal && currentPeriod.getFrom().compareTo(from) >= 0) { //Adding last unrealised if bullish
+			if ("BULLISH".equals(currentPeriod.getTrend())) {
+				Double endPrice = 0.0;
+				if (currentPeriod.isRealised() && currentPeriod.getTo().compareTo(to) <= 0) {
+					endPrice = currentPeriod.getPriceAtTo();
+				} else {
+					endPrice = calculationEndPrice;
+				}
+				Double followPriceRateOfChange = endPrice/currentPeriod.getPriceAtFrom() -1;
 				if (followPriceRateOfChange.isNaN() || followPriceRateOfChange.isInfinite()) return Double.NaN;
 				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
 			}

@@ -109,11 +109,13 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 	protected void deleteAllUnused() {
 		Map<String, Operation> allOps = parameterizedBuilder.getThisParserCompliantUserCurrentOperations();
 		for (Operation indicator: allOps.values()) {
-			try {
-				if (indicator.getDisabled()) parameterizedBuilder.removeFormula(indicator.getReference());
-			} catch (IOException e) {
-				LOGGER.error(e,e);
+			if (indicator.getDisabled()) {
+				List<Operation> usingOps = parameterizedBuilder.removeFormula(indicator.getReference());
+				if (!usingOps.isEmpty()) {
+					LOGGER.error(indicator.getReference() + " is in use, and can't be deleted, by " + usingOps.stream().map(o -> o.getReference()).reduce((a,o) -> a + ", " + o));
+				}
 			}
+			
 		}
 	}
 

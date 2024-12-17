@@ -153,11 +153,7 @@ public class FlowOperationTest {
 				"myOp","brokenWebFile","throwOperation","doubleMapOperation",
 				"falseOperation","trueOperation","falseEnvOperation","trueEnvOperation"};
 		Arrays.stream(fomulaes).forEach(f -> {
-			try {
-				parameterizedOperationBuilder.removeFormula(f);
-			} catch (IOException e) {
-				LOGGER.error(e, e);
-			}
+			parameterizedOperationBuilder.removeFormula(f);
 		});
 	}
 	
@@ -354,9 +350,10 @@ public class FlowOperationTest {
 		
 		String evtiFormulaeDevelopped = eventInfo.toFormulaeDevelopped();
 		LOGGER.info("eventInfo formulaeDevelopped: " + evtiFormulaeDevelopped);
-		String evtiFormulae = eventInfo.toFormulae(targetStock, eventInfo.newCallerStack(targetStock));
+		List<StackElement> newCallerStack = eventInfo.newCallerStack(targetStock);
+		String evtiFormulae = eventInfo.toFormulae(targetStock, newCallerStack);
 		LOGGER.info("eventInfo formulae: " + evtiFormulae);
-		String evtiFormulaeShort = eventInfo.toFormulaeShort(targetStock);
+		String evtiFormulaeShort = eventInfo.toFormulaeShort(targetStock, newCallerStack);
 		LOGGER.info("eventInfo formulaeShort: " + evtiFormulaeShort);
 		
 		Operation fOrOperation = parameterizedOperationBuilder.getUserCurrentOperations().get(fOrId);
@@ -364,7 +361,7 @@ public class FlowOperationTest {
 		LOGGER.info("op formulaeDevelopped: " + formulaeDevelopped);
 		String formulae = fOrOperation.toFormulae(targetStock, fOrOperation.newCallerStack(targetStock));
 		LOGGER.info("op formulae: " + formulae);
-		String formulaeShort = fOrOperation.toFormulaeShort(targetStock);
+		String formulaeShort = fOrOperation.toFormulaeShort(targetStock, newCallerStack);
 		LOGGER.info("op formulaeShort: " + formulaeShort);
 	
 		Value<?> results = eventInfo.run(targetStock, new ArrayList<>(), 0);

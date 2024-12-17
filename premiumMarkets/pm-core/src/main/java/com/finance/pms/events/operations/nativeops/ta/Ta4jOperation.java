@@ -39,6 +39,7 @@ import eu.verdelhan.ta4j.indicators.CachedIndicator;
 import eu.verdelhan.ta4j.indicators.helpers.ClosePriceIndicator;
 
 //TODO integrate as talib Generator including the data as inputs
+//FIXME AccumulationDistributionIndicator, OnBalanceVolumeIndicator does not take any timePeriod as inputs
 public class Ta4jOperation extends DoubleMapOperation {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(Ta4jOperation.class);
@@ -47,7 +48,7 @@ public class Ta4jOperation extends DoubleMapOperation {
 		this("ta4jOperation", "Indicator using the Ta4j library",
 				new StringOperation("string","ta4jClassName", "Ta4j class name", new StringValue("RSIIndicator")),
 				new StringOperation("string","validityFilter", "Indicator validity requirements: CLOSE, OHLC, VOLUME, OHLCV", new StringValue("CLOSE")),
-				new NumberOperation("number","indicatiorParameter", "Periods and other parameters for the indicator", new NumberValue(14.0)));
+				new NumberOperation("number","indicatiorParameter", "Periods and other parameters for the indicator. -1 means no period parameters.", new NumberValue(14.0)));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
@@ -72,11 +73,13 @@ public class Ta4jOperation extends DoubleMapOperation {
 		String ta4jClassName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		ValidityFilter validityFilter = ValidityFilter.valueOf(((StringValue) inputs.get(1)).getValue(targetStock));
 		List<Integer> inputParameters = inputs.subList(2, inputs.size()).stream().map(v -> ((NumberValue) v).getNumberValue().intValue()).collect(Collectors.toList());
+		boolean ignorePeriodParams = inputParameters.get(0) == -1;
 		
 		try {
 			
-			//Init new ClosePriceIndicator(timeSeries)
-			Date shiftedStartDate = targetStock.getStartDate(thisStartShift + inputParameters.stream().reduce(0, (a, e) -> a + e));
+			//Init new ClosePriceIndicator(timeSeries) //XXX the shift may not be accurate
+			int startShift = (!ignorePeriodParams)?thisStartShift + inputParameters.stream().reduce(0, (a, e) -> a + e):thisStartShift;
+			Date shiftedStartDate = targetStock.getStartDate(startShift);
 			Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(
 					targetStock.getStock(), shiftedStartDate, targetStock.getEndDate(),
 					true, targetStock.getStock().getMarketValuation().getCurrency(), 0, validityFilter);
@@ -101,20 +104,20 @@ public class Ta4jOperation extends DoubleMapOperation {
 			try {
 				List<Class<?>> parameterClasses = new ArrayList<>();
 				parameterClasses.add(Indicator.class);
-				parameterClasses.addAll(inputParameters.stream().map(ip -> int.class).collect(Collectors.toList())); //TODO condition on primitive types
+				if (!ignorePeriodParams) parameterClasses.addAll(inputParameters.stream().map(ip -> int.class).collect(Collectors.toList())); //TODO condition on primitive types
 				Constructor<CachedIndicator<Decimal>> constructor = ta4jClass.getConstructor(parameterClasses.toArray(new Class<?>[0]));
 				List<Object> parameters = new ArrayList<>();
 				parameters.add(new ClosePriceIndicator(timeSeries));
-				parameters.addAll(inputParameters);
+				if (!ignorePeriodParams) parameters.addAll(inputParameters);
 				ta4jInstance = constructor.newInstance(parameters.toArray(new Object[0]));
 			} catch (NoSuchMethodException e1) {
 				List<Class<?>> parameterClasses = new ArrayList<>();
 				parameterClasses.add(TimeSeries.class);
-				parameterClasses.addAll(inputParameters.stream().map(ip -> int.class).collect(Collectors.toList())); //TODO condition on primitive types
+				if (!ignorePeriodParams) parameterClasses.addAll(inputParameters.stream().map(ip -> int.class).collect(Collectors.toList())); //TODO condition on primitive types
 				Constructor<CachedIndicator<Decimal>> constructor = ta4jClass.getConstructor(parameterClasses.toArray(new Class<?>[0]));
 				List<Object> parameters = new ArrayList<>();
 				parameters.add(timeSeries);
-				parameters.addAll(inputParameters);
+				if (!ignorePeriodParams) parameters.addAll(inputParameters);
 				ta4jInstance = constructor.newInstance(parameters.toArray(new Object[0]));
 			}
 
@@ -134,13 +137,14 @@ public class Ta4jOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		Operation operand0 = getOperands().get(0);
-		String ta4jClass = ((StringValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getValue(null).replace("Indicator", "");
+		String ta4jClass = ((StringValue) operand0.getOrRunParameter(targetStock, thisCallStack)
+								.orElse(new StringValue(operand0.toFormulaeShort(targetStock, thisCallStack)))).getValue(null).replace("Indicator", "");
 		String refa24z = "ta4j" + ta4jClass.substring(0,1) + (ta4jClass.length() -2) + ta4jClass.substring(ta4jClass.length() -1); 
 		int opsSize = getOperands().size();
 		String params = (opsSize > 2)
-					?getOperands().subList(2, opsSize).stream().reduce("", (r, e) -> r + "_" + e.toFormulaeShort(targetStock), (a, b) -> a + b)
+					?getOperands().subList(2, opsSize).stream().reduce("", (r, e) -> r + "_" + e.toFormulaeShort(targetStock, thisCallStack), (a, b) -> a + b)
 					:"";
 		return refa24z + params;
 	}

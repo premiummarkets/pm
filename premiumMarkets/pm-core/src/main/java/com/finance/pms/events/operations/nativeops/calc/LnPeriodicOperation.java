@@ -78,25 +78,26 @@ public class LnPeriodicOperation extends DoubleMapOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {		
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {		
 		return IntStream.range(0, 1)
 				.map(i -> {
 					Operation numberOperand = getOperands().get(i);
-					return numberOperand.getOrRunParameter(targetStock)
+					return numberOperand.getOrRunParameter(targetStock, thisCallStack)
 							.filter(v -> v instanceof NumberValue)
 							.map(v -> ((NumberValue) v).getValue(targetStock).intValue())
-							.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift));
+							.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift));
 				})
 				.reduce(0, (r, e) -> r + e);
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "pLn";
 		Operation operand0 = getOperands().get(0);
-		String shift = ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
+		String shift = ((StringableValue) operand0.getOrRunParameter(targetStock, thisCallStack)
+								.orElse(new StringValue(operand0.toFormulaeShort(targetStock, thisCallStack)))).getAsStringable();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
-		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
+		String opsFormulaeShort = toFormulaeShort(targetStock, thisCallStack, ops);
 		return thisShortName + "_" + shift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}	
 

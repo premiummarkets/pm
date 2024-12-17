@@ -190,9 +190,9 @@ public class RandomOperation extends EventMapOperation implements CachableOperat
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "rdm";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 

@@ -38,8 +38,8 @@ public class RequiredShiftWrapperOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
-		Double addedShift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
+		Double addedShift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
 		if (Double.isNaN(addedShift)) {
 			return (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
 		} else {
@@ -53,11 +53,12 @@ public class RequiredShiftWrapperOperation extends Operation {
 	}
 
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		Operation operand0 = getOperands().get(0);
-		String requiredStartShift = ((StringableValue) operand0.getOrRunParameter(targetStock).orElse(new StringValue(operand0.toFormulaeShort(targetStock)))).getAsStringable();
+		String requiredStartShift = ((StringableValue) operand0.getOrRunParameter(targetStock, thisCallStack)
+										.orElse(new StringValue(operand0.toFormulaeShort(targetStock, thisCallStack)))).getAsStringable();
 		List<Operation> ops = getOperands().subList(1, getOperands().size());
-		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
+		String opsFormulaeShort = toFormulaeShort(targetStock, thisCallStack, ops);
 		return "sW" + "_" + requiredStartShift + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	

@@ -9,11 +9,13 @@ public class TargetStockHeap extends ConcurrentHashMap<String, Value<?>> {
 
 	private static final long serialVersionUID = 195728989008457606L;
 	
-	public Value<?> getHeapVar(String variableName) {
+	public Value<?> getHeapVar(String opRef, String variableName) {
+		
+		variableName = opRef + "_" + variableName;
 		
 		synchronized (this) {
 			String[] nameSplit = variableName.split("\\.");
-			if (nameSplit.length > 1) { //Composite name
+			if (nameSplit.length > 1) { //Composite name (depth 1 only)
 				Value<?> variableValue = this.get(nameSplit[0]);
 				if (variableValue instanceof MultiValue) {
 					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
@@ -30,11 +32,13 @@ public class TargetStockHeap extends ConcurrentHashMap<String, Value<?>> {
 	}
 	
 	//Supports Stringable Value and Map like Multivalue objects
-	public Value<?> letHeapVar(String variableName, Value<?> variableValue) {
+	public Value<?> letHeapVar(String opRef, String variableName, Value<?> variableValue) {
+		
+		variableName = opRef + "_" + variableName;
 		
 		synchronized (this) {
 			String[] nameSplit = variableName.split("\\.");
-			if (nameSplit.length > 1) { //Composite name
+			if (nameSplit.length > 1) { //Composite name (depth 1 only)
 				if (variableValue instanceof MultiValue) {
 					this.put(nameSplit[0], variableValue);
 					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);

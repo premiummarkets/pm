@@ -62,11 +62,12 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  *
  */
 public class IOsDeltaExporterOperation extends FileExporter implements CachableOperation {
-	
+
 	private static MyLogger LOGGER = MyLogger.getLogger(IOsDeltaExporterOperation.class);
 	
 	private static final int IS_APPEND_IDX = 3;
 	private static final int DELTA_FILE_IDX = 1;
+	private static final int HEADER_PREFIX_IDX = 2;
 	private static final int FIRST_INPUT = 4;
 	
 	
@@ -95,7 +96,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		
 		Double rounding = ((NumberValue)inputs.get(0)).getNumberValue();
 		String baseFilePath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
-		String headersPrefix = ((StringValue) inputs.get(2)).getValue(targetStock);
+		String headersPrefix = ((StringValue) inputs.get(HEADER_PREFIX_IDX)).getValue(targetStock);
 		
 		Boolean append;
 		String isAppendString = ((StringValue) inputs.get(IS_APPEND_IDX)).getValue(targetStock);
@@ -111,7 +112,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 			//Check and transform
 			@SuppressWarnings("unchecked")
 			List<? extends NumericableMapValue> developpedInputs = (List<? extends NumericableMapValue>) inputs.subList(FIRST_INPUT, inputs.size());
-			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
+			List<String> inputsOperandsRefs = ValueManipulator.extractOperandFormulaeShort(targetStock, thisCallStack, getOperands().subList(FIRST_INPUT, getOperands().size()), developpedInputs);
 			
 			Set<Date> knownMissingKeys = targetStock.missingData();
 			Map<InputToArrayReturn, SortedMap<Date, double[]>> inputListToArray = ValueManipulator.inputListToArray(targetStock, developpedInputs, false, false, inputsOperandsRefs.size() -1);
@@ -180,7 +181,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 			//Quotation match check
 			InputFileChecker.checkInputAgainstQuotations(
 					deltaFile, targetStock.getStock(), ValidityFilter.getFilterFor(this.getRequiredStockData()), 
-					0, this.getLagAmount(targetStock, getOperands()), knownMissingKeys);
+					0, this.getLagAmount(targetStock, thisCallStack, getOperands()), knownMissingKeys);
 			
 			
 			return new StringValue(deltaFile);
@@ -242,11 +243,11 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 	/**
 	 * The INIT will always calculate from the farthest left shift and we assume the delta file has always been initialised this way.
 	 */
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisOutputRequiredStartShiftByParent) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent) {
 		
 		int lagAmount = 0;
 		try {
-			lagAmount = getLagAmount(targetStock, getOperands());
+			lagAmount = getLagAmount(targetStock, thisCallStack, getOperands());
 		} catch (Exception e) {
 			LOGGER.warn("Can't calculate the lag amount in order to append to the delta file. Will overwrite ..");
 			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("FALSE"));
@@ -262,7 +263,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 //			if (spanInDataPoints <= lagAmount) 
 //				throw new NotEnoughDataException(stock, startDate, endDate, "Span is too small for the inherent lag of the operation: " + spanInDataPoints + "<=" + lagAmount, null);
 
-			int shift = deltaShiftFix(targetStock, thisOutputRequiredStartShiftByParent, lagAmount);
+			int shift = deltaShiftFix(targetStock, thisCallStack, thisOutputRequiredStartShiftByParent, lagAmount);
 			return lagAmount + shift;
 			
 		} catch (Exception e) {
@@ -272,7 +273,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 
 	}
 
-	private int deltaShiftFix(TargetStockInfo targetStock, int thisOutputRequiredStartShiftFromParent, int lagAmount) throws FileNotFoundException, IOException, ParseException, NotEnoughDataException {
+	private int deltaShiftFix(TargetStockInfo targetStock,  List<StackElement> thisCallStack, int thisOutputRequiredStartShiftFromParent, int lagAmount) throws FileNotFoundException, IOException, ParseException, NotEnoughDataException {
 		
 		SimpleDateFormat dflog = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -283,10 +284,10 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		Date startDateShifted = targetStock.getStartDate(thisOutputRequiredStartShiftFromParent);
 		Date startDate = targetStock.getStartDate(0);
 		Date endDate = targetStock.getEndDate();
-		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, newCallerStack(targetStock), 0);
+		StringValue parameter = (StringValue) getOperands().get(DELTA_FILE_IDX).run(targetStock, thisCallStack, 0);
 		String baseFilePath = extractedFileRootPath(parameter.getValue(targetStock));
 		
-		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock).orElseThrow()).getValue(targetStock));
+		Boolean isAppending = Boolean.valueOf(((StringValue) getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock, thisCallStack).orElseThrow()).getValue(targetStock));
 		if (isAppending) {
 			
 			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -422,7 +423,7 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		return shift;
 	}
 	
-	private int getLagAmount(TargetStockInfo targetStock, List<Operation> operations) throws Exception {
+	private int getLagAmount(TargetStockInfo targetStock,List<StackElement> thisCallStack, List<Operation> operations) throws Exception {
 		if (operations.isEmpty()) return 0;
 		try {
 			Integer reduce = operations.stream()
@@ -430,9 +431,9 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 					try {
 						int rightLagAmount = 0;
 						if ((o instanceof LaggingOperation)) {
-							rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock);
+							rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock, thisCallStack);
 						}
-						return Math.max(rightLagAmount, getLagAmount(targetStock, o.getOperands()));
+						return Math.max(rightLagAmount, getLagAmount(targetStock, thisCallStack, o.getOperands()));
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
@@ -479,8 +480,8 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 	}
 	
 	@Override
-	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {
-		StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock).orElse(null);
+	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
+		StringValue rootFileValue = (StringValue) getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock, thisCallStack).orElse(null);
 		String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock));
 		return Optional.of(this.getReference() + ": " + rootFileFullPath);
 	}
@@ -492,9 +493,9 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "iod";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
@@ -506,6 +507,11 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 	@Override
 	public Operation getFilePathOperand() {
 		return this.getOperands().get(DELTA_FILE_IDX);
+	}
+	
+	@Override
+	public Operation getHeaderPrefixOperand() {
+		return this.getOperands().get(HEADER_PREFIX_IDX);
 	}
 	
 	

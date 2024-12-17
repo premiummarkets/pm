@@ -45,8 +45,11 @@ import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.SymbolEvents;
+import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.quotations.QuotationDataType;
+import com.finance.pms.events.quotations.Quotations;
+import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
@@ -73,6 +76,9 @@ public class ChartBarUtils {
 				SortedMap<Date, BarChart> buyS = new TreeMap<Date, BarChart>();
 				SortedMap<Date, BarChart> indeterS = new TreeMap<Date, BarChart>();
 				EventValue prevEventValue = null;
+				Quotations quotations = null;
+				Date[] quotationsKeySet = null;
+				int k = 0;
 
 				SortedMap<EventKey, EventValue> sortedDataResultMap = eventsForStock.getSortedDataResultMap();
 				for (EventKey eventKey : sortedDataResultMap.keySet()) {
@@ -82,20 +88,31 @@ public class ChartBarUtils {
 
 							Date currEvtDate = eventKey.getDate();
 							if (eventInfo.getIsContinous()) {
-								cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, 1);
+								k = cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, quotationsKeySet, k, prevEventValue, currEvtDate, 1);
 							} else {
-								cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, prevEventValue, currEvtDate, barSettings.getMaxFill());
+								//LOGGER.info("prevEventValue: " + prevEventValue.getDate() + " currEvtDate: " + currEvtDate + " quotationsKeySet: " + quotationsKeySet[k]);
+								k = cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, quotationsKeySet, k, prevEventValue, currEvtDate, barSettings.getMaxFill());
 							}
+							prevEventValue = sortedDataResultMap.get(eventKey);
 
+						} else {
+							
+							prevEventValue = sortedDataResultMap.get(eventKey);
+							quotations = QuotationsFactories.getFactory()
+									.getSplitFreeQuotationsInstance(
+											selectedShare, prevEventValue.getDate(), DateFactory.getNowEndDate(), true, 
+											selectedShare.getMarketValuation().getCurrency(), 0, ValidityFilter.getFilterFor(Arrays.asList(QuotationDataType.CLOSE)));
+							quotationsKeySet = quotations.getDates();
+							
 						}
-						prevEventValue = sortedDataResultMap.get(eventKey);
+						
 					}
 
 				}
 
 				//Filling up to the end only for non continuous events
 				if (prevEventValue != null && !eventInfo.getIsContinous()) {
-					cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, prevEventValue, end,  barSettings.getMaxFill());
+					k = cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, quotationsKeySet, k, prevEventValue, end,  barSettings.getMaxFill());
 				}
 
 				int gradiant = (barSettings.getIsGradient()) ? serieIdx/3 : 1;
@@ -150,9 +167,10 @@ public class ChartBarUtils {
 	}
 
 	//nbMaxFill = 0 means no filling limit
-	private static void cheesyFillBarChart(
+	private static int cheesyFillBarChart(
 			Stock stock, double yValue, 
 			SortedMap<Date, BarChart> sellS, SortedMap<Date, BarChart> buyS, SortedMap<Date, BarChart> undeterS, 
+			Date[] quotationsKeySet, int k,
 			EventValue prevEventValue, Date currEvtDate, int nbMaxFill) throws NotEnoughDataException {
 
 		Calendar prevDateCal = Calendar.getInstance();
@@ -161,24 +179,33 @@ public class ChartBarUtils {
 		double value = yValue;
 		int nbFill = 0;
 
-		if ( prevEventValue.getEventType().equals(EventType.BULLISH)) {
-			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
+		if (prevEventValue.getEventType().equals(EventType.BULLISH)) {
+			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill) && k < quotationsKeySet.length-1) {
 				buyS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
-				QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), prevDateCal, +1);
-				nbFill++;
+				if (quotationsKeySet[k+1].before(currEvtDate)) {
+					prevDateCal.setTime(quotationsKeySet[++k]);
+					nbFill++;
+				} else {
+					break;
+				}
 			}
 		}
 		else if (prevEventValue.getEventType().equals(EventType.BEARISH)) {
-			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill)) {
+			while (prevDateCal.getTime().before(currEvtDate) && (nbMaxFill == 0 || nbFill < nbMaxFill) && k < quotationsKeySet.length-1) {
 				sellS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
-				QuotationsFactories.getFactory().incrementDate(stock, Arrays.asList(QuotationDataType.CLOSE), prevDateCal, +1);
-				nbFill++;
+				if (quotationsKeySet[k+1].before(currEvtDate)) {
+					prevDateCal.setTime(quotationsKeySet[++k]);
+					nbFill++;
+				} else {
+					break;
+				}
 			}
 		}
 		else if (prevEventValue.getEventType().equals(EventType.NONE)) {
 			undeterS.put(prevDateCal.getTime(), new BarChart(value, prevEventValue.getMessage()));
 		}
 
+		return k;
 	}
 
 }

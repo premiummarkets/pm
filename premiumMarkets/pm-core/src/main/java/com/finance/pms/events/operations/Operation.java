@@ -268,7 +268,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				List<Value<?>> operandsOutputs = new ArrayList<>(Collections.nCopies(nbOperands, (Value<?>) null));
 				//If start > end, non literals operands will be set empty 
 				//Effective calculation
-				int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisOutputRequiredStartShiftByParent);
+				int thisOperationOperandsStartShift = operandsRequiredStartShift(targetStock, thisCallStack, thisOutputRequiredStartShiftByParent);
 				int thisInputOperandsRequiredShiftFromThis = thisOutputRequiredStartShiftByParent + thisOperationOperandsStartShift;
 				final Boolean literalsOnly = targetStock.getStartDate(thisInputOperandsRequiredShiftFromThis).compareTo(targetStock.getEndDate()) > 0;
 				
@@ -746,14 +746,14 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return getFormulae().replaceAll("\\s+","");
 	}
 	
-	public String toFormulaeShort(TargetStockInfo targetStock) {
-		return toFormulaeShort(targetStock, operands);
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
+		return toFormulaeShort(targetStock, thisCallStack, operands);
 	}
 
-	protected String toFormulaeShort(TargetStockInfo targetStock, List<Operation> ops) {
+	protected String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack, List<Operation> ops) {
 		if (ops.isEmpty()) return "";
 		return ops.stream().reduce("", (r, e) -> {
-			String formulaeShort = e.toFormulaeShort(targetStock);
+			String formulaeShort = e.toFormulaeShort(targetStock, thisCallStack);
 			return r + ((formulaeShort.isEmpty())?"":((r.isEmpty())?"":"_") + formulaeShort);
 		}, (a, b) -> a + b);
 	}
@@ -1051,18 +1051,20 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	 * Basically the amount of data necessary from the operands (input of this) for this to yield at least one output at start date.
 	 * This is a number of data points (ie open days), not number of calendar days.
 	 * @param targetStock TODO
+	 * @param thisCallStack TODO
 	 * @param thisParentStartShift TODO
 	 */
-	public abstract int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift);
+	public abstract int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift);
 	
 	/**
 	 * This gives how far the leafs operands will have to shift
+	 * @param thisCallStack 
 	 */
-	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock,  List<StackElement> thisCallStack, int thisOperationStartShift) {
 		if (operands.isEmpty()) return 0;
 		return operands.stream().reduce(0, (max, operand) -> {
-			int operandShift = operand.operandsRequiredStartShift(targetStock, thisOperationStartShift);
-			int operandOperandsShift = operand.operandsRequiredStartShiftRecursive(targetStock, operandShift);
+			int operandShift = operand.operandsRequiredStartShift(targetStock, thisCallStack, thisOperationStartShift);
+			int operandOperandsShift = operand.operandsRequiredStartShiftRecursive(targetStock, thisCallStack, operandShift);
 			if (operandShift != 0) 
 				LOGGER.info(operand.getReference() + " operand shift: " + operandShift + ", operands' operand shift:" + operandOperandsShift + " = " + (operandShift + operandOperandsShift));
 			return Math.max(max, operandShift + operandOperandsShift);

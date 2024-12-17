@@ -251,12 +251,12 @@ public class TalibGenericOperation extends TalibOperation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 
 		int thisOperationStartShift = 0;
 		for (int i = 0; i < inConstantsNames.size(); i++) {
 			Operation numberOperand = getOperands().get(i);
-			Value<?> value = numberOperand.getOrRunParameter(targetStock).orElse(new NumberValue(0.0));
+			Value<?> value = numberOperand.getOrRunParameter(targetStock, thisCallStack).orElse(new NumberValue(0.0));
 			if (value instanceof NumberValue) {
 				int constant = ((NumberValue)value).getValue(targetStock).intValue();
 				thisOperationStartShift = thisOperationStartShift + constant;
@@ -267,20 +267,20 @@ public class TalibGenericOperation extends TalibOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
-		String thisFormulaeShort = thisFormulaeShort(targetStock);
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
+		String thisFormulaeShort = thisFormulaeShort(targetStock, thisCallStack);
 		List<Operation> ops = getOperands().subList(inConstantsNames.size(), inConstantsNames.size() + inDataNames.size());
-		String opsFormulaeShort = toFormulaeShort(targetStock, ops);
+		String opsFormulaeShort = toFormulaeShort(targetStock, thisCallStack, ops);
 		return thisFormulaeShort + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 
-	private String thisFormulaeShort(TargetStockInfo targetStock) {
+	private String thisFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String reference = getOperationReference(); //getReference();
 		String refa24z = reference.substring(0,1) + (reference.length() -2) + reference.substring(reference.length() -1); 
 		List<Operation> subList = getOperands().subList(0, inConstantsNames.size());
 		String contants = "";
 		for (int i = 0; i < subList.size(); i++) {
-			Value<?> optEle = subList.get(i).getOrRunParameter(targetStock).orElseThrow();
+			Value<?> optEle = subList.get(i).getOrRunParameter(targetStock, thisCallStack).orElseThrow();
 			String ele = ((StringableValue) optEle).getAsStringable();
 			if (inConstantsNames.get(i).type.equals(Integer.TYPE)) {
 				ele = intRounding(((NumberValue) optEle).getNumberValue()).toString();
@@ -293,7 +293,7 @@ public class TalibGenericOperation extends TalibOperation {
 
 	@Override
 	public String resultHint(TargetStockInfo targetStock, List<StackElement> callStack) {
-		return this.thisFormulaeShort(targetStock) + " " + super.resultHint(targetStock, callStack);
+		return this.thisFormulaeShort(targetStock, callStack) + " " + super.resultHint(targetStock, callStack);
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.finance.pms.events.operations;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
@@ -30,7 +31,7 @@ public abstract class VarOperation extends Operation {
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
 	

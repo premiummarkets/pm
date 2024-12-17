@@ -242,23 +242,24 @@ public class SystemEnvironment {
 				identity, 
 				(ac, s) -> {
 					Stock stock = DataSource.getInstance().loadStockBySymbol(s);
-					Optional<String> trainedModelPathOpt = findPathAnyAnalysis(stock, keyName, keyValue);
+					Optional<String> objectPathOpt = findPathAnyAnalysis(stock, keyName, keyValue);
 					
-					if (trainedModelPathOpt.isPresent()) {
-						String trainedModelPath = trainedModelPathOpt.get();
-						trainedModelPath = trainedModelPath.substring(0, trainedModelPath.lastIndexOf("." + keyName));
+					if (objectPathOpt.isPresent()) {
+						String objectPath = objectPathOpt.get();
+						objectPath = objectPath.substring(0, objectPath.lastIndexOf("." + keyName));
 						
-						Optional<Object> modelInfoJsonOpt = this.read(stock, trainedModelPath);
+						Optional<Object> modelInfoJsonOpt = this.read(stock, objectPath);
 						if (modelInfoJsonOpt.isEmpty()) {
-							modelInfoJsonOpt = this.readOldNvps(stock, trainedModelPath);
+							modelInfoJsonOpt = this.readOldNvps(stock, objectPath);
 						}
 						Object orElse = modelInfoJsonOpt.orElse(new LinkedHashMap<>());
 						if (orElse instanceof JsonObject) {
 							orElse = new Gson().fromJson((JsonObject)orElse, Map.class);
 						}
 						@SuppressWarnings("unchecked")
-						Map<String, Object> modelInfo = (Map<String, Object>) orElse;
-						ac.putAll(modelInfo);
+						Map<String, Object> objectInfo = (Map<String, Object>) orElse;
+						ac.putAll(objectInfo);
+						ac.put("object_path", objectPath);
 					}
 					
 					return ac;

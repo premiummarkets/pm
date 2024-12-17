@@ -135,12 +135,13 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 				//"%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName() + 
 				String eventDefinitionRef = fileNameSplit[2];
 				ParameterizedIndicatorsBuilder parameterizedIndiactorsBuilder = SpringContext.getSingleton().getBean(ParameterizedIndicatorsBuilder.class);
-				EventInfo eventInfo = (EventInfoOpsCompoOperation) parameterizedIndiactorsBuilder.getCurrentOperations().get(eventDefinitionRef);
+				EventInfo eventInfo = (EventInfoOpsCompoOperation) parameterizedIndiactorsBuilder.getCurrentOperations().get(eventDefinitionRef).clone();
 				if (eventInfo != null) {
 					//descriptor
 					try(
 						FileInputStream streamIn = new FileInputStream(dataFile.getAbsolutePath().replaceAll("\\.csv", ".ser"));
-						ObjectInputStream objectinputstream = new ObjectInputStream(streamIn);) {
+						ObjectInputStream objectinputstream = new ObjectInputStream(streamIn);
+					) {
 						EventDefDescriptorDynamic evtDesrc = (EventDefDescriptorDynamic) objectinputstream.readObject();
 						((EventDefDescriptorDynamic) eventInfo.getEventDefDescriptor()).setChartedOutputGroups(evtDesrc.getChartedOutputGroups(), null);
 					} catch (Exception e) {
@@ -157,10 +158,13 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					map.put(eventInfo, new EventDefCacheEntry(outputMap, new UpdateStamp(outputMap.firstKey(), outputMap.lastKey(), false, null)));
 				} else {
 					//throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath());
-					LOGGER.error("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath() + ". Either delete the file or fix the event.");
+					LOGGER.warn("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath() + ": removing file.");
+					dataFile.delete();
+					File serFile = new File(dataFile.getAbsolutePath().replaceAll("\\.csv", ".ser"));
+					serFile.delete();
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(e);
+				throw new RuntimeException("Corrupted cache file: " + dataFile.getAbsolutePath(),e);
 			}
 		}
 		if (!map.isEmpty()) {
@@ -197,37 +201,43 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 	}
 	//EVENTDEF, EVENTDEFEXTENSION, ANALYSENAME => eventValue.getEventDef(), eventKey.getEventInfoExtra(), eventValue.getEventListName()
 	private static String filename(Stock stock, EventInfo ei) {
-		LOGGER.info("Deleting event chart cache UI file for " + stock + " and " + ei);
 		return stock.getSymbol() + "%%" + stock.getIsin() +  "%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName();
 	}
-	private static void putInFileCache(Stock stock, Map<EventInfo, EventDefCacheEntry> map) {
-		map.keySet().stream()
+	private static synchronized void putInFileCache(Stock stock, Map<EventInfo, EventDefCacheEntry> map) {
+		map.keySet().parallelStream()
 		.filter(ei -> OutStampState.OK.equals(map.get(ei).getUpdateStamp().getOutputState()))
 		.forEach(ei -> {
-			String fileName = filename(stock, ei);
-			
-			String descrFileName = fileName + ".ser";
-			try (FileOutputStream fout = new FileOutputStream(OUTPUT_CACHE_PATH + File.separator + descrFileName);
-			ObjectOutputStream oos = new ObjectOutputStream(fout);) {
-				oos.writeObject(ei.getEventDefDescriptor());
-			} catch (Exception e) {
-				LOGGER.warn("Error writing into cache: " + e);
-			}
-			
-			String dataFileName = fileName + ".csv";
-			SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-			try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(OUTPUT_CACHE_PATH + File.separator + dataFileName))) {
-				map.get(ei).getOutputMap().entrySet().forEach(entry -> {
-					try {
-						bufferedWriter.write(df.format(entry.getKey()) + Arrays.stream(entry.getValue()).mapToObj(d -> d).reduce("", (a, d) -> a + "," + d, (a, b) -> a + b));
-						bufferedWriter.newLine();
-					} catch (IOException e) {
+			Runnable runnable = new Runnable() {
+				public void run() {
+					LOGGER.info("Updating event chart cache UI file for " + stock + " and " + ei);
+					String fileName = filename(stock, ei);
+					
+					String descrFileName = fileName + ".ser";
+					try (FileOutputStream fout = new FileOutputStream(OUTPUT_CACHE_PATH + File.separator + descrFileName);
+					ObjectOutputStream oos = new ObjectOutputStream(fout);) {
+						oos.writeObject(ei.getEventDefDescriptor());
+					} catch (Exception e) {
 						LOGGER.warn("Error writing into cache: " + e);
 					}
-				});
-			} catch (Exception e) {
-				LOGGER.warn("Error writing into cache: " + e);
-			}
+					
+					String dataFileName = fileName + ".csv";
+					SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+					try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(OUTPUT_CACHE_PATH + File.separator + dataFileName))) {
+						map.get(ei).getOutputMap().entrySet().forEach(entry -> {
+							try {
+								bufferedWriter.write(df.format(entry.getKey()) + Arrays.stream(entry.getValue()).mapToObj(d -> d).reduce("", (a, d) -> a + "," + d, (a, b) -> a + b));
+								bufferedWriter.newLine();
+							} catch (IOException e) {
+								LOGGER.warn("Error writing into cache: " + e);
+							}
+						});
+					} catch (Exception e) {
+						LOGGER.warn("Error writing into cache: " + e);
+					}
+				}
+			};
+			Thread t = new Thread(runnable);
+			t.start();
 		});
 	}
 	public static void dirtyCacheFor(EventInfo eventInfo, Boolean clearHardCache) {
@@ -246,6 +256,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		}
 	}
 	private static void removeFromFileCache(Stock stock, EventInfo ei) {
+		LOGGER.info("Deleting event chart cache UI file for " + stock + " and " + ei);
 		String fileName = filename(stock, ei);
 		File descrFile = new File(OUTPUT_CACHE_PATH + File.separator + fileName + ".ser");
 		descrFile.delete();
@@ -581,11 +592,14 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		if ( (otherViewParamLength > 0 && otherViewParams == null) || (otherViewParamLength != -1 && otherViewParamLength != otherViewParams.length)) throw new IllegalArgumentException("Expecting "+otherViewParamLength+" parameter  but have "+otherViewParams);
 	}
 
-	public SortedMap<Date, double[]> getOutputCache(Stock stock, EventInfo eventDefinition) {
+	public Map<EventInfo, SortedMap<Date, double[]>> getOutputCache(Stock stock, EventInfo eventDefinition) {
 		Map<EventInfo, EventDefCacheEntry> stockMap = getOutputCache(stock);
 		if (stockMap != null) {
 			EventDefCacheEntry stockNeventDefCacheEntry = stockMap.get(eventDefinition);
-			if (stockNeventDefCacheEntry != null) return stockNeventDefCacheEntry.getOutputMap();
+			if (stockNeventDefCacheEntry != null) {
+				EventInfo cachedEventInfo = stockMap.keySet().stream().filter(e -> e.equals(eventDefinition)).findFirst().orElseThrow();
+				return Map.ofEntries(Map.entry(cachedEventInfo, stockNeventDefCacheEntry.getOutputMap()));
+			}
 		}
 		return null;
 	}

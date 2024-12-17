@@ -23,6 +23,7 @@ import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -146,15 +147,15 @@ public abstract class LinearTrendsCondition extends DiscreteLinearOutputsConditi
 	}
 
 	@Override
-	public int operandsRequiredStartShift(TargetStockInfo targetStock, int thisParentStartShift) {
+	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		
 		return IntStream.range(0, getLastPeriodsIndex() +1 )
 		.map(i -> {
 			Operation numberOperand = getOperands().get(i);
-			return numberOperand.getOrRunParameter(targetStock)
+			return numberOperand.getOrRunParameter(targetStock, thisCallStack)
 					.filter(v -> v instanceof NumberValue)
 					.map(v -> ((NumberValue) v).getValue(targetStock).intValue())
-					.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisParentStartShift));
+					.orElseGet(() -> getOperands().get(i).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift));
 		})
 		.reduce(0, (r, e) -> r + e);
 	}

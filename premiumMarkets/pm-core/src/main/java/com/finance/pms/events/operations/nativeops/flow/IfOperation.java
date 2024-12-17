@@ -118,7 +118,7 @@ public class IfOperation extends FlowOperation {
 	@Override
 	public void invalidateAllNonIdempotentOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
 //		XXX we can't evaluate the condition at this point within reasonable calculation time
-//		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
+//		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(this.getOperands().get(0).run(targetStock, "(" + targetStock.getStock().getSymbol() + ") "  + this.shortOutputReference(), 0));
 //		if (value0 != null) {
 //			this.<Void>reccurentProceeds(value0, o -> {o.invalidateAllNonIdempotentOperands(targetStock, analysisName, stock); return null;});
 //		} else {
@@ -155,9 +155,9 @@ public class IfOperation extends FlowOperation {
 	}
 	
 	@Override
-	public String toFormulaeShort(TargetStockInfo targetStock) {
+	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		String thisShortName = "if";
-		String opsFormulaeShort = super.toFormulaeShort(targetStock, this.getOperands());
+		String opsFormulaeShort = super.toFormulaeShort(targetStock, thisCallStack, this.getOperands());
 		return thisShortName + ((opsFormulaeShort.isEmpty())?"":"_" + opsFormulaeShort);
 	}
 	
@@ -172,10 +172,10 @@ public class IfOperation extends FlowOperation {
 //	}
 	
 	@Override
-	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, int thisOperationStartShift) {
-		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, newCallerStack(targetStock), 0));
+	public int operandsRequiredStartShiftRecursive(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOperationStartShift) {
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(this.getOperands().get(0).run(targetStock, thisCallStack, 0));
 		if (value0 != null) {
-			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisOperationStartShift));
+			return this.<Integer>reccurentProceeds(value0, o -> o.operandsRequiredStartShiftRecursive(targetStock, thisCallStack, thisOperationStartShift));
 		} else {
 			throw new RuntimeException();
 		}
@@ -183,7 +183,7 @@ public class IfOperation extends FlowOperation {
 
 	@Override
 	public String resultHint(TargetStockInfo targetStock, List<StackElement> callStack) {
-		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock).orElse(this.getOperands().get(0).run(targetStock, newCallerStack(targetStock), 0));
+		Value<?> value0 = this.getOperands().get(0).getOrRunParameter(targetStock, callStack).orElse(this.getOperands().get(0).run(targetStock, callStack, 0));
 		if (value0 != null) {
 			List<StackElement> thisCallStack = addThisToStack(callStack, 0, targetStock);
 			return this.<String>reccurentProceeds(value0, o -> o.resultHint(targetStock, thisCallStack));

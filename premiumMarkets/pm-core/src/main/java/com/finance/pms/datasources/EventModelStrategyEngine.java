@@ -115,7 +115,6 @@ public abstract class EventModelStrategyEngine<X> {
 
 		if (deleteAll) {
 			EventModel.resetOutputCache();
-
 		} else {
 			SortedSet<EventInfo> eventDefs = EventDefinition.loadMaxPassPrefsEventInfo();
 			for (Stock stock : cleanedStocks) {

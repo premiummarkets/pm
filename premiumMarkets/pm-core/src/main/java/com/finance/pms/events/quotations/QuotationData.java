@@ -52,10 +52,6 @@ class QuotationData implements List<QuotationUnit> {
 
 	private StripedQuotations stripedQuotations;
 
-	protected QuotationData(StripedQuotations striped) {
-		this.stripedQuotations = striped;
-	}
-
 	protected QuotationData(SortedSet<QuotationUnit> quotationUnits) {
 		init(quotationUnits);
 	}
@@ -301,12 +297,6 @@ class QuotationData implements List<QuotationUnit> {
 	public <T> T[] toArray(T[] a) {
 		return this.stripedQuotations.getBarList().toArray(a);
 	}
-	
-
-	public double getLastClose() throws InvalidAlgorithmParameterException {
-		return this.stripedQuotations.getNLastClosed(1)[0];
-	}
-	
 
 	public Date getLastDate() {
 		return this.stripedQuotations.getLast().getDate();
