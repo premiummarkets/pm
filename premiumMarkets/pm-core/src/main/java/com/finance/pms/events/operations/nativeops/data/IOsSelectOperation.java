@@ -1,8 +1,5 @@
 package com.finance.pms.events.operations.nativeops.data;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,33 +11,30 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
-import com.finance.pms.datasources.files.CsvImportExport;
-import com.finance.pms.datasources.files.MapCsvImportExport;
 import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.DoubleArrayMapValue;
+import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
-import com.finance.pms.events.operations.nativeops.StringOperation;
-import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
 import com.finance.pms.events.operations.nativeops.ta.PMWithDataOperation;
 
-public class FileOperation extends PMWithDataOperation implements MultiValuesOutput, CachableOperation {
+public class IOsSelectOperation extends PMWithDataOperation implements MultiValuesOutput, CachableOperation {
 
-	private static MyLogger LOGGER = MyLogger.getLogger(FileOperation.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(IOsSelectOperation.class);
 	
 	private static Integer 	COLUMNINDEX_IDX = 2;
 
-	public FileOperation() {
-		super("fileOperation", "Loads precalculated outputs from a file",
-			new StringOperation("string","filePath", "CSV File Path", new StringValue("autoPortfolioLogs/input.csv")),
+	public IOsSelectOperation() {
+		super("iosSelect", "Select columns from multi values input",
+			new DoubleMapOperation("Multi values input"),
 			new NumberOperation("number","mainColumnIndex", "Main Index of the column to be displayed.", new NumberValue(1.0)),
-			new NumberOperation("number","columnIndex", "Index of the columns to include in the output ([1..n] || 0 for all). The first column is indexed 0 and must contain dates.", new NumberValue(0.0)));
+			new NumberOperation("number","columnIndex", "Index of the columns to include in the output ([1..n] || 0 for all). 1 being the first column.", new NumberValue(0.0)));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
@@ -48,15 +42,7 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 	//Can't use MultiSelectorsValue as selectors are not known in advance (this will fail in the editor).
 	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 
-		StringValue pathStringValue = (StringValue) inputs.get(0);
-		String filePath = pathStringValue.getValue(targetStock);
-		if (!filePath.startsWith(File.separator)) {//Relative
-			filePath = System.getProperty("installdir") + File.separator + filePath;
-		}
-		
-		if (!Files.exists(Path.of(filePath))) {
-			throw new RuntimeException("File does not exists: " + filePath);
-		}
+		DoubleArrayMapValue input = (DoubleArrayMapValue) inputs.get(0);
 		
 		int mainIndex = ((NumberValue) inputs.get(1)).getNumberValue().intValue();
 		List<Integer> includedIndexes = inputs.subList(COLUMNINDEX_IDX, inputs.size()).stream().map(v -> ((NumberValue) v).getNumberValue().intValue()).collect(Collectors.toList());
@@ -73,23 +59,22 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 		try {
 			
 			startDate =  targetStock.getStartDate(thisStartShift);
-			
-			CsvImportExport<Date> csvImporter = new MapCsvImportExport();
-			List<String> headers = new ArrayList<>();
-			SortedMap<Date, double[]> importedData = csvImporter.importData(new File(filePath), headers);
+		
+			List<String> headers = input.getColumnsReferences();
+			SortedMap<Date, double[]> inputData = input.getDoubleArrayValue();
 			
 			if (includedIndexes.isEmpty()) {
-				includedIndexes.addAll(IntStream.range(1, headers.size()).boxed().collect(Collectors.toList()));
+				includedIndexes.addAll(IntStream.range(0, headers.size()).boxed().collect(Collectors.toList()));
 			}
 
 			columnRefs = includedIndexes.stream()
 						.map(columnIndex -> {
-							String key = (headers.isEmpty())? "Column" + columnIndex : headers.get(columnIndex);
+							String key = (headers.isEmpty())? "Column" + columnIndex : headers.get(columnIndex-1);
 							return key;
 						})
 						.collect(Collectors.toList());
 			calculationResults =
-					importedData.entrySet().stream()
+					inputData.entrySet().stream()
 						.map(e -> {
 							double[] nuOutput = new double[includedIndexes.size()];
 							IntStream.range(0, nuOutput.length).forEach(i -> nuOutput[i] = e.getValue()[includedIndexes.get(i)-1]);
@@ -101,10 +86,8 @@ public class FileOperation extends PMWithDataOperation implements MultiValuesOut
 			return new DoubleArrayMapValue(subMapInclusiveResults, columnRefs, includedIndexes.indexOf(mainIndex));
 			
 		} catch (Exception e) {
-			
-			LOGGER.error("Unreadable file from " + startDate + " - " + targetStock.getEndDate() + ": " + filePath, e);
+			LOGGER.error(e, e);
 			return new DoubleArrayMapValue(calculationResults, columnRefs, includedIndexes.indexOf(mainIndex));
-			
 		}
 
 	}

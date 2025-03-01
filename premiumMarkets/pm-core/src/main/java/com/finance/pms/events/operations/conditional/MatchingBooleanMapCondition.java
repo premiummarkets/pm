@@ -58,8 +58,9 @@ import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 
 //TODO Dynamic criterias  (by inheritance or parameter?)
-@SuppressWarnings("rawtypes")
+
 /**
+ * @Deprecated Superseded by Python correlation calculations ??
  * Matching discrete inputs by comparing end dates and lengths for every discrete occurrence against each other of the passed inputs.
  * So far only makes sense for binary comparison of Series (i.e. two Series as parameters).
  * Additional constraints :
@@ -69,6 +70,7 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * @author Gheeyom Thor
  *
  */
+@SuppressWarnings("rawtypes")
 public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition {
 
 	protected static MyLogger LOGGER = MyLogger.getLogger(MatchingBooleanMapCondition.class);

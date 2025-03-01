@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
 import com.finance.pms.events.scoring.OTFTuningFinalizer;
+import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
 public class ProfitOperation extends ArrayMapOperation {
@@ -52,14 +54,14 @@ public class ProfitOperation extends ArrayMapOperation {
 
 	public ProfitOperation() {
 		this("profit", "Calculate the profits (the my way) of series of Events from Indicators",
-		new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null));
+				new EventMapOperation("data", "indicatorsCompositioners", "Event Series to analyse profit from (an Indicator)", null));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 
 	@Override
 	public DoubleArrayMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		
-		List<SortedMap<EventKey, EventValue>> buySellEventSeries = inputs.subList(1, inputs.size()).stream().map(v -> ((EventMapValue) v).getEventMap()).collect(Collectors.toList());
+		List<SortedMap<EventKey, EventValue>> buySellEventSeries = inputs.subList(0, inputs.size()).stream().map(v -> ((EventMapValue) v).getEventMap()).collect(Collectors.toList());
 
 		try {
 
@@ -94,6 +96,10 @@ public class ProfitOperation extends ArrayMapOperation {
 				resultMaps.add(currentAnnualUnrProfitMap);
 				headers.add(buySellEventSerie.firstKey().getEventInfo().getEventDefinitionRef() + "_annualUnr");
 				
+				DoubleMapValue lastBullPeriodProfitMap = new DoubleMapValue();
+				resultMaps.add(lastBullPeriodProfitMap);
+				headers.add(buySellEventSerie.firstKey().getEventInfo().getEventDefinitionRef() + "_lastBull");
+				
 				//ins
 				//buySellEventSerie
 				
@@ -104,6 +110,7 @@ public class ProfitOperation extends ArrayMapOperation {
 				
 				qMap.keySet().stream().forEach(qDate -> {
 					if (qDate.compareTo(startDate) >= 0) {
+						
 						Double profitAtDate = tuningRes.getForecastProfitAt(qDate);
 						currentProfitMap.getValue(targetStock).put(qDate, profitAtDate);
 						Double unrProfitAtDate = tuningRes.getForecastProfitAtUnReal(qDate);
@@ -112,6 +119,13 @@ public class ProfitOperation extends ArrayMapOperation {
 						currentAnnualProfitMap.getValue(targetStock).put(qDate, annualProfitAtDate);
 						Double annualProfitUnrAtDate = tuningRes.getForeAnnualProfitAtUnReal(qDate);
 						currentAnnualUnrProfitMap.getValue(targetStock).put(qDate, annualProfitUnrAtDate);
+						
+						Optional<PeriodRatingDTO> lastPeriod = tuningRes.getBullPeriods().stream()
+							.takeWhile(p -> p.getTo().compareTo(qDate) <= 0)
+							.reduce((a, b) -> b.getTo().compareTo(a.getTo()) >= 0 ? b : a);
+						Double lastPeriodProfit = lastPeriod.map(p -> p.getPriceRateOfChange()).orElse(Double.NaN);
+						lastBullPeriodProfitMap.getValue(targetStock).put(qDate, lastPeriodProfit);
+							
 					}
 				});
 			

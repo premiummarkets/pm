@@ -144,10 +144,10 @@ public class ProvidersYahooPythonLocal extends ProvidersYahooPython {
 		String symbol = stock.getSymbol();
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^" + symbol;
 		
-    	InputStream processInputStream = readInput(symbol, quotationDate, tomorrowPlusOne, false, true);
+    	//InputStream processInputStream = readInput(symbol, quotationDate, tomorrowPlusOne, false, true);
 
 		List<IntraDayQuotation> intraDayQuotations = new ArrayList<IntraDayQuotation>();
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(processInputStream));) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(readInput(symbol, quotationDate, tomorrowPlusOne, false, true)));) {
 			String line = null;
 			while ((line = in.readLine()) != null) {
 				try {

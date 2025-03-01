@@ -185,6 +185,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		return this.getEventDefinitionRef().equals(obj.getEventDefinitionRef());
 	}
 
+	@Override
 	public int hashCode() {
 		return getEventDefinitionRef().hashCode();
 	}

@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.http.HttpEntity;
@@ -25,6 +26,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -206,7 +208,7 @@ public class WebDelegate {
 		return localFileCopyName;
 	}
 	
-	public InputStream runAny(String... cmdAndArgs) {		
+	public InputStream runAny(List<Path> files, String... cmdAndArgs) {		
 	
 		HttpPost postCmd = new HttpPost("http://"+getTensorflowHostIp()+":"+getTensorflowHostPort()+"/runany");
 		
@@ -218,6 +220,12 @@ public class WebDelegate {
 		
 		ByteArrayBody cmdAndParams = new ByteArrayBody(new GsonBuilder().serializeNulls().create().toJson(cmdAndArgsJson).getBytes(), ContentType.DEFAULT_BINARY, "cmd_and_args");
 		entitybuilder.addPart("cmd_and_args", cmdAndParams);
+		
+		files.forEach(f -> {
+			String fileName = f.getFileName().toString();
+			FileBody filebody = new FileBody(f.toFile(), ContentType.DEFAULT_BINARY, fileName);
+			entitybuilder.addPart(fileName, filebody);
+		});
 		
 		HttpEntity mutiPartHttpEntity = entitybuilder.build();
 		postCmd.setEntity(mutiPartHttpEntity);

@@ -32,6 +32,7 @@ package com.finance.pms.events.calculation.antlr;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.DOTTreeGenerator;
@@ -39,6 +40,7 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.antlr.EditorOpDescr.ParamType;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.nativeops.Value;
 
@@ -132,7 +134,9 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser>, Clone
 
 				CommonTree child = (CommonTree) commonTree.getChild(i);
 				Operation builtOperation = null;
-				if ((child.getChildCount() == 1 && child.getChild(0).getChildCount() == 0)) { //Leaf
+
+				if ((child.getChildCount() == 1 && child.getChild(0).getChildCount() == 0) && 
+					(Arrays.stream(ParamType.values()).anyMatch(pt -> pt.getTypeDescr().equals(child.getToken().getText())) || child.getToken().getText().equals("OperationOutput"))) { //Leaf
 
 					if (child.getToken().getText().equals("OperationOutput")) {
 						//Output selector

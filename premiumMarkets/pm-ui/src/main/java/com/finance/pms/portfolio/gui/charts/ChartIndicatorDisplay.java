@@ -521,10 +521,13 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 				
 				Date endSlide = chartTarget.getSlidingEndDate();
 				Date startSlide = chartTarget.getSlidingStartDate();
-				if (!outputCacheValue.isEmpty() && endSlide.compareTo(outputCacheValue.lastKey()) >= 0) {
+				//outputCacheValue could be null when the cached eventInfo formulae is different from the current one.
+				//This is also is signalled by the outpuTimeStamp being dirty but dirty could also mean other things, like the date range has changed. 
+				boolean hasCache = outputCacheValue != null && !outputCacheValue.isEmpty() ;
+				if (hasCache && endSlide.compareTo(outputCacheValue.lastKey()) >= 0) {
 					outputCacheValueRange = outputCacheValue.tailMap(startSlide);
 				} else 
-				if (!outputCacheValue.isEmpty() && endSlide.compareTo(outputCacheValue.firstKey()) >= 0){
+				if (hasCache && endSlide.compareTo(outputCacheValue.firstKey()) >= 0){
 					outputCacheValueRange = MapUtils.subMapInclusive(outputCacheValue, startSlide, endSlide);
 				} else {
 					outputCacheValueRange = new TreeMap<>();

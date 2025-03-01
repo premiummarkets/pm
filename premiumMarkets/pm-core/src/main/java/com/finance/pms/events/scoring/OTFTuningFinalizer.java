@@ -98,11 +98,11 @@ public class OTFTuningFinalizer {
 			if (eventsValues.isEmpty()) throw new NotEnoughDataException(stock, startDate, endDate, "For " + evtDef, new RuntimeException());
 
 			//Build res
-			Set<QuotationDataType> requieredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));
+			Set<QuotationDataType> requiredStockDataTypes = new HashSet<>(Arrays.asList(QuotationDataType.CLOSE));
 			if (evtDef instanceof EventInfoOpsCompoOperation) {
-				requieredStockDataTypes = ((EventInfoOpsCompoOperation) evtDef).getRequiredStockData();
+				requiredStockDataTypes = ((EventInfoOpsCompoOperation) evtDef).getRequiredStockData();
 			}
-			Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.getFilterFor(requieredStockDataTypes));
+			Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, startDate, endDate, true, stock.getMarketValuation().getCurrency(), 1, ValidityFilter.getFilterFor(requiredStockDataTypes));
 			SortedMap<Date, Number> mapFromQuotationsClose = QuotationsFactories.getFactory().buildExactBMapFromQuotations(quotations, QuotationDataType.CLOSE, 0, quotations.size()-1);
 			LOGGER.info("Quotations map for " + stock.getFriendlyName() + " ranges from " + mapFromQuotationsClose.firstKey() + " to " + mapFromQuotationsClose.lastKey() + " while requested from " + startDate + " to " + endDate);
 			
@@ -159,9 +159,13 @@ public class OTFTuningFinalizer {
 				throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents); //Check erroneous input with events on the same date
 
 			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
+			if (nextEvtDate.compareTo(qMap.firstKey()) < 0) {//No quotation available before the event potentially a non quotations gap V continuous events using interpolation
+				LOGGER.warn("The first event: " + eventValue + " happens before the first quotation: " + qMap.firstKey() + ", with calculation bounds: " + startDate + "-" + endDate);
+				continue;
+			}
 			SortedMap<Date, ? extends Number> tailFromEvent = qMap.tailMap(nextEvtDate);
 			if (tailFromEvent.isEmpty()) {//No quotation available at or after the event
-				LOGGER.warn("The las event: " + eventValue + " happens after the last quotation: " + qMap.lastKey() + ", with calculation bounds: " + startDate + "-" + endDate);
+				LOGGER.warn("The last event: " + eventValue + " happens after the last quotation: " + qMap.lastKey() + ", with calculation bounds: " + startDate + "-" + endDate);
 				break;
 			}
 			Double closeSpltAfterOrAtEventDate = new BigDecimal(tailFromEvent.get(tailFromEvent.firstKey()).toString()).doubleValue();

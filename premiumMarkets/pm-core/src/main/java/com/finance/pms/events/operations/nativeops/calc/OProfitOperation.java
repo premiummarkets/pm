@@ -56,7 +56,8 @@ public class OProfitOperation extends ArrayMapOperation {
 	}
 
 	public OProfitOperation() {
-		this("oProfit", "Calculate the profits (the Omar way) of series of Events from Indicators", new EventMapOperation("Event Series to analyse profit from (an Indicator)"));
+		this("oProfit", "Calculate the profits (the Omar way) of series of Events from Indicators", 
+				new EventMapOperation("Event Series to analyse profit from (an Indicator)"));
 		this.getOperands().get(this.getOperands().size()-1).setIsVarArgs(true);
 	}
 

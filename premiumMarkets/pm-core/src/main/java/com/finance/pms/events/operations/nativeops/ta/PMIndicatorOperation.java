@@ -47,6 +47,7 @@ import com.finance.pms.events.operations.nativeops.calc.MathOperation;
 import com.finance.pms.events.operations.nativeops.calc.StatsOperation;
 import com.finance.pms.events.operations.nativeops.calc.VolatilityOperation;
 import com.finance.pms.events.operations.nativeops.calc.VolatilityOtherOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsSelectOperation;
 import com.finance.pms.events.operations.nativeops.trans.BandNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.trans.BandRatioNormalizerOperation;
 import com.finance.pms.events.operations.nativeops.trans.FlipOperation;
@@ -63,7 +64,8 @@ import com.finance.pms.talib.indicators.TalibIndicator;
     StatsOperation.class, MathOperation.class, TriggerPointJoiner.class,
     FlipOperation.class, InverseOperation.class,
     VolatilityOperation.class, VolatilityOtherOperation.class,
-    BuyAndHoldOperation.class
+    BuyAndHoldOperation.class,
+    IOsSelectOperation.class
 })
 public abstract class PMIndicatorOperation extends DoubleMapOperation {
 

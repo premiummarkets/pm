@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.ref.SoftReference;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +59,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
 
@@ -128,6 +131,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		});
 		Map<EventInfo, EventDefCacheEntry> map = new HashMap<>();
 		for (final File dataFile : dataFiles) {
+			String absolutePath = dataFile.getAbsolutePath();
 			try (BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFile))) {
 				String line;
 				String[] fileNameSplit = dataFile.getName().split("%%");
@@ -139,7 +143,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 				if (eventInfo != null) {
 					//descriptor
 					try(
-						FileInputStream streamIn = new FileInputStream(dataFile.getAbsolutePath().replaceAll("\\.csv", ".ser"));
+						FileInputStream streamIn = new FileInputStream(absolutePath.replaceAll("\\.csv", ".ser"));
 						ObjectInputStream objectinputstream = new ObjectInputStream(streamIn);
 					) {
 						EventDefDescriptorDynamic evtDesrc = (EventDefDescriptorDynamic) objectinputstream.readObject();
@@ -158,13 +162,19 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 					map.put(eventInfo, new EventDefCacheEntry(outputMap, new UpdateStamp(outputMap.firstKey(), outputMap.lastKey(), false, null)));
 				} else {
 					//throw new RuntimeException("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath());
-					LOGGER.warn("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + dataFile.getAbsolutePath() + ": removing file.");
+					LOGGER.warn("Event info, " + eventDefinitionRef + ", does not exists anymore for cached file: " + absolutePath + ": removing file.");
 					dataFile.delete();
-					File serFile = new File(dataFile.getAbsolutePath().replaceAll("\\.csv", ".ser"));
+					File serFile = new File(absolutePath.replaceAll("\\.csv", ".ser"));
 					serFile.delete();
 				}
 			} catch (Exception e) {
-				throw new RuntimeException("Corrupted cache file: " + dataFile.getAbsolutePath(),e);
+				Path corrupted = dataFile.getAbsoluteFile().toPath().resolveSibling(dataFile.getName() + ".corrupted");
+				try {
+					Files.move(dataFile.getAbsoluteFile().toPath(), corrupted);
+				} catch (IOException e1) {
+					LOGGER.error("Can't move corrupted cache file : " + absolutePath + " in " + corrupted, e1);
+				} 
+				throw new RuntimeException("Corrupted cache file: " + absolutePath, e);
 			}
 		}
 		if (!map.isEmpty()) {
@@ -199,10 +209,12 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 		putInFileCache(stock, eventInfosforStock);
 		//EventModel.outputCache.put(stock,callbackForlastAnalyseOutput.get(stock));
 	}
+	
 	//EVENTDEF, EVENTDEFEXTENSION, ANALYSENAME => eventValue.getEventDef(), eventKey.getEventInfoExtra(), eventValue.getEventListName()
 	private static String filename(Stock stock, EventInfo ei) {
 		return stock.getSymbol() + "%%" + stock.getIsin() +  "%%" + ei.getEventDefinitionRef() + "%%" + ei.getEventDefinitionRef() + "%%" + SelectedIndicatorsCalculationService.getAnalysisName();
 	}
+	
 	private static synchronized void putInFileCache(Stock stock, Map<EventInfo, EventDefCacheEntry> map) {
 		map.keySet().parallelStream()
 		.filter(ei -> OutStampState.OK.equals(map.get(ei).getUpdateStamp().getOutputState()))
@@ -240,6 +252,7 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 			t.start();
 		});
 	}
+	
 	public static void dirtyCacheFor(EventInfo eventInfo, Boolean clearHardCache) {
 		for (Stock stock : outputCache.keySet()) {
 			Map<EventInfo, EventDefCacheEntry> cache4Stock = getOutputCache(stock);
@@ -251,10 +264,19 @@ public class EventModel<T extends EventModelStrategyEngine<X>, X> {
 						updateStamp.setDirty();
 					}
 				}
+				if (clearHardCache) {//We need to check on the eventInfo reference as the eventInfo object (formulae) might have changed
+					Set<EventInfo> toRemove = cache4Stock.keySet().stream()
+							.filter(e -> e.getEventDefinitionRef().equals(eventInfo.getEventDefinitionRef()))
+							.collect(Collectors.toSet());
+					toRemove.forEach(e -> cache4Stock.remove(e));
+				}
 			}
-			if (clearHardCache) removeFromFileCache(stock, eventInfo);
+			if (clearHardCache) {
+				removeFromFileCache(stock, eventInfo);
+			}
 		}
 	}
+	
 	private static void removeFromFileCache(Stock stock, EventInfo ei) {
 		LOGGER.info("Deleting event chart cache UI file for " + stock + " and " + ei);
 		String fileName = filename(stock, ei);

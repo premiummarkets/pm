@@ -551,7 +551,7 @@ public class ChartMain extends Chart {
 									if (serieDef.getTuningRes() != null) {
 										try {
 											List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
-											PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
+											PeriodRatingDTO period = periods.stream().filter(p -> p.getFrom().equals(date)).findFirst().orElse(null);
 											if (period == null) {
 												profitTip = "";
 											} else {
@@ -598,7 +598,7 @@ public class ChartMain extends Chart {
 									try {
 										Date date = new Date((long) dataset.getXValue(series, item));
 										List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
-										PeriodRatingDTO period = periods.stream().filter(p -> p.getTo().equals(date)).findFirst().orElse(null);
+										PeriodRatingDTO period = periods.stream().filter(p -> p.getFrom().equals(date)).findFirst().orElse(null);
 										if (period == null) return "";
 										String note = period.validityTag()?"×":"°";
 										return note;

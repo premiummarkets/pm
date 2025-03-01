@@ -77,6 +77,7 @@ import com.finance.pms.events.operations.nativeops.data.IOsAssemblerOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsDeltaExporterOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsExporterOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsLooseAssemblerOperation;
+import com.finance.pms.events.operations.nativeops.data.IOsSelectOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsWebImporterOperation;
 import com.finance.pms.events.operations.nativeops.data.IfExistsExporterOperation;
 import com.finance.pms.events.operations.nativeops.flow.AndOperation;
@@ -263,6 +264,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(existsExporterOperation);
 		TrimOperation stdTrimOperation = new TrimOperation();
 		nativeOperations.addOperation(stdTrimOperation);
+		IOsSelectOperation iosSelectOperation = new IOsSelectOperation();
+		nativeOperations.addOperation(iosSelectOperation);
 
 		//Other
 		ZeroLagEMAOperation zeroLagEMAOperation = new ZeroLagEMAOperation();

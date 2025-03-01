@@ -12,6 +12,7 @@ import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
+import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
 public class LogOperation extends PassThroughOperation implements MultiValuesOutput {
@@ -44,7 +45,7 @@ public class LogOperation extends PassThroughOperation implements MultiValuesOut
 
 	@Override
 	public Value<?> calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisOutputRequiredStartShiftByParent, int thisInputOperandsRequiredShiftFromThis, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
-		String message = ((StringValue) inputs.get(0)).getValue(targetStock);
+		String message = ((StringableValue) inputs.get(0)).getAsPrettyStringable();
 		LOGGER.info(getReference() + ": " + message.replaceAll("_", " ") + " in " + this.getOperands().get(UPSTREAM_OPERATION_IDX).toFormulaeShort(targetStock, thisCallStack));
 		return inputs.get(UPSTREAM_OPERATION_IDX);
 	}

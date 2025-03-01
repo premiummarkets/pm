@@ -56,7 +56,7 @@ public class MathOperation extends PMWithDataOperation {
 
 	public MathOperation() {
 		super("math", "Math calculus", new DoubleMapOperation());
-		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"exponential", "naturalLogarithm", "rocSinceStart"})));
+		setAvailableOutputSelectors(new ArrayList<String>(Arrays.asList(new String[]{"exponential", "naturalLogarithm", "rocSinceStart", "abs"})));
 	}
 
 	public MathOperation(ArrayList<Operation> operands, String outputSelector) {
@@ -84,6 +84,9 @@ public class MathOperation extends PMWithDataOperation {
 			else if (outputSelector != null && outputSelector.equalsIgnoreCase("rocSinceStart")) {
 				Double firstValue = data.get(data.firstKey());
 				collected = data.keySet().stream().collect(Collectors.toMap(k -> k, k -> data.get(k)/firstValue, (a, b) -> a, TreeMap<Date,Double>::new));
+			}
+			else if (outputSelector != null && outputSelector.equalsIgnoreCase("abs")) {
+				collected = data.keySet().stream().collect(Collectors.toMap(k -> k, k -> Math.abs(data.get(k)), (a, b) -> a, TreeMap<Date,Double>::new));
 			}
 			return new DoubleMapValue(collected);
 

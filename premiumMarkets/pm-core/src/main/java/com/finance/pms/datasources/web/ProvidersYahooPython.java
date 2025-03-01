@@ -149,11 +149,11 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 		String symbol = stock.getSymbol();
 		if ('^' != symbol.charAt(0) && stock.getCategory().equals(StockCategories.INDICES_OTHER)) symbol = "^" + symbol;
 		
-    	InputStream processInputStream = readInput(symbol, start, end, false, false);
+    	//InputStream processInputStream = readInput(symbol, start, end, false, false);
 
 		List<Validatable> validatables = new ArrayList<Validatable>();
 		
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(processInputStream));) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(readInput(symbol, start, end, false, false)));) {
 			String line = null;
 			while ((line = in.readLine()) != null) {
 				try {

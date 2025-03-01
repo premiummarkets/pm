@@ -55,7 +55,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 		STRING (StringOperation.class, "String"), 
 		LIST (ListOperation.class, "ListOperation"),
 		NLIST (NamedListOperation.class, "NamedListOperation"),
-		OPREF (OperationReferenceOperation.class, "OperationReferenceOperation"),
+		OPREF (OperationReferenceOperation.class, "OperationReference"),
 		ANY (NullOperation.class, "Any");
 
 		Class<? extends Operation> operandClass;

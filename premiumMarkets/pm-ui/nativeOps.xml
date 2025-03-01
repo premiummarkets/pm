@@ -916,6 +916,43 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="iOsSelectOperation">
+            <reference>iosSelect</reference>
+            <description>Select columns from multi values input</description>
+            <operands>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>Multi values input</reference>
+                    <description>Multi values input</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>mainColumnIndex</referenceAsOperand>
+                    <description>Main Index of the column to be displayed.</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>1.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>columnIndex</referenceAsOperand>
+                    <description>Index of the columns to include in the output ([1..n] || 0 for all). The first column is indexed 0 and must contain dates.</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>true</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="envOperation">
             <reference>env</reference>
             <description>Get a named value from the env</description>
@@ -1961,6 +1998,7 @@
                 <availableOutputSelector>exponential</availableOutputSelector>
                 <availableOutputSelector>naturalLogarithm</availableOutputSelector>
                 <availableOutputSelector>rocSinceStart</availableOutputSelector>
+                <availableOutputSelector>abs</availableOutputSelector>
             </availableOutputSelectors>
             <outputSelector>exponential</outputSelector>
             <isVarArgs>false</isVarArgs>

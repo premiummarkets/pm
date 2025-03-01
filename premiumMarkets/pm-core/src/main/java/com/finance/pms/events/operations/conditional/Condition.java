@@ -55,13 +55,13 @@ import com.finance.pms.events.quotations.QuotationsFactories;
  * 'spanning n days' : will be used for condition involving events happening over time like when comparing two status of the data at two point in time t and t-n (change of status).
  * 	For instance 'close crosses up 10 spanning 3 days' means that close was below 10 three days ago and close is now above 10. So basically we ignore what happened in between.
  * 
- * 'over n days' : Time OVER which the condition will remain true.
+ * 'over n days' : Time OVER which an occurrence of the condition has happened.
  * 	Means that the condition happened once over the past n days. It could as well not be fulfilled a the date.
  * 	For a status A to be true, we need that the status was at least once of value A over the past n days.
  * 	For an event (change of status) B to A to be true, we need that the status changed at least once from value B to value A over the past n days.
  *
  * 'for n days' : Look back period FOR which the condition has to be true and remain true.
- * 	Means that the condition was true for the n previous days at the day we check.
+ * 	Means that the condition was true for the n previous days at the day we check. Hence FOR will imply OVER.
  * 	This makes sense only for a check on status value not a change of status.
  * 	In case there be missing values over the last n days, this will still be true if all present values are true.
  * 	These can be combined like for instance :
@@ -183,7 +183,8 @@ public class Condition<T> extends Operation {
 	}
 
 	protected Boolean forPeriodReduction(
-			TargetStockInfo targetStock, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, Integer forPeriod, Date actualDate, Boolean rawConditionCheck, BooleanMapValue outputs) {
+			TargetStockInfo targetStock, SortedSet<Date> fullKeySet, BooleanMapValue realRowOutputs, 
+			Integer forPeriod, Date actualDate, Boolean rawConditionCheck, BooleanMapValue outputs) {
 		realRowOutputs.getValue(targetStock).put(actualDate, rawConditionCheck);
 		Boolean conditionCheck = reduceRawOutputForPeriod(targetStock, fullKeySet, realRowOutputs, forPeriod, actualDate, rawConditionCheck);
 		if (conditionCheck != null) outputs.getValue(targetStock).put(actualDate, conditionCheck);

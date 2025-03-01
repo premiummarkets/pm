@@ -3,6 +3,7 @@ package com.finance.pms.datasources.web;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.finance.pms.admin.install.logging.MyLogger;
@@ -25,7 +26,7 @@ public class ProvidersYahooPythonWeb extends ProvidersYahooPython {
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		LOGGER.info(String.format("Running Yahoo web py: %s %s %s %s", "main.py", symbol, dateFormat.format(start), dateFormat.format(end)));
-		return web.runAny("main.py", symbol, dateFormat.format(start), dateFormat.format(end));
+		return web.runAny(new ArrayList<>(),"main.py", symbol, dateFormat.format(start), dateFormat.format(end));
 	}
 
 	@Override
