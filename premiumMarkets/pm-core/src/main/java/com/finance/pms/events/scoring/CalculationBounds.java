@@ -6,47 +6,62 @@ import java.util.Date;
 public class CalculationBounds {
 
     TunedConfMgr.CalcStatus calcStatus;
-    Date pmStart;
-    Date pmEnd;
-    Date newTunedConfStart;
-    Date newTunedConfEnd;
+    Date calcStart;
+    Date calcEnd;
+    Date storeStart;
+    Date storeEnd;
+    Date deltaStoreStart;
+    Date deltaStoreEnd;
 
-    public CalculationBounds(TunedConfMgr.CalcStatus calcStatus, Date pmStart, Date pmEnd, Date newTunedConfStart, Date newTunedConfEnd) {
+    public CalculationBounds(TunedConfMgr.CalcStatus calcStatus, Date calcStart, Date calcEnd, Date storeStart, Date storeEnd, Date deltaStoreStart, Date deltaStoreEnd) {
         super();
         this.calcStatus = calcStatus;
-        this.pmStart = pmStart;
-        this.pmEnd = pmEnd;
-        this.newTunedConfStart = newTunedConfStart;
-        this.newTunedConfEnd = newTunedConfEnd;
+        this.calcStart = calcStart;
+        this.calcEnd = calcEnd;
+        this.storeStart = storeStart;
+        this.storeEnd = storeEnd;
+        this.deltaStoreStart = deltaStoreStart;
+        this.deltaStoreEnd = deltaStoreEnd;
     }
+    
+	public Date getDeltaStoreStart() {
+		return deltaStoreStart;
+	}
+	
+	public Date getDeltaStoreEnd() {
+		return deltaStoreEnd;
+	}
 
     public TunedConfMgr.CalcStatus getCalcStatus() {
         return calcStatus;
     }
 
-    public Date getPmStart() {
-        return pmStart;
+    public Date getCalcStart() {
+        return calcStart;
     }
 
-    public Date getPmEnd() {
-        return pmEnd;
+    public Date getCalcEnd() {
+        return calcEnd;
     }
 
-    public Date getNewTunedConfStart() {
-        return newTunedConfStart;
+    public Date getStoreStart() {
+        return storeStart;
     }
 
-    public Date getNewTunedConfEnd() {
-        return newTunedConfEnd;
+    public Date getStoreEnd() {
+        return storeEnd;
     }
 
     @Override
     public String toString() {
     	SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         return "CalculationBounds [calcStatus=" + calcStatus + 
-        		", pmStart=" + ((pmStart != null)?df.format(pmStart):"null") + ", pmEnd=" + ((pmEnd != null)?df.format(pmEnd):"null") + 
-        		", newTunedConfStart=" + ((newTunedConfStart !=null)?df.format(newTunedConfStart):"null") + 
-        		", newTunedConfEnd=" + ((newTunedConfEnd != null)?df.format(newTunedConfEnd):"null") + "]";
+        		", calcStart=" + ((calcStart != null)?df.format(calcStart):"null") + 
+        		", calcEnd=" + ((calcEnd != null)?df.format(calcEnd):"null") + 
+        		", storeStart=" + ((storeStart !=null)?df.format(storeStart):"null") + 
+        		", storeEnd=" + ((storeEnd != null)?df.format(storeEnd):"null") +
+        		", deltaStoreStart=" + ((deltaStoreStart != null)?df.format(deltaStoreStart):"null") +
+        		", deltaStoreEnd=" + ((deltaStoreEnd != null)?df.format(deltaStoreEnd):"null") + "]";
     }
 
 }

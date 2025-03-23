@@ -52,6 +52,7 @@ import com.finance.pms.events.EventValue;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup;
+import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputDescr;
 import com.finance.pms.events.calculation.parametrizedindicators.OutputReference;
@@ -170,7 +171,6 @@ public class TargetStockInfo {
 	private Map<OutputReference, List<EventsAnalyser>> outputAnalysers;
 	private Set<Date> missingKeys = new HashSet<>();
 
-
 	public TargetStockInfo(String analysisName, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) {
 		super();
 		
@@ -205,25 +205,9 @@ public class TargetStockInfo {
 		
 	}
 	
-	//Copy and existing targetStock and its status. This acts as a modifiable view and is not a clone.
-	public TargetStockInfo(TargetStockInfo targetStock, EventInfoOpsCompoOperation eventInfoOpsCompoOperation, Date startDate, Date endDate) {
-		
-		this.analysisName = targetStock.getAnalysisName();
-		this.eventInfoOpsCompoOperation = eventInfoOpsCompoOperation;
-		this.stock = targetStock.getStock();
-		this.endDate = endDate;
-		if (stock.getLastQuote().before(startDate)) throw new RuntimeException("No enough quotations to calculate: " + stock.toString());
-		this.startDate = startDate;
-		
-		this.calculatedOutputsCache = targetStock.calculatedOutputsCache;
-		this.calculatingOutputsFutures = targetStock.calculatingOutputsFutures;
-		this.gatheredChartableOutputs = targetStock.gatheredChartableOutputs;
-		this.chartedOutputGroups = targetStock.chartedOutputGroups;
-		
-		this.heap = targetStock.getHeap();
-		
-		this.outputAnalysers = targetStock.outputAnalysers;
-		this.missingKeys = targetStock.missingKeys;
+	public TargetStockInfo(TargetStockInfo origin, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) {
+		this(origin.analysisName, eventInfoOpsCompoOperationHolder, stock, startDate, endDate);
+		this.calculatedOutputsCache = origin.calculatedOutputsCache;
 	}
 	
 	public static String letGlobalVar(String variableName, String variableValue) {
@@ -665,5 +649,6 @@ public class TargetStockInfo {
 	public void addMissingData(Collection<?> keys) {
 		this.missingKeys.addAll((Collection<? extends Date>) keys);
 	}
+
 
 }

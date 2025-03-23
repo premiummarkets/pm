@@ -115,10 +115,10 @@ public class OTFTuningFinalizer {
 
 
 		} catch (NoQuotationsException e) {
-			LOGGER.warn(noResMsg, e);
+			LOGGER.warn(noResMsg + e.toString());
 			throw new NotEnoughDataException(stock, noResMsg , e);
 		} catch (NotEnoughDataException e) {
-			LOGGER.warn(noResMsg, e);
+			LOGGER.warn(noResMsg + e.toString());
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error(noResMsg, e);
@@ -135,37 +135,38 @@ public class OTFTuningFinalizer {
 	protected List<PeriodRatingDTO> validPeriods(Stock stock, Date startDate, Date endDate, SortedMap<Date, ? extends Number> qMap, Collection<EventValue> generatedEvents) 
 					throws NotEnoughDataException {
 
-		qMap = MapUtils.subMapInclusive(qMap, startDate, endDate);
-		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
+		SortedMap<Date, ? extends Number> boundedQMap = MapUtils.subMapInclusive(qMap, startDate, endDate);		
+		Collection<EventValue> boundedEvents = generatedEvents.stream().filter(ev -> ev.getDate().compareTo(startDate) >= 0 && ev.getDate().compareTo(endDate) <= 0).collect(Collectors.toList());
 
+		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 		PeriodRatingDTO period = null;
 		Date nextEvtDate = null;
-		for (EventValue eventValue: generatedEvents) {
+		for (EventValue eventValue: boundedEvents) {
 			
 			nextEvtDate = eventValue.getDate();
 
-			//Ignore events after endDate if it starts a new period
+			//Ignore events after endDate if it starts a new period. Can't be here.
 			if (nextEvtDate.compareTo(endDate) > 0) {
 				throw new NotEnoughDataException(stock, startDate, endDate, "Event: " + eventValue + " is after " + endDate, new Exception());
 			}
 			
-			//Ignore event before start date
+			//Ignore event before start date. Can't be here.
 			if (nextEvtDate.compareTo(startDate) < 0) {
-				continue;
+				throw new NotEnoughDataException(stock, startDate, endDate, "Event: " + eventValue + " is before " + startDate, new Exception());
 			}
 
 			//Construct period
 			if (period != null && !nextEvtDate.after(period.getFrom())) 
-				throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + generatedEvents); //Check erroneous input with events on the same date
+				throw new RuntimeException("Algorithm exception. Invalid event sorting or duplication: " + boundedEvents); //Check erroneous input with events on the same date
 
 			//Double closeSpliterBeforeOrAtDate = quotations.getClosestCloseSpForDate(eventDate).doubleValue();
-			if (nextEvtDate.compareTo(qMap.firstKey()) < 0) {//No quotation available before the event potentially a non quotations gap V continuous events using interpolation
-				LOGGER.warn("The first event: " + eventValue + " happens before the first quotation: " + qMap.firstKey() + ", with calculation bounds: " + startDate + "-" + endDate);
+			if (nextEvtDate.compareTo(boundedQMap.firstKey()) < 0) {//No quotation available before the event potentially a non quotations gap V continuous events using interpolation
+				LOGGER.warn("The first event: " + eventValue + " happens before the first quotation: " + boundedQMap.firstKey() + ", with calculation bounds: " + startDate + "-" + endDate);
 				continue;
 			}
-			SortedMap<Date, ? extends Number> tailFromEvent = qMap.tailMap(nextEvtDate);
+			SortedMap<Date, ? extends Number> tailFromEvent = boundedQMap.tailMap(nextEvtDate);
 			if (tailFromEvent.isEmpty()) {//No quotation available at or after the event
-				LOGGER.warn("The last event: " + eventValue + " happens after the last quotation: " + qMap.lastKey() + ", with calculation bounds: " + startDate + "-" + endDate);
+				LOGGER.warn("The last event: " + eventValue + " happens after the last quotation: " + boundedQMap.lastKey() + ", with calculation bounds: " + startDate + "-" + endDate);
 				break;
 			}
 			Double closeSpltAfterOrAtEventDate = new BigDecimal(tailFromEvent.get(tailFromEvent.firstKey()).toString()).doubleValue();
@@ -211,11 +212,11 @@ public class OTFTuningFinalizer {
 //				qUnitDateAroundOrAtEndDate = qMap.firstKey();
 				throw new NotEnoughDataException(stock, startDate, endDate, "Last event is at " + nextEvtDate + " is before start date " + startDate, new Exception());
 			} else {//End date is within the available quotations map start //But the event could still be after the map end (interpolation)
-				qUnitDateAroundOrAtEndDate = qMap.lastKey();
+				qUnitDateAroundOrAtEndDate = boundedQMap.lastKey();
 			}
 			
 			period.setTo(qUnitDateAroundOrAtEndDate);
-			period.setPriceAtTo(qMap.get(qUnitDateAroundOrAtEndDate).doubleValue());
+			period.setPriceAtTo(boundedQMap.get(qUnitDateAroundOrAtEndDate).doubleValue());
 			period.setRealised(false);
 			periods.add(period);
 		}

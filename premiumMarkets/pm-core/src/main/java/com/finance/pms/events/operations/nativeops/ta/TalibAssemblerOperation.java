@@ -43,6 +43,10 @@ import com.finance.pms.events.operations.util.ValueManipulator;
 import com.finance.pms.events.operations.util.ValueManipulator.InputToArrayReturn;
 import com.google.common.collect.Lists;
 
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
+import net.objecthunter.exp4j.function.Function;
+
 public class TalibAssemblerOperation extends ArrayMapOperation {
 	
 	private static final int OPS_INDEX = 1;
@@ -68,7 +72,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		this("talibAssembler", "Assembles several periods iterations of one indicator into one inputable array.",
 				new StringOperation("string", "assemblerGroupName", "ta- Assembler group name", new StringValue("")),
 				new OperationReferenceOperation("operationReference", "operation reference", "Operation to iterate upon", null),
-				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step[ or [x, factor] or [\"abc\"] or [any]. "
+				new ListOperation("parameters", "parameters and parameters slices", "[start, end, step[ (the pivot) or [x, factor] or [\"abc\"] or [any]. "
 						+ "With inclusivity [start, end[ and step must be >= 1. "
 						+ "Use [idx, factor] to make this parameter a factor of an other parameter indexed at idx."
 						+ "Use [\"abc\"] for constant string parameters. [any] for any other constant parameter", null));
@@ -93,7 +97,7 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		@SuppressWarnings("unchecked")
 		List<List<StringableValue>> parameters = inputs.subList(PARAMS_START_IDX, inputs.size()).stream().map(v -> ((AnyValueListValue<StringableValue>) v).getValue(targetStock)).collect(Collectors.toList());
 
-		SortedMap<Integer, List<Double>> slices = new TreeMap<>();
+		SortedMap<Integer, List<? extends Object>> slices = new TreeMap<>();
 		ArrayList<Operation> assembledOpOperands = new ArrayList<>(assembledOperationClone.getOperands());
 		Operation operand = assembledOpOperands.get(0); //Safe init
 		for (int parametersSlicePos = 0; parametersSlicePos < parameters.size(); parametersSlicePos++) {
@@ -109,8 +113,10 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 			//parameters.get(parametersSlicePos).size() > 1
 			//number operand or undefined operand with a sliced parameter (which would mean a number is expected)
 			//if ((operand instanceof NumberOperation || operand instanceof NumbererOperation || operand instanceof NullOperation) && parameters.get(parametersSlicePos).size() > 1) {
-			if (parameters.get(parametersSlicePos).size() > 1) { //Number sliced
-				slices.put(parametersSlicePos, parameters.get(parametersSlicePos).stream().map(v -> ((NumberValue)v).getValue(targetStock).doubleValue()).collect(Collectors.toList()));
+			if (parameters.get(parametersSlicePos).size() > 1) { // Number/Expression sliced
+				slices.put(parametersSlicePos, parameters.get(parametersSlicePos).stream()
+													.map(v -> (v instanceof NumberValue)?((NumberValue)v).getValue(targetStock).doubleValue():((StringValue)v).getValue(targetStock))
+													.collect(Collectors.toList()));
 			//parameters.get(parametersSlicePos).size() == 1
 			} else if (operand instanceof NullOperation) {
 				Operation typedOperand;
@@ -146,10 +152,11 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		
 		List<Future<NumericableMapValue>> futures = new ArrayList<>();
 		List<String> inputsOperandsRefs = new ArrayList<String>();
-		List<Double> pivotParamSlices = slices.values().stream().filter(s -> s.size() == 3).findFirst().orElse(Lists.newArrayList(0.0,1.0,1.0));
-		Double start = pivotParamSlices.get(0);
-		Double end = pivotParamSlices.get(1);
-		Double step = pivotParamSlices.get(2);
+		//XXX pivotParamSlices is a list of 3 elements: start, end, step. There is one and only one such list in the parameters list.
+		List<? extends Object> pivotParamSlices = slices.values().stream().filter(s -> s.size() == 3).findFirst().orElse(Lists.newArrayList(0.0,1.0,1.0));
+		Double start = (Double) pivotParamSlices.get(0);
+		Double end = (Double) pivotParamSlices.get(1);
+		Double step = (Double) pivotParamSlices.get(2);
 		int paddingSize = String.format("%d", (int) ((end-start)/(step))).length();
 		
 		ExecutorService executor = CalculateThreadExecutor.getRandomInfiniteExecutorInstance();
@@ -160,18 +167,27 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 			String paramsStringInfo = "";
 			for(Integer operandPos: slices.keySet()) {
 				Value<?> itParameter = null;
-				if (slices.get(operandPos).size() == 3) { //actual slice
-					itParameter = new NumberValue(slices.get(operandPos).get(0) + i*slices.get(operandPos).get(2));
-				} else if (slices.get(operandPos).size() == 2) { //factor
-					int otherOperandParamPos = slices.get(operandPos).get(0).intValue();
+				if (slices.get(operandPos).size() == 3) { //actual pivot slice
+					itParameter = new NumberValue((Double)slices.get(operandPos).get(0) + i*(Double)slices.get(operandPos).get(2));
+				} else if (slices.get(operandPos).size() == 2) { //Factor or Expression
+					int otherOperandParamPos = ((Double)slices.get(operandPos).get(0)).intValue(); //XXX This is the index of the other operand in the slices and has to be an integer
 					if (!slices.containsKey(otherOperandParamPos)) {
 						throw new RuntimeException("Invalid parameter index " + otherOperandParamPos + " in " + slices + ", for this operation: " + iterationOperationClone.getReference());
 					}
-					Double otherOperandParamValue = slices.get(otherOperandParamPos).get(0) + i*slices.get(otherOperandParamPos).get(2);
-					Double factor = slices.get(operandPos).get(1);
-					itParameter = new NumberValue(otherOperandParamValue * factor);
+					Double otherOperandParamValue = (Double)slices.get(otherOperandParamPos).get(0) + i*(Double)slices.get(otherOperandParamPos).get(2);
+					if (slices.get(operandPos).get(1) instanceof Double) { //Factor
+						Double factor = (Double)slices.get(operandPos).get(1);
+						itParameter = new NumberValue(otherOperandParamValue * factor);
+					} else if (slices.get(operandPos).get(1) instanceof String) { // Expression
+						String expression = (String) slices.get(operandPos).get(1);
+						ExpressionBuilder eb = expressionBuilder(expression);
+						Expression e = eb.build().setVariable("x", otherOperandParamValue);
+						itParameter = new NumberValue(e.evaluate());
+					} else {
+						throw new NotImplementedException("FIXME: Parameter does not match a factor or expression: " + slices.get(operandPos).get(1));
+					}
 				} else if (slices.get(operandPos).size() == 1) { //single static value
-					itParameter = new NumberValue(slices.get(operandPos).get(0));
+					itParameter = new NumberValue((Double)slices.get(operandPos).get(0));
 				}
 				paramsStringInfo = paramsStringInfo + "," + itParameter.getValue(targetStock);
 //				if (operandPos >= iterationOperationClone.getOperands().size()) { //FIXME?? //XXX can I be here as per the assembledOpOperands init??
@@ -249,6 +265,16 @@ public class TalibAssemblerOperation extends ArrayMapOperation {
 		}
 		
 		return new DoubleArrayMapValue();
+	}
+
+	private ExpressionBuilder expressionBuilder(String expression) {
+		Function roundFunction = new Function("round", 1) {
+            @Override
+            public double apply(double... args) {
+                return (int) args[0];
+            }
+        };
+		return new ExpressionBuilder(expression).function(roundFunction).variables("x");
 	}
 
 	@Override

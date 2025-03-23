@@ -150,7 +150,7 @@ public abstract class UserContentStrategyEngine<X> extends EventModelStrategyEng
 //									//Forced deletion of events. (should be covered by EventInfoOpsCompoOperation.invalidateOperation
 									TargetStockInfo dummyTargetStock = new TargetStockInfo(analysisName, (EventInfoOpsCompoOperation) eOpsCompo, stock, DateFactory.dateAtZero(), DateFactory.getNowEndDate());
 									//eOpsCompo.invalidateAllForciblyOperands(analysisName, dummyTargetStock, Optional.empty());
-									eOpsCompo.invalidateOperation(analysisName, Optional.of(dummyTargetStock), Optional.empty());
+									eOpsCompo.invalidateOperation(analysisName, Optional.of(dummyTargetStock), Optional.of(eOpsCompo.getReference()));
 								
 									
 								});

@@ -51,6 +51,8 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	private StringableValue constant;
 	private String referenceAsOperand;
 	
+	private String developedFormula;
+	
 	private Boolean hasFailed = false;
 
 
@@ -66,6 +68,8 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 		this.formula = (operation.getFormulae() != null)? operation.getFormulae() : operation.toFormulaeDevelopped();
 		this.formula = this.formula.replaceAll("\\s+","");
 		this.referenceAsOperand = operation.getReferenceAsOperand();
+		
+		this.developedFormula = operation.toFormulaeDevelopped();
 	}
 
 	public OutputReference(Operation operation, String userOperationReference, String referenceAsOperandOverride, NumberValue doubleValue) {
@@ -84,6 +88,7 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((developedFormula == null) ? 0 : developedFormula.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
 		result = prime * result + ((reference == null) ? 0 : reference.hashCode());
 		result = prime * result + ((userReference == null) ? 0 : userReference.hashCode());
@@ -102,6 +107,12 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 		if (getClass() != obj.getClass())
 			return false;
 		OutputReference other = (OutputReference) obj;
+		
+		if (developedFormula == null) {
+			if (other.developedFormula != null)
+				return false;
+		} else if (!developedFormula.equals(other.developedFormula))
+			return false;
 		
 		if (operationReference == null) {
 			if (other.operationReference != null)
@@ -144,8 +155,11 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 
 	@Override
 	public int compareTo(OutputReference o) {
-
-		int compareTo = this.operationReference.compareTo(o.operationReference);
+		
+		int compareTo = this.developedFormula.compareTo(o.developedFormula);
+		if (compareTo == 0) {
+			compareTo = this.operationReference.compareTo(o.operationReference);
+		}
 		if (compareTo == 0) {
 			compareTo = this.reference.compareTo(o.reference);
 		}
@@ -205,13 +219,14 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	@Override
 	public String toString() {
 		return "OutputReference ["
+				+ " developedFormula=" + developedFormula + ","
 				+ " operationReference=" + operationReference + ","
 				+ " reference=" + reference 
 				+ " userReference=" + userReference + ","
 				+ " outputSelector=" + outputSelector + ","
 				+ " formula=" + formula + ","
 				+ " constant=" + constant + ","
-				+ " referenceAsOperand=" + referenceAsOperand + ","
+				+ " referenceAsOperand=" + referenceAsOperand
 				+ "]";
 	}
 
@@ -220,7 +235,8 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	}
 
 	public String getFormula() {
-		return formula;
+		//return formula;
+		return developedFormula;
 	}
 
 	public String getOutputSelector() {

@@ -211,7 +211,7 @@ public class FormulaParser implements Runnable, Comparable<FormulaParser>, Clone
 		if (userOperation != null) {
 			if (!operands.isEmpty()) throw new IllegalArgumentException("User operations can't take operands as they are parametrised and must be referenced without any parameter.");
 			LOGGER.info("Cloning user op: " + userOperation.getReference());
-			return (Operation) userOperation.clone(); //XXX FIXME should I clone user operations as well? XXX
+			return (Operation) userOperation.clone();
 		}
 
 		//Else we instantiate a new one (in that case all the operands must be present)

@@ -638,7 +638,7 @@ public abstract class ParameterizedBuilder extends Observable {
 
 	//We invalidate only the impacted operations but not their operands (no recursion)
 	private void invalidateOperations(List<Operation> impactedOps) {
-		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty(), Optional.empty()));
+		impactedOps.stream().forEach(o -> o.invalidateOperation(SelectedIndicatorsCalculationService.getAnalysisName(), Optional.empty(), Optional.of(o.getReference())));
 	}
 
 	public abstract Optional<Operation> createDefaultIndicator(String identifier) ;

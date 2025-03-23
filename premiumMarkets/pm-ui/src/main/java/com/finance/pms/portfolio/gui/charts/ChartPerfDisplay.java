@@ -226,7 +226,7 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 			comparisonModeBut.setFont(MainGui.DEFAULTFONT);
 			comparisonModeBut.setText("Comparison mode ...");
 
-			final Set<TransfoInfo> transfos = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
+			final Set<TransfoInfo> transfosInitial = new HashSet<TransfoInfo>(Arrays.asList(new TransfoInfo[]{
 
 					new TransfoInfo("Change to Invested per unit", new ActionDialogAction() {
 
@@ -402,15 +402,15 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					selectComparisonMode(comparisonModeBut, transfos);
+					selectComparisonMode(comparisonModeBut, transfosInitial);
 				}
 
 				private void selectComparisonMode(final Button closeFunctionBut, final Set<TransfoInfo> transfos) {
 
-					final Set<TransfoInfo> selectTransfo = new HashSet<TransfoInfo>();
+					final Set<TransfoInfo> selectedTransfo = new HashSet<TransfoInfo>();
 					for (TransfoInfo transfoInfo : transfos) {
 						if (ChartPerfDisplay.this.getStripedCloseFunction().lineToolTip().toLowerCase().contains(transfoInfo.info().toLowerCase())) {
-							selectTransfo.add(transfoInfo);
+							selectedTransfo.add(transfoInfo);
 						}
 					}
 
@@ -418,20 +418,20 @@ public class ChartPerfDisplay extends ChartDisplayStrategy {
 
 						@Override
 						public void action() {
-							for (TransfoInfo selctTransUnic : selectTransfo) {
+							for (TransfoInfo selctTransUnic : selectedTransfo) {
 								selctTransUnic.action.action();
 							}
 
 						}
 					};
-					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectTransfo, true, false, SWT.RADIO, actionDialogAction);
+					PopupMenu<TransfoInfo> popupMenu = new PopupMenu<TransfoInfo>(chartTarget, closeFunctionBut, transfos, selectedTransfo, true, false, SWT.RADIO, actionDialogAction);
 					popupMenu.open();
 
 				}
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					selectComparisonMode(comparisonModeBut, transfos);
+					selectComparisonMode(comparisonModeBut, transfosInitial);
 				}
 			});
 

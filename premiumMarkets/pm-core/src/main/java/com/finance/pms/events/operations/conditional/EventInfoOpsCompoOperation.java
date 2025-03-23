@@ -32,12 +32,15 @@ package com.finance.pms.events.operations.conditional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -51,6 +54,7 @@ import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventValue;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.ParameterizedEventKey;
+import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.calculation.FormulaUtils;
 import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescriptorDynamic;
@@ -59,11 +63,15 @@ import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.EventMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
+import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
+import com.finance.pms.events.scoring.CalculationBounds;
 import com.finance.pms.events.scoring.TunedConf;
 import com.finance.pms.events.scoring.TunedConfMgr;
+import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
+import com.finance.pms.events.utils.EventsStatusChecker;
 import com.finance.pms.talib.dataresults.StandardEventValue;
 /**
  * This could be called IndicatorsCompositionnerBullBearSwitchOperation (or EventInfoBullBearSwitchOperation)
@@ -75,6 +83,8 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  */
 @XmlRootElement
 public class EventInfoOpsCompoOperation extends EventMapOperation implements EventInfo {
+
+	private static final int STARTSHIFTOVERRIDE_IDX = 2;
 
 	private static MyLogger LOGGER = MyLogger.getLogger(EventInfoOpsCompoOperation.class);
 	
@@ -89,8 +99,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	public EventInfoOpsCompoOperation(String reference, String description) {
 		super(reference, description,
 				new ArrayList<>(Arrays.asList(
-						new Condition<>("bullishCondition"),
-						new Condition<>("bearishCondition"),
+						new Condition<>("bullBearWithPrecondition"),
 						new Condition<>("alsoDisplay"),
 						new NumberOperation("startShiftOverride"),
 						new StringOperation("eventListName")))
@@ -106,14 +115,13 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public EventMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 				
-		BooleanMapValue bullishMapValue = ((BooleanMapValue)inputs.get(0));
-		BooleanMapValue bearishMapValue = ((BooleanMapValue)inputs.get(1));
-		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(2)); //not used for calculation
-		//NumberValue startShiftOverride = ((NumberValue)inputs.get(3));  //not implemented
-		StringValue eventListName = ((StringValue) inputs.get(4));
+		BooleanMultiBooleanMapValue bullBearWithPrecondition = ((BooleanMultiBooleanMapValue)inputs.get(0));
+		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(1)); //not used for calculation
+		//NumberValue startShiftOverride = ((NumberValue)inputs.get(STARTSHIFTOVERRIDE_IDX));  //not implemented
+		StringValue eventListName = ((StringValue) inputs.get(3));
 
-		SortedMap<Date, Boolean> bullishMap = bullishMapValue.getValue(targetStock);
-		SortedMap<Date, Boolean> bearishMap = bearishMapValue.getValue(targetStock);
+		SortedMap<Date, Boolean> bullishMap = bullBearWithPrecondition.getAdditionalOutputs().get("signal_0").getValue(targetStock);
+		SortedMap<Date, Boolean> bearishMap = bullBearWithPrecondition.getAdditionalOutputs().get("signal_1").getValue(targetStock);
 
 		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 
@@ -148,7 +156,84 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		if (edata.isEmpty()) LOGGER.warn("No event data found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 		if (targetStock.getChartedOutputGroups().isEmpty() && isDisplay) LOGGER.warn("No charted group found. The up stream main operation may have failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
 		
+		edata = store(targetStock, eventListNameValue, edata);
 		return new EventMapValue(edata, false);
+	}
+	
+	
+	private SortedMap<EventKey,EventValue> store(TargetStockInfo targetStock, String eventListName, SortedMap<EventKey, EventValue> calculatorEvents) {
+		
+		Stock stock = targetStock.getStock();
+		Date start = targetStock.getStartDate(0);
+		Date end = targetStock.getEndDate();
+		
+		//boolean isIdempotent =  this.isIdemPotent(targetStock);
+		boolean isNoOverrideDeltaOnly = this.isNoOverrideDeltaOnly(targetStock);
+		boolean isForbidOverride = isNoOverrideDeltaOnly; //isIdempotent || isNoOverrideDeltaOnly;
+		boolean isAllowOverride = !isForbidOverride;
+		
+		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, this);
+		boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().wasResetOrIsNew();
+		TunedConf tunedConfLock = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveOrUpdateUniqueNoRetuneConfig(stock, eventListName, this, isAllowOverride);
+		
+		LOGGER.info(
+				"CalculationBounds constraints: isNoOverrideDeltaOnly " + isNoOverrideDeltaOnly + 
+				" isForbidOverride " + isForbidOverride + ", isAllowOverride " + isAllowOverride);
+		
+		synchronized (tunedConfLock) {//It is assumed this is a unique lock as handled by hibernate. ...
+			
+			tunedConfLock.setIsRemovable(isAllowOverride);
+		
+			try {
+				
+				EventsStatusChecker checker = new EventsStatusChecker(tunedConfLock);
+				CalculationBounds calcBounds = checker.setDatesBounds(start, end, isForbidOverride);
+
+				//FIXME The control of the calculation state in db, here, should be done through tunedConf only.
+				SortedMap<EventKey, EventValue> storedEvents;
+				if (calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
+					Date storageStartDate = calcBounds.getDeltaStoreStart();
+					LOGGER.info(this.getReference() + " for " + stock + " reducing new stored events to tail from included " + storageStartDate);
+					storedEvents = calculatorEvents.entrySet().stream()
+						.filter(e -> e.getKey().getDate().compareTo(storageStartDate) >= 0)
+						.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+				} else
+				if (calcBounds.getCalcStatus().equals(CalcStatus.LEFT_INC)) {
+					Date storageEndDate = calcBounds.getDeltaStoreEnd();
+					LOGGER.info(this.getReference() + " for " + stock + " reducing new stored events to head to included " + storageEndDate);
+					storedEvents = calculatorEvents.entrySet().stream()
+						.filter(e -> e.getKey().getDate().compareTo(storageEndDate) <= 0)
+						.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+				} else {
+					storedEvents = calculatorEvents;
+				}
+				
+				LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + 
+						" events from " + storedEvents.firstKey() + " to " + storedEvents.lastKey() +
+						" for " + stock.getSymbol() + " using analysis " + eventListName + " and event def " + this.getEventDefinitionRef() +
+						" and calcultation from " + start + " to " + end);
+				SymbolEvents storedSymbolEvents = new SymbolEvents(stock);
+				storedSymbolEvents.addEventResultElement(storedEvents, this);
+				EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName, this);
+				
+				LOGGER.info("Updating tunedConf (on successful calculation): " + tunedConfLock + " with calculation bounds: " + calcBounds);
+				TunedConfMgr.getInstance().updateConf(tunedConfLock, this, calcBounds.getStoreStart(), calcBounds.getStoreEnd());
+				
+			} catch (Exception e) {
+				LOGGER.warn("Events will not be stored for " + stock + " in " + eventListName + " with " + this.getReference() + " : " + e);
+			}
+		
+		}
+		
+		if (isForbidOverride) {//Fixing the events boundaries to return stored events V calculated events (for isNoOverrideDeltaOnly)
+			Set<EventInfo> eventInfoSet = new HashSet<>();
+			eventInfoSet.add(this);
+			SymbolEvents crudReadEventsForStock = EventsResources.getInstance().crudReadEventsForStock(stock, start, end, eventInfoSet, eventListName);
+			return crudReadEventsForStock.getSortedDataResultMap();	
+		} else {
+			return calculatorEvents;
+		}
+		
 	}
 
 	@Override
@@ -232,7 +317,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		
 		if (isAlterableOverridable) {
 			//EventsResources.getInstance().crudDeleteEventsForStock(targetStock.getStock(), targetStock.getAnalysisName(), new EventInfo[] {this});
-			invalidateAllNonIdempotentOperands(targetStock.getAnalysisName(), targetStock, Optional.empty());
+			invalidateAllNonIdempotentOperands(targetStock.getAnalysisName(), targetStock, Optional.of(this.getReference()));
 		}
 		
 		return 0;
@@ -241,11 +326,15 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> optStock, Optional<String> userOperationName) {
 		try {
-			if (optStock.isPresent()) {
-				Stock stock = optStock.get().getStock();
-				EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, this);
+			if (userOperationName.isPresent() && !userOperationName.get().equals(this.getReference())) {
+				LOGGER.info("Not deleting events for " + this.getReference() + " as it is not the operation to be deleted: " + userOperationName);
 			} else {
-				EventsResources.getInstance().crudDeleteForciblyEventsForIndicators(analysisName, this);
+				if (optStock.isPresent()) {
+					Stock stock = optStock.get().getStock();
+					EventsResources.getInstance().crudDeleteForciblyEventsForStock(stock, analysisName, this);
+				} else {
+					EventsResources.getInstance().crudDeleteForciblyEventsForIndicators(analysisName, this);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.warn("Delete of events didn't proceed: " + e);
@@ -279,6 +368,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 
 	@Override
+	@Deprecated
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		return false;
 	}
@@ -304,6 +394,9 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 			"bear: " + getOperands().get(1).resultHint(targetStockInfo, callStack);
 	}
 	
+	public int getStartShiftOverride() {
+        return ((NumberValue) getOperands().get(STARTSHIFTOVERRIDE_IDX).getParameter()).getNumberValue().intValue();
+    }
 	
 	
 }

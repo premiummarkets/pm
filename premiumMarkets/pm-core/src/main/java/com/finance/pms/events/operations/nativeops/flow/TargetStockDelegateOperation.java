@@ -60,7 +60,7 @@ public class TargetStockDelegateOperation extends Operation {
 		
 		//Run against the delegate
 		TargetStockInfo tStockDelegate = new TargetStockInfo(
-				targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(),
+				targetStock, targetStock.getEventInfoOpsCompoOperation(),
 				stockDelegate, targetStock.getStartDate(0), targetStock.getEndDate());
 		tStockDelegate.replaceHeap(targetStock.getHeap());
 		

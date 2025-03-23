@@ -2,17 +2,14 @@ package com.finance.pms.events.calculation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
@@ -22,20 +19,11 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventValue;
-import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.parametrizedindicators.ParameterizedIndicatorsOperator;
 import com.finance.pms.events.operations.StackException;
-import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
-import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.Quotations;
-import com.finance.pms.events.quotations.QuotationsFactories;
-import com.finance.pms.events.scoring.CalculationBounds;
-import com.finance.pms.events.scoring.TunedConf;
-import com.finance.pms.events.scoring.TunedConfMgr;
-import com.finance.pms.events.scoring.TunedConfMgr.CalcStatus;
-import com.finance.pms.events.utils.EventsStatusChecker;
 import com.finance.pms.threads.ConfigThreadLocal;
 import com.finance.pms.threads.ObserverMsg;
 import com.finance.pms.threads.ObserverMsg.ObsKey;
@@ -81,11 +69,11 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 			ConfigThreadLocal.set(Config.EVENT_SIGNAL_NAME,this.configs.get(Config.EVENT_SIGNAL_NAME));
 			ConfigThreadLocal.set(Config.INDICATOR_PARAMS_NAME,this.configs.get(Config.INDICATOR_PARAMS_NAME));
-			
+
 			LOGGER.guiInfo("Calculating " + eventInfoCln.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
 			SymbolEvents symbolEvents = calculate(startDate, endDate);
 			LOGGER.guiInfo("Finishing " + eventInfoCln.getEventReadableDef() + " for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
-						
+
 			return symbolEvents;
 
 		} catch (IncompleteDataSetException e) {
@@ -106,168 +94,72 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 
 		SymbolEvents returnedSymbolEvents = new SymbolEvents(stock);
 
-		//FIXME dummyTargetStock: operations method should not be called outside of the operation run() loop and hence the following should be delegated to the EventInfoOpsCompoOperation calculation.
-		TargetStockInfo dummyTargetStock = new TargetStockInfo(eventListName, (EventInfoOpsCompoOperation) eventInfoCln, stock, start, end);
-		boolean isIdempotent = eventInfoCln instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfoCln).isIdemPotent(dummyTargetStock);
-		boolean forbidEventsOverride = eventInfoCln instanceof EventInfoOpsCompoOperation && ((EventInfoOpsCompoOperation) eventInfoCln).isNoOverrideDeltaOnly(dummyTargetStock);
-		
-		Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, eventInfoCln);
-		boolean hasPreviousCalculations = tunedConfOpt.isPresent() && !tunedConfOpt.get().wasResetOrIsNew();
-		boolean isAlterableOverridable = !isIdempotent && !forbidEventsOverride;
-		TunedConf tunedConf = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveOrUpdateUniqueNoRetuneConfig(stock, eventListName, eventInfoCln, isAlterableOverridable);
-		tunedConf.setIsRemovable(isAlterableOverridable);
-		
-		//When xx, we still want to calculate the full range as the operation is not idempotent but without overriding the existing data in the db
-		boolean isFullCalculationForbidOverride = !isIdempotent && forbidEventsOverride;
-		boolean isFullCalculationGrantOverride =  isAlterableOverridable;
-		
-		LOGGER.info(
-				"CalculationBounds constraints: isIdempotent " + isIdempotent + ", forbidEventsOverride " + forbidEventsOverride + 
-				" isFullCalculationForbidOverride " + isFullCalculationForbidOverride + ", isFullCalculationGrantOverride " + isFullCalculationGrantOverride);
-		
-		synchronized (tunedConf) {
+		try {
 
-			CalculationBounds calcBounds = null;
-			try {
-				
-				EventsStatusChecker checker = new EventsStatusChecker(tunedConf);
-				if (isFullCalculationGrantOverride) { //Not idempotent (alterable) and can override
-					calcBounds = new CalculationBounds(CalcStatus.FULL_RANGE, start, end, start, end);
-				} else { //Idempotent or Not idempotent and no override
-					calcBounds = checker.setDatesBounds(start, end, isFullCalculationForbidOverride);
-				}
+			//Calculator preparation
+			Currency currency = stock.getMarketValuation().getCurrency();
+			Quotations quotations = null;
+			IndicatorsOperator calculator;
+			if (eventInfoCln instanceof EventInfoOpsCompoOperation) {
+				calculator = new ParameterizedIndicatorsOperator(eventInfoCln, stock, start, end, currency, eventListName, observers);
+			} else {
+//				calculator = legacyEventDefinitionHandling(stock);
+//				try {
+//					quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
+//				} catch (NoQuotationsException e) {
+//					throw new RuntimeException(e);
+//				}
+				throw new RuntimeException("Not supported anymore");
+			}
 
-				Date adjustedStart = calcBounds.getPmStart();
-				Date adjustedEnd = calcBounds.getPmEnd();
+			//Calculation
+			SortedMap<EventKey, EventValue> calculatorEvents = calculator.calculateEventsFor(quotations, eventListName);
 
-				if (!calcBounds.getCalcStatus().equals(CalcStatus.NONE) || isFullCalculationForbidOverride) { //Calculation needed
+			if (calculatorEvents != null) {//There are results or empty results
 
-					//Calculator preparation
-					Currency currency = stock.getMarketValuation().getCurrency();
-					IndicatorsOperator calculator;
-					if (eventInfoCln instanceof EventInfoOpsCompoOperation) {
-						calculator = new ParameterizedIndicatorsOperator(dummyTargetStock, eventInfoCln, stock, adjustedStart, adjustedEnd, currency, eventListName, observers);
-					} else {
-						calculator = legacyEventDefinitionHandling(stock);
-					}
+				LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events "
+						+ "from " + calculatorEvents.firstKey() + " to " + calculatorEvents.lastKey() + " for " + returnedSymbolEvents.getSymbol() + 
+						" using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef());
 
-					//If FULL_RANGE there maybe previous calculations to delete (when old range is within new range)
-					//Should only be here if isFullCalculationForbidOverride is false OR there is no known previous calculation
-					//If the state of isFullCalculationForbidOverride has changed over time from true to false, this delete will break. 
-					if (calcBounds.getCalcStatus().equals(CalcStatus.FULL_RANGE)) {
-						if (eventInfoCln instanceof EventInfoOpsCompoOperation) {
-							((EventInfoOpsCompoOperation) eventInfoCln).invalidateOperation(eventListName, Optional.of(dummyTargetStock), Optional.empty());
-						} else {
-							EventsResources.getInstance().crudDeleteEventsForStock(stock, eventListName, eventInfoCln);
-						}
-					}
+				returnedSymbolEvents.addCalculationOutput(eventInfoCln, calculator.calculationOutput());
+				returnedSymbolEvents.addEventResultElement(calculatorEvents, eventInfoCln);
 
-					//Calculation
-					Quotations quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
-					SortedMap<EventKey, EventValue> calculatorEvents = calculator.calculateEventsFor(quotations, eventListName);
+			} else {//No results
 
-					if (calculatorEvents != null) {//There are results or empty results
-						
-						LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events from " + calculatorEvents.firstKey() + " to " + calculatorEvents.lastKey() + " for " + returnedSymbolEvents.getSymbol() + 
-								" using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef() + " and calculation from " + adjustedStart + " to " + adjustedEnd);
-						
-						//FIXME the storage should be delegated to the eventInfo or calculator
-						//FIXME And the control of the calculation state in db, here, should be done through tunedConf only.
-						SortedMap<EventKey, EventValue> storedEvents = calculatorEvents;
-						//isNoOverrideDeltaOnly
-						if (isFullCalculationForbidOverride) {//Fixing the events boundaries to return only the new ones we want to store with no override of the existing ones
-							if (calcBounds.getCalcStatus().equals(CalcStatus.RIGHT_INC)) {
-								Date lastEventInDb = tunedConf.getLastStoredEventCalculationEnd();
-								LOGGER.info(((EventInfoOpsCompoOperation) eventInfoCln).getReference() + " for " + stock + " reducing new stored events to tail from " + lastEventInDb);
-								storedEvents = calculatorEvents.entrySet().stream()
-									.filter(e -> e.getKey().getDate().after(lastEventInDb))
-									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-							}
-							if (calcBounds.getCalcStatus().equals(CalcStatus.LEFT_INC)) {
-								Date firstEventInDb = tunedConf.getFisrtStoredEventCalculationStart();
-								LOGGER.info(((EventInfoOpsCompoOperation) eventInfoCln).getReference() + " for " + stock + " reducing new stored events to head to " + firstEventInDb);
-								storedEvents = calculatorEvents.entrySet().stream()
-									.filter(e -> e.getKey().getDate().before(firstEventInDb))
-									.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
-							}
-							if (calcBounds.getCalcStatus().equals(CalcStatus.NONE)) {
-								LOGGER.info(((EventInfoOpsCompoOperation) eventInfoCln).getReference() + " for " + stock + " reducing new stored events to none");
-								storedEvents = new TreeMap<>();
-							}
-						}
-						
-						//FIXME the storage should be delegated to the eventInfo or calculator and coupled with TunedConf update
-						LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + " events from " + storedEvents.firstKey() + " to " + storedEvents.lastKey() + " for " + returnedSymbolEvents.getSymbol() + 
-								" using analysis " + eventListName + " and event def " + eventInfoCln.getEventDefinitionRef() + " and calcultation from " + adjustedStart + " to " + adjustedEnd);
-						SymbolEvents storedSymbolEvents = new SymbolEvents(stock);
-						storedSymbolEvents.addEventResultElement(storedEvents, eventInfoCln);
-						EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName, eventInfoCln);
-						
-						returnedSymbolEvents.addCalculationOutput(eventInfoCln, calculator.calculationOutput());
-						returnedSymbolEvents.addEventResultElement(calculatorEvents, eventInfoCln);
-
-					} else {//No results
-						
-						LOGGER.warn("Failed (null returned) calculation for " + returnedSymbolEvents.getSymbol() + 
-								" using analysis " + eventListName + " and " + eventInfoCln.getEventDefinitionRef() + " from " + adjustedStart + " to " + adjustedEnd);
-						emptyReturn(returnedSymbolEvents);
-						throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: nothing returned.");
-						
-					}
-
-				} else {//No calculation needed
-					LOGGER.info(
-							"Recalculation requested for " + stock + " using analysis " + eventListName + " and " + eventInfoCln.getEventDefinitionRef() +
-							" from " + adjustedStart + " to " + adjustedEnd + ". " +
-							"No recalculation needed calculation bound is " + calcBounds.toString());
-					emptyReturn(returnedSymbolEvents);
-				}
-				
-				LOGGER.info("Updating tunedConf (on successful calculation): " + tunedConf + " with calculation bounds: " + calcBounds);
-				if (calcBounds != null) {
-					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
-				}
-				
-			//Error(s) as occurred. This should invalidate tuned conf and its potentially generated events.
-			} catch (InvalidAlgorithmParameterException | WarningException | NoQuotationsException e) { //This code exceptions
-				// Unrecoverable
-				String message = "Failed (Empty Unrecoverable) calculation for " + stock + 
-						" using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
-				LOGGER.error(message, e);
-				
-				if (calcBounds != null) {
-					LOGGER.info("Updating tunedConf (on unrecovarable exception): " + tunedConf + " with calculation bounds: " + calcBounds);
-					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln, calcBounds.getNewTunedConfStart(), calcBounds.getNewTunedConfEnd());
-				}
-				
+				LOGGER.warn("Failed (null returned) calculation for " + returnedSymbolEvents.getSymbol() + " using analysis " + eventListName + " and " + eventInfoCln.getEventDefinitionRef());
 				emptyReturn(returnedSymbolEvents);
-				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + e.getMessage());
-				
-			} catch (Throwable e) {//Deeper call stack exceptions
-				
-				String message = "Failed (Empty Recoverable??) calculation for " + stock + 
-						" using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef() + " with calculation bounds: " + calcBounds;
-
-				//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
-				Throwable rootCause = e;
-				 while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
-				        rootCause = rootCause.getCause();
-			    }
-				if (rootCause instanceof StackException) {
-					LOGGER.warn(message + ": " + rootCause + ": " + rootCause.getCause());
-				} else {
-					LOGGER.error(message + ": " + rootCause + ": " + rootCause.getCause(), e);
-				}
-				
-				if (calcBounds != null) {
-					LOGGER.info("Rolling back tunedConf (on recovarable exception): " + tunedConf + ", attempted calculation bounds: " + calcBounds);
-					TunedConfMgr.getInstance().updateConf(tunedConf, eventInfoCln, tunedConf.getFisrtStoredEventCalculationStart(), tunedConf.getLastStoredEventCalculationEnd());
-				}
-				
-				emptyReturn(returnedSymbolEvents);
-				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + message + ":\n" + rootCause);
+				throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: nothing returned.");
 
 			}
+
+			//Error(s) as occurred. This should invalidate tuned conf and its potentially generated events.
+
+		} catch (RuntimeException e) { //This code exceptions
+			// Unrecoverable
+			String message = "Failed (Empty Unrecoverable) calculation for " + stock + " using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef();
+			LOGGER.error(message, e);
+
+			emptyReturn(returnedSymbolEvents);
+			throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + e.getMessage());
+
+		} catch (Throwable e) {//Deeper call stack exceptions
+
+			String message = "Failed (Empty Recoverable??) calculation for " + stock + " using analysis " + eventListName +  " and " + eventInfoCln.getEventDefinitionRef();
+
+			//ErrorException e && e.getCause() instanceof StackException && isNoOverrideDeltaOnly
+			Throwable rootCause = e;
+			while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+				rootCause = rootCause.getCause();
+			}
+			if (rootCause instanceof StackException) {
+				LOGGER.warn(message + ": " + rootCause + ": " + rootCause.getCause());
+			} else {
+				LOGGER.error(message + ": " + rootCause + ": " + rootCause.getCause(), e);
+			}
+
+			emptyReturn(returnedSymbolEvents);
+			throw new IncompleteDataSetException(stock, returnedSymbolEvents, "Some calculations have failed! Are failing: " + eventInfoCln + "\nCause: " + message + ":\n" + rootCause);
+
 		}
 
 		return returnedSymbolEvents;

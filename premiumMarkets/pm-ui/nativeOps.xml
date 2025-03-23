@@ -125,6 +125,55 @@
             <outputSelector>down</outputSelector>
             <isVarArgs>false</isVarArgs>
         </operation>
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listFilterOperation">
+            <reference>listFilter</reference>
+            <description>Filters data from a list. Only the last match is returned.</description>
+            <operands>
+                <operand xsi:type="listOperation">
+                    <reference>list</reference>
+                    <referenceAsOperand>ListOfLines</referenceAsOperand>
+                    <description>A string containing a comma separated list of things. As if a line a csv dataset.</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>columnIndex</referenceAsOperand>
+                    <description>Index of the column to retrieve</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>0.0</numberValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>pattern</referenceAsOperand>
+                    <description>Simple pattern (.*[]{,}+ accepted) or contained characters sequence, used to filter one line.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>NONE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="stringOperation">
+                    <reference>string</reference>
+                    <referenceAsOperand>default</referenceAsOperand>
+                    <description>Default value.</description>
+                    <defaultValue xsi:type="stringValue">
+                        <stringValue>NONE</stringValue>
+                    </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+            </operands>
+            <availableOutputSelectors/>
+            <isVarArgs>false</isVarArgs>
+        </operation>
         <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="logOperation">
             <reference>log</reference>
             <description>Pass through which logs an additional message. The _ character will be replaced with white spaces.</description>
@@ -941,7 +990,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>columnIndex</referenceAsOperand>
-                    <description>Index of the columns to include in the output ([1..n] || 0 for all). The first column is indexed 0 and must contain dates.</description>
+                    <description>Index of the columns to include in the output ([1..n] || 0 for all). 1 being the first column.</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>0.0</numberValue>
                     </defaultValue>

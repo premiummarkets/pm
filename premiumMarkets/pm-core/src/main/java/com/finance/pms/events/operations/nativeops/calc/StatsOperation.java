@@ -229,7 +229,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		}
 
 		private NumberValue doEval(TargetStockInfo targetStock, List<StackElement> parentCallStack, int parentRequiredStartShift, Operation specificOperation, SortedMap<Date, Double> subMap) throws NotEnoughDataException {
-			TargetStockInfo evaluateTargetStock = new TargetStockInfo(targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation(), targetStock.getStock(), subMap.firstKey(), subMap.lastKey());
+			TargetStockInfo evaluateTargetStock = new TargetStockInfo(targetStock, targetStock.getEventInfoOpsCompoOperation(), targetStock.getStock(), subMap.firstKey(), subMap.lastKey());
 			Value<?> run = specificOperation.run(evaluateTargetStock, parentCallStack, parentRequiredStartShift);
 			doEvalColRefs = (run instanceof NumberArrayValue)?((NumberArrayValue)run).getColumnsReferences():Arrays.asList(outputSelector);
 			if (run instanceof NumberValue) {

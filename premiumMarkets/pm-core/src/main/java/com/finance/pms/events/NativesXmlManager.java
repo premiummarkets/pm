@@ -80,6 +80,7 @@ import com.finance.pms.events.operations.nativeops.data.IOsLooseAssemblerOperati
 import com.finance.pms.events.operations.nativeops.data.IOsSelectOperation;
 import com.finance.pms.events.operations.nativeops.data.IOsWebImporterOperation;
 import com.finance.pms.events.operations.nativeops.data.IfExistsExporterOperation;
+import com.finance.pms.events.operations.nativeops.data.ListFilterOperation;
 import com.finance.pms.events.operations.nativeops.flow.AndOperation;
 import com.finance.pms.events.operations.nativeops.flow.EnvOperation;
 import com.finance.pms.events.operations.nativeops.flow.GetOperation;
@@ -236,6 +237,8 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(iOsWebImporterOperation);
 		CsvFileFilterOperation csvFileFilterOperation = new CsvFileFilterOperation();
 		nativeOperations.addOperation(csvFileFilterOperation);
+		ListFilterOperation listFilterOperation = new ListFilterOperation();
+		nativeOperations.addOperation(listFilterOperation);
 		IndicatorStatsOperation indicatorStatsOperation = new IndicatorStatsOperation();
 		nativeOperations.addOperation(indicatorStatsOperation);
 		RefiterOperation refiterOperation = new RefiterOperation();

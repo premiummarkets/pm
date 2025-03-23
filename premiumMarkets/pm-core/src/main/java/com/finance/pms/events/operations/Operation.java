@@ -237,7 +237,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			//if (needsReset) targetStock.removeCalculated(this, this.getOutputSelector());
 			Value<?> alreadyCalculated = null;
 			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, getUserOperationReference(thisCallStack), this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
-				
+				LOGGER.info("Already calculated: " + this);
 				return alreadyCalculated;
 				
 			} else {
@@ -253,7 +253,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				if (isUserOpCall) {
 					Optional<TunedConf> tunedConfOpt = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(targetStock.getStock(), targetStock.getAnalysisName(), targetStock.getEventInfoOpsCompoOperation());
 					Boolean needsReset = tunedConfOpt.map(t -> t.wasResetOrIsNew()).orElse(false); //XXX unnecessary clean up when new
-					if (needsReset) this.invalidateAllForciblyOperands(targetStock.getAnalysisName(), targetStock,  Optional.of(getUserOperationReference(thisCallStack)));
+					if (needsReset) this.invalidateAllForciblyOperands(targetStock.getAnalysisName(), targetStock, Optional.of(getUserOperationReference(thisCallStack)));
 				}
 				
 				//Data non sensitive operands
@@ -511,7 +511,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	
 	public String getUserOperationReference(List<StackElement> stack) {
 		Optional<StackElement> lastUserOp = stack.stream()
-			.filter(se -> se.isUserOp())
+			.filter(se -> se.isUserOp() && !se.getOpReference().startsWith("anon_"))
 			.reduce((a,s) -> s);
 		return lastUserOp.map(luo -> luo.getOpReference()).orElse("UnknownUserOperation");
 	}
@@ -521,7 +521,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	}
 	
 	protected String getUserOperandReference(final Operation operand, List<StackElement> thisCallStack) {
-		return operand.isUserOp() ? operand.getReference() : getUserOperationReference(thisCallStack);
+		return (operand.isUserOp()  && !operand.getReference().startsWith("anon_"))? operand.getReference() : getUserOperationReference(thisCallStack);
 	}
 	
 	public  List<StackElement> newCallerStack(TargetStockInfo targetStock) {
@@ -1079,7 +1079,9 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		//This can be overridden by making this operation itself not idempotent.
 	 * @param targetStock TODO
 	 * @return
+	 * @deprecated To complicated and not very useful All operations will be considered non idempotent providing a bit more calculation time.
 	 */
+	@Deprecated 
 	public Boolean isIdemPotent(TargetStockInfo targetStock) {
 		if (operands.isEmpty()) return true;
 		return operands.stream().reduce(true, (r, e) -> r && e.isIdemPotent(targetStock), (a, b) -> a && b);

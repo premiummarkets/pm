@@ -40,11 +40,16 @@ import org.eclipse.swt.widgets.Display;
 import com.finance.pms.ActionDialog;
 import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.quotations.LastUpdateStampChecker;
 import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 
 public abstract class ChartDisplayStrategy {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(ChartDisplayStrategy.class);
+
 	
 	protected enum PopupType {EVTCHARTING, EVTTREND};
 
@@ -110,7 +115,11 @@ public abstract class ChartDisplayStrategy {
 	protected void cleanPopupButtonsGroup(Composite popusGroup) {
 		Control[] children = popusGroup.getChildren();
 		for (Control control : children) {
-			control.dispose();
+			try {
+				control.dispose();
+			} catch (Exception e) {
+				LOGGER.warn("Could not dispose " + control);
+			}
 		}
 	}
 

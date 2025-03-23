@@ -60,7 +60,6 @@ import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.TargetStockInfo.Output;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.conditional.EventMapValue;
-import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
@@ -80,14 +79,13 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 	private TargetStockInfo targetStock;
 	private EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder;
 
-	public ParameterizedIndicatorsOperator(TargetStockInfo dummyTargetStock, EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers)
-			throws WarningException {
+	public ParameterizedIndicatorsOperator(EventInfo eventInfo, Stock stock, Date startDate, Date endDate, Currency calculationCurrency, String analyseName, Observer... observers) {
 
 		super(observers);
 		this.eventInfoOpsCompoOperationHolder = (EventInfoOpsCompoOperation) eventInfo;
 
 		//Adjust start
-		Integer startShiftOverrideValue = ((NumberValue) this.eventInfoOpsCompoOperationHolder.getOperands().get(3).getParameter()).getNumberValue().intValue();
+		Integer startShiftOverrideValue = this.eventInfoOpsCompoOperationHolder.getStartShiftOverride();
 		int operationStartDateShift = 0;
 		if (!startShiftOverrideValue.equals(-1)) {
 			operationStartDateShift = startShiftOverrideValue;
@@ -112,7 +110,7 @@ public class ParameterizedIndicatorsOperator extends IndicatorsOperator {
 		LOGGER.info(this.eventInfoOpsCompoOperationHolder.getReference() + ". Requested end: " + endDate + ", adjusted end: " + adjustedEndDate + ", last quote: " + lastQuote);
 
 		//Target stock instance
-		this.targetStock = new TargetStockInfo(dummyTargetStock, this.eventInfoOpsCompoOperationHolder, adjustedStartCal.getTime(), adjustedEndDate);
+		this.targetStock = new TargetStockInfo(analyseName, this.eventInfoOpsCompoOperationHolder, stock, adjustedStartCal.getTime(), adjustedEndDate);
 
 	}
 

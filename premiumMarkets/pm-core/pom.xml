@@ -20,6 +20,11 @@
 	</properties>
 	<dependencies>
 		<dependency>
+		    <groupId>net.objecthunter</groupId>
+		    <artifactId>exp4j</artifactId>
+		    <version>0.4.8</version>
+		</dependency>
+		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr-runtime</artifactId>
 			<version>3.5.2</version>

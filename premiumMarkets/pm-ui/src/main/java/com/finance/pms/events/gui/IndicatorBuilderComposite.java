@@ -33,6 +33,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import com.finance.pms.MainGui;
@@ -61,6 +66,44 @@ public class IndicatorBuilderComposite extends OperationBuilderComposite {
 
 	@Override
 	protected void addThisCompositeExtratButtons() {
+		{
+			Button format = new Button(this, SWT.NONE);
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
+			//layoutData.horizontalSpan = 3;
+			format.setLayoutData(layoutData);
+			format.setText("Format " + builderLabel());
+			format.setFont(MainGui.DEFAULTFONT);
+			format.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					handle();
+				}
+
+				private void handle() {
+					String identifier = editorHolder.getFormatedReferenceTxt();
+					try {
+						//handleSave(getToolTipText()); //We need to save make sure the operation is up to date first
+						//Operation existingOp = parameterizedBuilder.getCurrentOperations().get(identifier);
+						Operation existingOp = parameterizedBuilder.buildOneTimeOperation(identifier + "_formated", editorHolder.getEditor().getText());
+						if (existingOp == null) throw new Exception("Invalid syntax.");
+						
+						String formulaeFormated = existingOp.toFormulaeFormated(80, o -> o.toFormulaeDevelopped());
+						setEditorText(formulaeFormated);
+						
+						existingOp.semanticValidation();
+						
+					} catch (Exception e) {
+						openDialog(true, identifier + " operation is not valid.\nPlease fix.", e);
+					}
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+			});
+		}
 
 	}
 

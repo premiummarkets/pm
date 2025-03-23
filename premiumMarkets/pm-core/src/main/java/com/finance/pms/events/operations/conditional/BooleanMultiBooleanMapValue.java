@@ -30,52 +30,67 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.util.Date;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
-import com.finance.pms.events.operations.nativeops.MapValue;
 
-public class BooleanMapValue extends MapValue<Boolean> implements Cloneable {
+public class BooleanMultiBooleanMapValue extends BooleanMapValue {
 
-	protected static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
+	private static MyLogger LOGGER = MyLogger.getLogger(BooleanMapValue.class);
 
-	protected SortedMap<Date, Boolean> map;
+	private Map<String, BooleanMapValue> additionalOutputs;
+	private List<String> columnsReferences;
+	private int mainIdx;
 
-	public BooleanMapValue() {
-		map = new TreeMap<Date, Boolean>();
+	public BooleanMultiBooleanMapValue() {
+		super();
+		additionalOutputs = new TreeMap<String, BooleanMapValue>();
+		mainIdx = -1;
 	}
 
-	public BooleanMapValue(Set<Date> keySet, boolean initValue) {
-		map = new  TreeMap<Date, Boolean>();
-		for (Date date : keySet) {
-			map.put(date, initValue);
-		}
+	public BooleanMultiBooleanMapValue(Map<String, BooleanMapValue> additionalOutputs, int mainIdx) {
+		super();
+		this.additionalOutputs = additionalOutputs;
+		this.mainIdx = mainIdx;
 	}
 
 	@Override
 	public SortedMap<Date, Boolean> getValue(TargetStockInfo targetStock) {
-		return map;
+		if (mainIdx == -1) {
+			LOGGER.warn("No main index set for this multi map value. Returning empty map.");
+			return new TreeMap<Date, Boolean>();
+		}
+		return additionalOutputs.get(columnsReferences.get(mainIdx)).getValue(targetStock);
 	}
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " : size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey() + ", last key " + map.lastKey():"");
+		return this.getClass().getSimpleName() + ": size is " + map.size() + ((map.size() > 0)?", first key " + map.firstKey()+ ", last key " + map.lastKey():"");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Object clone() {
 		try {
-			BooleanMapValue clone = (BooleanMapValue) super.clone();
-			clone.map = (SortedMap<Date, Boolean>) ((TreeMap<Date, Boolean>)this.map).clone();
+			BooleanMultiBooleanMapValue clone = (BooleanMultiBooleanMapValue) super.clone();
+			clone.additionalOutputs = new HashMap<String, BooleanMapValue>();
+			for (String outputKey : additionalOutputs.keySet()) {
+				BooleanMapValue  addOutputClone = (BooleanMapValue) (additionalOutputs.get(outputKey)).clone();
+				clone.additionalOutputs.put(outputKey, addOutputClone);
+			}
 			return clone;
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}
 		return null;
+	}
+
+	public Map<String, BooleanMapValue> getAdditionalOutputs() {
+		return additionalOutputs;
 	}
 
 }

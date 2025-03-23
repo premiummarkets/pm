@@ -190,7 +190,7 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 
 						synchronized (tunedConf) {
 
-							CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null);
+							CalculationBounds calculationBounds = new CalculationBounds(CalcStatus.IGNORE, startDate, endDate, null, null, null, null);
 							if (passOneCalcMode.equals("auto")) {
 								endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
 								calculationBounds = TunedConfMgr.getInstance().autoCalcAndSetDatesBounds(tunedConf, stock, startDate, endDate);
@@ -199,11 +199,11 @@ public abstract class IndicatorsCalculationThread extends EventsCalculationThrea
 								endDate = TunedConfMgr.getInstance().endDateConsistencyCheck(tunedConf, stock, endDate);
 								tunedConf.setFisrtStoredEventCalculationStart(startDate);
 								tunedConf.setLastStoredEventCalculationEnd(endDate);
-								calculationBounds = new CalculationBounds(CalcStatus.FULL_RANGE, startDate, endDate, null, null);
+								calculationBounds = new CalculationBounds(CalcStatus.FULL_RANGE, startDate, endDate, null, null, null, null);
 							}
 
-							startDate = calculationBounds.getPmStart();
-							endDate = calculationBounds.getPmEnd();
+							startDate = calculationBounds.getCalcStart();
+							endDate = calculationBounds.getCalcEnd();
 
 							if (!calculationBounds.getCalcStatus().equals(CalcStatus.NONE)) {
 

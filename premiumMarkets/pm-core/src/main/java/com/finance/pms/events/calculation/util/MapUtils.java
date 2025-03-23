@@ -102,7 +102,7 @@ public class MapUtils {
 		final TreeMap<Date, double[]> movingStats =
 				IntStream.range(startIdx, keySet.size())
 				.mapToObj(i -> i)
-				.parallel()
+				//.parallel()
 				.collect(Collectors.toMap(
 						endWindow -> keySet.get(endWindow),
 						endWindow -> {

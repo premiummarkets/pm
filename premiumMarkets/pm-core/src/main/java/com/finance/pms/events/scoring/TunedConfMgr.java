@@ -97,9 +97,11 @@ public class TunedConfMgr {
 		
 		if (!(eventInfo instanceof EventInfoOpsCompoOperation) || ((EventInfoOpsCompoOperation)eventInfo).isKeepEvents()) {		//Check keep events
 			tunedConfDAO.saveOrUpdateTunedConfs(newTunedConf);
+			return tunedConfDAO.loadTunedConf(newTunedConf.getTunedConfId());
+		} else {
+			return newTunedConf;
 		}
 		
-		return newTunedConf;
 	}
 
 	public Date endDateConsistencyCheck(TunedConf tunedConf, Stock stock, Date endDate) throws InvalidAlgorithmParameterException {
@@ -177,7 +179,7 @@ public class TunedConfMgr {
 				". Requested calculation is from " + startDate + " to " + endDate + ". " + 
 				"New calculation status is " + calcStatus + " and will either be from " + pmEvtsCalcStart + " to " + pmEvtsCalcEnd  + " or is not needed if " + CalcStatus.NONE + ".");
 
-		return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd, null, null);
+		return new CalculationBounds(calcStatus, pmEvtsCalcStart, pmEvtsCalcEnd, null, null, null, null);
 
 	}
 

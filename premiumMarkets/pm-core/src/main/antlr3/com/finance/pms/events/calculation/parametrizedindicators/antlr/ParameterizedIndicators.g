@@ -10,7 +10,7 @@ tokens {
   Number ;
   StockOperation ;
   OperationOutput ;
-  Tcheat;
+  //Tcheat;
   String;
 
   NullCondition;
@@ -70,9 +70,8 @@ tokens {
   OPENSQRT = '[';
   CLOSESQRT = ']';
   COMMA = ',';
-
-
 }
+
 @header { //parser
     package com.finance.pms.events.calculation.parametrizedindicators.antlr;
     import com.finance.pms.events.calculation.antlr.MyErrorReporter;
@@ -162,15 +161,23 @@ tokens {
 
 complete_expression :
    //TODO : common optional statement condition for also_display and fixed_start_shift
-   bcond=bullish_condition bearish_condition[$bcond.tree] also_display fixed_start_shift na_event_list_name -> ^(EventInfoOpsCompoOperation bullish_condition bearish_condition also_display fixed_start_shift na_event_list_name)
+    with_precondition also_display fixed_start_shift na_event_list_name -> ^(EventInfoOpsCompoOperation with_precondition also_display fixed_start_shift na_event_list_name)
    ;
+
+with_precondition:
+ bullCond=bullish_condition bearCond=bearish_condition[$bullCond.tree]
+ (
+	('precondition' WhiteChar primary_expression)+ WhiteChar* SEMICOLUMN WhiteChar* -> ^(PreAndSignalCondition ^(Number NumberToken["2"]) bullish_condition bearish_condition primary_expression primary_expression*) |
+ 	-> ^(PreAndSignalCondition ^(Number NumberToken["2"]) bullish_condition bearish_condition)
+ )
+ ;
 
 bullish_condition :
  'is bullish when' WhiteChar primary_expression WhiteChar* SEMICOLUMN WhiteChar* -> primary_expression
  ;
-bearish_condition[CommonTree bcond] :
+bearish_condition[CommonTree bullCond] :
  'is bearish when' WhiteChar primary_expression WhiteChar* SEMICOLUMN WhiteChar* -> primary_expression |
- bearish_not_bullish[$bcond] WhiteChar* SEMICOLUMN WhiteChar* -> bearish_not_bullish
+ bearish_not_bullish[$bullCond] WhiteChar* SEMICOLUMN WhiteChar* -> bearish_not_bullish
  ;
  also_display :
   'also display' WhiteChar primary_expression WhiteChar* SEMICOLUMN -> ^(AndBooleanMapCondition ^(String StringToken["\"TRUE\""]) primary_expression) |
@@ -185,12 +192,12 @@ bearish_condition[CommonTree bcond] :
   -> ^(String StringToken["FROM PARENT"])
  ;
 
-bearish_not_bullish[CommonTree bcond] :
+bearish_not_bullish[CommonTree bullCond] :
  'is bearish if not bullish'
   (
-  WhiteChar AND WhiteChar primary_expression -> ^(AndBooleanMapCondition ^(String StringToken["\"FALSE\""]) ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bcond}) primary_expression)|
-  WhiteChar OR WhiteChar primary_expression -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bcond}) primary_expression)|
-  -> ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bcond})
+  WhiteChar AND WhiteChar primary_expression -> ^(AndBooleanMapCondition ^(String StringToken["\"FALSE\""]) ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bullCond}) primary_expression)|
+  WhiteChar OR WhiteChar primary_expression -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bullCond}) primary_expression)|
+  -> ^(NotBooleanMapCondition ^(String StringToken["\"FALSE\""]) {$bullCond})
   )
  ;
 
@@ -204,7 +211,7 @@ or_expression :
   precondition_expression (WhiteChar OR WhiteChar precondition_expression)* -> ^(OrBooleanMapCondition ^(String StringToken["\"TRUE\""]) precondition_expression precondition_expression*)
   ;
 precondition_expression :
-  matches_expression (WhiteChar WITH WhiteChar matches_expression)* -> ^(PreAndSignalCondition matches_expression matches_expression*)
+  matches_expression (WhiteChar WITH WhiteChar matches_expression)* -> ^(PreAndSignalCondition ^(Number NumberToken["1"]) matches_expression matches_expression*)
   ;
 matches_expression :
   atom (WhiteChar MATCHING WhiteChar '[' constant (',' constant)* ']' WhiteChar atom)? -> ^(MatchingBooleanMapCondition constant* atom atom?)
@@ -403,7 +410,14 @@ presetcondition [CommonTree firstOp] :
       -> ^(LinearDirectedTrendsCondition {$overNbDays.tree} {$forNbDays.tree} ^(String StringToken["\"down\""]) {$epsilon.tree} {$firstOp}));
 
 Operation
-      : {runtimeOpAhead()}? => ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '_' | '.' | '-' | '0'..'9')+
+      : {runtimeOpAhead()}? => Tcheat
+      ;
+      
+AlphaCase
+      : 'a'..'z' | 'A'..'Z'
+      ;
+      
+SepCase: '_' | '.' | '-'
       ;
 
 NumberToken
@@ -411,7 +425,7 @@ NumberToken
       ;
 
 StringToken
-     : '"' ('a'..'z' | 'A'..'Z' | '.' | '_' | '/' | ',' | '=' | ('0'..'9') | '?' | ':' | '-' | '>')+ '"'
+     : '"' (AlphaCase | SepCase | '0'..'9' | '/' | ',' | '=' | '?' | ':' | '>')+ '"'
      ;
 
 HistoricalData
@@ -423,8 +437,9 @@ WhiteChar
       ;
 
 Tcheat
-     : ('a'..'z' | 'A'..'Z' | '0'..'9')+
+    : (AlphaCase | '_') (AlphaCase | SepCase | '0'..'9')+
      ;
+     
 
 //additionnal lexical rules (hidden chars)
 //WS  : (' '|'\r'|'\t'|'\u000C'|'\n') {$channel=HIDDEN;}

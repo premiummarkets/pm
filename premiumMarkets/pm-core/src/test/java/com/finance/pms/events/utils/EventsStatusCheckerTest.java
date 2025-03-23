@@ -2,7 +2,6 @@ package com.finance.pms.events.utils;
 
 import static org.junit.Assert.assertEquals;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -55,7 +54,7 @@ public class EventsStatusCheckerTest {
     }
 
     @Test
-    public void testAutoCalcAndSetDatesBoundsWithIn() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsWithIn() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -75,14 +74,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.NONE, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(previousStart, autoCalcAndSetDatesBounds.getNewTunedConfStart());
-        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(null, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(null, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(previousStart, autoCalcAndSetDatesBounds.getStoreStart());
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(null, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(null, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsFirstCalc() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsFirstCalc() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = DateFactory.dateAtZero(); //simpleDateFormat.parse("2009-12-21");
@@ -104,15 +103,15 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.IGNORE, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getCalcEnd());
         
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsInc() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsInc() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -135,14 +134,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(previousStart, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(previousStart, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsInc2() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsInc2() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -165,14 +164,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(previousStart, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(previousStart, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsInc3() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsInc3() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -195,14 +194,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.RIGHT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(previousStart, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(previousStart, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsInc4() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsInc4() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -225,14 +224,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.LEFT_INC, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(previousStart, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(previousEnd, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(previousStart, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsOutSide() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsOutSide() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -255,14 +254,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.FULL_RANGE, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsOutSide2() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsOutSide2() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -285,14 +284,14 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.FULL_RANGE, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getCalcEnd());
     }
     
     @Test
-    public void testAutoCalcAndSetDatesBoundsOutSide3() throws ParseException, InvalidAlgorithmParameterException {
+    public void testAutoCalcAndSetDatesBoundsOutSide3() throws ParseException, Exception {
         
         simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date previousStart = simpleDateFormat.parse("2009-12-21");
@@ -315,10 +314,10 @@ public class EventsStatusCheckerTest {
         
         //then
         assertEquals(TunedConfMgr.CalcStatus.FULL_RANGE, autoCalcAndSetDatesBounds.getCalcStatus());
-        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getNewTunedConfStart()));
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getNewTunedConfEnd());
-        assertEquals(startRequested, autoCalcAndSetDatesBounds.getPmStart());
-        assertEquals(endRequested, autoCalcAndSetDatesBounds.getPmEnd());
+        assertEquals(startRequested, (autoCalcAndSetDatesBounds.getStoreStart()));
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getStoreEnd());
+        assertEquals(startRequested, autoCalcAndSetDatesBounds.getCalcStart());
+        assertEquals(endRequested, autoCalcAndSetDatesBounds.getCalcEnd());
     }
 
 }

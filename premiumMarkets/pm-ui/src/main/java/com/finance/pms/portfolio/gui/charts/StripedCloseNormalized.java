@@ -101,7 +101,7 @@ public class StripedCloseNormalized extends StripedCloseFunction {
 
 	@Override
 	public String lineToolTip() {
-		return "change to period start";
+		return "normalized close";
 	}
 
 
