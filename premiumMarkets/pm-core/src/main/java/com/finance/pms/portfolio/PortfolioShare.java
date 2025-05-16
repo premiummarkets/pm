@@ -158,8 +158,6 @@ public class PortfolioShare implements Serializable, Comparable<PortfolioShare> 
 		try {
 			Quotations quotations = QuotationsFactories.getFactory().getBoundSafeEndDateQuotationsInstance(stock, currentDate, true, transactionCurrency, ValidityFilter.CLOSE);
 			return quotations.getClosestCloseForDate(currentDate);
-		} catch (InvalidAlgorithmParameterException e) {
-			LOGGER.warn("No quotations for " + stock);
 		} catch (NoQuotationsException e) {
 			LOGGER.warn("No quotations for " + stock);
 		}

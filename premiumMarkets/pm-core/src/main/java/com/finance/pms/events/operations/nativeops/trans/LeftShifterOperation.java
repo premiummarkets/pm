@@ -86,7 +86,7 @@ public class LeftShifterOperation extends PMWithDataOperation implements Lagging
 			ret.getValue(targetStock).putAll(shifted);
 
 		} catch (Exception e) {
-			LOGGER.error(targetStock.getStock().getFriendlyName() + ": " + e, e);
+			LOGGER.warn(targetStock.getStock().getFriendlyName() + ": " + e, e);
 		}
 		return ret;
 	}

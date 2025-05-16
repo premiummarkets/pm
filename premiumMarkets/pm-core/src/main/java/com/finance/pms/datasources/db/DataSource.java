@@ -1153,7 +1153,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 					if (LOGGER.isDebugEnabled()) debug = debug + "," + query.getParameterValues().get(i);
 					this.setObjectWithTimeStamp(query, pst, i);
 				}
-				LOGGER.trace("Parameters: "+debug);
+				LOGGER.trace("Parameters: " + debug);
 				pst.addBatch();
 			}
 			if (qL.size() > 0) resReq = pst.executeBatch();

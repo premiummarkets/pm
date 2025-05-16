@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.calculation.NotEnoughDataException;
 import com.finance.pms.events.operations.CalculateThreadExecutor;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
@@ -74,7 +75,11 @@ public class ValueManipulator {
 		ConcurrentSkipListSet<Date> allDates = developpedInputs.stream()
 				.map(di -> new ConcurrentSkipListSet<>(di.getDateKeys()))
 				.reduce(new ConcurrentSkipListSet<>(), (a, e) -> { a.addAll(e); return a; });
-		LOGGER.info("Transforming NumMap list to ArrayMap. NumMap input is from " + allDates.first() + " to " + allDates.last());
+		if (allDates.size() > 0) {
+			LOGGER.info("Transforming NumMap list to ArrayMap. NumMap input is from " + allDates.first() + " to " + allDates.last());
+		} else {
+			LOGGER.info("Transforming NumMap list to ArrayMap. NumMap input is empty ");
+		}
 		
 		SortedMap<Date, double[]> factorisedInput = new TreeMap<>();
 		NavigableMap<Date, double[]> notHeadingNaNs = new TreeMap<>();
@@ -123,14 +128,18 @@ public class ValueManipulator {
 			}
 
 		}
-		LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output before trailing addition is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
+		if (factorisedInput.size() > 0) {
+			LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output before trailing addition is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
+		} else {
+			LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output before trailing addition is empyt");
+		}
 		
 		Map<InputToArrayReturn, SortedMap<Date, double[]>> result = new HashMap<>();
 		result.put(InputToArrayReturn.OTHERUNEXPECTEDNANS, new TreeMap<>());
 		
 		//Heading
 		result.put(InputToArrayReturn.HEADINGNANS, headingNaNs);
-		if (allDates.first().before(factorisedInput.firstKey())) {
+		if (allDates.size() > 0 && factorisedInput.size() > 0 && allDates.first().before(factorisedInput.firstKey())) {
 			LOGGER.warn("Transforming NumMap list to ArrayMap. The output head has been cut from " + allDates.first() + " to " + factorisedInput.lastKey());
 		}
 		
@@ -164,7 +173,9 @@ public class ValueManipulator {
 		if (keepTrailingNaN) factorisedInput.putAll(trailingNaNs); //Adding potential trailing with NaN in the result
 		
 		//Return
-		LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
+		if (factorisedInput.size() > 0) {
+			LOGGER.info("Transforming NumMap list to ArrayMap. ArrayMap output is from " + factorisedInput.firstKey() + " to " + factorisedInput.lastKey());
+		}
 //		//DEBUG
 //		try {
 //			Date parse = new SimpleDateFormat("yyyy-MM-dd").parse("2019-07-30");
@@ -257,7 +268,7 @@ public class ValueManipulator {
 			int fI = i;
 			Future<Map<String, NumericableMapValue>> iterationFuture = executor.submit(new Callable<Map<String, NumericableMapValue>>() {
 				@Override
-				public Map<String, NumericableMapValue> call() throws Exception {
+				public Map<String, NumericableMapValue> call() throws NotEnoughDataException, Exception {
 					
 					String outputsOperandsRef = fHCombinationsAcc.get(fI);
 					
@@ -267,9 +278,10 @@ public class ValueManipulator {
 //					LOGGER.info("Yield: " +  operation.getReference() + " with params " + outputsOperandsRef + ": " + innerCalcFuncRes);
 					
 					if (innerCalcFuncRes.getValue(targetStock).size() == 0) {
-						throw new RuntimeException(
+						throw new NotEnoughDataException(
+								targetStock, parentRequiredStartShift, 
 								"Empty results for "  + operation.getReference() + " with params " + outputsOperandsRef + " and " + targetStock + ". " +
-								"Input boundaries: " + fCombinationsAcc.get(fI));
+								"Input boundaries: " + fCombinationsAcc.get(fI), new Exception());
 					}
 					
 					Map<String, NumericableMapValue> applyRes = new TreeMap<>();
@@ -296,7 +308,11 @@ public class ValueManipulator {
 				outputsOperandsRefs.addAll(objects.keySet());
 				allOutputs.addAll(objects.values());
 			} catch (Exception e) {
-				LOGGER.error(e, e);
+				if (e.getCause() instanceof NotEnoughDataException) {
+					LOGGER.warn(e);
+				} else {
+					LOGGER.error(e, e);
+				}
 			}
 		}
 		

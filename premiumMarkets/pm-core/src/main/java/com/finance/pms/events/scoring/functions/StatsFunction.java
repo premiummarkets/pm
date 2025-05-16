@@ -17,5 +17,7 @@ public interface StatsFunction {
 	List<String> getOutputsRefs();
 	
 	int getMinPeriod();
+	
+	String getName();
 
 }

@@ -33,7 +33,6 @@ import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -629,15 +628,15 @@ public class Quotations {
 		return ret;
 	}
 
-	public BigDecimal getClosestCloseSpForDate(Date date) throws InvalidAlgorithmParameterException {
+	public BigDecimal getClosestCloseSpForDate(Date date) throws NoQuotationsException {
 		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getCloseSplit(), date);
 	}
 	
-	public BigDecimal getClosestCloseForDate(Date date) throws InvalidAlgorithmParameterException {
+	public BigDecimal getClosestCloseForDate(Date date) throws NoQuotationsException {
 		return convert(getQuotationData().getClosestQuotationBeforeOrAtDate(date).getCloseRaw(), date);
 	}
 
-	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+	public Number getClosestFieldForDate(Date date, QuotationDataType field) throws NoQuotationsException {
 		QuotationData quotationData = getQuotationData();
 		if (field.equals(QuotationDataType.VOLUME)) {
 			return quotationData.getClosestFieldBeforeOrAtDate(date, field);
@@ -916,6 +915,8 @@ public class Quotations {
 						) 
 						|| 
 						(  // Unrealistic variations ( > X%)
+						   // Math.log(realistHLFact) < Math.log(open.doubleValue()/high.doubleValue()) ||
+						   // Math.log(realistHLFact) < Math.log(low.doubleValue()/open.doubleValue())
 							( realistHLFact > open.doubleValue()/high.doubleValue() ) ||
 							( realistHLFact > low.doubleValue()/open.doubleValue() )
 						)

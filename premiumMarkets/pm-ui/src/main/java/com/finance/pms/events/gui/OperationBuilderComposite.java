@@ -148,8 +148,8 @@ public class OperationBuilderComposite extends Composite {
 			shell.setText("Customise and Create indicators ...");
 			shell.setLayout(new GridLayout());
 
-			IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null);
-			//OperationBuilderComposite builderComposite = new OperationBuilderComposite(shell, null);
+			//IndicatorBuilderComposite builderComposite = new IndicatorBuilderComposite(shell, null);
+			OperationBuilderComposite builderComposite = new OperationBuilderComposite(shell, null);
 
 			builderComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			builderComposite.parameterizedBuilder.updateEditableOperationLists();

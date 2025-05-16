@@ -62,5 +62,10 @@ public abstract class ArrayMapOperation extends MapOperation implements MultiVal
 	public int mainInputPosition() {
 		return 0;
 	}
+	
+	@Override
+	public DoubleArrayMapValue emptyValue() {
+		return new DoubleArrayMapValue();
+	}
 
 }

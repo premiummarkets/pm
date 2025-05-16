@@ -18,16 +18,16 @@ import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
-public class RequiredShiftWrapperOperation extends Operation {
+public class StartDateWrapperOperation extends Operation {
 	
-	public RequiredShiftWrapperOperation() {
+	public StartDateWrapperOperation() {
 		this("shiftWrapper", "This is a pass through for the output of its operand. Use this to add (or remove -) to the required shift of its operand. NaN means full data set.", 
 				new NumberOperation("addedShift", "addedShift", "Added Shift", new NumberValue(Double.NaN)), 
 				new DoubleMapOperation("data")
 		);
 	}
 
-	public RequiredShiftWrapperOperation(String reference, String description, Operation ...operands) {
+	public StartDateWrapperOperation(String reference, String description, Operation ...operands) {
 		super(reference, description, new ArrayList<>(Arrays.asList(operands)));
 	}
 

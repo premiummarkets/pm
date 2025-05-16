@@ -68,7 +68,7 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="requiredShiftWrapperOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="startDateWrapperOperation">
             <reference>shiftWrapper</reference>
             <description>This is a pass through for the output of its operand. Use this to add (or remove -) to the required shift of its operand. NaN means full data set.</description>
             <operands>
@@ -2022,7 +2022,7 @@
                 <operand xsi:type="listOperation">
                     <reference>parameters</reference>
                     <referenceAsOperand>parameters and parameters slices</referenceAsOperand>
-                    <description>[start, end, step[ or [x, factor] or ["abc"] or [any]. With inclusivity [start, end[ and step must be &gt;= 1. Use [idx, factor] to make this parameter a factor of an other parameter indexed at idx.Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
+                    <description>[start, end, step[ (the pivot) or [x, factor] or ["abc"] or [any]. With inclusivity [start, end[ and step must be &gt;= 1. Use [idx, factor] to make this parameter a factor of an other parameter indexed at idx.Use ["abc"] for constant string parameters. [any] for any other constant parameter</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>true</isVarArgs>

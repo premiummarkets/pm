@@ -107,7 +107,7 @@ import com.finance.pms.events.operations.nativeops.trans.FlipOperation;
 import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
 import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
 import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
-import com.finance.pms.events.operations.nativeops.trans.RequiredShiftWrapperOperation;
+import com.finance.pms.events.operations.nativeops.trans.StartDateWrapperOperation;
 import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
 import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
 
@@ -251,7 +251,7 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(bandNRatioNormalizerOperation);
 		TalibAssemblerOperation talibAssemblerOperation = new TalibAssemblerOperation();
 		nativeOperations.addOperation(talibAssemblerOperation);
-		RequiredShiftWrapperOperation requiredShiftWrapperOperation = new RequiredShiftWrapperOperation();
+		StartDateWrapperOperation requiredShiftWrapperOperation = new StartDateWrapperOperation();
 		nativeOperations.addOperation(requiredShiftWrapperOperation);
 		RandomizeStringOperation randomizeStringOperation = new RandomizeStringOperation();
 		nativeOperations.addOperation(randomizeStringOperation);

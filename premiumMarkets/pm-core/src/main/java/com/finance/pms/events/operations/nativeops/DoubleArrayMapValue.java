@@ -3,12 +3,15 @@ package com.finance.pms.events.operations.nativeops;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
@@ -130,6 +133,69 @@ public class DoubleArrayMapValue extends NumericableMapValue implements MultiMap
 	@Override
 	public List<String> getReferences() {
 		return getColumnsReferences();
+	}
+
+	@Override
+	public DoubleArrayMapValue filtered(Date endDate) {
+		return new DoubleArrayMapValue() {
+
+			@Override
+			public SortedMap<Date, Double> getValue(TargetStockInfo targetStock) {
+				return DoubleArrayMapValue.this.getValue(targetStock).headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public SortedMap<Date, double[]> getDoubleArrayValue() {
+				return DoubleArrayMapValue.this.getDoubleArrayValue().headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public Map<String, Type> getAdditionalOutputsTypes() {
+				return DoubleArrayMapValue.this.getAdditionalOutputsTypes();
+			}
+
+			@Override
+			public Map<String, NumericableMapValue> getAdditionalOutputs() {
+				return DoubleArrayMapValue.this.getAdditionalOutputs().entrySet().stream()
+						.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().filtered(endDate)), HashMap::putAll);
+			}
+
+			@Override
+			public List<String> getColumnsReferences() {
+				return DoubleArrayMapValue.this.getColumnsReferences();
+			}
+
+			@Override
+			public String getMainColumnsReferences() {
+				return DoubleArrayMapValue.this.getMainColumnsReferences();
+			}
+
+			@Override
+			public String toString() {
+				return "[" + endDate + "] view of: " + DoubleArrayMapValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return DoubleArrayMapValue.this.clone();
+			}
+
+			@Override
+			public List<Date> getDateKeys() {
+				return DoubleArrayMapValue.this.getDateKeys().stream().filter(d -> !d.after(endDate)).collect(Collectors.toList());
+			}
+
+			@Override
+			public List<String> getReferences() {
+				return DoubleArrayMapValue.this.getReferences();
+			}
+
+			@Override
+			public DoubleArrayMapValue filtered(Date endDate) {
+				return DoubleArrayMapValue.this.filtered(endDate);
+			}
+			
+		};
 	}
 
 }

@@ -38,6 +38,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.time.DateUtils;
+
+import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.DoubleMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.google.common.collect.Lists;
@@ -47,6 +51,9 @@ public class MultiSelectorsValue extends DoubleMapValue {
 
 	private Map<String, NumericableMapValue> selectorOutputs;
 	private String calculationSelector;
+	
+	private MultiSelectorsValue() {
+	}
 
 	public MultiSelectorsValue(List<String> availableOutputSelectors, String outputSelector) {
 		super(new TreeMap<>());
@@ -102,6 +109,68 @@ public class MultiSelectorsValue extends DoubleMapValue {
 		return Lists.asList(getCalculationSelector(), new String[] {});
 	}
 	
-	
+
+	@Override
+	public MultiSelectorsValue filtered(Date endDate) {
+		return new MultiSelectorsValue() {
+			
+			@Override
+			public SortedMap<Date, Double> getValue(TargetStockInfo targetStockInfo) {
+				return MultiSelectorsValue.this.getValue(targetStockInfo).headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public List<Date> getDateKeys() {
+				return MultiSelectorsValue.this.getDateKeys().stream().filter(d -> !d.after(endDate)).collect(Collectors.toList());
+			}
+
+			@Override
+			public Map<String, NumericableMapValue> getAdditionalOutputs() {
+				return MultiSelectorsValue.this.getAdditionalOutputs().entrySet().stream()
+						.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().filtered(endDate)), HashMap::putAll);
+			}
+
+			@Override
+			public Map<String, Type> getAdditionalOutputsTypes() {
+				return MultiSelectorsValue.this.getAdditionalOutputsTypes();
+			}
+
+			@Override
+			public MultiSelectorsValue getValue(String selector) {
+				return (MultiSelectorsValue) MultiSelectorsValue.this.getValue(selector).filtered(endDate);
+			}
+
+			@Override
+			public Set<String> getSelectors() {
+				return MultiSelectorsValue.this.getSelectors();
+			}
+
+			@Override
+			public String toString() {
+				return "[" + endDate + "] view of: " + MultiSelectorsValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return MultiSelectorsValue.this.clone();
+			}
+
+			@Override
+			public String getCalculationSelector() {
+				return MultiSelectorsValue.this.getCalculationSelector();
+			}
+
+			@Override
+			public List<String> getReferences() {
+				return MultiSelectorsValue.this.getReferences();
+			}
+
+			@Override
+			public MultiSelectorsValue filtered(Date endDate) {
+				return MultiSelectorsValue.this.filtered(endDate);
+			}
+
+		};
+	}
 
 }

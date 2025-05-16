@@ -30,8 +30,11 @@
 package com.finance.pms.events.calculation.parametrizedindicators;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.finance.pms.events.operations.Operation;
+import com.finance.pms.events.operations.StackElement;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 
@@ -41,45 +44,46 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 
 //	private static MyLogger LOGGER = MyLogger.getLogger(OutputReference.class);
 
+	//Discriminant
 	private String operationReference;
 	private String reference;
 	
-	private String userReference;
-	
 	private String outputSelector;
-	private String formula;
 	private StringableValue constant;
-	private String referenceAsOperand;
+	private String stackResolvedFormula;
 	
-	private String developedFormula;
+	//Info
+	private String userReference;
+	private String formula;
+	private String referenceAsOperand;
 	
 	private Boolean hasFailed = false;
 
 
 	
 	//FIXME multiOutputDiscriminator and outputSelector should two distinctive attributes
-	public OutputReference(Operation operation, String userOperationReference, String multiOutputDiscriminator) {
+	public OutputReference(TargetStockInfo targetStock, List<StackElement> thisCallStack, Operation operation, String userOperationReference, String multiOutputDiscriminator) {
 		this.operationReference = operation.getOperationReference();
 		this.reference = operation.getReference();
 		
 		this.userReference = (userOperationReference != null)? userOperationReference : operationReference;
 		
 		this.outputSelector = multiOutputDiscriminator;
-		this.formula = (operation.getFormulae() != null)? operation.getFormulae() : operation.toFormulaeDevelopped();
+		this.formula = (operation.getFormulae() != null)? operation.getFormulae() : operation.toFormulaeStackResolved(targetStock, thisCallStack);
 		this.formula = this.formula.replaceAll("\\s+","");
 		this.referenceAsOperand = operation.getReferenceAsOperand();
 		
-		this.developedFormula = operation.toFormulaeDevelopped();
+		this.stackResolvedFormula = operation.toFormulaeStackResolved(targetStock, thisCallStack);
 	}
 
-	public OutputReference(Operation operation, String userOperationReference, String referenceAsOperandOverride, NumberValue doubleValue) {
-		this(operation, userOperationReference, operation.getOutputSelector());
+	public OutputReference(TargetStockInfo targetStock, List<StackElement> thisCallStack, Operation operation, String userOperationReference, String referenceAsOperandOverride, NumberValue doubleValue) {
+		this(targetStock, thisCallStack, operation, userOperationReference, operation.getOutputSelector());
 		this.constant = doubleValue;
 		this.referenceAsOperand = referenceAsOperandOverride;
 	}
 
-	public OutputReference(Operation operation, String userOperationReference, String selector, String tamperedFormula) {
-		this(operation, userOperationReference, selector);
+	public OutputReference(TargetStockInfo targetStock, List<StackElement> thisCallStack, Operation operation, String userOperationReference, String selector, String tamperedFormula) {
+		this(targetStock, thisCallStack, operation, userOperationReference, selector);
 		this.formula = tamperedFormula;
 		this.formula = this.formula.replaceAll("\\s+","");
 	}
@@ -88,12 +92,10 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((developedFormula == null) ? 0 : developedFormula.hashCode());
+		result = prime * result + ((stackResolvedFormula == null) ? 0 : stackResolvedFormula.hashCode());
 		result = prime * result + ((operationReference == null) ? 0 : operationReference.hashCode());
 		result = prime * result + ((reference == null) ? 0 : reference.hashCode());
-		result = prime * result + ((userReference == null) ? 0 : userReference.hashCode());
 		result = prime * result + ((outputSelector == null) ? 0 : outputSelector.hashCode());
-		result = prime * result + ((formula == null) ? 0 : formula.hashCode());
 		result = prime * result + ((constant == null) ? 0 : constant.getAsStringable().hashCode());
 		return result;
 	}
@@ -108,10 +110,10 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 			return false;
 		OutputReference other = (OutputReference) obj;
 		
-		if (developedFormula == null) {
-			if (other.developedFormula != null)
+		if (stackResolvedFormula == null) {
+			if (other.stackResolvedFormula != null)
 				return false;
-		} else if (!developedFormula.equals(other.developedFormula))
+		} else if (!stackResolvedFormula.equals(other.stackResolvedFormula))
 			return false;
 		
 		if (operationReference == null) {
@@ -126,22 +128,10 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 		} else if (!reference.equals(other.reference))
 			return false;
 		
-		if (userReference == null) {
-			if (other.userReference != null)
-				return false;
-		} else if (!userReference.equals(other.userReference))
-			return false;
-		
 		if (outputSelector == null) {
 			if (other.outputSelector != null)
 				return false;
 		} else if (!outputSelector.equals(other.outputSelector))
-			return false;
-
-		if (formula == null) {
-			if (other.formula != null)
-				return false;
-		} else if (!formula.equals(other.formula))
 			return false;
 
 		if (constant == null) {
@@ -156,15 +146,12 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	@Override
 	public int compareTo(OutputReference o) {
 		
-		int compareTo = this.developedFormula.compareTo(o.developedFormula);
+		int compareTo = this.stackResolvedFormula.compareTo(o.stackResolvedFormula);
 		if (compareTo == 0) {
 			compareTo = this.operationReference.compareTo(o.operationReference);
 		}
 		if (compareTo == 0) {
 			compareTo = this.reference.compareTo(o.reference);
-		}
-		if (compareTo == 0) {
-			compareTo = this.userReference.compareTo(o.userReference);
 		}
 		if (compareTo == 0) {
 			if (this.outputSelector == null && o.outputSelector == null) {
@@ -178,20 +165,6 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 			}
 			else {
 				compareTo = this.outputSelector.compareTo(o.outputSelector);
-			}
-		}
-		if (compareTo == 0) {
-			if (this.formula == null && o.formula == null) {
-				compareTo = 0;
-			} 
-			else if (this.formula == null) {
-				compareTo = 1;
-			}
-			else if (o.formula == null) {
-				compareTo = -1;
-			}
-			else {
-				compareTo = this.formula.replaceAll("\\s+","").compareTo(o.formula.replaceAll("\\s+",""));
 			}
 		}
 		if (compareTo == 0) {
@@ -219,14 +192,14 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	@Override
 	public String toString() {
 		return "OutputReference ["
-				+ " developedFormula=" + developedFormula + ","
+				+ " developedFormula=" + stackResolvedFormula + ","
 				+ " operationReference=" + operationReference + ","
 				+ " reference=" + reference 
-				+ " userReference=" + userReference + ","
 				+ " outputSelector=" + outputSelector + ","
-				+ " formula=" + formula + ","
 				+ " constant=" + constant + ","
-				+ " referenceAsOperand=" + referenceAsOperand
+				+ " userReference=" + userReference + ","
+				+ " referenceAsOperand=" + referenceAsOperand + ","
+				+ " formula=" + formula + ","
 				+ "]";
 	}
 
@@ -236,7 +209,7 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 
 	public String getFormula() {
 		//return formula;
-		return developedFormula;
+		return stackResolvedFormula;
 	}
 
 	public String getOutputSelector() {

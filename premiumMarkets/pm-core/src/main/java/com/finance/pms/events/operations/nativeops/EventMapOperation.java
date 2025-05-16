@@ -17,7 +17,7 @@ import com.finance.pms.events.operations.nativeops.calc.RandomOperation;
 public class EventMapOperation extends MapOperation {
 
 	public EventMapOperation() {
-		super("historical data", "Time series of real historical data or resulting of calculations");
+		super("event data", "Time series of real historical data or resulting of calculations");
 	}
 
 	public EventMapOperation(String reference) {
@@ -46,5 +46,8 @@ public class EventMapOperation extends MapOperation {
 		return 0;
 	}
 
-
+	@Override
+	public EventMapValue emptyValue() {
+		return new EventMapValue();
+	}
 }

@@ -12,6 +12,7 @@ import com.finance.pms.events.operations.FlowOperation;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.MapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
@@ -81,16 +82,18 @@ public class AndOperation extends FlowOperation {
 				        rootCause = rootCause.getCause();
 				    }
 					if (rootCause instanceof AndThenException) {
-						LOGGER.warn("Operand "  + opi.getReference() +  " of " + this.getReference() + " failed with AndThenException: " + e);
+						LOGGER.warn("Operand " + opi.getReference() + " of " + this.getReference() + " failed with AndThenException: " + e);
 					} else {
-						LOGGER.error("Operand " + opi.getReference() +  " of " + this.getReference() + " failed with " + e, e);
+						LOGGER.error("Operand " + opi.getReference() + " of " + this.getReference() + " failed with " + e, e);
 					}
 				}
 			} else {
 				opiRes = i;
 			}
 			if (isFalse(targetStock, opiRes)) {
-				LOGGER.info(this.getOperands().get(iCpt).getReference() + " is false and will stop this: " + this.getReference());
+				String message = this.getOperands().get(iCpt).getReference() + " is false (with output: "+ opiRes.getValue(targetStock) +") and will stop this: " + this.getReference();
+				LOGGER.info(message);
+				rootCause = new Exception(message);
 				res = Optional.empty();
 				break;
 			}
@@ -136,6 +139,15 @@ public class AndOperation extends FlowOperation {
 	@Override
 	public Value<?> emptyValue() {
 		return getOperands().get(getOperands().size()-1).emptyValue();
+	}
+	
+	@Override
+	public int mainInputPosition() {
+		Operation lastOp = getOperands().get(getOperands().size()-1);
+		if (lastOp instanceof MultiValuesOutput) {
+			((MultiValuesOutput) lastOp).mainInputPosition();
+		}
+		return 0;
 	}
 
 }

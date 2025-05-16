@@ -79,7 +79,7 @@ public abstract class TalibOperation extends DoubleMapOperation {
 
 		} catch (TalibException e) {
 			LOGGER.warn("Talib Operation calculation error " + this + " for " + targetStock.getStock().getFriendlyName(), e);
-			throw new RuntimeException(e);
+			return ret;
 		}
 	}
 

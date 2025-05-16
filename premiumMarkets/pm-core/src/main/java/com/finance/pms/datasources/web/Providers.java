@@ -207,7 +207,7 @@ public abstract class Providers extends Observable implements MyBeanFactoryAware
 	}
 
 	protected TreeSet<ValidatableDated> initValidatableSet() {
-		TreeSet<ValidatableDated> queries = new TreeSet<ValidatableDated>() ;
+		TreeSet<ValidatableDated> queries = new TreeSet<ValidatableDated>();
 		return queries;
 	}
 

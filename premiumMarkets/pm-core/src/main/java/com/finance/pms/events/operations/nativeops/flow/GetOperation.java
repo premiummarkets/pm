@@ -8,6 +8,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.VarGetter;
 import com.finance.pms.events.operations.VarOperation;
 import com.finance.pms.events.operations.nativeops.NullOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -15,7 +16,7 @@ import com.finance.pms.events.operations.nativeops.StringOperation;
 import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.Value;
 
-public class GetOperation extends VarOperation {
+public class GetOperation extends VarOperation implements VarGetter {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(GetOperation.class);
 	
@@ -54,7 +55,7 @@ public class GetOperation extends VarOperation {
 			}
 		}
 		
-		LOGGER.info(this.getReference() + ": " + variableName + ", " + variableValue);
+		//LOGGER.info(this.getReference() + ": " + variableName + ", " + variableValue);
 		return variableValue;
 	}
 

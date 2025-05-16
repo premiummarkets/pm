@@ -87,5 +87,10 @@ public class DoubleMapOperation extends MapOperation {
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		return 0;
 	}
+	
+	@Override
+	public NumericableMapValue emptyValue() {
+		return new DoubleMapValue();
+	}
 
 }

@@ -61,6 +61,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.EventDefDescrip
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.EventMapOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
@@ -82,7 +83,7 @@ import com.finance.pms.talib.dataresults.StandardEventValue;
  * Hence, every indicator created in the ./userparametrised/indicator folder will instantiate an EventInfoOpsCompoOperation which will be calculated (run) by the ParameterizedIndicatorsCompositioner.
  */
 @XmlRootElement
-public class EventInfoOpsCompoOperation extends EventMapOperation implements EventInfo {
+public class EventInfoOpsCompoOperation extends EventMapOperation implements EventInfo, CachableOperation {
 
 	private static final int STARTSHIFTOVERRIDE_IDX = 2;
 
@@ -115,49 +116,54 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	@Override
 	public EventMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack, int parentRequiredStartShift, int thisStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 				
-		BooleanMultiBooleanMapValue bullBearWithPrecondition = ((BooleanMultiBooleanMapValue)inputs.get(0));
-		//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(1)); //not used for calculation
-		//NumberValue startShiftOverride = ((NumberValue)inputs.get(STARTSHIFTOVERRIDE_IDX));  //not implemented
-		StringValue eventListName = ((StringValue) inputs.get(3));
+		try {
+			BooleanMultiBooleanMapValue bullBearWithPrecondition = ((BooleanMultiBooleanMapValue)inputs.get(0));
+			//BooleanMapValue alsoDisplay = ((BooleanMapValue)inputs.get(1)); //not used for calculation
+			//NumberValue startShiftOverride = ((NumberValue)inputs.get(STARTSHIFTOVERRIDE_IDX));  //not implemented
+			StringValue eventListName = ((StringValue) inputs.get(3));
 
-		SortedMap<Date, Boolean> bullishMap = bullBearWithPrecondition.getAdditionalOutputs().get("signal_0").getValue(targetStock);
-		SortedMap<Date, Boolean> bearishMap = bullBearWithPrecondition.getAdditionalOutputs().get("signal_1").getValue(targetStock);
+			SortedMap<Date, Boolean> bullishMap = bullBearWithPrecondition.getAdditionalOutputs().get("signal_0").getValue(targetStock);
+			SortedMap<Date, Boolean> bearishMap = bullBearWithPrecondition.getAdditionalOutputs().get("signal_1").getValue(targetStock);
 
-		SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
+			SortedMap<EventKey, EventValue> edata = new TreeMap<EventKey, EventValue>();
 
-		String eventListNameValue = eventListName.getValue(targetStock);
-		if (eventListNameValue.equals("FROM PARENT")) eventListNameValue = targetStock.getAnalysisName();
+			String eventListNameValue = eventListName.getValue(targetStock);
+			if (eventListNameValue.equals("FROM PARENT")) eventListNameValue = targetStock.getAnalysisName();
 
-		List<Date> inconsistent = new ArrayList<>();
-		SortedSet<Date> fullKeySet = new TreeSet<Date>();
-		fullKeySet.addAll(bullishMap.keySet());
-		fullKeySet.addAll(bearishMap.keySet());
+			List<Date> inconsistent = new ArrayList<>();
+			SortedSet<Date> fullKeySet = new TreeSet<Date>();
+			fullKeySet.addAll(bullishMap.keySet());
+			fullKeySet.addAll(bearishMap.keySet());
 
-		String resultHint = this.resultHint(targetStock, thisCallStack);
-		for (Date date : fullKeySet) {
+			String resultHint = (this.isKeepEvents())?this.resultHint(targetStock, thisCallStack):"Not kept";
+			for (Date date : fullKeySet) {
 
-			EventType dateEventType = EventType.NONE;
-			Boolean isBullish = bullishMap.get(date);
-			Boolean isBearish = bearishMap.get(date);
+				EventType dateEventType = EventType.NONE;
+				Boolean isBullish = bullishMap.get(date);
+				Boolean isBearish = bearishMap.get(date);
 
-			if (isBullish != null && isBullish && isBearish != null && isBearish) {
-				inconsistent.add(date);
+				if (isBullish != null && isBullish && isBearish != null && isBearish) {
+					inconsistent.add(date);
+				}
+				if (isBullish != null && isBullish) dateEventType = EventType.BULLISH;
+				if (isBearish != null && isBearish) dateEventType = EventType.BEARISH; //Bearish prevails in case of inconsistency.
+
+				ParameterizedEventKey iek = new ParameterizedEventKey(date, this, dateEventType);
+				EventValue iev = new StandardEventValue(date, this, dateEventType, resultHint, eventListNameValue);
+				edata.put(iek, iev);
+
 			}
-			if (isBullish != null && isBullish) dateEventType = EventType.BULLISH;
-			if (isBearish != null && isBearish) dateEventType = EventType.BEARISH; //Bearish prevails in case of inconsistency.
 
-			ParameterizedEventKey iek = new ParameterizedEventKey(date, this, dateEventType);
-			EventValue iev = new StandardEventValue(date, this, dateEventType, resultHint, eventListNameValue);
-			edata.put(iek, iev);
-
+			if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference() + "' at: " + inconsistent);
+			if (edata.isEmpty()) LOGGER.warn("No event data found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
+			if (targetStock.getChartedOutputGroups().isEmpty() && isDisplay) LOGGER.warn("No charted group found. The up stream main operation may have failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
+			
+			edata = store(targetStock, eventListNameValue, edata);
+			return new EventMapValue(edata, false);
+		} catch (Exception e) {
+			LOGGER.error("Error in calculation of " + this.getReference() + " for " + targetStock.getStock(), e);
+			return emptyValue();
 		}
-
-		if (!inconsistent.isEmpty()) LOGGER.warn("Opposite simultaneous event values for customised calculator '" + this.getReference() + "' at: " + inconsistent);
-		if (edata.isEmpty()) LOGGER.warn("No event data found. The up stream main operation has failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
-		if (targetStock.getChartedOutputGroups().isEmpty() && isDisplay) LOGGER.warn("No charted group found. The up stream main operation may have failed for " + targetStock.getStock() + " in " + this.getReference() + "/" + this.getOperationReference());
-		
-		edata = store(targetStock, eventListNameValue, edata);
-		return new EventMapValue(edata, false);
 	}
 	
 	
@@ -379,7 +385,7 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	}
 	
 	public boolean isKeepEvents() {
-		return isKeepEvents;
+		return isUserOp() && isKeepEvents;
 	}
 
 	public void setKeepEvents(boolean isKeepEvents) {
@@ -397,6 +403,11 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 	public int getStartShiftOverride() {
         return ((NumberValue) getOperands().get(STARTSHIFTOVERRIDE_IDX).getParameter()).getNumberValue().intValue();
     }
+
+	@Override
+	public Integer operationNaturalShift() {
+		return 0;
+	}
 	
 	
 }

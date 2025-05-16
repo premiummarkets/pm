@@ -28,6 +28,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.web.formaters.IntraDayQuotation;
 import com.finance.pms.datasources.web.formaters.IntraDayQuoteFormater;
+import com.finance.pms.datasources.web.formaters.StopParseEmptyException;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.quotations.QuotationUnit;
@@ -154,6 +155,12 @@ public class ProvidersYahooPythonLocal extends ProvidersYahooPython {
 					LOGGER.info("line: " + line);
 					IntraDayQuotation lineValidatables = dsf.formatLine(line);
 					intraDayQuotations.add(lineValidatables);
+				} catch (StopParseEmptyException e) {
+					LOGGER.warn(e);
+					LOGGER.warn("Py output: " + line);
+					while ((line = in.readLine()) != null) {
+						LOGGER.warn("Py output: " + line);
+					}
 				} catch (StopParseErrorException e) {
 					LOGGER.warn(e);
 					LOGGER.warn("Py output: " + line);

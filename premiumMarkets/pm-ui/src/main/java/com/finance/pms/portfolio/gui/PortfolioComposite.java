@@ -462,7 +462,7 @@ public class PortfolioComposite extends SashForm implements RefreshableView {
 
 	private class ModelController {
 
-		private final class ObserverImplementation implements Observer,  Comparable<Observer> {
+		private final class ObserverImplementation implements Observer, Comparable<Observer> {
 			public void update(Observable o, Object arg) {
 
 				ObserverMsg observerMsg = (ObserverMsg) arg;

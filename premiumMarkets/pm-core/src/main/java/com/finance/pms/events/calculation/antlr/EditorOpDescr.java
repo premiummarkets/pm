@@ -50,7 +50,7 @@ public class EditorOpDescr implements Comparable<EditorOpDescr>, Cloneable {
 
 		//TODO MAType could just be a String as well, no need for a particular case here
 		NUMBER(NumberOperation.class, "Number"), 
-		DATA (MapOperation.class, "Data"), 
+		DATA (MapOperation.class, "Data"),
 		MATYPE (MATypeOperation.class, "MAType"), 
 		STRING (StringOperation.class, "String"), 
 		LIST (ListOperation.class, "ListOperation"),

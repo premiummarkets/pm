@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
 import com.finance.pms.events.operations.TargetStockInfo;
@@ -77,6 +80,54 @@ public class DoubleMapValue extends NumericableMapValue implements MultiMapValue
 	@Override
 	public List<String> getReferences() {
 		return new ArrayList<String>(getAdditionalOutputs().keySet());
+	}
+
+	@Override
+	public DoubleMapValue filtered(Date endDate) {
+		return new DoubleMapValue() {
+
+			@Override
+			public SortedMap<Date, Double> getValue(TargetStockInfo targetStock) {
+				return DoubleMapValue.this.getValue(targetStock).headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public String toString() {
+				return "[" + endDate + "] view of: " + DoubleMapValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return DoubleMapValue.this.clone();
+			}
+
+			@Override
+			public List<Date> getDateKeys() {
+				return DoubleMapValue.this.getDateKeys().stream().filter(d -> !d.after(endDate)).collect(Collectors.toList());
+			}
+
+			@Override
+			public Map<String, NumericableMapValue> getAdditionalOutputs() {
+				return DoubleMapValue.this.getAdditionalOutputs().entrySet().stream()
+						.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().filtered(endDate)), HashMap::putAll);
+			}
+
+			@Override
+			public Map<String, Type> getAdditionalOutputsTypes() {
+				return DoubleMapValue.this.getAdditionalOutputsTypes();
+			}
+
+			@Override
+			public List<String> getReferences() {
+				return DoubleMapValue.this.getReferences();
+			}
+
+			@Override
+			public DoubleMapValue filtered(Date endDate) {
+				return DoubleMapValue.this.filtered(endDate);
+			}
+			
+		};
 	}
 
 }

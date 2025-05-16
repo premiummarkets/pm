@@ -101,7 +101,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return annualisedProfit(calculationEnd, cummulativeReturn);
 	}
 
-	private Double annualisedProfit(Date date, double cummulativeReturn) {
+	public Double annualisedProfit(Date date, double cummulativeReturn) {
 		double nbDays = TimeUnit.DAYS.convert(date.getTime() - calculationStart.getTime(), TimeUnit.MILLISECONDS);
 		if (nbDays == 0) return 0.0;
 		double annualReturn = Math.pow(1 + cummulativeReturn, 365d/nbDays) - 1;
@@ -325,32 +325,8 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return results;
 	}
 
-	private Double getForecastProfitAt(Date date, boolean unReal) {
-		Double trendProfit = 1.00;
-		Iterator<PeriodRatingDTO> iterator = periods.iterator();
-		PeriodRatingDTO currentPeriod = null;
-		while (iterator.hasNext() && (currentPeriod = iterator.next()).getTo().compareTo(date) <= 0) {
-			if (currentPeriod.isRealised() && "BULLISH".equals(currentPeriod.getTrend())) {	//End of bullish (exclusive).
-				Double priceRateOfChange = currentPeriod.getPriceRateOfChange();
-				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
-				trendProfit = trendProfit * (1 + priceRateOfChange);
-			}
-		}
-		//!iterator.hasNext() this is the last period or currentPeriod.getTo().compareTo(date) > 0
-		if (unReal && currentPeriod != null) { //Adding last unrealised if bullish
-			if ("BULLISH".equals(currentPeriod.getTrend())) {
-				Double endPrice = 0.0;
-				if (currentPeriod.isRealised() && currentPeriod.getTo().compareTo(date) <= 0) {
-					endPrice = currentPeriod.getPriceAtTo();
-				} else {
-					endPrice = calculationEndPrice;
-				}
-				Double priceRateOfChange = endPrice/currentPeriod.getPriceAtFrom() -1;
-				if (priceRateOfChange.isNaN() || priceRateOfChange.isInfinite()) return Double.NaN;
-				trendProfit = trendProfit * (1 + priceRateOfChange);
-			}
-		}
-		return trendProfit - 1;
+	private Double getForecastProfitAt(Date to, boolean unReal) {
+		return getForecastProfitBetween(calculationStart, to, unReal);
 	}
 	
 	public Double getForecastProfitAt(Date date) {
@@ -412,7 +388,8 @@ public class TuningResDTO implements Serializable, IsSerializable {
 				trendFollowProfit = trendFollowProfit * (1 + followPriceRateOfChange);
 			}
 		}
-		if (unReal && currentPeriod.getFrom().compareTo(from) >= 0) { //Adding last unrealised if bullish
+		//(!iterator.hasNext() and this is the last period) or (currentPeriod.getTo().compareTo(date) > 0)
+		if (unReal  && currentPeriod != null && !(currentPeriod.getFrom().compareTo(from) < 0)) { //Adding last unrealised if bullish
 			if ("BULLISH".equals(currentPeriod.getTrend())) {
 				Double endPrice = 0.0;
 				if (currentPeriod.isRealised() && currentPeriod.getTo().compareTo(to) <= 0) {
@@ -437,7 +414,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	}
 	
 
-	public Double getPriceChangeAt(Date periodToDate) {
+	public Double getPriceChangeAtPeriodEnding(Date periodToDate) {
 		Iterator<PeriodRatingDTO> iterator = periods.iterator();
 		PeriodRatingDTO currentPeriod = null;
 		while (iterator.hasNext()) {

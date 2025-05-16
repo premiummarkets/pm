@@ -14,6 +14,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
+import com.finance.pms.events.operations.VarGetter;
 import com.finance.pms.events.operations.VarOperation;
 import com.finance.pms.events.operations.conditional.BooleanValue;
 import com.finance.pms.events.operations.nativeops.NamedListValue;
@@ -26,7 +27,7 @@ import com.finance.pms.events.operations.nativeops.Value;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-public class EnvOperation extends VarOperation {
+public class EnvOperation extends VarOperation implements VarGetter {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(EnvOperation.class);
 	

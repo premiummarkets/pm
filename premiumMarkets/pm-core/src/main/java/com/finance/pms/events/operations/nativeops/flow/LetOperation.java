@@ -48,7 +48,7 @@ public class LetOperation extends VarOperation {
 		String variableName = ((StringValue) inputs.get(0)).getValue(targetStock);
 		Value<?> variableValue = inputs.get(1);
 		Value<?> variableReturned = targetStock.getHeap().letHeapVar(getUserOperationReference(thisCallStack), variableName, variableValue);
-		LOGGER.info(this.getReference() + ": " + variableName + ", storing: " + variableValue + ", returning: " + variableReturned);
+		//LOGGER.info(this.getReference() + ": " + variableName + ", storing: " + variableValue + ", returning: " + variableReturned);
 		return variableReturned;
 	}
 

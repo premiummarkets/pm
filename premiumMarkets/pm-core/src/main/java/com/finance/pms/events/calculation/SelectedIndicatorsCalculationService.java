@@ -110,13 +110,16 @@ public class SelectedIndicatorsCalculationService {
 					futuresMap.put(stock, eventInfosFutures);
 
 				} catch (Exception e1) {
-					LOGGER.warn("Could not proceed with initialisation of calculation for " + stock + ": " + e1.getMessage());
+					String message = "Could not proceed with initialisation of calculation for " + stock + ": " + e1.getMessage();
+					LOGGER.warn(message);
 //					//We update the tunedConfs to NOT dirty assuming subsequent same calculations will fail as well.//XXX would this need a third state like FAILED???
 //					stocksEventInfos.get(stock).stream().forEach( ei -> {
 //						Optional<TunedConf> tunedConf = TunedConfMgr.getInstance().loadUniqueNoRetuneConfig(stock, eventListName, ei.getEventDefinitionRef());
 //						tunedConf.ifPresent(tc -> TunedConfMgr.getInstance().updateConf(tc, false));
 //					});
 					isDataSetComplete = false;
+					dataSetIncompleteCause = message;
+					//allEvents.add(new SymbolEvents(stock)); //FIXME dataSetIncompleteCause won't show in the warning pop-up because of the UserContentStrategyEngine.finalising method algo
 					failingStocks.add(stock);
 				}
 
@@ -144,6 +147,7 @@ public class SelectedIndicatorsCalculationService {
 						} else {
 							LOGGER.error(executionException, executionException);
 							LOGGER.error("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), executionException);
+							dataSetIncompleteCause = executionException.getMessage();
 						}
 						isDataSetComplete = false;
 						failingStocks.add(stock);
@@ -151,6 +155,7 @@ public class SelectedIndicatorsCalculationService {
 						LOGGER.error(e, e);
 						LOGGER.error("Failed: events for stock " + stock.toString() + " between " + dateFormat.format(startDate) + " and " + dateFormat.format(endDate), e);
 						isDataSetComplete = false;
+						dataSetIncompleteCause = e.getMessage();
 						failingStocks.add(stock);
 					} finally {
 						futureTracker.removeAll(stocksEventInfos.get(stock));
@@ -181,6 +186,7 @@ public class SelectedIndicatorsCalculationService {
 
 		} catch (Throwable e) {
 			isDataSetComplete = false;
+			dataSetIncompleteCause = e.getMessage();
 			LOGGER.error(e, e);
 		} finally {
 			executor.shutdownNow();

@@ -57,6 +57,7 @@ import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
 import com.finance.pms.datasources.web.formaters.DayQuoteYahooPythonFormater;
+import com.finance.pms.datasources.web.formaters.StopParseEmptyException;
 import com.finance.pms.datasources.web.formaters.StopParseErrorException;
 import com.finance.pms.datasources.web.formaters.YahooPyQuotation;
 import com.finance.pms.events.calculation.DateFactory;
@@ -170,12 +171,23 @@ public abstract class ProvidersYahooPython extends Providers implements Quotatio
 					}
 					
 					validatables.addAll(lineValidatables);
+					
+				} catch (StopParseEmptyException e) {
+					LOGGER.warn(e);
+					LOGGER.warn("Py output: " + line);
+					while ((line = in.readLine()) != null) {
+						LOGGER.warn("Py output: " + line);
+					}
 				} catch (StopParseErrorException e) {
 					LOGGER.warn(e);
 					LOGGER.warn("Py output: " + line);
 					while ((line = in.readLine()) != null) {
 						LOGGER.warn("Py output: " + line);
 					}
+					throw new IOException(
+							"Stop parsing response from python for " + symbol + " between " + start + " and " + end + ": " + 
+							((StopParseErrorException) e).getMessage() + ". " +
+							"Reason: " + ((StopParseErrorException) e).getReason());
 	
 				} catch (AssertionError| Exception e) {
 					LOGGER.warn("Ignoring line: " + line);

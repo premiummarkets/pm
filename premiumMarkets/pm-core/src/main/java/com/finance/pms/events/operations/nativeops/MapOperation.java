@@ -28,11 +28,6 @@ public abstract class MapOperation extends Operation {
 	public NumericableMapValue calculate(TargetStockInfo targetStock, List<StackElement> thisCallStack,  int thisStartShift, int thisAndOperandsStartShift, @SuppressWarnings("rawtypes") List<? extends Value> inputs) {
 		return ((NumericableMapValue)inputs.get(0));
 	}
-	
-	@Override
-	public NumericableMapValue emptyValue() {
-		return new DoubleMapValue();
-	}
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {

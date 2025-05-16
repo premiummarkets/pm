@@ -223,7 +223,7 @@ public class QuotationUpdate {
 	}
 
 	/**
-	 * Reset, when true, will prevail over force and the later will have no effect.
+	 * forceReset, when true, will prevail over forceUpdate and the latter will have no effect.
 	 * @param stockList
 	 * @param forceReset
 	 * @param forceUpdate

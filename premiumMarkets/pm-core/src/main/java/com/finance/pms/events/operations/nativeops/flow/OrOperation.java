@@ -13,6 +13,7 @@ import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.conditional.BooleanValue;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.MapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.OperationReferenceValue;
@@ -142,6 +143,15 @@ public class OrOperation extends FlowOperation {
 	@Override
 	public Value<?> emptyValue() {
 		return  getOperands().get(0).emptyValue();
+	}
+	
+	@Override
+	public int mainInputPosition() {
+		Operation firstOp = getOperands().get(0);
+		if (firstOp instanceof MultiValuesOutput) {
+			((MultiValuesOutput) firstOp).mainInputPosition();
+		}
+		return 0;
 	}
 
 }

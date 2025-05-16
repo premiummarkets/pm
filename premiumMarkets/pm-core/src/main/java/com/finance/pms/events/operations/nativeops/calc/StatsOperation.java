@@ -105,7 +105,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		@Override
 		public double dEvaluateMd(SortedMap<Date, Double> subMap) {
 			SortedMap<Date, T> doEval = doEval(subMap);
-			T t = doEval.get(doEval.lastKey());
+			T t = doEval.get(subMap.lastKey());
 			if (t instanceof Double) return (Double) t;
 			if (t instanceof double[]) return ((double[]) t)[0];
 			throw new RuntimeException();
@@ -136,7 +136,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		@Override
 		public double[] adEvaluateMd(SortedMap<Date, Double> subMap) {
 			SortedMap<Date, T> doEval = doEval(subMap);
-			T t = doEval.get(doEval.lastKey());
+			T t = doEval.get(subMap.lastKey());
 			if (t instanceof Double) return new double[] {(Double)t};
 			if (t instanceof double[]) return (double[]) t;
 			throw new RuntimeException();
@@ -150,6 +150,11 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		@Override
 		public int getMinPeriod() {
 			return 1;
+		}
+
+		@Override
+		public String getName() {
+			return outputsRefs.toString();
 		}
 	}
 
@@ -236,7 +241,12 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 				return (NumberValue) run;
 			} else if (run instanceof NumericableMapValue) {
 				SortedMap<Date, Double> value = ((NumericableMapValue) run).getValue(evaluateTargetStock);
-				return new NumberValue(value.get(value.lastKey()));
+				Double numberValue;
+				if (value.size() > 0 && (numberValue = value.get(subMap.lastKey())) != null) {
+					return new NumberValue(numberValue);
+				} else {
+					return new NumberValue(Double.NaN);
+				}
 			} else {
 				throw new RuntimeException("Unexpected value type: " + run.getClass().getName());
 			}
@@ -250,6 +260,11 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 		@Override
 		public int getMinPeriod() {
 			return minPeriod;
+		}
+
+		@Override
+		public String getName() {
+			return specificOperation.getReference();
 		}
 	}
 
@@ -570,7 +585,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			}
 
 		} catch (Exception e) {
-			LOGGER.error(e,e);
+			LOGGER.warn(e,e);
 		}
 
 		return new DoubleArrayMapValue();

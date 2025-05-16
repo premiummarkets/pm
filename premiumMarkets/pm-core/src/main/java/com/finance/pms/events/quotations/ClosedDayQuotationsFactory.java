@@ -257,7 +257,7 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	}
 	
 	@Override
-	public SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations) throws NotEnoughDataException {
+	public SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations) {
 		return quotations.getQuotationData().stream().collect(
 				TreeMap::new,
 				(result, qU) -> result.put(qU.getDate(), new double[] {

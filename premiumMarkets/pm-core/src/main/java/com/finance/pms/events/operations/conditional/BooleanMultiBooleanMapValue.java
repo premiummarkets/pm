@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 
@@ -92,5 +94,40 @@ public class BooleanMultiBooleanMapValue extends BooleanMapValue {
 	public Map<String, BooleanMapValue> getAdditionalOutputs() {
 		return additionalOutputs;
 	}
+
+	@Override
+	public BooleanMultiBooleanMapValue filtered(Date endDate) {
+		return new BooleanMultiBooleanMapValue() {
+
+			@Override
+			public SortedMap<Date, Boolean> getValue(TargetStockInfo targetStock) {
+				return BooleanMultiBooleanMapValue.this.getValue(targetStock).headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public String toString() {
+				return "[" + endDate + "] view of: " + BooleanMultiBooleanMapValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return BooleanMultiBooleanMapValue.this.clone();
+			}
+
+			@Override
+			public Map<String, BooleanMapValue> getAdditionalOutputs() {
+				return super.getAdditionalOutputs().entrySet().stream()
+						.collect(HashMap::new, (m,e) -> m.put(e.getKey(), e.getValue().filtered(endDate)), HashMap::putAll);
+			}
+
+			@Override
+			public BooleanMultiBooleanMapValue filtered(Date endDate) {
+				return BooleanMultiBooleanMapValue.this.filtered(endDate);
+			}
+			
+		};
+	}
+	
+	
 
 }

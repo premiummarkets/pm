@@ -143,4 +143,9 @@ public class MyApacheStats implements StatsFunction {
 		return minPeriod;
 	}
 
+	@Override
+	public String getName() {
+		return statistic.getClass().getSimpleName();
+	}
+
 }

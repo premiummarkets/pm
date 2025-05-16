@@ -76,4 +76,9 @@ public class MySimpleRegression implements StatsFunction {
 		return 2;
 	}
 
+	@Override
+	public String getName() {
+		return "MySimpleRegression";
+	}
+
 }

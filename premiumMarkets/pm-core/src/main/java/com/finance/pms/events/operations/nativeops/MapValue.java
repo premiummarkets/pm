@@ -9,4 +9,6 @@ public abstract class MapValue<X> extends Value<SortedMap<Date, X>> {
 	
 	public abstract SortedMap<Date, X> getValue(TargetStockInfo targetStock);
 	
+	public abstract MapValue<X> filtered(Date endDate);
+	
 }

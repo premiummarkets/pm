@@ -85,6 +85,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TypedListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -93,6 +94,7 @@ import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.labels.XYToolTipGenerator;
 
+import com.finance.pms.ActionDialogAction;
 import com.finance.pms.CursorFactory;
 import com.finance.pms.LogComposite;
 import com.finance.pms.MainGui;
@@ -108,6 +110,7 @@ import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.InvalidParameterException;
 import com.finance.pms.events.calculation.SelectedIndicatorsCalculationService;
 import com.finance.pms.events.scoring.chartUtils.MyTimeSeriesCollection;
+import com.finance.pms.portfolio.gui.ActionDialogForm;
 import com.finance.pms.portfolio.gui.PortfolioComposite;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 import com.finance.pms.portfolio.gui.charts.ChartDisplayStrategy.PopupType;
@@ -731,13 +734,55 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				    			dialog.pack ();
 				    			dialog.open ();
 				             }
-				        });  
+				        });
+				        buttonStart.addListener(SWT.MouseDown, new Listener() {
+				        	@Override
+				        	public void handleEvent(Event event) {
+				        		if (event.button == 3) { // Right mouse button
+				        			ActionDialogForm dialog = new ActionDialogForm(buttonStart.getShell(), "Ok", "dd/MM/yyyy", "Please enter a date");
+				        			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+				        			Text dateText = new Text(dialog.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
+				        			dateText.setText(dateFormat.format(buttonStartDate));
+				        			ActionDialogAction setDateAction = new ActionDialogAction() {
+				        				@Override
+				        				public void action() {
+				        					dialog.values[0] = dateText.getText();
+				        					try {
+				        						dateFormat.setLenient(false);
+				        						String input = (String) dialog.values[0];
+				        						Date enteredDate = dateFormat.parse(input);
+				        						
+				        						// Update buttonStartDate and sliderStart
+					        					buttonStartDate = DateFactory.midnithDate(enteredDate);
+					        					String formattedDate = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonStartDate);
+					        					MainPMScmd.getMyPrefs().put("ui.button.startdate", formattedDate);
+					        					MainPMScmd.getMyPrefs().flushy();
+
+					        					sliderStart.setSelection(MIN_SLIDER_SELECTION);
+					        					startSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderStart, buttonStart, sliderEnd, buttonEnd);
+
+					        					buttonStart.setText(formattedDate);
+					        					buttonStart.setFont(MainGui.DEFAULTFONT);
+					        					
+					        					sliderChangesApply();
+				        					} catch (ParseException e) {
+				        						//None
+				        					}
+				        				};
+				        			};
+
+				        			dialog.setControl(dateText);
+				        			dialog.setAction(setDateAction);
+				        			dialog.open();
+				        		}
+				        	}
+				        });
 					}
 					///sliding sliders
 					Composite slidingSliderGroup = new Composite(slidingGroup, SWT.NONE);
 					slidingSliderGroup.setSize(1000, SWT.DEFAULT);
 					GridData slidersGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-					slidersGridData.verticalSpan=2;
+					slidersGridData.verticalSpan = 2;
 					slidingSliderGroup.setLayoutData(slidersGridData);
 					slidingSliderGroup.setBackground(innerBgColor);
 					slidingSliderGroup.setForeground(innerBgColor);
@@ -817,6 +862,47 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 				    			dialog.pack ();
 				    			dialog.open ();
 				             }
+				        });
+						buttonEnd.addListener(SWT.MouseDown, new Listener() {
+				        	@Override
+				        	public void handleEvent(Event event) {
+				        		if (event.button == 3) { // Right mouse button
+				        			ActionDialogForm dialog = new ActionDialogForm(buttonEnd.getShell(), "Ok", "dd/MM/yyyy", "Please enter a date");
+				        			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+				        			Text dateText = new Text(dialog.getParent(), SWT.NONE | SWT.CENTER | SWT.BORDER);
+				        			dateText.setText(dateFormat.format(buttonEndDate));
+				        			ActionDialogAction setDateAction = new ActionDialogAction() {
+				        				@Override
+				        				public void action() {
+				        					dialog.values[0] = dateText.getText();
+				        					try {
+				        						dateFormat.setLenient(false);
+				        						String input = (String) dialog.values[0];
+				        						Date enteredDate = dateFormat.parse(input);
+				     
+				        						// Update buttonStartDate and sliderStart
+				        						buttonEndDate = DateFactory.midnithDate(enteredDate);
+
+												String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(buttonEndDate);
+												MainPMScmd.getMyPrefs().put("ui.button.enddate", format);
+												MainPMScmd.getMyPrefs().flushy();
+												
+												sliderEnd.setSelection(MAX_SLIDER_SELECTION);
+												endSliderUpdateConditional(buttonStartDate, buttonEndDate, sliderEnd, buttonEnd, sliderStart, buttonStart);
+												buttonEnd.setText(DateFormat.getDateInstance(DateFormat.MEDIUM).format(slidingEndDate));
+												buttonEnd.setFont(MainGui.DEFAULTFONT);
+												sliderChangesApply();
+				        					} catch (ParseException e) {
+				        						//None
+				        					}
+				        				};
+				        			};
+
+				        			dialog.setControl(dateText);
+				        			dialog.setAction(setDateAction);
+				        			dialog.open();
+				        		}
+				        	}
 				        });
 					}
 

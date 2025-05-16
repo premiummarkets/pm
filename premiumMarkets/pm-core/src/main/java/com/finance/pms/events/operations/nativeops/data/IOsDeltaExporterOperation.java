@@ -41,7 +41,6 @@ import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
 import com.finance.pms.events.operations.nativeops.DoubleMapOperation;
-import com.finance.pms.events.operations.nativeops.LaggingOperation;
 import com.finance.pms.events.operations.nativeops.NumberOperation;
 import com.finance.pms.events.operations.nativeops.NumberValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
@@ -423,28 +422,6 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		return shift;
 	}
 	
-	private int getLagAmount(TargetStockInfo targetStock,List<StackElement> thisCallStack, List<Operation> operations) throws Exception {
-		if (operations.isEmpty()) return 0;
-		try {
-			Integer reduce = operations.stream()
-				.map(o -> {
-					try {
-						int rightLagAmount = 0;
-						if ((o instanceof LaggingOperation)) {
-							rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock, thisCallStack);
-						}
-						return Math.max(rightLagAmount, getLagAmount(targetStock, thisCallStack, o.getOperands()));
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-				})
-				.reduce(0, (a, e) -> Math.max(a, e));
-			return reduce;
-		} catch (Exception e) {
-			throw new Exception(e);
-		}
-	}
-
 	@Override
 	public void invalidateOperation(String analysisName, Optional<TargetStockInfo> targetStockOpt, Optional<String> userOperationName) {
 		try {

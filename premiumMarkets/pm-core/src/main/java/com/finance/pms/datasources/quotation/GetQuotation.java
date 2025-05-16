@@ -148,7 +148,7 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 				String scrapErrorMess = stock.getSymbol() + ": Failed to update quotes.\n" +
 						"\tBecause " + e + ".\n" +
 						"\tIn update request from " + df.format(updateStart) + " to " + df.format(endDate) + ".";
-				LOGGER.warn(scrapErrorMess);
+				LOGGER.warn(scrapErrorMess, e);
 				ret.isSuccessfulUpdate = false;
 				ret.failureCause = e;
 

@@ -33,10 +33,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.calculation.parametrizedindicators.ChartedOutputGroup.Type;
+import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MultiMapValue;
 import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 
@@ -89,6 +93,44 @@ public class BooleanMultiMapValue extends BooleanMapValue implements MultiMapVal
 	@Override
 	public Map<String, Type> getAdditionalOutputsTypes() {
 		return additionalOutputsTypes;
+	}
+	
+	@Override
+	public BooleanMultiMapValue filtered(Date endDate) {
+		return new BooleanMultiMapValue() {
+
+			@Override
+			public String toString() {
+				return "[" + endDate + "] view of: " + BooleanMultiMapValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return BooleanMultiMapValue.this.clone();
+			}
+
+			@Override
+			public Map<String, NumericableMapValue> getAdditionalOutputs() {
+				return super.getAdditionalOutputs().entrySet().stream()
+						.collect(HashMap::new, (m,e) -> m.put(e.getKey(), e.getValue().filtered(endDate)), HashMap::putAll);
+			}
+
+			@Override
+			public Map<String, Type> getAdditionalOutputsTypes() {
+				return BooleanMultiMapValue.this.getAdditionalOutputsTypes();
+			}
+
+			@Override
+			public BooleanMultiMapValue filtered(Date endDate) {
+				return BooleanMultiMapValue.this.filtered(endDate);
+			}
+
+			@Override
+			public SortedMap<Date, Boolean> getValue(TargetStockInfo targetStock) {
+				return BooleanMultiMapValue.this.getValue(targetStock).headMap(DateUtils.addDays(endDate, 1));
+			}
+			
+		};
 	}
 
 }

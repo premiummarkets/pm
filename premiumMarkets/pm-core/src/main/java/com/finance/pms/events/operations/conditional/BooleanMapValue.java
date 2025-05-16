@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.operations.nativeops.MapValue;
@@ -76,6 +78,33 @@ public class BooleanMapValue extends MapValue<Boolean> implements Cloneable {
 			LOGGER.error(e,e);
 		}
 		return null;
+	}
+
+	@Override
+	public BooleanMapValue filtered(Date endDate) {
+		return new BooleanMapValue() {
+
+			@Override
+			public SortedMap<Date, Boolean> getValue(TargetStockInfo targetStock) {
+				return BooleanMapValue.this.getValue(targetStock).headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public String toString() {
+				return "[" + endDate + "] view of: " + BooleanMapValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return BooleanMapValue.this.clone();
+			}
+
+			@Override
+			public BooleanMapValue filtered(Date endDate) {
+				return BooleanMapValue.this.filtered(endDate);
+			}
+			
+		};
 	}
 
 }

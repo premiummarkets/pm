@@ -56,5 +56,10 @@ public abstract class NumericableMapValue extends MapValue<Double> implements Cl
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
+	
+
+	@Override
+	public abstract NumericableMapValue filtered(Date endDate);
+	
 
 }

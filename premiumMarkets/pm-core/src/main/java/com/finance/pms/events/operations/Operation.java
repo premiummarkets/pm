@@ -62,6 +62,7 @@ import com.finance.pms.events.calculation.parametrizedindicators.OutputReference
 import com.finance.pms.events.operations.conditional.Condition;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.operations.nativeops.CachableOperation;
+import com.finance.pms.events.operations.nativeops.LaggingOperation;
 import com.finance.pms.events.operations.nativeops.LeafOperation;
 import com.finance.pms.events.operations.nativeops.ListOperation;
 import com.finance.pms.events.operations.nativeops.MATypeOperation;
@@ -75,6 +76,7 @@ import com.finance.pms.events.operations.nativeops.NumericableMapValue;
 import com.finance.pms.events.operations.nativeops.OperationReferenceOperation;
 import com.finance.pms.events.operations.nativeops.StockOperation;
 import com.finance.pms.events.operations.nativeops.StringOperation;
+import com.finance.pms.events.operations.nativeops.StringValue;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 import com.finance.pms.events.operations.nativeops.StringerOperation;
 import com.finance.pms.events.operations.nativeops.TargetStockInfoOperation;
@@ -89,7 +91,7 @@ import com.finance.pms.events.operations.nativeops.flow.MetaOperation;
 import com.finance.pms.events.operations.nativeops.flow.OrOperation;
 import com.finance.pms.events.operations.nativeops.flow.TargetStockDelegateOperation;
 import com.finance.pms.events.operations.nativeops.flow.UnEnvOperation;
-import com.finance.pms.events.operations.nativeops.trans.RequiredShiftWrapperOperation;
+import com.finance.pms.events.operations.nativeops.trans.StartDateWrapperOperation;
 import com.finance.pms.events.operations.parameterized.ParameterizedOperationBuilder;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.scoring.TunedConf;
@@ -106,7 +108,7 @@ import com.finance.pms.events.scoring.TunedConfMgr;
 	MATypeOperation.class, NumberOperation.class, StringOperation.class,
 	TargetStockInfoOperation.class, ListOperation.class, NamedListOperation.class, OperationReferenceOperation.class, TargetStockDelegateOperation.class,
 	LogOperation.class,
-	RequiredShiftWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class, UnEnvOperation.class, AndOperation.class, OrOperation.class})
+	StartDateWrapperOperation.class, LetOperation.class, GetOperation.class, EnvOperation.class, UnEnvOperation.class, AndOperation.class, OrOperation.class})
 public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 	private static MyLogger LOGGER = MyLogger.getLogger(Operation.class);
@@ -236,8 +238,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			
 			//if (needsReset) targetStock.removeCalculated(this, this.getOutputSelector());
 			Value<?> alreadyCalculated = null;
-			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(this, getUserOperationReference(thisCallStack), this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
-				LOGGER.info("Already calculated: " + this);
+			if ((alreadyCalculated = targetStock.checkAlreadyCalculated(thisCallStack, this, getUserOperationReference(thisCallStack), this.getOutputSelector(), thisOutputRequiredStartShiftByParent)) != null) {
 				return alreadyCalculated;
 				
 			} else {
@@ -294,7 +295,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 								
 								if ((literalsOnly && !operand.isDataShiftSensitive()) || !literalsOnly) {
 									OutputReference myOutputReferenceUnfinished = 
-											new OutputReference(operand, getUserOperandReference(operand, thisCallStack), operand.getOutputSelector());
+											new OutputReference(targetStock, thisCallStack, operand, getUserOperandReference(operand, thisCallStack), operand.getOutputSelector());
 									try {
 										OutputReference theirFutureIsDone = null;
 										while (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
@@ -309,7 +310,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 										};
 										if (!stopCalcOnErr.get() && !stopCalcOnCond.get() && !(theirFutureIsDone != null && theirFutureIsDone.getHasFailed())) {
 											Value<?> output = operand.run(targetStock, thisCallStack, thisInputOperandsRequiredShiftFromThis);
-											gatherCalculatedOutput(targetStock, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart, getUserOperandReference(operand, thisCallStack));
+											gatherCalculatedOutput(targetStock, thisCallStack, operand, output, thisInputOperandsRequiredShiftFromThis, isInChart, getUserOperandReference(operand, thisCallStack));
 											if (!isForbidThisParameterValue()) operand.setParameter(output);
 											stopCalcOnCond.set(stopOperandsCalculationsOnCondition(targetStock, operand, output));
 											return output;
@@ -398,7 +399,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				//Operands chart cache
 				if (isInChart) {
 					try {
-						targetStock.populateChartedOutputGroups(this, calculationStatus(targetStock, thisCallStack), thisCallStack, operandsOutputs);
+						targetStock.populateChartedOutputGroups(this, thisCallStack, operandsOutputs);
 					} catch (NoCalculationAvailable e) {
 						LOGGER.warn("Can't update chart cache. Some calculations may have failed: " + e);
 					}
@@ -505,30 +506,34 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		branchCallStack.add(new StackElement(
 				stackDepth, targetStock.getStock().getSymbol(), 
 				parentRequiredStartShift, targetStock.getStartDate(parentRequiredStartShift), targetStock.getEndDate(), 
-				this.reference, this.operationReference, this.outputSelector, this.referenceAsOperand));
+				this.reference, this.operationReference, this.outputSelector, this.referenceAsOperand, this.isAnonymous()));
 		return branchCallStack;
 	}
 	
 	public String getUserOperationReference(List<StackElement> stack) {
 		Optional<StackElement> lastUserOp = stack.stream()
-			.filter(se -> se.isUserOp() && !se.getOpReference().startsWith("anon_"))
+			.filter(se -> se.isUserOp())
 			.reduce((a,s) -> s);
 		return lastUserOp.map(luo -> luo.getOpReference()).orElse("UnknownUserOperation");
 	}
 	
 	protected Boolean isUserOp() {
-		return !reference.equals(operationReference);
+		return !isAnonymous() && !reference.equals(operationReference);
 	}
 	
 	protected String getUserOperandReference(final Operation operand, List<StackElement> thisCallStack) {
-		return (operand.isUserOp()  && !operand.getReference().startsWith("anon_"))? operand.getReference() : getUserOperationReference(thisCallStack);
+		return (operand.isUserOp())? operand.getReference() : getUserOperationReference(thisCallStack);
+	}
+
+	private boolean isAnonymous() {
+		return this.getReference().startsWith("anon_");
 	}
 	
 	public  List<StackElement> newCallerStack(TargetStockInfo targetStock) {
 		return this.addThisToStack(new ArrayList<>(), 0, targetStock);
 	}
 
-	private void gatherCalculatedOutput(TargetStockInfo targetStock, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart, String userReference) {
+	private void gatherCalculatedOutput(TargetStockInfo targetStock, List<StackElement> callStack, Operation operand, Value<?> output, int operandRequiredstartShift, boolean isInChart, String userReference) {
 		
 		Integer storedStartShift = operandRequiredstartShift;
 		if (operand instanceof CachableOperation) {
@@ -537,21 +542,21 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 
 		//We gather only outputs for Numericable outputs or if explicitly Cachable
 		if (output instanceof NumericableMapValue || operand instanceof CachableOperation) {
-			targetStock.gatherOneOutput(operand, userReference, output, Optional.empty(), storedStartShift, isInChart);
+			targetStock.gatherOneOutput(callStack, operand, userReference, output, Optional.empty(), storedStartShift, isInChart);
 		}
 		//We also gather extraneous chartable outputs from conditions.
 		if (output instanceof MultiMapValue) {
-			gatherAdditionalOutputs(targetStock, operand, (MultiMapValue) output, storedStartShift, isInChart, userReference);
+			gatherAdditionalOutputs(targetStock, callStack, operand, (MultiMapValue) output, storedStartShift, isInChart, userReference);
 		}
 
 	}
 
-	private void gatherAdditionalOutputs(TargetStockInfo targetStock, Operation operand, MultiMapValue operandsOutput, int startShift, boolean isInChart, String userReference) {
+	private void gatherAdditionalOutputs(TargetStockInfo targetStock, List<StackElement> callStack, Operation operand, MultiMapValue operandsOutput, int startShift, boolean isInChart, String userReference) {
 
 		//add to gathered
 		Map<String, NumericableMapValue> extraneousOutputs = operandsOutput.getAdditionalOutputs();
 		for (String extOutKey : extraneousOutputs.keySet()) {
-			targetStock.gatherOneOutput(operand, userReference, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShift, isInChart);
+			targetStock.gatherOneOutput(callStack, operand, userReference, extraneousOutputs.get(extOutKey), Optional.of(extOutKey), startShift, isInChart);
 		}
 
 	}
@@ -741,7 +746,13 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 	public String getFormulae() {
 		return formulae;
 	}
-
+	
+	/**
+	 * @deprecated Encog legacy
+	 * 
+	 * @return
+	 */
+	@Deprecated
 	public String getFormulaeTrimmed() {
 		return getFormulae().replaceAll("\\s+","");
 	}
@@ -770,6 +781,26 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		}
 		String selector = (outputSelector != null)? ":" + outputSelector : "";
 		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock, parentCallStack), (a, b) -> a + b) + ")";
+	
+	}
+	
+	public String toFormulaeStackResolved(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
+
+		if (this.getParameter() != null) {
+			if (this.getParameter() instanceof StringableValue) {
+				return ((StringableValue) this.getParameter()).getAsStringable();
+			} else {
+				throw new RuntimeException("Parameter as formulae not supported: " + this);
+			}
+		}
+		if (this instanceof VarGetter) {
+			@SuppressWarnings("rawtypes")
+			List<? extends Value> inputs = this.getOperands().stream().map(o -> o.getParameter()).collect(Collectors.toList());
+			return ((StringableValue) this.calculate(targetStock, parentCallStack, 0, 0, inputs)).getAsStringable();
+		}
+		String selector = (outputSelector != null)? ":" + outputSelector : "";
+		List<StackElement> thisCallStack = addThisToStack(parentCallStack, 0, targetStock);
+		return this.getOperationReference() + selector + "(" + operands.stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeStackResolved(targetStock, thisCallStack), (a, b) -> a + b) + ")";
 	
 	}
 	
@@ -804,6 +835,8 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 					.reduce("", (a, o) -> {
 						if (o instanceof LeafOperation || o instanceof ListOperation) {
 							return a + o.toFormulaeFormated(length, formulaeGenFunc) + ", ";
+						} else if (o.isUserOp()) {
+							return a + "\n" + o.getReference() + "()";
 						} else {
 							return a + "\n" + o.toFormulaeFormated(length, formulaeGenFunc) + ", " ;
 						}
@@ -821,7 +854,15 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		
 		List<Operation> useOfLets = this.findOperandsWithGivenNativeOperationReference("let");
 		useOfLets.stream().forEach(lo -> {
-			lo.run(testTargetStock, newCallerStack(testTargetStock), 0);
+			if (lo instanceof LeafOperation) {
+				try {
+					lo.run(testTargetStock, newCallerStack(testTargetStock), 0);
+				} catch (Exception e) {
+					LOGGER.error("Let operation " + lo + " failed: " + e);
+				}
+			} else {
+				testTargetStock.getHeap().letHeapVar(this.getReference(), ((StringValue)lo.getOperands().get(0).getParameter()).getValue(testTargetStock), new StringValue("___checked___"));
+			}
 		});
 		
 		List<Operation> useOfGets = this.findOperandsWithGivenNativeOperationReference("get");
@@ -1186,9 +1227,16 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		Set<QuotationDataType> quotationDataTypes = new HashSet<>();
 		if (this instanceof StockOperation) {
 			quotationDataTypes.add(QuotationDataType.valueOf(this.getOutputSelector().toUpperCase()));
-		}
+		} else
 		if (!operands.isEmpty()) {
-			quotationDataTypes.addAll(operands.stream().flatMap(o -> o.getRequiredStockData().stream()).collect(Collectors.toList()));
+//			quotationDataTypes.addAll(
+//				operands.stream()
+//					.flatMap(o -> o.getRequiredStockData().stream())
+//					.collect(Collectors.toSet())
+//			);
+			for (Operation operand : operands) {
+			    quotationDataTypes.addAll(operand.getRequiredStockData());
+			}
 		}
 		return quotationDataTypes;
 	}
@@ -1217,21 +1265,6 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 				.filter(e -> !e.isEmpty())
 				.reduce((r, e) -> r + ", " + e).orElse("");
 		return reduce;
-	}
-	
-	public Optional<String> calculationStatus(TargetStockInfo targetStockInfo, List<StackElement> callStack) {
-		try {
-			if (operands.isEmpty()) return Optional.empty();
-			List<StackElement> thisCallStack = addThisToStack(callStack, 0, targetStockInfo);
-			Optional<String> reduce = operands.stream()
-					.map(e -> e.calculationStatus(targetStockInfo, thisCallStack))
-					.filter(e -> !e.isEmpty())
-					.map(e -> e.get())
-					.reduce((r, e) -> r + "\n " + e);
-			return reduce;
-		} catch (Exception e) {
-			return Optional.empty();
-		}
 	}
 	
 	public List<Operation> findOperandsWithGivenNativeOperationReference(String operationReference) {
@@ -1266,6 +1299,28 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			}));
 		}
 		return mathingOperands;
+	}
+
+	protected int getLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack, List<Operation> operations) throws Exception {
+		if (operations.isEmpty()) return 0;
+		try {
+			Integer reduce = operations.stream()
+				.map(o -> {
+					try {
+						int rightLagAmount = 0;
+						if ((o instanceof LaggingOperation)) {
+							rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock, thisCallStack);
+						}
+						return Math.max(rightLagAmount, getLagAmount(targetStock, thisCallStack, o.getOperands()));
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				})
+				.reduce(0, (a, e) -> Math.max(a, e));
+			return reduce;
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
 	}
 
 }

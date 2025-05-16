@@ -96,7 +96,7 @@ public class StockListASXFormater extends LineFormater {
 			return retour;
 			
 		} catch (InvalidAlgorithmParameterException e) {
-			throw new StopParseErrorException(retour,e.toString(),"");
+			throw new StopParseErrorException(retour, e.toString(),"");
 		}
 	}
 	

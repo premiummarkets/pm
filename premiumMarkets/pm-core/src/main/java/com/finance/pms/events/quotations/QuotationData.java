@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.quotations;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -84,15 +83,15 @@ class QuotationData implements List<QuotationUnit> {
 		}
 	}
 
-	QuotationUnit getClosestQuotationBeforeOrAtDate(Date date) throws InvalidAlgorithmParameterException {
+	QuotationUnit getClosestQuotationBeforeOrAtDate(Date date) throws NoQuotationsException {
 		Integer index = getClosestIndexBeforeOrAtDate(0, date);
-		if (index == -1) throw new InvalidAlgorithmParameterException();
+		if (index == -1) throw new NoQuotationsException("At date " + date);
 		return get(index);
 	}
 
-	public Number getClosestFieldBeforeOrAtDate(Date date, QuotationDataType field) throws InvalidAlgorithmParameterException {
+	public Number getClosestFieldBeforeOrAtDate(Date date, QuotationDataType field) throws NoQuotationsException {
 		Integer index = getClosestIndexBeforeOrAtDate(0, date);
-		if (index == -1) throw new InvalidAlgorithmParameterException();
+		if (index == -1) throw new NoQuotationsException("At date " + date);
 		return get(index).getData(field);
 	}
 

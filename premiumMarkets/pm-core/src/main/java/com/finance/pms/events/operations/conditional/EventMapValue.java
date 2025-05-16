@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.EventKey;
 import com.finance.pms.events.EventType;
@@ -167,6 +169,71 @@ public class EventMapValue extends NumericableMapValue implements StringableMapV
 	@Override
 	public List<String> getReferences() {
 		return new ArrayList<String>(getAdditionalOutputsTypes().keySet());
+	}
+
+	@Override
+	public EventMapValue filtered(Date endDate) {
+		return new EventMapValue() {
+
+			@Override
+			public SortedMap<EventKey, EventValue> getEventMap() {
+				return EventMapValue.this.getEventMap().entrySet().stream()
+						.filter(e -> !e.getKey().getDate().after(endDate))
+						.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a, TreeMap::new));
+			}
+
+			@Override
+			public String toString() {
+				return  "[" + endDate + "] view of: " + EventMapValue.this.toString();
+			}
+
+			@Override
+			public Object clone() {
+				return EventMapValue.this.clone();
+			}
+
+			@Override
+			public List<Date> getDateKeys() {
+				return EventMapValue.this.getDateKeys().stream().filter(d -> !d.after(endDate)).collect(Collectors.toList());
+			}
+
+			@Override
+			public EventMapValue filtered(Date endDate) {
+				return EventMapValue.this.filtered(endDate);
+			}
+
+			@Override
+			public SortedMap<Date, Double> getValue(TargetStockInfo targetStock) {
+				return EventMapValue.this.getValue(targetStock).headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public SortedMap<Date, String> getValueAsStringMap() {
+				return EventMapValue.this.getValueAsStringMap().headMap(DateUtils.addDays(endDate, 1));
+			}
+
+			@Override
+			public Map<String, NumericableMapValue> getAdditionalOutputs() {
+				return EventMapValue.this.getAdditionalOutputs().entrySet().stream()
+						.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().filtered(endDate)), HashMap::putAll);
+			}
+
+			@Override
+			public Map<String, Type> getAdditionalOutputsTypes() {
+				return EventMapValue.this.getAdditionalOutputsTypes();
+			}
+
+			@Override
+			public List<String> getReferences() {
+				return EventMapValue.this.getReferences();
+			}
+
+			@Override
+			public Boolean isLooseCoupled() {
+				return EventMapValue.this.isLooseCoupled();
+			}
+
+		};
 	}
 
 }

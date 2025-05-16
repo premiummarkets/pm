@@ -30,6 +30,7 @@
 package com.finance.pms.datasources.shares;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -65,5 +66,8 @@ public interface ShareDAO {
 	void saveOrUpdateQuotationUnits(List<QuotationUnit> quotationUnits);
 
 	void deleteQuotationUnits(List<QuotationUnit> quotationUnits);
+	void deleteQuotationsFor(Stock stock);
+	QuotationUnit findQuotationUnitByStockAndDate(Stock stock, Date key);
+	void mergeQuotationUnits(List<QuotationUnit> quotationUnits);
 
 }

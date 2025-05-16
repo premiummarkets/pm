@@ -14,7 +14,7 @@ import com.finance.pms.events.operations.TargetStockInfo;
 
 
 /**
- * @deprecated use NamedListValue instead
+ * @deprecated use NamedListValue instead (XXX how to reconcile NamedListValue with NumberValue?)
  * @see NamedListValue
  */
 @Deprecated

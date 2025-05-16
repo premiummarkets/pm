@@ -25,11 +25,13 @@ public class StackElement {
 	private String opOperationReference;
 	private String opOutputSelector;
 	private String opReferenceAsOperand;
+
+	private boolean isAnonymous;
 	
 	public StackElement(
 			int stackDepth, 
 			String stockSymbol, int parentRequiredStartShift, Date calcFrom, Date calcTo, 
-			String opReference, String opOperationReference, String opOutputSelector, String opReferenceAsOperand) {
+			String opReference, String opOperationReference, String opOutputSelector, String opReferenceAsOperand, boolean isAnonymous) {
 		super();
 		this.stackDepth = stackDepth;
 		this.stockSymbol = stockSymbol;
@@ -40,10 +42,15 @@ public class StackElement {
 		this.opOperationReference = opOperationReference;
 		this.opOutputSelector = opOutputSelector;
 		this.opReferenceAsOperand = opReferenceAsOperand;
+		this.isAnonymous = isAnonymous;
 	}
 	
 	public Boolean isUserOp() {
-		return !opReference.equals(opOperationReference);
+		return !isAnonymous() && !opReference.equals(opOperationReference);
+	}
+	
+	public boolean isAnonymous() {
+		return isAnonymous;
 	}
 	
 	public Boolean isMainConditionElement() {

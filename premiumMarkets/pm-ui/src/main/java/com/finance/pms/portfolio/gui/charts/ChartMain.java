@@ -557,7 +557,7 @@ public class ChartMain extends Chart {
 											} else {
 												double compoundReal = serieDef.getTuningRes().getForecastProfitAt(date);
 												double compoundUnReal = serieDef.getTuningRes().getForecastProfitAtUnReal(date);
-												double priceChange = serieDef.getTuningRes().getPriceChangeAt(date);
+												double priceChange = serieDef.getTuningRes().getPriceChangeAtPeriodEnding(date);
 												profitTip = period.toToolTip() + " (cmpnd " + 
 														"r" + pf.format(compoundReal) + " / ur" + pf.format(compoundUnReal)  + 
 														" V. b&h" + pf.format(priceChange) 	+ " " + 

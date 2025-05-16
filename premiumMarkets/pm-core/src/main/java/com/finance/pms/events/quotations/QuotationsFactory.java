@@ -132,6 +132,6 @@ public interface QuotationsFactory {
 		throw new NotImplementedException("TODO");
 	}
 
-	SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations) throws NotEnoughDataException;
+	SortedMap<Date, double[]> buildExactMapFromQuotationsOHLCV(Quotations quotations);
 
 }

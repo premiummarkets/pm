@@ -87,6 +87,11 @@ public class IfOperation extends FlowOperation {
 	public Value<?> emptyValue() {
 		return null;
 	}
+	
+	@Override
+	public int mainInputPosition() {
+		return 0;
+	}
 
 	
 //FIXME XXX	

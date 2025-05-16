@@ -42,7 +42,6 @@ import com.finance.pms.ActionDialogAction;
 import com.finance.pms.MainGui;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Stock;
-import com.finance.pms.events.quotations.LastUpdateStampChecker;
 import com.finance.pms.portfolio.InfoObject;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
 

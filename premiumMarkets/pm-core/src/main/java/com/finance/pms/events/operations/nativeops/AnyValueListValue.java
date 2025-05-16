@@ -9,7 +9,7 @@ import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.TargetStockInfo;
 
 @XmlRootElement
-public class AnyValueListValue<T> extends ListValue<T> implements Cloneable {
+public class AnyValueListValue<T> extends ListValue<T> implements StringableValue, Cloneable {
 	
 //	private static final long serialVersionUID = 8222260115865630985L;
 
@@ -48,14 +48,14 @@ public class AnyValueListValue<T> extends ListValue<T> implements Cloneable {
 		return null;
 	}
 
-//	@Override
-//	public String getAsStringable() {
-//		return "[" + listOfValues.stream().map(v -> {
-//			if (v instanceof StringableValue) {
-//				return ((StringableValue)v).getAsStringable();
-//			} else {
-//				return ??;
-//			}}).reduce((a, v) -> a + "," + v).orElse("") + "]";
-//	}
+	@Override
+	public String getAsStringable() {
+		return "[" + listOfValues.stream().map(v -> {
+			if (v instanceof StringableValue) {
+				return ((StringableValue)v).getAsStringable();
+			} else {
+				throw new RuntimeException("Parameter as string not supported: " + this);
+			}}).reduce((a, v) -> a + "," + v).orElse("") + "]";
+	}
 
 }

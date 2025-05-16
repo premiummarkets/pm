@@ -39,7 +39,7 @@ public class TargetStockHeap extends ConcurrentHashMap<String, Value<?>> {
 		synchronized (this) {
 			String[] nameSplit = variableName.split("\\.");
 			if (nameSplit.length > 1) { //Composite name (depth 1 only)
-				if (variableValue instanceof MultiValue) {
+				if (variableValue instanceof MultiValue) { //XXX In case of multiple output to choose from, the variable name and the additional output name must match
 					this.put(nameSplit[0], variableValue);
 					Value<?> value = ((MultiValue) variableValue).getAdditionalOutputs().get(nameSplit[1]);
 					if (value == null) {

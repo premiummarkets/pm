@@ -237,16 +237,16 @@ public class OTFTuningFinalizer {
 
 	}
 
-	TuningResDTO buildResOnValidPeriods(List<PeriodRatingDTO> periods, SortedMap<Date, ? extends Number> qMap, Stock stock, Date firstEventDate, Date endDate) {
+	TuningResDTO buildResOnValidPeriods(List<PeriodRatingDTO> periods, SortedMap<Date, ? extends Number> qMap, Stock stock, Date firstValidEventDate, Date endDate) {
 
 		String csvFile = "noOutputAvailable";
 		String chartFile = "noChartAvailable";
 
-		SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, firstEventDate, endDate);
+		SortedMap<Date, ? extends Number> subMapInclusive = MapUtils.subMapInclusive(qMap, firstValidEventDate, endDate);
 		BigDecimal firstClose = new BigDecimal(subMapInclusive.get(subMapInclusive.firstKey()).toString());
 		BigDecimal lastClose = new BigDecimal(subMapInclusive.get(subMapInclusive.lastKey()).toString());
 
-		return new TuningResDTO(periods, csvFile, chartFile, firstClose.doubleValue(), lastClose.doubleValue(), firstEventDate, endDate);
+		return new TuningResDTO(periods, csvFile, chartFile, firstClose.doubleValue(), lastClose.doubleValue(), firstValidEventDate, endDate);
 	}
 
 	public TuningResDTO buildTuningRes(
@@ -255,8 +255,8 @@ public class OTFTuningFinalizer {
 			List<EventValue> eventListForEvtDef) throws NoQuotationsException, NotEnoughDataException {
 		
 		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
-		Date firstEventDate = (eventListForEvtDef.isEmpty())?startDate:eventListForEvtDef.get(0).getDate();
-		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, firstEventDate, endDate);
+		Date firstValidEventDate = (periods.isEmpty())?startDate:periods.get(0).getFrom();
+		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, firstValidEventDate, endDate);
 		//if (LOGGER.isDebugEnabled()) 
 			LOGGER.info(export(buildResOnValidPeriods));
 

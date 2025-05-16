@@ -9,9 +9,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.scoring.functions.StatsFunction;
 
 public class MapUtils {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(MapUtils.class);
 
 	public static double[] calculateMinMax(SortedMap<Date, double[]> subD, int outputIndex) {
 
@@ -98,11 +101,18 @@ public class MapUtils {
 		if (lenientInit || period == 0) {
 			startIdx = apacheStats.getMinPeriod();
 		}
+		
+//		AtomicInteger counter = new AtomicInteger(0);
+//        int total = keySet.size() - startIdx;
 
 		final TreeMap<Date, double[]> movingStats =
 				IntStream.range(startIdx, keySet.size())
 				.mapToObj(i -> i)
-				//.parallel()
+				.parallel()
+//				.peek(i -> {
+//                    int progress = counter.incrementAndGet();
+//                    LOGGER.info("Sliding stats " + apacheStats.getName() + ": " + progress + " of " + total + " (" + progress * 100 / total + "%)");
+//                })
 				.collect(Collectors.toMap(
 						endWindow -> keySet.get(endWindow),
 						endWindow -> {
@@ -112,7 +122,14 @@ public class MapUtils {
 									.stream()
 									//.filter(k -> !Double.isNaN(map.get(k)))
 									.collect(Collectors.toMap(k -> k, k -> map.get(k), (a, b) -> a, TreeMap<Date,Double>::new));
-							return apacheStats.adEvaluateMd(values);
+							double[] adEvaluateMd;
+							try {
+								adEvaluateMd = apacheStats.adEvaluateMd(values);
+								return adEvaluateMd;
+							} catch (Exception e) {
+								LOGGER.error("Moving stat error in " + apacheStats.getName() + " at " + keySet.get(endWindow), e);
+								throw e;
+							}
 						},
 						(a, b) -> a, TreeMap<Date,double[]>::new));
 
@@ -122,8 +139,12 @@ public class MapUtils {
 				.filter(k -> Arrays.stream(movingStats.get(k)).allMatch(d -> !Double.isNaN(d)))
 				.collect(Collectors.toMap(k -> k, k -> movingStats.get(k), (a, b) -> a, TreeMap<Date,double[]>::new));
 		
-		Date firstValidResult = keySet.get(startIdx);
-		return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
+		if (noNaNMovingStats.size() > 0) {
+			Date firstValidResult = keySet.get(startIdx);
+			return subMapInclusive(noNaNMovingStats, firstValidResult, map.lastKey());
+		} else {
+			return noNaNMovingStats;
+		}
 	}
 
 }

@@ -80,4 +80,9 @@ public class MyPolynomialRegression implements StatsFunction {
 		return 2;
 	}
 
+	@Override
+	public String getName() {
+		return "My Polynomial Regression";
+	}
+
 }

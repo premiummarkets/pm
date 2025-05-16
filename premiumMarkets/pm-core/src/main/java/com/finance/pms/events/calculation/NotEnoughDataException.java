@@ -32,6 +32,7 @@ package com.finance.pms.events.calculation;
 import java.util.Date;
 
 import com.finance.pms.datasources.shares.Stock;
+import com.finance.pms.events.operations.TargetStockInfo;
 
 
 public class NotEnoughDataException extends Exception {
@@ -52,6 +53,13 @@ public class NotEnoughDataException extends Exception {
 		this.shiftedStartDate = shiftedStartDate;
 		this.shiftedEndDate = shiftedEndDate;
 		this.stock = stock;
+	}
+	
+	public NotEnoughDataException(TargetStockInfo targetStockInfo, int parentRequiredStartShift, String message, Throwable cause) {
+		super(message, cause);
+		this.shiftedStartDate = targetStockInfo.getStartDate(parentRequiredStartShift);
+		this.shiftedEndDate = targetStockInfo.getEndDate();
+		this.stock = targetStockInfo.getStock();
 	}
 
 	public Date getShiftedStartDate() {

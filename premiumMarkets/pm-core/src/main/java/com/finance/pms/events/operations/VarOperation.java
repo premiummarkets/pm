@@ -39,5 +39,9 @@ public abstract class VarOperation extends Operation {
 	public boolean isForbidThisParameterValue() {
 		return true;
 	}
+	
+	public String getVariableName(TargetStockInfo targetStock) {
+		return ((StringValue)getOperands().get(0).getParameter()).getValue(targetStock).toString();
+	}
 
 }

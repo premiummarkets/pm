@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -163,7 +164,6 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		});
 	}
 
-
 	public void saveOrUpdateStockTrendInfo(Set<ScreeningSupplementedStock> trends) {
 		//this.getHibernateTemplate().saveOrUpdateAll(listTrend);
 		for (ScreeningSupplementedStock trend : trends) {
@@ -171,11 +171,9 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 		}
 	}
 
-
 	public void saveOrUpdateStock(Stock stock) {
 		this.getHibernateTemplate().saveOrUpdate(stock);
 	}
-
 
 	@Transactional(readOnly=true)
 	public ScreeningSupplementedStock loadTrendForStock(Stock stock) {
@@ -242,7 +240,7 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 	@Transactional(readOnly=true)
 	public List<Stock> loadSharesLike(String like, int maxResults) {
 
-		Criteria crit = getSession().createCriteria(Stock.class);
+		Criteria crit = getSessionFactory().getCurrentSession().createCriteria(Stock.class);
 		crit.setMaxResults(maxResults);
 		crit.add(Restrictions.or(Restrictions.or(Restrictions.ilike("symbol", like+"%"), Restrictions.ilike("isin", like+"%")), Restrictions.ilike("name", like+"%")));
 		crit.addOrder(Property.forName("symbol").asc()).addOrder(Property.forName("name").asc()).addOrder(Property.forName("isin").asc());
@@ -266,10 +264,43 @@ public class ShareDAOImpl extends HibernateDaoSupport implements ShareDAO {
 			getHibernateTemplate().saveOrUpdate(quotationUnit);
 		}
 	}
+	
+	@Override
+	public void mergeQuotationUnits(List<QuotationUnit> quotationUnits) {
+		for (QuotationUnit quotationUnit : quotationUnits) {
+			getHibernateTemplate().merge(quotationUnit);
+		}
+	}
 
 	@Override
 	public void deleteQuotationUnits(List<QuotationUnit> quotationUnits) {
 		getHibernateTemplate().deleteAll(quotationUnits);
+	}
+	
+    @Override
+	public void deleteQuotationsFor(final Stock stock) {
+	    this.getHibernateTemplate().execute(new HibernateCallback<Void>() {
+	        @Override
+	        public Void doInHibernate(Session session) throws HibernateException {
+	            Query query = session.createQuery("delete from QuotationUnit where stock = :stock");
+	            query.setParameter("stock", stock);
+	            query.executeUpdate();
+	            return null;
+	        }
+	    });
+	}
+
+	@Override
+	public QuotationUnit findQuotationUnitByStockAndDate(Stock stock, Date date) {
+	    return this.getHibernateTemplate().execute(new HibernateCallback<QuotationUnit>() {
+	        @Override
+	        public QuotationUnit doInHibernate(Session session) throws HibernateException {
+	            Criteria criteria = session.createCriteria(QuotationUnit.class);
+	            criteria.add(Restrictions.eq("stock", stock));
+	            criteria.add(Restrictions.eq("date", date));
+	            return (QuotationUnit) criteria.uniqueResult();
+	        }
+	    });
 	}
 
 }

@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.finance.pms.admin.install.logging.MyLogger;
+import com.finance.pms.events.operations.conditional.MultiValuesOutput;
 import com.finance.pms.events.operations.nativeops.StringableValue;
 
-public abstract class FlowOperation extends Operation {
+public abstract class FlowOperation extends Operation implements MultiValuesOutput {
 	
 	protected static MyLogger LOGGER = MyLogger.getLogger(FlowOperation.class);
 

@@ -1,5 +1,6 @@
 package com.finance.pms.events.operations.nativeops;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -7,13 +8,16 @@ import java.util.function.Function;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.events.operations.Operation;
 import com.finance.pms.events.operations.StackElement;
 import com.finance.pms.events.operations.TargetStockInfo;
 import com.finance.pms.events.quotations.QuotationDataType;
 
 @XmlRootElement
-public class OperationReferenceOperation extends Operation implements LeafOperation {
+public class OperationReferenceOperation extends Operation implements LeafOperation, LaggingOperation {
+	
+	private static MyLogger LOGGER = MyLogger.getLogger(OperationReferenceOperation.class);
 	
 	public OperationReferenceOperation() {
 		super("operationReference", "Operation reference name");
@@ -69,7 +73,9 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 
 	@Override
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
-		return reccurentProceeds((ov) -> ov.getValue(targetStock).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift), ov -> 0);
+		return reccurentProceeds(
+				(ov) -> ov.getValue(targetStock).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift), 
+				(ov) -> ov.getValue(targetStock).operandsRequiredStartShift(targetStock, thisCallStack, thisParentStartShift));
 	}
 
 	@Override
@@ -89,10 +95,10 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 		}
 	}
 	
-	@Override
-	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {
-		return reccurentProceeds((ov) -> ov.getValue(targetStock).calculationStatus(targetStock, callStack), ov -> Optional.empty());
-	}
+//	@Override
+//	public Optional<String> calculationStatus(TargetStockInfo targetStock, List<StackElement> callStack) {
+//		return reccurentProceeds((ov) -> ov.getValue(targetStock).calculationStatus(targetStock, callStack), ov -> Optional.empty());
+//	}
 
 	@Override
 	public void invalidateAllNonIdempotentOperands(String analysisName, TargetStockInfo targetStock, Optional<String> userOperationName) {
@@ -178,6 +184,28 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	@Override
 	public String resultHint(TargetStockInfo targetStock, List<StackElement> callStack) {
 		return reccurentProceeds(ov -> ov.getValue(targetStock).resultHint(targetStock, addThisToStack(callStack, 0, targetStock)), ov -> ov.getAsStringable());
+	}
+
+	@Override
+	public int rightLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack) throws Exception {
+		return reccurentProceeds(
+				ov -> {
+					try {
+						return getLagAmount(targetStock, thisCallStack, Arrays.asList(ov.getValue(targetStock)));
+					} catch (Exception e) {
+						LOGGER.error(e, e);
+						return 0;
+					}
+				}, 
+				ov -> {
+					try {
+						return getLagAmount(targetStock, thisCallStack, Arrays.asList(ov.getValue(targetStock)));
+					} catch (Exception e) {
+						LOGGER.error(e, e);
+						return 0;
+					}
+				}
+			);
 	}
 	
 }

@@ -134,6 +134,14 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 			throw new RuntimeException("Unknown quotation data type");
 		}
 	}
+	
+	public void resetData(BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, Long volume) {
+		this.open = open;
+		this.high = high;
+		this.low = low;
+		this.close = close;
+		this.volume = volume;
+	}
 
 	@Id
 	@Temporal(TemporalType.DATE)
@@ -198,7 +206,7 @@ public class QuotationUnit implements Serializable, Comparable<QuotationUnit>
 	}
 
 	@Column(name="VOLUME")
-	public long getVolumeRaw() {
+	public Long getVolumeRaw() {
 		return volume;
 	}
 
