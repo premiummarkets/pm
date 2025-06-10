@@ -17,6 +17,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class DayQuote1818Formater extends LineFormater {
 
@@ -119,6 +120,7 @@ public class DayQuote1818Formater extends LineFormater {
 					mainQuery.add(close);
 					mainQuery.add(Long.valueOf(numberTransform(fitVolume)));
 					mainQuery.add(null); //Split
+					mainQuery.add(ORIGIN.WEB.ordinal());
 					ret.add(new DailyQuotation(mainQuery, stock, stock.getMarketValuation().getCurrency().name()));
 					cpt = 0;
 				}

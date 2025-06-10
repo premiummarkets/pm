@@ -37,6 +37,7 @@ import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public abstract class DayQuoteFormater extends LineFormater {
 	
@@ -55,6 +56,7 @@ public abstract class DayQuoteFormater extends LineFormater {
 		
 		LinkedList<Comparable<?>> mainQuery = mainQuery(line);
 		List<Validatable> ret = new ArrayList<Validatable>();
+		mainQuery.add(ORIGIN.WEB.ordinal());
 		ret.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 		
 		return ret;

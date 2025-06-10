@@ -113,7 +113,7 @@ public class Normalizer<T> {
 
 	public Normalizer(Class<T> genType, Date start, Date end, double minNorm, double maxNorm) {
 		this(genType, start, end, minNorm, maxNorm, Double.NaN);
-		LOGGER.warn("Normalizer: No actual center set: Changing the mean will result in the alteration of the Probability Density of the data.");
+		LOGGER.warn("Normalizer. No actual center set: Changing the mean will result in the alteration of the Probability Density of the data.");
 	}
 
 
@@ -122,6 +122,11 @@ public class Normalizer<T> {
 		SortedMap<Date, T> ret = new TreeMap<Date, T>();
 
 		SortedMap<Date, T> subD = MapUtils.subMapInclusive(data, start, end);
+		
+		if (subD.entrySet().stream().anyMatch(e -> Double.isNaN(valueOf(e.getValue())))) {
+			LOGGER.warn("NaN values found in the data to be trimmed.");
+		}
+		
 		double[] calculatedMinMax = calculateMinMax(subD);
 		double min = calculatedMinMax[0];
 		double max = calculatedMinMax[1];

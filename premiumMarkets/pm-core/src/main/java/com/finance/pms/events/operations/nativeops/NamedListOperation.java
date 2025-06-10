@@ -111,6 +111,16 @@ public class NamedListOperation extends Operation {
 	}
 	
 	@Override
+	public String toFormulaeStackResolved(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
+		int size = this.getOperands().size();
+		List<Operation> namesOps = this.getOperands().stream().limit(size/2).collect(Collectors.toList());
+		List<Operation> valuesOps = this.getOperands().stream().skip(size/2).collect(Collectors.toList());
+		return "{" + IntStream.range(0, namesOps.size())
+				.mapToObj(i -> namesOps.get(i).toFormulaeStackResolved(targetStock, parentCallStack) + ":" + valuesOps.get(i).toFormulaeStackResolved(targetStock, parentCallStack))
+				.reduce((a,e) -> a + "," + e).orElse("") + "}";
+	}
+
+	@Override
 	public String toFormulaeDevelopped() {
 		if (this.getParameter() != null) {
 			return ((StringableValue) this.getParameter()).getAsStringable();

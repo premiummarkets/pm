@@ -792,6 +792,10 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 			} else {
 				throw new RuntimeException("Parameter as formulae not supported: " + this);
 			}
+		} else if (this instanceof StringerOperation && !this.isForbidThisParameterValue()) {//FIXME StringerOperations with !this.isForbidThisParameterValue() should implement toFormulaeStackResolved
+			@SuppressWarnings("rawtypes")
+			List<? extends Value> inputs = this.getOperands().stream().map(o -> o.getParameter()).collect(Collectors.toList());
+			return ((StringableValue) this.calculate(targetStock, parentCallStack, 0, 0, inputs)).getAsStringable();
 		}
 		if (this instanceof VarGetter) {
 			@SuppressWarnings("rawtypes")
@@ -836,7 +840,7 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 						if (o instanceof LeafOperation || o instanceof ListOperation) {
 							return a + o.toFormulaeFormated(length, formulaeGenFunc) + ", ";
 						} else if (o.isUserOp()) {
-							return a + "\n" + o.getReference() + "()";
+							return a + "\n" + o.getReference() + "()" + ", ";
 						} else {
 							return a + "\n" + o.toFormulaeFormated(length, formulaeGenFunc) + ", " ;
 						}
@@ -1301,26 +1305,22 @@ public abstract class Operation implements Cloneable, Comparable<Operation> {
 		return mathingOperands;
 	}
 
-	protected int getLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack, List<Operation> operations) throws Exception {
+	public int getLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack, List<Operation> operations) {
 		if (operations.isEmpty()) return 0;
-		try {
-			Integer reduce = operations.stream()
-				.map(o -> {
-					try {
-						int rightLagAmount = 0;
-						if ((o instanceof LaggingOperation)) {
-							rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock, thisCallStack);
-						}
-						return Math.max(rightLagAmount, getLagAmount(targetStock, thisCallStack, o.getOperands()));
-					} catch (Exception e) {
-						throw new RuntimeException(e);
+		Integer reduce = operations.stream()
+			.map(o -> {
+				try {
+					int rightLagAmount = 0;
+					if ((o instanceof LaggingOperation)) {
+						rightLagAmount = ((LaggingOperation) o).rightLagAmount(targetStock, thisCallStack);
 					}
-				})
-				.reduce(0, (a, e) -> Math.max(a, e));
-			return reduce;
-		} catch (Exception e) {
-			throw new Exception(e);
-		}
+					return Math.max(rightLagAmount, getLagAmount(targetStock, thisCallStack, o.getOperands()));
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			})
+			.reduce(0, (a, e) -> Math.max(a, e));
+		return reduce;
 	}
 
 }

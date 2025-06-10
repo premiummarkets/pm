@@ -187,7 +187,7 @@ public class OperationReferenceOperation extends Operation implements LeafOperat
 	}
 
 	@Override
-	public int rightLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack) throws Exception {
+	public int rightLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack) {
 		return reccurentProceeds(
 				ov -> {
 					try {

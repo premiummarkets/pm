@@ -199,6 +199,10 @@ public class Trimmer<T> {
 				
 		double max = -Double.MAX_VALUE;
 		double min = Double.MAX_VALUE;
+		
+		if (subMap.entrySet().stream().anyMatch(e -> Double.isNaN(valueOf(e.getValue())))) {
+			LOGGER.warn("NaN values found in the data to be trimmed.");
+		}
 
 		for (Date date : subMap.keySet()) {
 			double value = valueOf(subMap.get(date));
@@ -214,7 +218,7 @@ public class Trimmer<T> {
 					e.setValue(tOf(trimmerage.trimmed(value, fMin, fMax)));
 					return e;
 				})
-				.filter(e -> !Double.isNaN(valueOf(e.getValue())))
+				//.filter(e -> !Double.isNaN(valueOf(e.getValue())))
 				.collect(Collectors.toMap(
 					e -> e.getKey(), 
 					e -> e.getValue(),
@@ -228,7 +232,7 @@ public class Trimmer<T> {
 
 		if (t instanceof Double) {
 			return (Double) t;
-		} else if (t.getClass().isArray() &&t.getClass().getComponentType().equals(Double.TYPE)){
+		} else if (t.getClass().isArray() && t.getClass().getComponentType().equals(Double.TYPE)){
 			if (((double[]) t).length > 1) {
 				//LOGGER.warn("Normalised data contains element value size > 1 is not supported. Only the first series will be normalised.");
 				throw new NotImplementedException("Normalised data contains element value size > 1 is not supported. Only the first series will be normalised.");

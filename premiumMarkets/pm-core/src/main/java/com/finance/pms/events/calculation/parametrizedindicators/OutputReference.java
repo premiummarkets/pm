@@ -58,10 +58,9 @@ public class OutputReference implements Comparable<OutputReference>, Serializabl
 	private String referenceAsOperand;
 	
 	private Boolean hasFailed = false;
-
-
 	
-	//FIXME multiOutputDiscriminator and outputSelector should two distinctive attributes
+	
+	//FIXME multiOutputDiscriminator and outputSelector should be two distinctive attributes
 	public OutputReference(TargetStockInfo targetStock, List<StackElement> thisCallStack, Operation operation, String userOperationReference, String multiOutputDiscriminator) {
 		this.operationReference = operation.getOperationReference();
 		this.reference = operation.getReference();

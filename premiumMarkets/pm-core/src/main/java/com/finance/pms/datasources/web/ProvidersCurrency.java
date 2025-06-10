@@ -48,6 +48,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.shares.StockCategories;
 import com.finance.pms.datasources.shares.StockList;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 import com.finance.pms.portfolio.PortfolioMgr;
 
 public class ProvidersCurrency extends Providers implements QuotationProvider {
@@ -95,6 +96,7 @@ public class ProvidersCurrency extends Providers implements QuotationProvider {
 							mainQuery.add(getRate());
 							mainQuery.add(Long.valueOf(0));
 							mainQuery.add(null); //split
+							mainQuery.add(ORIGIN.WEB.ordinal());
 							
 							Query iq = new Query();
 							iq.addValuesList(mainQuery);

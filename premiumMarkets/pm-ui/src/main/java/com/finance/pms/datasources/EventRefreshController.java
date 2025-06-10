@@ -173,7 +173,7 @@ public class EventRefreshController implements SelectionListener { //MouseListen
                                 eventModel.setLastQuotationFetch(currentDate);
                                 eventModel.resetLastAnalyse();
                             } catch (Throwable e) {
-                                LOGGER.warn(e,e);
+                                LOGGER.warn(e, e);
                                 exceptions.add(new QuotatationRefreshException(e));
                             }
                         }

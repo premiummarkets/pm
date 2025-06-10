@@ -14,6 +14,6 @@ public interface LaggingOperation {
 	 * @param thisCallStack TODO
 	 * @return
 	 */
-	int rightLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack) throws Exception;
+	int rightLagAmount(TargetStockInfo targetStock, List<StackElement> thisCallStack);
 
 }

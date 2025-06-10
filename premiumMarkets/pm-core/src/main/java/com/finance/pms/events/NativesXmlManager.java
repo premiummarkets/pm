@@ -106,7 +106,7 @@ import com.finance.pms.events.operations.nativeops.trans.FilterOperation;
 import com.finance.pms.events.operations.nativeops.trans.FlipOperation;
 import com.finance.pms.events.operations.nativeops.trans.InverseOperation;
 import com.finance.pms.events.operations.nativeops.trans.LeftShifterOperation;
-import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
+import com.finance.pms.events.operations.nativeops.trans.RefitterOperation;
 import com.finance.pms.events.operations.nativeops.trans.StartDateWrapperOperation;
 import com.finance.pms.events.operations.nativeops.trans.TriggerPointJoiner;
 import com.finance.pms.events.operations.nativeops.trans.TrimOperation;
@@ -241,7 +241,7 @@ public class NativesXmlManager {
 		nativeOperations.addOperation(listFilterOperation);
 		IndicatorStatsOperation indicatorStatsOperation = new IndicatorStatsOperation();
 		nativeOperations.addOperation(indicatorStatsOperation);
-		RefiterOperation refiterOperation = new RefiterOperation();
+		RefitterOperation refiterOperation = new RefitterOperation();
 		nativeOperations.addOperation(refiterOperation);
 		TriggerPointJoiner triggerPointJoiner = new TriggerPointJoiner();
 		nativeOperations.addOperation(triggerPointJoiner);

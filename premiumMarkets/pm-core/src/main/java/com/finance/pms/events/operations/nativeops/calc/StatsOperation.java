@@ -139,7 +139,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 			T t = doEval.get(subMap.lastKey());
 			if (t instanceof Double) return new double[] {(Double)t};
 			if (t instanceof double[]) return (double[]) t;
-			throw new RuntimeException();
+			throw new RuntimeException("Unsuported type for adEvaluateMd: " + t.getClass().getName());
 		}
 
 		@Override
@@ -510,7 +510,6 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 						(subMap) -> {
 							Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Zscore, TrimType.MinMax, 3.0, subMap);
 							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), trimmer.getTrimmerage(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
-							
 							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
 							return normalized;
 						},
@@ -524,7 +523,6 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 						(subMap) -> {							
 							Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Quantile, TrimType.MinMax, Double.NaN, subMap);
 							Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), trimmer.getTrimmerage(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
-							
 							SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
 							return normalized;
 						}, 
@@ -536,9 +534,7 @@ public class StatsOperation extends PMWithDataOperation implements MultiValuesOu
 								Trimmer<Double> trimmer = Trimmer.build(Double.class, FilterType.Quantile, TrimType.Remove, Double.NaN, subMap);
 								Normalizer<Double> normalizer = new Normalizer<Double>(Double.class, trimmer.getFilter(), trimmer.getTrimmerage(), subMap.firstKey(), subMap.lastKey(), -1, 1, 0);
 								SortedMap<Date, Double> normalized = normalizer.normalised(subMap);
-								
 								targetStock.addMissingData(normalizer.getRemovedKeys());
-								
 								return normalized;
 							}, 
 							Arrays.asList(outputSelector));

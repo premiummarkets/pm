@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import com.finance.pms.datasources.db.Validatable;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class DayQuoteInvestirFormater extends LineFormater {
 	
@@ -208,6 +209,7 @@ public class DayQuoteInvestirFormater extends LineFormater {
 			mainQuery.add(close);
 			mainQuery.add(volume);
 			mainQuery.add(null); //Split
+			mainQuery.add(ORIGIN.WEB.ordinal());
 			validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 		}
 	}

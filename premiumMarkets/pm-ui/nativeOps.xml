@@ -1257,22 +1257,33 @@
             <availableOutputSelectors/>
             <isVarArgs>false</isVarArgs>
         </operation>
-        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="refiterOperation">
+        <operation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="refitterOperation">
             <reference>refit</reference>
             <description>Refits the end of an operation output (prediction) to an other operation output (desired).</description>
             <operands>
                 <operand xsi:type="doubleMapOperation">
-                    <reference>refitee</reference>
-                    <referenceAsOperand>refitee</referenceAsOperand>
-                    <description>Output to be refited</description>
+                    <reference>refittee</reference>
+                    <referenceAsOperand>refittee</referenceAsOperand>
+                    <description>Output to be refitted (eg. prediction)</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
                 </operand>
-                <operand xsi:type="doubleMapOperation">
-                    <reference>refiter</reference>
-                    <referenceAsOperand>refiter</referenceAsOperand>
-                    <description>Output to refit to</description>
+                <operand xsi:type="operationReferenceOperation">
+                    <reference>operationReference</reference>
+                    <referenceAsOperand>refitter</referenceAsOperand>
+                    <description>Reference (eg. desired)</description>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="numberOperation">
+                    <reference>number</reference>
+                    <referenceAsOperand>movingPeriod</referenceAsOperand>
+                    <description>Moving period in data points.</description>
+                    <defaultValue xsi:type="numberValue">
+                        <numberValue>21.0</numberValue>
+                    </defaultValue>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>

@@ -1,7 +1,5 @@
 package com.finance.pms.events.calculation;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -11,7 +9,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
-import com.finance.pms.SpringContext;
 import com.finance.pms.admin.config.Config;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
@@ -103,19 +100,13 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 			if (eventInfoCln instanceof EventInfoOpsCompoOperation) {
 				calculator = new ParameterizedIndicatorsOperator(eventInfoCln, stock, start, end, currency, eventListName, observers);
 			} else {
-//				calculator = legacyEventDefinitionHandling(stock);
-//				try {
-//					quotations = QuotationsFactories.getFactory().getSplitFreeQuotationsInstance(stock, adjustedStart, adjustedEnd, true, currency, calculator.getStartShift(), calculator.quotationsValidity());
-//				} catch (NoQuotationsException e) {
-//					throw new RuntimeException(e);
-//				}
 				throw new RuntimeException("Not supported anymore");
 			}
 
 			//Calculation
 			SortedMap<EventKey, EventValue> calculatorEvents = calculator.calculateEventsFor(quotations, eventListName);
 
-			if (calculatorEvents != null) {//There are results or empty results
+			if (calculatorEvents != null && !calculatorEvents.isEmpty()) {//There are results or empty results
 
 				LOGGER.info("Received (calculated) " + calculatorEvents.size() + " events "
 						+ "from " + calculatorEvents.firstKey() + " to " + calculatorEvents.lastKey() + " for " + returnedSymbolEvents.getSymbol() + 
@@ -169,58 +160,6 @@ public class SelectedIndicatorsCalculationThread extends Observable implements C
 	private void emptyReturn(SymbolEvents returnedSymbolEvents) {
 		returnedSymbolEvents.addCalculationOutput(eventInfoCln, new TreeMap<>());
 		returnedSymbolEvents.addEventResultElement(new TreeMap<>(), eventInfoCln);
-	}
-
-	private IndicatorsOperator legacyEventDefinitionHandling(Stock stock) {
-		try {
-			SpringContext springContext = SpringContext.getSingleton();
-			@SuppressWarnings("unchecked")
-			Map<String, String> nativeCalcsMap = (Map<String, String>) springContext.getBean("availableSecondPassIndicatorCalculators");
-			IndicatorsOperator calculator = instanciateECC(stock, eventInfoCln, nativeCalcsMap.get(eventInfoCln.getEventDefinitionRef()), observers);
-			return calculator;
-		} catch (Throwable e) {
-			LOGGER.warn("Event definition not supported : " + eventInfoCln, e);
-			throw new RuntimeException(e);
-		}
-	}
-
-	private IndicatorsOperator instanciateECC(Stock stock, EventInfo eventInfo, String eventCompositionCalculatorStr, Observer... observers) throws Throwable {
-
-		@SuppressWarnings("unchecked")
-		Class<IndicatorsOperator> eventCompositionCalculator = (Class<IndicatorsOperator>) Class.forName(eventCompositionCalculatorStr);
-		try {
-
-			Constructor<IndicatorsOperator> constructor = eventCompositionCalculator.getConstructor(EventInfo.class, Stock.class, Date.class, Date.class, Currency.class, String.class, Observer[].class);
-			return constructor.newInstance(eventInfo, stock, startDate, endDate, stock.getMarketValuation().getCurrency(), eventListName, observers);
-
-		} catch (InvocationTargetException e) {
-			if (e.getCause() instanceof WarningException || e.getCause() instanceof NotEnoughDataException) {
-				if (e.getCause() instanceof NotEnoughDataException || (e.getCause().getCause() != null && e.getCause().getCause() instanceof NotEnoughDataException) ) {
-					LOGGER.warn("Failed calculation : Not Enough Data " + warnMessage(stock, eventInfo.toString(), startDate, endDate));
-				} else {
-					LOGGER.warn("Failed calculation : " + warnMessage(stock, eventInfo.toString(), startDate, endDate) + " cause : \n" + e.getCause());
-				}
-				if (e.getCause() != null) throw e.getCause();
-			} else if (e.getCause() instanceof ErrorException) {
-				LOGGER.error(stock + " second pass calculation error ", e);
-				if (e.getCause() != null) throw e.getCause();
-			} else {
-				LOGGER.error(
-						String.format("%s second pass calculation un handled error.\n"
-								+ "Parameters :\n"
-								+ "event def = %s, start date = %s, end date = %s, calc currency = %s, event list name = '%s'", stock, eventInfo, startDate, endDate, stock.getMarketValuation().getCurrency(), eventListName), e);
-				if (e.getCause() != null) throw e.getCause();
-			}
-			if (e.getCause() != null) throw e.getCause(); else throw e;
-		} catch (Exception e) {
-			LOGGER.error(stock+ " second pass calculation error ", e);
-			throw e;
-		}
-	}
-
-	private String warnMessage( Stock stock, String calculatorName, Date startDate, Date endDate) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return String.format("%s can't be calculated for %s between %s and %s", calculatorName, stock.getName(), simpleDateFormat.format(startDate), simpleDateFormat.format(endDate));
 	}
 
 }

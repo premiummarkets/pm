@@ -200,7 +200,7 @@ public class TargetStockInfo {
 		this.endDate = endDate;
 
 		if (stock.getLastQuote().before(startDate)) 
-			throw new RuntimeException("No enough quotations to calculate: " + stock.toString() + ", with last quote " +  stock.getLastQuote() + " and start date " + startDate);
+			throw new RuntimeException("Not enough quotations to calculate: " + stock.toString() + ", with last quote " +  stock.getLastQuote() + " and start date " + startDate);
 		this.startDate = startDate;
 
 		this.calculatedOutputsCache = new ConcurrentHashMap<>();
@@ -210,7 +210,6 @@ public class TargetStockInfo {
 		this.outputAnalysers = new HashMap<>();
 		
 	}
-	
 	
 	public TargetStockInfo(TargetStockInfo origin, EventInfoOpsCompoOperation eventInfoOpsCompoOperationHolder, Stock stock, Date startDate, Date endDate) {
 		this(origin.analysisName, eventInfoOpsCompoOperationHolder, stock, startDate, endDate);
@@ -240,7 +239,6 @@ public class TargetStockInfo {
 		}
 		
 	}
-	
 	
 	public void replaceHeap(TargetStockHeap newHeap) {
 		this.heap = newHeap;

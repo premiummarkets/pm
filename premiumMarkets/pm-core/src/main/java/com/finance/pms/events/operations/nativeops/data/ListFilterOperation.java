@@ -86,6 +86,6 @@ public class ListFilterOperation extends StringerOperation {
 
 	@Override
 	public boolean isForbidThisParameterValue() {
-		return false;
+		return true;
 	}
 }

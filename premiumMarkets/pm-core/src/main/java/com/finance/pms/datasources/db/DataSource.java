@@ -231,10 +231,10 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 
 	public Date getLastQuotationDateFromQuotations(Stock stock, Boolean ignoreUserEntries) {
 		
-		FirstNLastDate firstNLastDate = Quotations.getFirstNLastDate(stock);
-		if (!ignoreUserEntries && firstNLastDate != null && firstNLastDate.getLastDate() != null) { //No cache check if ignoreUserEntries
-			return firstNLastDate.getLastDate();
-		}
+//		FirstNLastDate firstNLastDate = Quotations.getFirstNLastDate(stock);
+//		if (!ignoreUserEntries && firstNLastDate != null && firstNLastDate.getLastDate() != null) { //No cache check if ignoreUserEntries
+//			return firstNLastDate.getLastDate();
+//		}
 
 		String originConstraint = (ignoreUserEntries)? "AND " + QUOTATIONS.ORIGIN_FIELD + " = ? ":"";
 		
@@ -1203,10 +1203,6 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		}
 	}
 
-	public int[] executeUpdateBlock(ArrayList<Validatable> qL, String preparedQuery, ArrayList<Validatable> s4UqL, String selectForUpDateQ) throws SQLException {
-		return executeBlock(qL, preparedQuery);
-	}
-
 	public void executeInsertOrUpdateQuotations(List<ValidatableDated> insertQueries, List<TableLocker> tablesLocked) throws SQLException {
 
 		MyDBConnection sdbcnx = this.getConnection(null);
@@ -1246,6 +1242,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 						
 						int idx = 5;
 						qupdate.addValue(insertParams.get(++idx));//Split
+						qupdate.addValue(insertParams.get(++idx));//Origin
 
 						qupdate.addValue(insertParams.get(++idx)); //Currency
 
@@ -1293,7 +1290,7 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 							"Insert request params:\n"+
 							printHugeCollection(remainingInserts)+"\n" +
 							"Update return was " +
-							Arrays.toString(updateRess)
+							Arrays.toString(Arrays.copyOf(updateRess, 20)) + ".."
 							, e);
 
 			throw new SQLException(e);
@@ -1354,16 +1351,17 @@ public class DataSource implements SourceConnector , ApplicationContextAware {
 		public static String getINSERT() {
 			return "INSERT INTO " + QUOTATIONS.TABLE_NAME + " ( "+ QUOTATIONS.DATE_FIELD + " , "
 					+ QUOTATIONS.DAY_OPEN_FIELD + " , " + QUOTATIONS.DAY_HIGH_FIELD + " , " + QUOTATIONS.DAY_LOW_FIELD + " , "
-					+ QUOTATIONS.DAY_CLOSE_FIELD + " , " + QUOTATIONS.DAY_VOLUME_FIELD + " , " + QUOTATIONS.SPLIT_FIELD + " , " + QUOTATIONS.CURRENCY_FIELD + " , "
-					+ QUOTATIONS.SYMBOL_FIELD + " , " + QUOTATIONS.ISIN_FIELD + " ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ QUOTATIONS.DAY_CLOSE_FIELD + " , " + QUOTATIONS.DAY_VOLUME_FIELD + " , " + QUOTATIONS.SPLIT_FIELD + " , " 
+					+ QUOTATIONS.ORIGIN_FIELD + " , " + QUOTATIONS.CURRENCY_FIELD + " , "
+					+ QUOTATIONS.SYMBOL_FIELD + " , " + QUOTATIONS.ISIN_FIELD + " ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		}
 
 		public static String getUPDATE() {
 			return "UPDATE " + QUOTATIONS.TABLE_NAME + 
 					" set " + 
 					QUOTATIONS.DAY_OPEN_FIELD + "= ? , " + QUOTATIONS.DAY_HIGH_FIELD + " =? , " + QUOTATIONS.DAY_LOW_FIELD + "=? , " + QUOTATIONS.DAY_CLOSE_FIELD + "=? , " +
-					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.SPLIT_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? , " +
-					QUOTATIONS.ORIGIN_FIELD + " = 0 " +
+					QUOTATIONS.DAY_VOLUME_FIELD + " = ? , " + QUOTATIONS.SPLIT_FIELD + " = ? , " + 
+					QUOTATIONS.ORIGIN_FIELD + " = ? , " + QUOTATIONS.CURRENCY_FIELD + " = ? " +
 					" where " + QUOTATIONS.SYMBOL_FIELD + "= ? and " + QUOTATIONS.ISIN_FIELD + "= ? and "+ QUOTATIONS.DATE_FIELD + "= ? ";
 		}
 

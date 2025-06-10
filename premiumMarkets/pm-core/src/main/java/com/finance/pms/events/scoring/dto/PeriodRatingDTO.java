@@ -30,7 +30,6 @@
 package com.finance.pms.events.scoring.dto;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -214,8 +213,7 @@ public class PeriodRatingDTO implements Serializable, IsSerializable,Comparable<
 
 	@Override
 	public String toString() {
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		return "PeriodRatingDTO [from=" + df.format(from) + ", to=" + df.format(to) + ", priceAtFrom=" + priceAtFrom + ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
+		return "PeriodRatingDTO [from=" + from + ", to=" + to + ", priceAtFrom=" + priceAtFrom + ", priceAtTo=" + priceAtTo + ", trend=" + trend + ", rating=" + rating + ", configs="+ configs + ", realised=" + realised + "]";
 	}
 	
 	public String toToolTip() {

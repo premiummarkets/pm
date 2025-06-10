@@ -202,7 +202,7 @@ public class ScreeningSupplementedStock implements Validatable {
 			ttmClose = currencyConverter.convert(stock.getMarketValuation(), stock.getMarketValuation().getCurrency(), ttmClose, ttm);
 			
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.warn("No enough quotations data for "+stock+" : "+e);
+			LOGGER.warn("Not enough quotations data for " + stock + " : " + e);
 		} catch (Exception e) {
 			LOGGER.error(e,e);
 		}

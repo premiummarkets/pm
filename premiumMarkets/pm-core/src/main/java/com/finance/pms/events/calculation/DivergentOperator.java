@@ -85,7 +85,7 @@ public abstract class DivergentOperator extends TalibIndicatorsOperator {
 
 		int oscIdx = getIndicatorIndexFromQuotationIndex(getOscillator(), quotationIdx);
 		int oscLookBackStartIdx = oscIdx - idxSpan;
-		if (lookBackStartIdx < 0 || oscLookBackStartIdx < 0) {//No enough data
+		if (lookBackStartIdx < 0 || oscLookBackStartIdx < 0) {//Not enough data
 			throw new InvalidAlgorithmParameterException(
 					"Negative look back span for " + quotationsCopy.getStock() + " and " + this.getEventDefinition() +
 							". Current date : " + res.getCurrentDate() + ", days span " + getDaysSpan() +

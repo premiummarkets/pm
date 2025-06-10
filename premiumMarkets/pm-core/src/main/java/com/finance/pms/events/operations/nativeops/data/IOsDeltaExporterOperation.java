@@ -97,13 +97,9 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		String baseFilePath = extractedFileRootPath(((StringValue) inputs.get(DELTA_FILE_IDX)).getValue(targetStock));
 		String headersPrefix = ((StringValue) inputs.get(HEADER_PREFIX_IDX)).getValue(targetStock);
 		
-		Boolean append;
-		String isAppendString = ((StringValue) inputs.get(IS_APPEND_IDX)).getValue(targetStock);
-		if	("INIT".equals(isAppendString)) {//INIT has been set. This means append was requested but failed.
+		Boolean append = Boolean.valueOf(((StringValue) inputs.get(IS_APPEND_IDX)).getValue(targetStock));
+		if	(append && (!Files.exists(Path.of(URI.create("file://" + baseFilePath))) || new File(baseFilePath).length() == 0)) {//INIT has been set. This means append was requested but failed.
 			append = false; //for this run
-			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue(Boolean.TRUE.toString()));//for the next run
-		} else {
-			append = Boolean.valueOf(isAppendString);
 		}
 		
 		try {
@@ -249,7 +245,6 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 			lagAmount = getLagAmount(targetStock, thisCallStack, getOperands());
 		} catch (Exception e) {
 			LOGGER.warn("Can't calculate the lag amount in order to append to the delta file. Will overwrite ..");
-			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("FALSE"));
 		}
 		LOGGER.info("Delta input start NaN required left shift: " + lagAmount);
 		
@@ -402,7 +397,6 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 				LOGGER.warn("Reinitialisation is " + isInit + " and previous file does not exist (or was deleted previously): " + e);
 			}
 			
-			getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("INIT"));
 			leftShiftGapDataPoints = (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
 			
 			LOGGER.info("NOT APPENDING (ie re INIT). Append was requested but is NOT POSSIBLE as the file is empty, inexistent or corrupted. " +
@@ -427,9 +421,6 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 		try {
 			if (targetStockOpt.isPresent()) {
 				TargetStockInfo targetStock = targetStockOpt.get();
-				if ((getOperands().get(IS_APPEND_IDX).getOrRunParameter(targetStock).map(v -> Boolean.valueOf(((StringValue) v).getValue(targetStock))).orElse(false))) {
-					getOperands().get(IS_APPEND_IDX).setParameter(new StringValue("INIT"));
-				}
 				getOperands().get(DELTA_FILE_IDX).getOrRunParameter(targetStock).ifPresent(rootFileValue -> {
 					try {
 						String rootFileFullPath = extractedFileRootPath(((StringValue) rootFileValue).getValue(targetStock));

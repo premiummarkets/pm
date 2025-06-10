@@ -42,6 +42,7 @@ import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.datasources.web.MyUrl;
 import com.finance.pms.events.calculation.DateFactory;
+import com.finance.pms.events.quotations.QuotationUnit.ORIGIN;
 
 public class DayQuoteHousePricesFormater extends LineFormater {
 	
@@ -92,6 +93,7 @@ public class DayQuoteHousePricesFormater extends LineFormater {
 				}
 				mainQuery.add(volume);
 				mainQuery.add(BigDecimal.ONE); //Split
+				mainQuery.add(ORIGIN.WEB.ordinal());
 				validatables.add(new DailyQuotation(mainQuery, (Stock) params.get(0), (String) params.get(1)));
 			}
 		} catch (ParseException e) {

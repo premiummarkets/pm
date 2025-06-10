@@ -159,9 +159,9 @@ public class GetQuotation extends Observable implements Callable<GetQuotationRes
 
 			}
 
-			Date lastQuoteExUsers = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, true);
+			Date lastQuoteExUsers = DataSource.getInstance().getLastQuotationDateFromQuotations(stock, stock.isOverrideUserQuotes());
 
-			if (lastQuoteExUsers.after(dateAtZero)) {//Existing data (not including user's)
+			if (lastQuoteExUsers.after(dateAtZero)) {//Existing data (not including user's if stock is OverrideUserQuotes)
 				ret.hasPreviousQuotations = true;
 			} else {//and update was successful
 				ret.hasPreviousQuotations = false;

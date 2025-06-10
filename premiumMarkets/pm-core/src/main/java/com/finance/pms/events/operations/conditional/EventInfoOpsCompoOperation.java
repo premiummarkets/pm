@@ -183,8 +183,9 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 		TunedConf tunedConfLock = hasPreviousCalculations?tunedConfOpt.get():TunedConfMgr.getInstance().saveOrUpdateUniqueNoRetuneConfig(stock, eventListName, this, isAllowOverride);
 		
 		LOGGER.info(
-				"CalculationBounds constraints: isNoOverrideDeltaOnly " + isNoOverrideDeltaOnly + 
-				" isForbidOverride " + isForbidOverride + ", isAllowOverride " + isAllowOverride);
+				"Event storage, calculationBounds constraints:"
+				+ " isKeepEvents " + isKeepEvents()
+				+ " isForbidOverride (isNoOverrideDeltaOnly) " + isForbidOverride + ", isAllowOverride " + isAllowOverride);
 		
 		synchronized (tunedConfLock) {//It is assumed this is a unique lock as handled by hibernate. ...
 			
@@ -214,13 +215,17 @@ public class EventInfoOpsCompoOperation extends EventMapOperation implements Eve
 					storedEvents = calculatorEvents;
 				}
 				
-				LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + 
-						" events from " + storedEvents.firstKey() + " to " + storedEvents.lastKey() +
-						" for " + stock.getSymbol() + " using analysis " + eventListName + " and event def " + this.getEventDefinitionRef() +
-						" and calcultation from " + start + " to " + end);
-				SymbolEvents storedSymbolEvents = new SymbolEvents(stock);
-				storedSymbolEvents.addEventResultElement(storedEvents, this);
-				EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName, this);
+				if (storedEvents.isEmpty()) {
+					LOGGER.warn("No events to store for " + stock + " in " + eventListName + " with " + this.getReference() + ". Nothing will be stored.");
+				} else {
+					LOGGER.info("Received (to be stored " + calcBounds.getCalcStatus() + ") " + storedEvents.size() + 
+							" events from " + storedEvents.firstKey() + " to " + storedEvents.lastKey() +
+							" for " + stock.getSymbol() + " using analysis " + eventListName + " and event def " + this.getEventDefinitionRef() +
+							" and calculation from " + start + " to " + end);
+					SymbolEvents storedSymbolEvents = new SymbolEvents(stock);
+					storedSymbolEvents.addEventResultElement(storedEvents, this);
+					EventsResources.getInstance().crudCreateEvents(storedSymbolEvents, eventListName, this);
+				}
 				
 				LOGGER.info("Updating tunedConf (on successful calculation): " + tunedConfLock + " with calculation bounds: " + calcBounds);
 				TunedConfMgr.getInstance().updateConf(tunedConfLock, this, calcBounds.getStoreStart(), calcBounds.getStoreEnd());

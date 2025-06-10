@@ -51,7 +51,11 @@ public class ListOperation extends Operation {
 	public String toFormulae(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
 		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulae(targetStock, parentCallStack), (a, b) -> a + b) + "]";
 	}
-	
+
+	@Override
+	public String toFormulaeStackResolved(TargetStockInfo targetStock, List<StackElement> parentCallStack) {
+		return "[" + this.getOperands().stream().reduce("", (r, e) -> r + ((r.isEmpty())?"":",") + e.toFormulaeStackResolved(targetStock, parentCallStack), (a, b) -> a + b) + "]";
+	}
 
 	@Override
 	public String toFormulaeShort(TargetStockInfo targetStock, List<StackElement> thisCallStack) {

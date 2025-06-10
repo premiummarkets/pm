@@ -47,13 +47,13 @@ import com.finance.pms.events.operations.nativeops.ta.Ta4jOperation;
 import com.finance.pms.events.operations.nativeops.ta.TalibOperation;
 import com.finance.pms.events.operations.nativeops.trans.DataTypeCheckOperation;
 import com.finance.pms.events.operations.nativeops.trans.FilterOperation;
-import com.finance.pms.events.operations.nativeops.trans.RefiterOperation;
+import com.finance.pms.events.operations.nativeops.trans.RefitterOperation;
 
 @XmlSeeAlso({
 	ArithmeticOperation.class, ArithmeticUnaryOperation.class, ConstantOperation.class,
 	PMIndicatorOperation.class, TalibOperation.class,
 	StockOperation.class,
-	LnPeriodicOperation.class, FilterOperation.class, RecursiveOperation.class, RefiterOperation.class, DataTypeCheckOperation.class,
+	LnPeriodicOperation.class, FilterOperation.class, RecursiveOperation.class, RefitterOperation.class, DataTypeCheckOperation.class,
 	Ta4jOperation.class
 	})
 public class DoubleMapOperation extends MapOperation {
