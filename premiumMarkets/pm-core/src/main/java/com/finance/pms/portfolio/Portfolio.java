@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -50,7 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -562,8 +562,8 @@ public class Portfolio extends AbstractSharesList {
 		//Update sliding start date
 		ZoneId osZoneId = ZoneId.systemDefault();
 		// Convert java.util.Date to ZonedDateTime
-		ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(buyDate.toInstant(), osZoneId);
-		ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(sellDate.toInstant(), osZoneId);
+		ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(buyDate.getTime()), osZoneId);
+		ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(sellDate.getTime()), osZoneId);
 		double nbDays = ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
 
 		double annualReturn = Math.pow(1 + trGain.doubleValue(), 365d/nbDays) - 1;
