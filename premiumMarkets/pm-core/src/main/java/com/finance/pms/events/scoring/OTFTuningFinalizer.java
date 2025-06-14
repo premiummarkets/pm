@@ -136,7 +136,8 @@ public class OTFTuningFinalizer {
 					throws NotEnoughDataException {
 
 		SortedMap<Date, ? extends Number> boundedQMap = MapUtils.subMapInclusive(qMap, startDate, endDate);		
-		Collection<EventValue> boundedEvents = generatedEvents.stream().filter(ev -> ev.getDate().compareTo(startDate) >= 0 && ev.getDate().compareTo(endDate) <= 0).collect(Collectors.toList());
+		Collection<EventValue> boundedEvents = generatedEvents.stream()
+				.filter(ev -> ev.getDate().compareTo(startDate) >= 0 && ev.getDate().compareTo(endDate) <= 0).collect(Collectors.toList());
 
 		List<PeriodRatingDTO> periods = new ArrayList<PeriodRatingDTO>();
 		PeriodRatingDTO period = null;

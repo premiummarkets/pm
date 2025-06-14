@@ -165,6 +165,10 @@ public class TuningResDTO implements Serializable, IsSerializable {
 	public String getLastTrend() {
 		return (periods.isEmpty())?"NONE":periods.get(periods.size()-1).getTrend(); //We can't use Enumerations in a DTO
 	}
+	
+	public PeriodRatingDTO getLastPeriod() {
+		return (periods.isEmpty())?null:periods.get(periods.size()-1);
+	}
 
 	public String getConfigRatingFile() {
 		return configRatingFile;
@@ -423,6 +427,14 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		}
 		if (currentPeriod == null || !(currentPeriod.getTo().compareTo(periodToDate) == 0)) return Double.NaN;
 		return currentPeriod.getPriceAtTo()/calculationStartPrice -1;
+	}
+
+	public Double getCalculationStartPrice() {
+		return calculationStartPrice;
+	}
+
+	public Double getCalculationEndPrice() {
+		return calculationEndPrice;
 	}
 
 }

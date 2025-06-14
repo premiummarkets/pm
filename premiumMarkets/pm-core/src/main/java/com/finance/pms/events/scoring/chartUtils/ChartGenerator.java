@@ -249,7 +249,7 @@ public class ChartGenerator {
 
 
 	private void exportPNG(OutputStream out, JFreeChart chart) throws IOException {
-		ChartUtilities.writeChartAsPNG(out, chart, 700, 800);
+		ChartUtilities.writeChartAsPNG(out, chart, 1400, 1600);
 
 	}
 
