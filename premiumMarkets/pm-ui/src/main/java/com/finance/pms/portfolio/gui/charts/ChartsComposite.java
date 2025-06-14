@@ -1142,7 +1142,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 		Integer perCentValue = sliderValue*100 / (MAX_SLIDER_SELECTION - MIN_SLIDER_SELECTION); //int [0,100]
 
 		//Update sliding start date
-		Long diffDateInDays = (maxDate.getTime() - minDate.getTime())/(1000*3600*24);
+		java.time.ZoneId osZoneId = java.time.ZoneId.systemDefault();
+		// Convert java.util.Date to ZonedDateTime
+		java.time.ZonedDateTime startZonedDateTime = java.time.ZonedDateTime.ofInstant(minDate.toInstant(), osZoneId);
+		java.time.ZonedDateTime endZonedDateTime = java.time.ZonedDateTime.ofInstant(maxDate.toInstant(), osZoneId);
+		Long diffDateInDays = java.time.temporal.ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+
 		Long nbDaySinceMin  = perCentValue * diffDateInDays /100;
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(minDate);
@@ -1188,7 +1193,12 @@ public class ChartsComposite extends SashForm implements RefreshableView {
 
 		Integer perCentValue = sliderValue*100 / (MAX_SLIDER_SELECTION - MIN_SLIDER_SELECTION); //int [0-100]
 
-		Long diffDate = (maxDate.getTime() - minDate.getTime())/(1000*3600*24);
+		java.time.ZoneId osZoneId = java.time.ZoneId.systemDefault();
+		// Convert java.util.Date to ZonedDateTime
+		java.time.ZonedDateTime startZonedDateTime = java.time.ZonedDateTime.ofInstant(minDate.toInstant(), osZoneId);
+		java.time.ZonedDateTime endZonedDateTime = java.time.ZonedDateTime.ofInstant(maxDate.toInstant(), osZoneId);
+		Long diffDate = java.time.temporal.ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+
 		Long nbDaySinceMin  = perCentValue * diffDate /100;
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(minDate);

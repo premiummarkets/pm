@@ -29,6 +29,9 @@
  */
 package com.finance.pms.events.quotations;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -212,8 +215,14 @@ public class ClosedDayQuotationsFactory implements QuotationsFactory {
 	 * If firstDate > secondDate, a negative value is returned
 	 */
 	public int nbOpenIncrementBetween(Double dataPointFactor, Date firstDate, Date secondDate) {
-		long intervalMilli = secondDate.getTime() - firstDate.getTime();
-		long intervalDays = intervalMilli / DateFactory.DAYINMILLI;
+
+		//Update sliding start date
+		ZoneId osZoneId = ZoneId.systemDefault();
+		// Convert java.util.Date to ZonedDateTime
+		ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(firstDate.toInstant(), osZoneId);
+		ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(secondDate.toInstant(), osZoneId);
+		long intervalDays = (int) ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+
 		if (-1 < intervalDays && intervalDays < 1) return 0; //first date is less then 1 day after or before second date
 		if (-2 < intervalDays && intervalDays < 2) return (int) (1*Math.signum(intervalDays)); //first date is less then 2 days after or before second date
 

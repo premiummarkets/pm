@@ -1,5 +1,8 @@
 package com.finance.pms.events.operations.nativeops.trans;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,7 +44,14 @@ public class StartDateWrapperOperation extends Operation {
 	public int operandsRequiredStartShift(TargetStockInfo targetStock, List<StackElement> thisCallStack, int thisParentStartShift) {
 		Double addedShift = ((NumberValue) getOperands().get(0).getOrRunParameter(targetStock, thisCallStack).orElse(new NumberValue(0.0))).getValue(targetStock).doubleValue();
 		if (Double.isNaN(addedShift)) {
-			return (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
+			
+			//Update sliding start date
+			ZoneId osZoneId = ZoneId.systemDefault();
+			// Convert java.util.Date to ZonedDateTime
+			ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(DateFactory.dateAtZero().toInstant(), osZoneId);
+			ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(DateFactory.midnithDate(new Date()).toInstant(), osZoneId);
+			int diffInDays = (int) ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+			return diffInDays;
 		} else {
 			return addedShift.intValue();
 		}

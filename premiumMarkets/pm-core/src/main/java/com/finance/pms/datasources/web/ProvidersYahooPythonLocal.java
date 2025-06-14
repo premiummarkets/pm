@@ -12,6 +12,9 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -89,7 +92,12 @@ public class ProvidersYahooPythonLocal extends ProvidersYahooPython {
 			return "NotDefined";
 		}
 		
-		long diffInDays = TimeUnit.DAYS.convert(start.getTime() - end.getTime(), TimeUnit.MILLISECONDS);
+		ZoneId osZoneId = ZoneId.systemDefault();
+		// Convert java.util.Date to ZonedDateTime
+		ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(start.toInstant(), osZoneId);
+		ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(end.toInstant(), osZoneId);
+		Long diffInDays = ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+
 		//Valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
 	    String period = "1d";
 		if (diffInDays <= 1) {

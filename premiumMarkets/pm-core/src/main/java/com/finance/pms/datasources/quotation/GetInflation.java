@@ -2,6 +2,9 @@ package com.finance.pms.datasources.quotation;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -73,8 +76,16 @@ public class GetInflation {
 		BigDecimal inflationAtSecond = secondQs.getCloseSplit();
 		BigDecimal knowQsInflationRate = inflationAtSecond.subtract(inflationAtFirst).divide(inflationAtFirst, 10, RoundingMode.HALF_EVEN);
 
-		long knownQsSpan = TimeUnit.DAYS.convert(secondQs.getDate().getTime() - firstQs.getDate().getTime(), TimeUnit.MILLISECONDS);
-		long requestedDatesSpan = TimeUnit.DAYS.convert(secondDate.getTime() - firstDate.getTime(), TimeUnit.MILLISECONDS);
+		//Update sliding start date
+		ZoneId osZoneId = ZoneId.systemDefault();
+		// Convert java.util.Date to ZonedDateTime
+		ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(firstQs.getDate().toInstant(), osZoneId);
+		ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(secondQs.getDate().toInstant(), osZoneId);
+		Long knownQsSpan = ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+		
+		startZonedDateTime = ZonedDateTime.ofInstant(firstDate.toInstant(), osZoneId);
+		endZonedDateTime = ZonedDateTime.ofInstant(secondDate.toInstant(), osZoneId);
+		Long requestedDatesSpan = ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
 
 		double inflationRate =  knowQsInflationRate.doubleValue() * ( (double)requestedDatesSpan/ (double)knownQsSpan );
 

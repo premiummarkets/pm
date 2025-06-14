@@ -35,6 +35,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.InvalidAlgorithmParameterException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -555,7 +558,14 @@ public class Portfolio extends AbstractSharesList {
 		BigDecimal buyPrice = prevBuyTr.getPrice();
 		Date buyDate = prevBuyTr.getDate();
 		BigDecimal trGain = sellPrice.subtract(buyPrice).divide(buyPrice, 10, RoundingMode.HALF_EVEN);
-		double nbDays = TimeUnit.DAYS.convert(sellDate.getTime() - buyDate.getTime(), TimeUnit.MILLISECONDS);
+		
+		//Update sliding start date
+		ZoneId osZoneId = ZoneId.systemDefault();
+		// Convert java.util.Date to ZonedDateTime
+		ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(buyDate.toInstant(), osZoneId);
+		ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(sellDate.toInstant(), osZoneId);
+		double nbDays = ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+
 		double annualReturn = Math.pow(1 + trGain.doubleValue(), 365d/nbDays) - 1;
 		if (Double.isNaN(annualReturn) || Double.isInfinite(annualReturn)) {
 			LOGGER.warn("Math.pow(1 + trGain.doubleValue(), 365d/nbDays) - 1 returned " + annualReturn + " for trGain " + trGain + " and nbDays " + nbDays + ". "

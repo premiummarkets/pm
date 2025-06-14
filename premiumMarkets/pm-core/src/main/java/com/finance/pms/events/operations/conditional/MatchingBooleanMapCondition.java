@@ -30,6 +30,9 @@
 package com.finance.pms.events.operations.conditional;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -260,6 +263,8 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 	@SuppressWarnings("unchecked")
 	protected Boolean applyCriteria(List<ComparableSortedMap<Date, Double>> _Matching, Comparable... constNHeadMapsCmp) {
 
+		ZoneId osZoneId = ZoneId.systemDefault();
+		
 		int firstTailMapIdx = 2;
 		Double matchEndAlpha = (Double) constNHeadMapsCmp[0];
 		Double matchLengthAlpha = (Double) constNHeadMapsCmp[1];
@@ -272,7 +277,10 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 					ArrayList<ComparableSortedMap<Date, Double>> refMatching = new ArrayList<>();
 					refMatching.add(refRightMostAddOutput);
 					Date refLeftMost = refRightMostAddOutput.firstKey();
-					Double refLength = Double.valueOf(refRightMost.getTime() - refLeftMost.getTime());
+					ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(refLeftMost.toInstant(), osZoneId);
+					ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(refRightMost.toInstant(), osZoneId);
+					Long refDiffInDays = ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
+					Double refLength = Double.valueOf(refDiffInDays);
 					for(int i = firstTailMapIdx +1; i < constNHeadMapsCmp.length-1; i++) { //Challengers Iteration: From after the reference Map Up to the return parameter.
 						SortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>> chalMap = (SortedMap<Date, ComparableArray<ComparableSortedMap<Date, Double>>>) constNHeadMapsCmp[i];
 						ListIterator<Date> chalIter = new ArrayList<>(chalMap.keySet()).listIterator(chalMap.size());
@@ -283,9 +291,13 @@ public class MatchingBooleanMapCondition extends DiscreteLinearOutputsCondition 
 							Boolean goneTooFarLeft = comparableArray.stream()
 									.map(rightMostAddOutput -> {
 										Date chalLeftMost = rightMostAddOutput.firstKey();
-										Double chalLength = Double.valueOf(chalRightMost.getTime() - chalLeftMost.getTime());
+										ZonedDateTime chalStartZonedDateTime = ZonedDateTime.ofInstant(chalLeftMost.toInstant(), osZoneId);
+										ZonedDateTime chalEndZonedDateTime = ZonedDateTime.ofInstant(chalRightMost.toInstant(), osZoneId);
+										Long chalLengthInDays = ChronoUnit.DAYS.between(chalStartZonedDateTime, chalEndZonedDateTime);
+										Double chalLength = Double.valueOf(chalLengthInDays);
 										double maxLength = Math.max(Math.abs(chalLength), Math.abs(refLength));
-										Boolean okRight = Double.valueOf(refRightMost.getTime() - chalRightMost.getTime())/maxLength < matchEndAlpha;
+										Long okLengthInDays = ChronoUnit.DAYS.between(chalEndZonedDateTime, endZonedDateTime);
+										Boolean okRight = Double.valueOf(okLengthInDays)/maxLength < matchEndAlpha;
 										if (okRight) {
 											Boolean okLength = Math.abs(refLength - chalLength)/maxLength < matchLengthAlpha;
 											if (okLength) {

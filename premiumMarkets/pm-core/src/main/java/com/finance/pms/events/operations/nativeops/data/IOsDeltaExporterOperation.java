@@ -12,6 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -23,7 +26,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -397,7 +399,12 @@ public class IOsDeltaExporterOperation extends FileExporter implements CachableO
 				LOGGER.warn("Reinitialisation is " + isInit + " and previous file does not exist (or was deleted previously): " + e);
 			}
 			
-			leftShiftGapDataPoints = (int) TimeUnit.DAYS.convert(DateFactory.midnithDate(new Date()).getTime() - DateFactory.dateAtZero().getTime(), TimeUnit.MILLISECONDS);
+			//Update sliding start date
+			ZoneId osZoneId = ZoneId.systemDefault();
+			// Convert java.util.Date to ZonedDateTime
+			ZonedDateTime startZonedDateTime = ZonedDateTime.ofInstant(DateFactory.dateAtZero().toInstant(), osZoneId);
+			ZonedDateTime endZonedDateTime = ZonedDateTime.ofInstant(DateFactory.midnithDate(new Date()).toInstant(), osZoneId);
+			leftShiftGapDataPoints = (int) ChronoUnit.DAYS.between(startZonedDateTime, endZonedDateTime);
 			
 			LOGGER.info("NOT APPENDING (ie re INIT). Append was requested but is NOT POSSIBLE as the file is empty, inexistent or corrupted. " +
 					"Using " + baseFilePath + ". " +
