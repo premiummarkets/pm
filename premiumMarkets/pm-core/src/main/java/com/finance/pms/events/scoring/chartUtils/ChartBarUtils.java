@@ -29,7 +29,6 @@
  */
 package com.finance.pms.events.scoring.chartUtils;
 
-import java.awt.Color;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -60,15 +59,13 @@ public class ChartBarUtils {
 	public static SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> buildBarsData(
 			Stock selectedShare, Set<EventInfo> chartedEvtDefsTrends,
 			Date start, Date end, SymbolEvents eventsForStock, Map<EventInfo, TuningResDTO> tuningRess,
-			BarSettings barSettings) {
+			BarSettings barSettings, DataSetBarDescrBuilder dataSetBarDescrBuilder, double yValueFactor) {
 
 		SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barData = new TreeMap<DataSetBarDescr, SortedMap<Date, BarChart>>();
 
 		try {
-
-			double yValueFactor = 1d;
 			int chartedTrendsEvtDefsSize = chartedEvtDefsTrends.size();
-			int serieIdx = chartedTrendsEvtDefsSize*3;
+			int serieIdx = chartedTrendsEvtDefsSize * 3;
 
 			for (EventInfo eventInfo : chartedEvtDefsTrends) {
 
@@ -85,17 +82,17 @@ public class ChartBarUtils {
 
 					if (eventKey.getEventInfo().equals(eventInfo)) {
 						if (prevEventValue != null) {
-
+							
 							Date currEvtDate = eventKey.getDate();
+							if (barSettings.isToQuotations()) yValueFactor = quotations.getClosestCloseForDate(currEvtDate).doubleValue();
 							if (eventInfo.getIsContinous()) {
 								k = cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, quotationsKeySet, k, prevEventValue, currEvtDate, 1);
 							} else {
-								//LOGGER.info("prevEventValue: " + prevEventValue.getDate() + " currEvtDate: " + currEvtDate + " quotationsKeySet: " + quotationsKeySet[k]);
 								k = cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, quotationsKeySet, k, prevEventValue, currEvtDate, barSettings.getMaxFill());
 							}
 							prevEventValue = sortedDataResultMap.get(eventKey);
 
-						} else {
+						} else {//Initialise the quotations on the first iteration
 							
 							prevEventValue = sortedDataResultMap.get(eventKey);
 							quotations = QuotationsFactories.getFactory()
@@ -119,41 +116,24 @@ public class ChartBarUtils {
 				int alpha = 255 / Math.max(1,(int) Math.ceil(barSettings.getAlphaDividend()*gradiant));
 				TuningResDTO tuningResDTO = tuningRess.get(eventInfo);
 
-				DataSetBarDescr buyKey = 
-						new DataSetBarDescr(
-								serieIdx, 
-								eventInfo.info()+" buy", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-								//0, new java.awt.Color(189,249,189, alpha), 10f);
-								//0, new java.awt.Color(0,255,0, alpha), 10f);
-								0, new java.awt.Color(0,255,100, alpha), 10f);
-				DataSetBarDescr sellKey = 
-						new DataSetBarDescr(
-								serieIdx-1, 
-								eventInfo.info()+" sell", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-								//0, new java.awt.Color(246,173,173, alpha), 10f);
-								//0, new java.awt.Color(255,0,0, alpha), 10f);
-								0, new java.awt.Color(240,72,20, alpha), 10f);
-				DataSetBarDescr indeterKey = 
-						new DataSetBarDescr(
-								serieIdx-2, 
-								eventInfo.info()+" indeterministic", eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO, selectedShare.getFriendlyName(),
-								0, new java.awt.Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), alpha), 10f);
-
+				DataSetBarDescr buyKey = dataSetBarDescrBuilder.buildBuyDSBarDescr(serieIdx, alpha, eventInfo, selectedShare, tuningResDTO);
+				DataSetBarDescr sellKey = dataSetBarDescrBuilder.buildSellDSBarDescr(serieIdx, alpha, eventInfo, selectedShare, tuningResDTO);
+				DataSetBarDescr indeterKey = dataSetBarDescrBuilder.buildIndeterDSBarDescr(serieIdx, alpha, eventInfo, selectedShare, tuningResDTO);
 
 				if (!buyS.isEmpty()) {
 					buyKey.setLabeled(true);
 				} else if (!sellS.isEmpty()) {
 					sellKey.setLabeled(true);
-				} else if (!indeterS.isEmpty()) {
+				} else if (!indeterS.isEmpty() && indeterKey != null) {
 					indeterKey.setLabeled(true);
 				}
 
 				barData.put(buyKey, buyS.tailMap(start));
 				barData.put(sellKey, sellS.tailMap(start));
-				barData.put(indeterKey, indeterS.tailMap(start));
+				if (indeterKey != null) barData.put(indeterKey, indeterS.tailMap(start));
 
-				if (!barSettings.getIsReachTop()) {
-					yValueFactor = yValueFactor - 1d/chartedTrendsEvtDefsSize;
+				if (!barSettings.getIsReachTop() && !barSettings.isToQuotations()) {
+					yValueFactor = yValueFactor - (1d/chartedTrendsEvtDefsSize);
 				}
 
 				serieIdx = serieIdx - 3;

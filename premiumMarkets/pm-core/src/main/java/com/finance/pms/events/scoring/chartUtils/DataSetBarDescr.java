@@ -50,32 +50,21 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 
 	private String eventDisplayeDef;
 	private EventDefDescriptor eventDefDescriptor;
-	private double base;
 
 	//Ui bar chart
-	public DataSetBarDescr(Integer id, String serieName, String eventDisplayeDef, EventDefDescriptor eventDefDescriptor, TuningResDTO tuningRes, String stockDescr, double base, Color serieColor, float serieStrokeSize){
+	public DataSetBarDescr(Integer id, String serieName, Color serieColor, float serieStrokeSize,
+							String stockDescr, String eventDisplayeDef, EventDefDescriptor eventDefDescriptor, TuningResDTO tuningRes) {
 		super();
 		this.id = id;
 		this.serieName = serieName;
 		this.serieColor = serieColor;
 		this.serieStrokeSize = serieStrokeSize;
 		this.stockDescr = stockDescr;
+		
 		this.tuningRes = tuningRes;
 		this.eventDisplayeDef = eventDisplayeDef;
 		this.eventDefDescriptor = eventDefDescriptor;
-		this.base = base;
 
-	}
-
-	//PmGWT out chart
-	public DataSetBarDescr(int id, String serieName, Color serieColor, float serieStrokeSize) {
-		super();
-		this.id = id;
-		this.serieName = serieName;
-		this.serieColor = serieColor;
-		this.serieStrokeSize = serieStrokeSize;
-		this.stockDescr = serieName;
-		this.base = 0;
 
 	}
 
@@ -87,8 +76,6 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		this.serieColor = serieColor;
 		this.serieStrokeSize = 1f;
 		this.stockDescr = serieName;
-		this.base = 0;
-
 	}
 
 	@Override
@@ -198,10 +185,6 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 
 	public EventDefDescriptor getEventDefDescriptor() {
 		return eventDefDescriptor;
-	}
-
-	public double getBase() {
-		return base;
 	}
 
 	public TuningResDTO getTuningRes() {

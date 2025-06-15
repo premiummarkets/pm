@@ -94,8 +94,8 @@ public class ChartGenerator {
 
 	public void generateChartPNGFor(
 			OutputStream out, EventInfo chartedEvtDef, Map<EventInfo, SortedMap<Date, double[]>> lineSeries, 
-			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, 
-			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries, boolean includeWeekends) throws IOException {
+			SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barRefSeries, 
+			boolean includeWeekends) throws IOException {
 		
 		JFreeChart generatedChart = this.generateChart(chartedEvtDef, lineSeries, barPredSeries, barRefSeries, includeWeekends);
 		this.exportPNG(out, generatedChart);
@@ -104,16 +104,16 @@ public class ChartGenerator {
 
 	private JFreeChart generateChart(
 			EventInfo chartedEvtDef, Map<EventInfo, SortedMap<Date, double[]>> eventsLinesSeries,
-			SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, Double>> barRefSeries, 
+			SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barPredSeries, SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barRefSeries, 
 			boolean includeWeekends) {
 
 		DateAxis hAxis = new DateAxis();
 		
 		if (includeWeekends) {
-			LOGGER.info("Including weekends - continous quotations.");
+			LOGGER.info("Including weekends - continuous quotations.");
 			hAxis.setTimeline(new SegmentedTimeline(SegmentedTimeline.DAY_SEGMENT_SIZE,7,0));
 		} else {
-			LOGGER.info("Skiping weekends.");
+			LOGGER.info("Skipping weekends.");
 			hAxis.setTimeline(SegmentedTimeline.newMondayThroughFridayTimeline());
 		}
 		
@@ -220,7 +220,7 @@ public class ChartGenerator {
 		return jFreeChart;
 	}
 
-	private TimeSeriesCollection buildBarDataSet(SortedMap<DataSetBarDescr, SortedMap<Date,Double>> series, AbstractXYItemRenderer renderer) {
+	private TimeSeriesCollection buildBarDataSet(SortedMap<DataSetBarDescr, SortedMap<Date,BarChart>> series, AbstractXYItemRenderer renderer) {
 
 		TimeSeriesCollection dataset = new TimeSeriesCollection();
 		int seriesIdx = 0;
@@ -228,10 +228,10 @@ public class ChartGenerator {
 
 			TimeSeries timeSerie = new TimeSeries(serieDef.getSerieName());
 
-			SortedMap<Date, Double> serie = series.get(serieDef);
+			SortedMap<Date, BarChart> serie = series.get(serieDef);
 			for (Date date : serie.keySet()) {
 				RegularTimePeriod period = new Day(date);
-				Number value = serie.get(date);
+				Number value = serie.get(date).getValue();
 				TimeSeriesDataItem item = new TimeSeriesDataItem(period, value);
 				timeSerie.add(item, false);
 			}
@@ -249,7 +249,7 @@ public class ChartGenerator {
 
 
 	private void exportPNG(OutputStream out, JFreeChart chart) throws IOException {
-		ChartUtilities.writeChartAsPNG(out, chart, 1400, 1600);
+		ChartUtilities.writeChartAsPNG(out, chart, 1600, 1600);
 
 	}
 

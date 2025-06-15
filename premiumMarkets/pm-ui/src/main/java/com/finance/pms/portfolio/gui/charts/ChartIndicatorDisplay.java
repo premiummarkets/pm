@@ -96,6 +96,7 @@ import com.finance.pms.events.scoring.chartUtils.BarChart;
 import com.finance.pms.events.scoring.chartUtils.BarSettings;
 import com.finance.pms.events.scoring.chartUtils.ChartBarUtils;
 import com.finance.pms.events.scoring.chartUtils.DataSetBarDescr;
+import com.finance.pms.events.scoring.chartUtils.DataSetBarDescrBuilder;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 import com.finance.pms.portfolio.gui.ActionDialogForm;
 import com.finance.pms.portfolio.gui.SlidingPortfolioShare;
@@ -455,7 +456,8 @@ public class ChartIndicatorDisplay extends ChartDisplayStrategy {
 								SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barsData = ChartBarUtils
 										.buildBarsData(
 												selectedShare, chartTarget.getChartedEvtDefsTrends(), chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), 
-												ses, tuningRessCache, trendSettings);
+												ses, tuningRessCache, 
+												trendSettings, new DataSetBarDescrBuilder(), 1d);
 								chartTarget.getMainChartWraper().updateBarDataSet(
 										selectedShare, chartTarget.getSlidingStartDate(), chartTarget.getSlidingEndDate(), trendSettings.getAutoSetTimeLine(),
 										barsData, chartTarget.getHighligtedId(), trendSettings, chartTarget.getPlotChartDimensions());

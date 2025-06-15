@@ -216,7 +216,7 @@ public class BarSettingsDialog {
 			sideBySide.setText("Display side by side");
 			sideBySide.setToolTipText(
 					"Trends are displayed side by side. From top to bottom, each trend bar width is divided as per trendBarWidth/nbTrends and shifted by trendId*(trendBarWidth/nbTrends)\n" +
-					"The event validity days span (nominal width of a trend bar) should be set bigger then the total number of trend indicators dispalyed.");
+					"The event validity days span (nominal width of a trend bar) should be set bigger then the total number of trend indicators displayed.");
 			sideBySide.addSelectionListener(new SelectionListener() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -316,7 +316,7 @@ public class BarSettingsDialog {
 			autoSetTimeLine.setBackground(MainGui.pOPUP_BG);
 			autoSetTimeLine.setFont(MainGui.DEFAULTFONT);
 			autoSetTimeLine.setText("Auto adjust timeline");
-			autoSetTimeLine.setToolTipText("The timeline can autoadjust by skiping weekends if the bar chart data set does not provided data over the weekend.");
+			autoSetTimeLine.setToolTipText("The timeline can be auto adjusted by skipping weekends if the bar chart data set does not provided data over the weekend.");
 			autoSetTimeLine.addSelectionListener(new SelectionListener() {
 
 				@Override

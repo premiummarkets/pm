@@ -431,7 +431,7 @@ public class ChartMain extends Chart {
 
 							double width = bar.getWidth();
 							double height = bar.getHeight();
-							double x = bar.getX() - width/2; //Shift to the left half width to put the end day in the middle or the bar
+							double x = bar.getX() - width/2; //Shift to the left half width to put the end day in the middle of the bar
 							double y = bar.getY();
 
 							if (barSettings.getSideBySide()) {

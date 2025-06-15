@@ -42,6 +42,7 @@ public class BarSettings {
 	private Boolean isGradient;
 	private Boolean sideBySide;
 	private Boolean isReachTop;
+	private Boolean isToQuotations;
 	private Boolean autoSetTimeLine;
 
 	
@@ -54,6 +55,7 @@ public class BarSettings {
 		this.isGradient = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isGradient", "false"));
 		this.sideBySide  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.isSideBySide", "false")); //TODO?? => calculate some kind of density
 		this.autoSetTimeLine  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.autoSetTimeLine", "false"));
+		this.isToQuotations  = Boolean.valueOf(MainPMScmd.getMyPrefs().get("chart.toQuotations", "false"));
 	}
 	
 	public Double getAlphaDividend() {
@@ -139,6 +141,14 @@ public class BarSettings {
 			e.printStackTrace();
 		}
 		this.autoSetTimeLine = autoSetTimeLine;
+	}
+
+	public Boolean isToQuotations() {
+		return isToQuotations;
+	}
+
+	public void setIsToQuotations(Boolean toQuotations) {
+		this.isToQuotations = toQuotations;
 	}
 
 }
