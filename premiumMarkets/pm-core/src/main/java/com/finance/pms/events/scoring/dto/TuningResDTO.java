@@ -48,6 +48,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 
 	private String csvLink;
 	private String chartLink;
+	private Date chartStartDate;
 
 	private String configRatingFile;
 	private String footNote;
@@ -63,6 +64,7 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		periods = new ArrayList<PeriodRatingDTO>();
 		csvLink = "NA";
 		chartLink = "NA";
+		chartStartDate = null;
 
 		configRatingFile = "";
 		footNote = "";
@@ -74,7 +76,9 @@ public class TuningResDTO implements Serializable, IsSerializable {
 
 	}
 
-	public TuningResDTO(List<PeriodRatingDTO> periods, String csvLink, String chartLink, Double startPrice, Double endPrice, Date calculatedStart, Date calculatedEnd) {
+	public TuningResDTO(List<PeriodRatingDTO> periods, 
+			String csvLink, String chartLink, 
+			Double startPrice, Double endPrice, Date calculatedStart, Date calculatedEnd) {
 		super();
 		this.calculationStart = calculatedStart;
 		this.calculationStartPrice = startPrice;
@@ -222,8 +226,13 @@ public class TuningResDTO implements Serializable, IsSerializable {
 		return chartLink;
 	}
 
-	public void setChartLink(String chartLink) {
+	public void setChartLink(String chartLink, Date chartStartDate) {
 		this.chartLink = chartLink;
+		this.chartStartDate = chartStartDate;
+	}
+	
+	public Date getChartStartDate() {
+		return chartStartDate;
 	}
 
 	/**

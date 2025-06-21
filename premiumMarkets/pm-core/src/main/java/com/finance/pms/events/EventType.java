@@ -39,23 +39,27 @@ import java.io.Serializable;
  */
 public enum EventType implements Serializable {
 
-	BEARISH("bearish", -1, 's'),
-	NONE("neutral", 0, 'n'),
-	BULLISH("bullish", 1, 'b'),
-	INFO("info", 3, 'i');
+	BEARISH("bearish", -1, 's', 2),
+	NONE("neutral", 0, 'n', 1),
+	BULLISH("bullish", 1, 'b', 3),
+	INFO("info", 3, 'i', 0);
 
 	//Mas
 	//public static final char[] eventTypes = {'b','s','n','o'}; 
 	//"b": buy signal; "s": sell signal; "n": neutral signal; "o": other
+	
+	public static final int SIGNIFICANT_LN = EventType.values().length - 1; // -1 for INFO event type;
 
 	private final String eventType;
 	private final Integer eventTypeIndex;
 	private final Character eventTypeChar;
+	private final int chartPos;
 
-	private EventType(String arg0, Integer arg1, Character arg2) {
-		eventType = arg0;
-		eventTypeIndex = arg1;
-		eventTypeChar = arg2;
+	private EventType(String eventType, Integer eventTypeIndex, Character eventTypeChar, int chartPos) {
+		this.eventType = eventType;
+		this.eventTypeIndex = eventTypeIndex;
+		this.eventTypeChar = eventTypeChar;
+		this.chartPos = chartPos;
 	}
 
 	public static EventType valueOf(Integer ordinal){
@@ -82,6 +86,10 @@ public enum EventType implements Serializable {
 
 	public Integer getEventTypeIndex() {
 		return eventTypeIndex;
+	}
+	
+	public int getChartPos() {
+		return chartPos;
 	}
 
 	public static Boolean consistencyCheck() {

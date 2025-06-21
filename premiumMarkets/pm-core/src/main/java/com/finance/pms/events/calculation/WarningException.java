@@ -29,9 +29,22 @@
  */
 package com.finance.pms.events.calculation;
 
+import java.util.Optional;
+
 public class WarningException extends Exception {
 
 	private static final long serialVersionUID = -2416461139672244537L;
+	
+	public static Optional<Throwable> hasSpecificCause(Throwable throwable, Class<? extends Throwable> targetCause) {
+	    while (throwable != null) {
+	        if (throwable.getClass().equals(targetCause)) {
+	            return Optional.of((Exception) throwable);
+	        }
+	        throwable = throwable.getCause();
+	        hasSpecificCause(throwable, targetCause);
+	    }
+	    return Optional.empty();
+	}
 
 	public WarningException() {
 		super();

@@ -531,13 +531,13 @@ public class ChartMain extends Chart {
 									
 									barTip = barSerie.get(date).getToolTip();
 									String[] barToolTipSplit = barSerie.get(date).getToolTip().split("\n");
-									switch (serieDef.getId() % 3) {
-									case 0:
+									switch (serieDef.getId() % EventType.SIGNIFICANT_LN) {  //It is assumed 3 possible event types per EventDef: NONE, BEARISH, BULLISH in this order
+									case 0: //EventType.BULLISH.getChartPos() % EventType.SIGNIFICANT_LN
 										type = EventType.BULLISH;
 										desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
 										if (barToolTipSplit.length == 2) barTip = barToolTipSplit[0]; //bull:
 										break;
-									case 2:
+									case 2: //EventType.BEARISH.getChartPos() % EventType.SIGNIFICANT_LN
 										type = EventType.BEARISH;
 										desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
 										if (barToolTipSplit.length == 2) barTip = barToolTipSplit[1]; //bear:

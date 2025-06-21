@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -17,22 +18,25 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import com.finance.pms.MainPMScmd;
 import com.finance.pms.admin.install.logging.MyLogger;
 import com.finance.pms.datasources.shares.Currency;
 import com.finance.pms.datasources.shares.Stock;
 import com.finance.pms.events.EventInfo;
+import com.finance.pms.events.EventType;
 import com.finance.pms.events.EventsResources;
 import com.finance.pms.events.SymbolEvents;
 import com.finance.pms.events.calculation.DateFactory;
 import com.finance.pms.events.calculation.NotEnoughDataException;
-import com.finance.pms.events.calculation.util.MapUtils;
 import com.finance.pms.events.operations.conditional.EventInfoOpsCompoOperation;
 import com.finance.pms.events.quotations.NoQuotationsException;
 import com.finance.pms.events.quotations.QuotationDataType;
 import com.finance.pms.events.quotations.Quotations;
 import com.finance.pms.events.quotations.Quotations.ValidityFilter;
 import com.finance.pms.events.quotations.QuotationsFactories;
+import com.finance.pms.events.scoring.dto.PeriodRatingDTO;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
 public class ChartImageBuilder {
@@ -50,16 +54,34 @@ public class ChartImageBuilder {
     private Date startDate;
     private Date endDate;
 
-    public ChartImageBuilder(Stock stock, String analyseName, EventInfo eventInfo, Map<EventInfo, TuningResDTO> eventsPeriods, Map<EventInfo, SortedMap<Date, double[]>> calcOutputs) {
+    public ChartImageBuilder(Stock stock, String analyseName, EventInfo eventInfo,
+    		Date chartedStartDate, Map<EventInfo, TuningResDTO> eventsPeriods, Map<EventInfo, SortedMap<Date, double[]>> calcOutputs) {
         super();
         this.analyseName = analyseName;
         this.eventInfo = eventInfo;
         this.stock = stock;
-        this.eventsPeriods = eventsPeriods;
-
-        this.startDate = eventsPeriods.get(eventInfo).getPeriods().get(0).getFrom();
+        
+        this.startDate = chartedStartDate;
         this.endDate = DateFactory.midnithDate(new Date());
-        this.calcOutputs = calcOutputs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().tailMap(startDate)));
+        
+        this.eventsPeriods = eventsPeriods.entrySet().stream()
+			    .collect(Collectors.toMap(
+			        Map.Entry::getKey,
+			        entry -> {
+			            TuningResDTO dto = entry.getValue();
+						List<PeriodRatingDTO> filteredPeriods = dto.getPeriods().stream()
+			                .filter(period -> period.getFrom().after(this.startDate))
+			                .collect(Collectors.toList());
+			            return new TuningResDTO(
+			            		filteredPeriods, 
+			            		dto.getCsvLink(), dto.getChartLink(),
+			            		dto.getCalculationStartPrice(), dto.getCalculationEndPrice(), dto.getCalculatedStart(), dto.getCalculatedEnd());
+			        }
+			    ));
+//		if (chartedEventRes.isEmpty()) { eventsPeriods.get(eventInfo).getPeriods().get(0).getFrom();
+//			throw new NotEnoughDataException(stock, "No data at " + new SimpleDateFormat("dd MMM yyyy").format(this.startDate), null);
+//		}
+        this.calcOutputs = calcOutputs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().tailMap(this.startDate)));
     }
 
     public String build() throws NoQuotationsException, NotEnoughDataException {
@@ -106,7 +128,7 @@ public class ChartImageBuilder {
         Color blue = new Color(153, 204, 255);
         Color red = new Color(255,153,153);
         Color green = new Color(204,255,153);
-        Color grey = Color.darkGray;
+        Color grey = new Color(128, 128, 128, 192);
 
         ChartGenerator chartGenerator = new ChartGenerator("Premium Markets predictions V. targets");
 
@@ -124,12 +146,12 @@ public class ChartImageBuilder {
 
 							@Override
 							public DataSetBarDescr buildBuyDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-								return new DataSetBarDescr(2, "Prediction Bullish", blue);
+								return new DataSetBarDescr((1 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BULLISH.getChartPos(), "Prediction Bullish", blue);
 							}
 
 							@Override
 							public DataSetBarDescr buildSellDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-								return new DataSetBarDescr(1, "Prediction Bearish", violet);
+								return new DataSetBarDescr((1 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BEARISH.getChartPos(), "Prediction Bearish", violet);
 							}
 
 							@Override
@@ -155,12 +177,12 @@ public class ChartImageBuilder {
 
   							@Override
   							public DataSetBarDescr buildBuyDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-  								return new DataSetBarDescr(2, "Target Bullish", green);
+  								return new DataSetBarDescr((2 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BULLISH.getChartPos(), "Target Bullish", green);
   							}
 
   							@Override
   							public DataSetBarDescr buildSellDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-  								return new DataSetBarDescr(1, "Target Bearish", red);
+  								return new DataSetBarDescr((2 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BEARISH.getChartPos(), "Target Bearish", red);
   							}
 
   							@Override
@@ -174,13 +196,14 @@ public class ChartImageBuilder {
 		        ///Future grey period
 		        try {
 					Date futurePeriodStart = maxLastKey(barRefSeries);
-					Date futurePeriodEnd = maxLastKey(barPredSeries);
+					futurePeriodStart = DateUtils.addDays(futurePeriodStart, 1); //Add one day to the future period start
+					//Date futurePeriodEnd = maxLastKey(barPredSeries);
 					SortedMap<Date, BarChart> future = new TreeMap<Date,BarChart>();
-					SortedMap<Date, Double> futureSubMap = MapUtils.subMapInclusive(quotationMap, futurePeriodStart, futurePeriodEnd);
+					SortedMap<Date, Double> futureSubMap = quotationMap.tailMap(futurePeriodStart);
 					for (Date date : futureSubMap.keySet()) {
 					    future.put(date, new BarChart(quotationMap.get(date), ""));
 					}
-					barRefSeries.put(new DataSetBarDescr(3, "Future Predicted", grey), future);
+					barRefSeries.put(new DataSetBarDescr((3 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.NONE.getChartPos(), "Future Predicted", grey), future);
 				} catch (NotEnoughDataException e1) {
 					LOGGER.error("Error determining future period for chart", e1);
 				}
