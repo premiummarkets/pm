@@ -12,7 +12,7 @@ public class DataSetBarDescrBuilder {
 	
 	public DataSetBarDescr buildBuyDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
 		return new DataSetBarDescr(
-				serieIdx - EventType.SIGNIFICANT_LN + EventType.BULLISH.getChartPos(),
+				serieIdx, EventType.BULLISH,
 				eventInfo.info() + " buy", new java.awt.Color(0,255,100, alpha), 10f, 
 				selectedShare.getFriendlyName(),
 				eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO);
@@ -20,7 +20,7 @@ public class DataSetBarDescrBuilder {
 	
 	public DataSetBarDescr buildSellDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
 		return new DataSetBarDescr(
-				serieIdx - EventType.SIGNIFICANT_LN + EventType.BEARISH.getChartPos(), 
+				serieIdx, EventType.BEARISH, 
 				eventInfo.info() + " sell", new java.awt.Color(240,72,20, alpha), 10f, 
 				selectedShare.getFriendlyName(),
 				eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO);
@@ -28,7 +28,7 @@ public class DataSetBarDescrBuilder {
 	
 	public DataSetBarDescr buildIndeterDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
 		return new DataSetBarDescr(
-				serieIdx - EventType.SIGNIFICANT_LN + EventType.NONE.getChartPos(), 
+				serieIdx, EventType.NONE, 
 				eventInfo.info() + " indeterministic", new java.awt.Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), alpha), 10f,
 				selectedShare.getFriendlyName(),
 				eventInfo.getEventReadableDef(), eventInfo.getEventDefDescriptor(), tuningResDTO);

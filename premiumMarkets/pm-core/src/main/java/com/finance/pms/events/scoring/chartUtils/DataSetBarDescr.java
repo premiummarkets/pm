@@ -34,12 +34,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.finance.pms.events.EventType;
 import com.finance.pms.events.calculation.EventDefDescriptor;
 import com.finance.pms.events.scoring.dto.TuningResDTO;
 
 public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 
 	private Integer id;
+	private EventType eventType;
 	private String serieName;
 	private Color serieColor;
 	private float serieStrokeSize;
@@ -52,10 +54,11 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 	private EventDefDescriptor eventDefDescriptor;
 
 	//Ui bar chart
-	public DataSetBarDescr(Integer id, String serieName, Color serieColor, float serieStrokeSize,
-							String stockDescr, String eventDisplayeDef, EventDefDescriptor eventDefDescriptor, TuningResDTO tuningRes) {
+	public DataSetBarDescr(Integer id, EventType eventType, String serieName, Color serieColor, float serieStrokeSize,
+						   String stockDescr, String eventDisplayeDef, EventDefDescriptor eventDefDescriptor, TuningResDTO tuningRes) {
 		super();
-		this.id = id;
+		this.id = evtSeriesIdxToBarSeriesSubIdx(id, eventType);
+		this.eventType = eventType;
 		this.serieName = serieName;
 		this.serieColor = serieColor;
 		this.serieStrokeSize = serieStrokeSize;
@@ -65,13 +68,12 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		this.eventDisplayeDef = eventDisplayeDef;
 		this.eventDefDescriptor = eventDefDescriptor;
 
-
 	}
 
 	//PmGWT out chart
-	public DataSetBarDescr(int id, String serieName, Color serieColor) {
+	public DataSetBarDescr(int id,  EventType eventType, String serieName, Color serieColor) {
 		super();
-		this.id = id;
+		this.id = evtSeriesIdxToBarSeriesSubIdx(id, eventType);
 		this.serieName = serieName;
 		this.serieColor = serieColor;
 		this.serieStrokeSize = 1f;
@@ -106,6 +108,11 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+	
+	//It is assumed 3 possible event types per EventDef: NONE, BEARISH, BULLISH in this order
+	private int evtSeriesIdxToBarSeriesSubIdx(int evtIdx, EventType eventType) {
+		return (evtIdx * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + eventType.getChartPos();
 	}
 
 	public String getSerieName() {
@@ -189,6 +196,10 @@ public class DataSetBarDescr implements Comparable<DataSetBarDescr> {
 
 	public TuningResDTO getTuningRes() {
 		return tuningRes;
+	}
+
+	public EventType getEventType() {
+		return eventType;
 	}
 
 }

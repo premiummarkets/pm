@@ -457,36 +457,36 @@ public class ChartMain extends Chart {
 					final SimpleDateFormat df = new SimpleDateFormat("yyyy MM dd");
 					final NumberFormat pf = new DecimalFormat("#0.00%");
 					final NumberFormat nf = new DecimalFormat("#0.00");
-					for (final DataSetBarDescr serieDef : barSeries.keySet()) {
-						SortedMap<Date, BarChart> barSerie = barSeries.get(serieDef);
+					for (final DataSetBarDescr barSeriesDescr : barSeries.keySet()) {
+						SortedMap<Date, BarChart> barSerie = barSeries.get(barSeriesDescr);
 
-						TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(serieDef.getSerieName(), barSerie, lineSerie);
+						TimeSeries barDataSet = barChartDisplayStrategy.buildBarTimeSeries(barSeriesDescr.getSerieName(), barSerie, lineSerie);
 						barDataSets.addSeries(barDataSet);
 
 						//Annotation
-						if (serieDef.isLabeled()) {
+						if (barSeriesDescr.isLabeled()) {
 							RegularTimePeriod annTP = lineSerie.getTimePeriod(Math.min(lineSerie.getItemCount()-1, 5));
 							Double annV = maxBarValue * eventDefSerieIdx / barSeries.size();
-							String compoundPReal = pf.format(serieDef.getForecastProfit());
-							String compoundPUnReal = pf.format(serieDef.getForecastProfitUnReal());
+							String compoundPReal = pf.format(barSeriesDescr.getForecastProfit());
+							String compoundPUnReal = pf.format(barSeriesDescr.getForecastProfitUnReal());
 							//String reinvest = pf.format(serieDef.getForecastReinvest());
-							String priceChange = pf.format(serieDef.getStockPriceChange());
+							String priceChange = pf.format(barSeriesDescr.getStockPriceChange());
 							//avgROC, failureRatio, failureWeigh, successWeigh, minROC, maxROC, varianceOfROC
-							Map<String, Double> bullStats = serieDef.getBullStats();
-							Map<String, Double> bearStats = serieDef.getBearStats();
-							String annotationTxt = serieDef.getEventDisplayeDef() + 
+							Map<String, Double> bullStats = barSeriesDescr.getBullStats();
+							Map<String, Double> bearStats = barSeriesDescr.getBearStats();
+							String annotationTxt = barSeriesDescr.getEventDisplayeDef() + 
 									" ("
 									+ "r" + compoundPReal + " / ur" + compoundPUnReal + " V. b&h" + priceChange //+ " / ri"  + reinvest + " V. b&h" + priceChange
 									+ " / avg" + pf.format(bullStats.get("avgROC"))
 									+ " / flg" + pf.format(Math.log(Math.abs(bullStats.get("failureWeigh"))/bullStats.get("successWeigh")))
 									+ " / min" + pf.format(bullStats.get("minROC")) + " / max" + pf.format(bullStats.get("maxROC"))
 									+ ")";
-							Date[] dateRange = serieDef.getDateRange();
+							Date[] dateRange = barSeriesDescr.getDateRange();
 							//LOGGER.info("Indicator stats from " + dateRange[0] + " to " + dateRange[1] + ": " + annotationTxt);
 							XYTextAnnotation annotation = new XYTextAnnotation(annotationTxt, annTP.getFirstMillisecond(), annV);
 							annotation.setTextAnchor(TextAnchor.BASELINE_LEFT);
 							String annotationToolTip = "<html>" 
-								+ serieDef.getEventDisplayeDef() + "<br>"
+								+ barSeriesDescr.getEventDisplayeDef() + "<br>"
 								+ "Calc range: from " + df.format(dateRange[0]) + " to " + df.format(dateRange[1])  + "<br>"
 								+ "Compound: " + "r" + compoundPReal + " / ur" + compoundPUnReal + " V. b&h" + priceChange + "<br>" // + reinvest + "(ri) " + " V. " + priceChange + "(b&h)<br>"
 								
@@ -531,15 +531,15 @@ public class ChartMain extends Chart {
 									
 									barTip = barSerie.get(date).getToolTip();
 									String[] barToolTipSplit = barSerie.get(date).getToolTip().split("\n");
-									switch (serieDef.getId() % EventType.SIGNIFICANT_LN) {  //It is assumed 3 possible event types per EventDef: NONE, BEARISH, BULLISH in this order
-									case 0: //EventType.BULLISH.getChartPos() % EventType.SIGNIFICANT_LN
+									switch (barSeriesDescr.getEventType()) {
+									case BULLISH:
 										type = EventType.BULLISH;
-										desrc = serieDef.getEventDefDescriptor().getHtmlBullishDescription();
+										desrc = barSeriesDescr.getEventDefDescriptor().getHtmlBullishDescription();
 										if (barToolTipSplit.length == 2) barTip = barToolTipSplit[0]; //bull:
 										break;
-									case 2: //EventType.BEARISH.getChartPos() % EventType.SIGNIFICANT_LN
+									case BEARISH:
 										type = EventType.BEARISH;
-										desrc = serieDef.getEventDefDescriptor().getHtmlBearishDescription();
+										desrc = barSeriesDescr.getEventDefDescriptor().getHtmlBearishDescription();
 										if (barToolTipSplit.length == 2) barTip = barToolTipSplit[1]; //bear:
 										break;
 									default:
@@ -548,16 +548,16 @@ public class ChartMain extends Chart {
 									barTip = barTip.replace("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;");
 									
 									String profitTip = "";
-									if (serieDef.getTuningRes() != null) {
+									if (barSeriesDescr.getTuningRes() != null) {
 										try {
-											List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
+											List<PeriodRatingDTO> periods = barSeriesDescr.getTuningRes().getPeriods();
 											PeriodRatingDTO period = periods.stream().filter(p -> p.getFrom().equals(date)).findFirst().orElse(null);
 											if (period == null) {
 												profitTip = "";
 											} else {
-												double compoundReal = serieDef.getTuningRes().getForecastProfitAt(date);
-												double compoundUnReal = serieDef.getTuningRes().getForecastProfitAtUnReal(date);
-												double priceChange = serieDef.getTuningRes().getPriceChangeAtPeriodEnding(date);
+												double compoundReal = barSeriesDescr.getTuningRes().getForecastProfitAt(date);
+												double compoundUnReal = barSeriesDescr.getTuningRes().getForecastProfitAtUnReal(date);
+												double priceChange = barSeriesDescr.getTuningRes().getPriceChangeAtPeriodEnding(date);
 												profitTip = period.toToolTip() + " (cmpnd " + 
 														"r" + pf.format(compoundReal) + " / ur" + pf.format(compoundUnReal)  + 
 														" V. b&h" + pf.format(priceChange) 	+ " " + 
@@ -570,8 +570,8 @@ public class ChartMain extends Chart {
 									}
 
 									return "<html>" + "<font size='2'>" +
-									"<b>" + serieDef.getStockDescr() + "</b><br>" +
-									"<b>" + serieDef.getEventDisplayeDef() + "</b> on the " + x + "<br>" +
+									"<b>" + barSeriesDescr.getStockDescr() + "</b><br>" +
+									"<b>" + barSeriesDescr.getEventDisplayeDef() + "</b> on the " + x + "<br>" +
 									"Trend&nbsp;&nbsp;&nbsp;: " + type + "<br>" +
 									"Descr&nbsp;&nbsp;&nbsp;: " + desrc + "<br>" +
 									((profitTip.isEmpty())?"":"Ending Period&nbsp;&nbsp;&nbsp;: " + profitTip + "<br>") +
@@ -594,10 +594,10 @@ public class ChartMain extends Chart {
 						renderer.setSeriesItemLabelGenerator(eventDefSerieIdx, new XYItemLabelGenerator() {
 							@Override
 							public String generateLabel(XYDataset dataset, int series, int item) {
-								if (serieDef.getTuningRes() != null) {
+								if (barSeriesDescr.getTuningRes() != null) {
 									try {
 										Date date = new Date((long) dataset.getXValue(series, item));
-										List<PeriodRatingDTO> periods = serieDef.getTuningRes().getPeriods();
+										List<PeriodRatingDTO> periods = barSeriesDescr.getTuningRes().getPeriods();
 										PeriodRatingDTO period = periods.stream().filter(p -> p.getFrom().equals(date)).findFirst().orElse(null);
 										if (period == null) return "";
 										String note = period.validityTag()?"×":"°";
@@ -612,10 +612,10 @@ public class ChartMain extends Chart {
 						renderer.setSeriesItemLabelsVisible(eventDefSerieIdx, true);
 
 						//Bars
-						renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(serieDef.getSerieStrokeSize()));
-						renderer.setSeriesOutlinePaint(eventDefSerieIdx, serieDef.getSerieColor());
-						renderer.setSeriesPaint(eventDefSerieIdx, serieDef.getSerieColor());
-						renderer.setSeriesFillPaint(eventDefSerieIdx, serieDef.getSerieColor());
+						renderer.setSeriesStroke(eventDefSerieIdx, new BasicStroke(barSeriesDescr.getSerieStrokeSize()));
+						renderer.setSeriesOutlinePaint(eventDefSerieIdx, barSeriesDescr.getSerieColor());
+						renderer.setSeriesPaint(eventDefSerieIdx, barSeriesDescr.getSerieColor());
+						renderer.setSeriesFillPaint(eventDefSerieIdx, barSeriesDescr.getSerieColor());
 
 						eventDefSerieIdx++;
 

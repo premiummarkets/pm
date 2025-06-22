@@ -138,6 +138,7 @@ public class ChartImageBuilder {
 		BarSettings predBarSettings = new BarSettings();
 		predBarSettings.setIsZeroBased(true);
 		predBarSettings.setIsReachTop(true);
+		int predSeriesIdx = 1;
 		SortedMap<DataSetBarDescr, SortedMap<Date, BarChart>> barPredSeries = ChartBarUtils
 				.buildBarsData(
 						stock, Collections.singleton(eventInfo), startDate, endDate, 
@@ -146,12 +147,12 @@ public class ChartImageBuilder {
 
 							@Override
 							public DataSetBarDescr buildBuyDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-								return new DataSetBarDescr((1 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BULLISH.getChartPos(), "Prediction Bullish", blue);
+								return new DataSetBarDescr(predSeriesIdx, EventType.BULLISH, "Prediction Bullish", blue);
 							}
 
 							@Override
 							public DataSetBarDescr buildSellDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-								return new DataSetBarDescr((1 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BEARISH.getChartPos(), "Prediction Bearish", violet);
+								return new DataSetBarDescr(predSeriesIdx, EventType.BEARISH, "Prediction Bearish", violet);
 							}
 
 							@Override
@@ -169,6 +170,7 @@ public class ChartImageBuilder {
 	        SymbolEvents refs = EventsResources.getInstance().crudReadEventsForStock(stock, startDate, endDate, Collections.singleton(e), analyseName);
 			BarSettings refBarSettings = new BarSettings();
 			refBarSettings.setIsToQuotations(true);
+			int refSeriesIdx = 2;
 	  		barRefSeries.putAll(ChartBarUtils
   				.buildBarsData(
   						stock, Collections.singleton(e), startDate, endDate, 
@@ -177,12 +179,12 @@ public class ChartImageBuilder {
 
   							@Override
   							public DataSetBarDescr buildBuyDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-  								return new DataSetBarDescr((2 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BULLISH.getChartPos(), "Target Bullish", green);
+								return new DataSetBarDescr(refSeriesIdx, EventType.BULLISH, "Target Bullish", green);
   							}
 
   							@Override
   							public DataSetBarDescr buildSellDSBarDescr(Integer serieIdx, int alpha, EventInfo eventInfo, Stock selectedShare, TuningResDTO tuningResDTO) {
-  								return new DataSetBarDescr((2 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.BEARISH.getChartPos(), "Target Bearish", red);
+  								return new DataSetBarDescr(refSeriesIdx, EventType.BEARISH, "Target Bearish", red);
   							}
 
   							@Override
@@ -203,7 +205,8 @@ public class ChartImageBuilder {
 					for (Date date : futureSubMap.keySet()) {
 					    future.put(date, new BarChart(quotationMap.get(date), ""));
 					}
-					barRefSeries.put(new DataSetBarDescr((3 * EventType.SIGNIFICANT_LN) - EventType.SIGNIFICANT_LN + EventType.NONE.getChartPos(), "Future Predicted", grey), future);
+					int futureSeriesIdx = 3;
+					barRefSeries.put(new DataSetBarDescr(futureSeriesIdx, EventType.NONE, "Future Predicted", grey), future);
 				} catch (NotEnoughDataException e1) {
 					LOGGER.error("Error determining future period for chart", e1);
 				}

@@ -65,7 +65,7 @@ public class ChartBarUtils {
 
 		try {
 			int chartedTrendsEvtDefsSize = chartedEvtDefsTrends.size();
-			int serieIdx = chartedTrendsEvtDefsSize * EventType.SIGNIFICANT_LN; //It is assumed 3 possible event types per EventDef: NONE, BEARISH, BULLISH in this order
+			int serieIdx = chartedTrendsEvtDefsSize;
 
 			for (EventInfo eventInfo : chartedEvtDefsTrends) {
 
@@ -112,7 +112,7 @@ public class ChartBarUtils {
 					k = cheesyFillBarChart(selectedShare, yValueFactor, sellS, buyS, indeterS, quotationsKeySet, k, prevEventValue, end,  barSettings.getMaxFill());
 				}
 
-				int gradiant = (barSettings.getIsGradient()) ? serieIdx/EventType.SIGNIFICANT_LN : 1;
+				int gradiant = (barSettings.getIsGradient()) ? serieIdx : 1;
 				int alpha = 255 / Math.max(1,(int) Math.ceil(barSettings.getAlphaDividend()*gradiant));
 				TuningResDTO tuningResDTO = tuningRess.get(eventInfo);
 
@@ -136,7 +136,7 @@ public class ChartBarUtils {
 					yValueFactor = yValueFactor - (1d/chartedTrendsEvtDefsSize);
 				}
 
-				serieIdx = serieIdx - EventType.SIGNIFICANT_LN;
+				serieIdx = serieIdx - 1;
 			}
 
 		} catch (Exception e) {
