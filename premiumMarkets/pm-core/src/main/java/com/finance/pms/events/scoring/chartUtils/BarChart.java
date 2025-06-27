@@ -2,10 +2,10 @@ package com.finance.pms.events.scoring.chartUtils;
 
 public class BarChart {
 
-    Double value;
-    String toolTip;
+    private Double value;
+    private String toolTip;
 
-    public BarChart( Double value, String toolTip) {
+    public BarChart(Double value, String toolTip) {
         this.value = value;
         this.toolTip = toolTip;
     }

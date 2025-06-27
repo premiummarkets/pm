@@ -530,7 +530,7 @@ public class ChartMain extends Chart {
 									x = df.format(date);
 									
 									barTip = barSerie.get(date).getToolTip();
-									String[] barToolTipSplit = barSerie.get(date).getToolTip().split("\n");
+									String[] barToolTipSplit = barTip.split("\n");
 									switch (barSeriesDescr.getEventType()) {
 									case BULLISH:
 										type = EventType.BULLISH;

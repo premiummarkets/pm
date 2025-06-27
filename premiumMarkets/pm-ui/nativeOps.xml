@@ -412,7 +412,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>minIncreaseForSell</referenceAsOperand>
-                    <description>Min increase (or max decrease if negative) for the sell event to be valid</description>
+                    <description>Minimum increase (or max decrease if negative) for the sell event to be valid</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -423,7 +423,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>minDecreaseForBuy</referenceAsOperand>
-                    <description>Min decrease (or max increase if positive) for the buy event to be valid</description>
+                    <description>Minimum decrease (or max increase if positive) for the buy event to be valid</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -434,7 +434,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>realiseGain</referenceAsOperand>
-                    <description>Max profit % above which the sell is forced</description>
+                    <description>Profit % above (Maximum profit) which the sell is forced</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
@@ -445,10 +445,18 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>stopLoss</referenceAsOperand>
-                    <description>Min negative profit (Maximum loss) % below which the sell is forced</description>
+                    <description>Negative profit (Maximum loss) % below which the sell is forced</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>
+                    <operands/>
+                    <availableOutputSelectors/>
+                    <isVarArgs>false</isVarArgs>
+                </operand>
+                <operand xsi:type="doubleMapOperation">
+                    <reference>data</reference>
+                    <referenceAsOperand>reference</referenceAsOperand>
+                    <description>Quotations reference for profit calculation</description>
                     <operands/>
                     <availableOutputSelectors/>
                     <isVarArgs>false</isVarArgs>
@@ -660,7 +668,7 @@
                 <operand xsi:type="numberOperation">
                     <reference>number</reference>
                     <referenceAsOperand>stopLoss</referenceAsOperand>
-                    <description>Maximum loss (ie Min neg profit) % below which the sell is forced</description>
+                    <description>Maximum loss % below which the sell is forced</description>
                     <defaultValue xsi:type="numberValue">
                         <numberValue>NaN</numberValue>
                     </defaultValue>

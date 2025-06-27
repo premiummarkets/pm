@@ -41,7 +41,7 @@ public class ProfitWalkerOperation extends EventMapOperation {
 		this("gx_pwalker", "Operation walking through close generating event on realised profit.",
 						new NumberOperation("number","minDecreaseForBuy","Minimum decrease (-%) realised for the buy event to be valid", new NumberValue(Double.NaN)),
 						new NumberOperation("number","realiseGain","Maximum profit % above which the sell is forced", new NumberValue(Double.NaN)),
-						new NumberOperation("number","stopLoss","Maximum loss (ie Min neg profit) % below which the sell is forced", new NumberValue(Double.NaN)));
+						new NumberOperation("number","stopLoss","Maximum loss % below which the sell is forced", new NumberValue(Double.NaN)));
 	}
 	
 	@Override

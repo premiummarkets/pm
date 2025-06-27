@@ -73,7 +73,7 @@ public class EventValue implements Serializable {
 
 
 	public String toExport(Set<String> eventsList) {
-		DateFormat df = new SimpleDateFormat("yyy/MM/dd");
+		DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 		return df.format(date) + ";" + eventDef.getEventDefinitionRef() + ";" + eventType;
 	}
 
@@ -175,7 +175,5 @@ public class EventValue implements Serializable {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-	
-	
 
 }

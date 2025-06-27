@@ -107,6 +107,8 @@ public class OTFTuningFinalizer {
 			LOGGER.info("Quotations map for " + stock.getFriendlyName() + " ranges from " + mapFromQuotationsClose.firstKey() + " to " + mapFromQuotationsClose.lastKey() + " while requested from " + startDate + " to " + endDate);
 			
 			TuningResDTO buildTuningRes = buildTuningRes(stock, startDate, endDate, mapFromQuotationsClose, new ArrayList<>(eventsValues));
+			//if (LOGGER.isDebugEnabled()) 
+				LOGGER.info(export(buildTuningRes, evtDef));
 			
 			if (buildTuningRes.getPeriods().isEmpty()) {
 				LOGGER.warn(String.format("No buy/sell movement was triggered for %s, %s, %s : %s", stock, startDate, endDate, noResMsg));
@@ -258,17 +260,14 @@ public class OTFTuningFinalizer {
 		List<PeriodRatingDTO> periods = validPeriods(stock, startDate, endDate, mapFromQuotationsClose, eventListForEvtDef);
 		Date firstValidEventDate = (periods.isEmpty())?startDate:periods.get(0).getFrom();
 		TuningResDTO buildResOnValidPeriods = buildResOnValidPeriods(periods, mapFromQuotationsClose, stock, firstValidEventDate, endDate);
-		//if (LOGGER.isDebugEnabled()) 
-			LOGGER.info(export(buildResOnValidPeriods));
-
 		return buildResOnValidPeriods;
 	}
 
-	private String export(TuningResDTO buildResOnValidPeriods) {
-		String print = "No coumpound available. Empty results";
+	private String export(TuningResDTO buildResOnValidPeriods, EventInfo evtDef) {
+		String print = "No compound available. Empty results";
 		List<PeriodRatingDTO> periods = buildResOnValidPeriods.getPeriods();
 		if (!periods.isEmpty()) {
-			print = "\n\nFollow:\n";
+			print = "\n\nFollow " + evtDef + ":\n";
 			print = print + "from" + "," + "priceAtFrom" + "," + "to" + "," + "priceAtTo" + "," + "getPriceRateOfChange()" + "," + "trend" + "\n";
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			for (PeriodRatingDTO period : periods) {

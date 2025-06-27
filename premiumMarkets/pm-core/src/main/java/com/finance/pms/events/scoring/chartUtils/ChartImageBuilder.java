@@ -43,7 +43,7 @@ public class ChartImageBuilder {
     
     private static MyLogger LOGGER = MyLogger.getLogger(ChartImageBuilder.class);
 
-    private static final String NO_CHART_AVAILABLE = "noChartAvailable";
+    private static final String NO_CHART_AVAILABLE = "squeakyPig.png";
 
     private String analyseName;
     private EventInfo eventInfo;
@@ -84,7 +84,20 @@ public class ChartImageBuilder {
         this.calcOutputs = calcOutputs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().tailMap(this.startDate)));
     }
 
-    public String build() throws NoQuotationsException, NotEnoughDataException {
+	public String build() throws NotEnoughDataException, IOException, NoQuotationsException {
+
+		if (stock == null || stock.getSymbol() == null || stock.getSymbol().isEmpty()) {
+			throw new NotEnoughDataException(stock, "No stock symbol defined for " + eventInfo.getEventDefinitionRef(), new Exception());
+		}
+		if (eventInfo == null) {
+			throw new NotEnoughDataException(stock, "No event info defined for " + stock.getSymbol(), new Exception());
+		}
+		if (startDate == null) {
+			startDate = DateFactory.midnithDate(new Date());
+		}
+		if (endDate == null) {
+			endDate = DateFactory.midnithDate(new Date());
+		}
     	
     	LOGGER.info("Building chart for: " +
     			"outputs " + calcOutputs.keySet().stream().map(e -> e.getEventDefinitionRef()).reduce((a,e) -> a + ", " + e) + ", " +
@@ -111,12 +124,10 @@ public class ChartImageBuilder {
             					   ".png";
             generateOutChart(chartFileName, quotationMap);
             chartFile = chartFileName;
-        } catch (NotEnoughDataException e) {
+        } catch (NotEnoughDataException | IOException | NoQuotationsException e) {
             LOGGER.warn("Can't generate chart for " + stock.getSymbol(), e, true);
             chartFile = NO_CHART_AVAILABLE;
-        } catch (Exception e) {
-            LOGGER.error("Can't generate chart for " + stock.getSymbol(), e);
-            chartFile = NO_CHART_AVAILABLE;
+            throw e;
         }
 
         return chartFile;
@@ -199,7 +210,6 @@ public class ChartImageBuilder {
 		        try {
 					Date futurePeriodStart = maxLastKey(barRefSeries);
 					futurePeriodStart = DateUtils.addDays(futurePeriodStart, 1); //Add one day to the future period start
-					//Date futurePeriodEnd = maxLastKey(barPredSeries);
 					SortedMap<Date, BarChart> future = new TreeMap<Date,BarChart>();
 					SortedMap<Date, Double> futureSubMap = quotationMap.tailMap(futurePeriodStart);
 					for (Date date : futureSubMap.keySet()) {
